@@ -1,0 +1,70 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Add Entity</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/entity/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/entity/create" method="POST" class="form-default">
+        <h3>Entity Info</h3>
+        {% set name = 'name' %}
+        {% include 'parts/form-group-text.html' %}
+
+        {% set name = 'type' %}
+        {% set options = [{value:'bldg', text:'Building'}, {value:'pharma', text:'Pharmacy'}, {value:'prov', text:'Province'}, {value:'Others', text:'Others'}] %}
+        {% include 'parts/form-group-select.html' %}
+
+        <div class="form-row pt-3 pb-3">
+            <div class="col-md-12">
+                <button class="btn btn-primary">Add</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            name: '',
+            type: '',
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+            type: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

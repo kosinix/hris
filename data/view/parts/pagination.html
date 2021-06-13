@@ -1,0 +1,5 @@
+<div class="pages">
+    {% for p in pagination.pages %}
+    <a href="{{pagination.urlBase}}?{{pagination.query|query_string({page: p})}}" class="btn btn-sm {% if pagination.page == p %}btn-primary{%else%}btn-light{% endif %}">{{p}}</a>
+    {% endfor %}
+</div>

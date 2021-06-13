@@ -1,0 +1,111 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'parts/employee-header.html' %}
+    {% include 'parts/employee-profile-photo.html' %}
+    {% include 'parts/employee-tabs.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/employment/{{employee._id}}" method="POST" class="form-default">
+            
+            {% set name = 'campus' %}
+            {% set label = 'Campus *' %}
+            {% set options = [{value:'', text:''}, {value:'main', text:'Main'}, {value:'baterna', text:'Baterna'}, {value:'mosqueda', text:'Mosqueda'}] %}
+            {% include 'parts/form-group-select.html' %}
+            {% set label = '' %}
+
+            {% set name = 'position' %}
+            {% set label = 'Position *' %}
+            {% include 'parts/form-group-text.html' %}
+            {% set label = '' %}
+
+            {% set name = 'employmentType' %}
+            {% set label = 'Employment Type *' %}
+            {% set options = [{value:'', text:''}, {value:'permanent', text:'Permanent'}, {value:'cos', text:'Contract of Service'}, {value:'jo', text:'Job Order'}] %}
+            {% include 'parts/form-group-select.html' %}
+            {% set label = '' %}
+
+            {% set name = 'salary' %}
+            {% set label = 'Salary *' %}
+            {% include 'parts/form-group-text.html' %}
+            {% set label = '' %}
+
+            {% set name = 'salaryType' %}
+            {% set label = 'Salary Type *' %}
+            {% set options = [{value:'', text:''}, {value:'monthly', text:'Monthly'}, {value:'daily', text:'Daily'}] %}
+            {% include 'parts/form-group-select.html' %}
+            {% set label = '' %}
+
+            {% set name = 'department' %}
+            {% set label = 'Department' %}
+            {% include 'parts/form-group-text.html' %}
+            {% set label = '' %}
+
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">Save Info</button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+{# {% include "parts/modal-employment.html" %} #}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{# {% include "parts/script-employment.html" %} #}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            campus: '{{employee.employments[0].campus}}',
+            position: '{{employee.employments[0].position}}',
+            employmentType: '{{employee.employments[0].employmentType}}',
+            salary: '{{employee.employments[0].salary}}',
+            salaryType: '{{employee.employments[0].salaryType}}',
+            department: '{{employee.employments[0].department}}',
+        },
+        validations: {
+            campus: {
+                required: window.validators.required
+            },
+            position: {
+                required: window.validators.required
+            },
+            employmentType: {
+                required: window.validators.required
+            },
+            salary: {
+                required: window.validators.required,
+                isMoneyFormat: window.customValidators.isMoneyFormat('Not a valid money format.')
+            },
+            salaryType: {
+                required: window.validators.required,
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

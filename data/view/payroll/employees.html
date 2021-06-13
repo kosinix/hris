@@ -1,0 +1,200 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+
+    {% include 'parts/flash.html' %}
+    {% include 'parts/payroll-header.html' %}
+    {% include 'parts/payroll-tabs.html' %}
+
+    <div id="vApp" class="tab-content pt-3 pb-2 pl-3 pr-2">
+        {% if payroll.employees.length > 0 %}
+            {% if payroll.template === 'cos_staff' %}
+                {% include 'payroll/th-cos-staff.html' %}
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    {% set thId = 'name' %}
+                                    {% include 'parts/sorted-th.html' %}
+                                </th>
+                                <th>Position</th>
+                                <th>Daily/Monthly <br>Wage</th>
+                                <th>Rendered</th>
+                                {% for incentive in payroll.incentives %}
+                                    <th>{{incentive.name}}</th>
+                                {% endfor %}
+                                <th>Total w Incentives</th>
+                                <th>Total grant</th>
+                                
+                                {% for deduction in payroll.deductions %}
+                                    <th>{{deduction.name}}</th>
+                                {% endfor %}
+                                <th>Total Deductions</th>
+                                <th>Net Amount</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for employee in payroll.employees %}
+                            <tr>
+                                <td><a href="/payroll/{{payroll._id}}"><u>{{employee.lastName}}</u>, <u>{{employee.firstName}}</u> <u>{{employee.middleName|first}}</u></a></td>
+                                <td><a href="/payroll/{{payroll._id}}">{{employee.position}}</a></td>
+                                <td><a href="/payroll/{{payroll._id}}">{{employee.salary|currency}}</a></td>
+                                <td>
+                                {{employee.timeRecord.renderedDays}} days
+                                {{employee.timeRecord.renderedHours}} hrs
+                                {{employee.timeRecord.renderedMinutes}} mins
+                                </td>
+                                {% for incentive in employee.incentives %}
+                                    <td>{{incentive.amount|currency}}</td>
+                                {% endfor %}
+                                <td>{{employee.netAmountPostIncentives|currency}}</td>
+                                <td>{{employee.grantTotal|currency}}</td>
+
+                                {% for deduction in employee.deductions %}
+                                    <td>
+                                        {{deduction.amount|currency}}
+                                    </td>
+                                {% endfor %}
+                                <td>{{employee.totalDeductions|currency}}</td>
+                                <td>{{employee.netAmountPostDeductions|currency}}</td>
+
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div> 
+            {% endif %}
+        {% endif %}
+        <hr>
+        <form ref="form" v-cloak v-on:submit.prevent="onSubmit" action="/payroll/employees/{{payroll._id}}" method="POST" class="form-default pt-2">
+            <div class="form-group">
+                    <label for="employeeId">Add Employee <span class="text-danger">*</span></label>
+                    <div>
+                        <autocomplete v-model="employeeId"
+                            name="employeeId"
+                            initial-value="{{''}}"
+                            initial-display="{{''}}"
+                            placeholder="Type employee name..."
+                            :source="dataSource"
+                            input-class="form-control"
+                            :request-headers="headers"
+                            v-on:selected="onSelect"
+                            >
+                        </autocomplete>
+                        <small class="invalid-feedback">${getError('employeeId')}</small>
+                    </div>
+            </div>
+            <div class="form-row pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">Add Employee</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% include "parts/modal-employment.html" %}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
+<script src="{{app.url}}/js/vue-ph-address.js"></script>
+{% include "parts/script-employment.html" %}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            VuePhAddress.mixin
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        data: {
+            employeeId: '',
+            payroll: {{payroll|stringify|safe}}
+        },
+        validations: {
+            employeeId: {
+                required: window.validators.required
+            },
+        },
+        created: function() {
+            
+        },
+        methods: {
+            saveNow: function(value, d, employeeIndex, deductionIndex) {
+                var me = this;
+
+                d.vueReadOnly = true
+                d.vueDisabled = true
+                axios.post(`/payroll/{{payroll._id}}/ded`, {value: value}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
+                    console.log(response.data);
+                }).catch(function(error){
+                    alert("Something went wrong.");
+                }).then(function(){
+                    d.vueDisabled = false
+                });
+
+            },
+            updateAmount: function(){
+                var me = this;
+                var totalAmountPostIncentives = 0;
+                var totalAmountPostDeductions = 0;
+                for(x = 0; x < me.payroll.employees.length; x++){
+                    var employee = me.payroll.employees[x];
+                    var totalIncentives = 0;
+                    for(b = 0; b < employee.incentives.length; b++){
+                        var incentive = employee.incentives[b];
+                        totalIncentives += parseFloat(incentive.amount)
+                    }
+                    employee.totalIncentives = totalIncentives;
+                    employee.amountPostIncentives = employee.amountWorked - totalIncentives
+                    totalAmountPostIncentives += employee.amountPostIncentives
+
+                    var totalDeductions = 0;
+                    for(b = 0; b < employee.deductions.length; b++){
+                        var deduction = employee.deductions[b];
+                        totalDeductions += parseFloat(deduction.amount)
+                    }
+                    employee.totalDeductions = totalDeductions;
+                    employee.amountPostDeductions = employee.amountWorked - totalDeductions
+                    totalAmountPostDeductions += employee.amountPostDeductions
+
+                }
+                me.payroll.totalAmountPostIncentives = totalAmountPostIncentives
+                me.payroll.totalAmountPostDeductions = totalAmountPostDeductions
+
+            },
+            dataSource: function(input) {
+                return '/employee?s=' + input
+            },
+            showModal: function(field, label, value, employeeId){
+                vModalUpdate.field = field
+                vModalUpdate.label = label
+                vModalUpdate.value = value
+                vModalUpdate.employeeId = employeeId
+                vModalUpdate.formUrl = vModalUpdate.baseUrl
+                jQuery('#modal-update').modal('show');
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

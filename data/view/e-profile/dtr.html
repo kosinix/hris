@@ -1,0 +1,76 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Daily Time Record</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/e-profile/dtr" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <h3 class="mb-5">{{moment.now()|format_date('dddd - MMM DD, YYYY')}}</h3>
+
+    <div class="table-responsive">
+        <table class="table" style="max-width:400px">
+            <tr>
+                <th class="text-center" rowspan="2">Day</th>
+                <th class="text-center" colspan="2">AM</th>
+                <th class="text-center" colspan="2">PM</th>
+            </tr>
+            <tr>
+                <th>Arrival</th>
+                <th>Departure</th>
+                
+                <th>Arrival</th>
+                <th>Departure</th>
+            </tr>
+            <tr>
+                <td class="text-center">{{moment.now()|format_date('D')}}</td>
+                <td>{% if attendance.inAM %} {{attendance.inAM|format_date('hh:mm A')}} {% endif %}</td>
+                <td>{% if attendance.outAM %} {{attendance.outAM|format_date('hh:mm A')}} {% endif %}</td>
+                <td>{% if attendance.inPM %} {{attendance.inPM|format_date('hh:mm A')}} {% endif %}</td>
+                <td>{% if attendance.outPM %} {{attendance.outPM|format_date('hh:mm A')}} {% endif %}</td>
+            </tr>
+        </table>
+    </div>
+    <a href="/e-profile/dtr-qr" class="btn btn-primary">Scan QR Code To Log Attendance</a>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            name: '',
+            type: 1,
+        },
+        validations: {
+            
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

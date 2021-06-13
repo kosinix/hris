@@ -1,0 +1,17 @@
+<div class="form-group">
+    <label for="{{name}}">
+        {% if label %}
+            {{label}}
+        {% else %}
+            {{name|start_case}}
+        {% endif %}
+    </label>
+    <div>
+        <select name="{{name}}" id="{{name}}" v-model="{{name}}"class="form-control">
+            {% for option in options %}
+                <option value="{{option.value}}">{{option.text}}</option>
+            {% endfor %}
+        </select>
+        <small class="invalid-feedback">${getError('{{name}}')}</small>
+    </div>
+</div>

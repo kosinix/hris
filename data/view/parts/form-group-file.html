@@ -1,0 +1,7 @@
+<div class="form-group">
+    <label for="{{name}}">{{name|start_case}}</label>
+    <div>
+        <input name="{{name}}" id="{{name}}" ref="{{('file_'+name)|camel_case}}" type="file" class="form-control">
+        <small class="invalid-feedback">${getError('{{name}}')}</small>
+    </div>
+</div>

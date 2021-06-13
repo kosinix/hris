@@ -1,0 +1,60 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">All Payroll</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/payroll/create" class="btn btn-sm btn-outline-primary">Create Payroll</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    
+    {% if payrolls.length <= 0 %}
+        <p>None found. <a href="/payroll/create" class="btn btn-sm btn-outline-primary">Create Payroll</a></p>
+    {% else %}
+
+        <div class="d-flex justify-content-end">
+            <div class=" pb-3">
+                {% set url = '/payroll/all' %}
+                {% include 'parts/form-per-page.html' %}
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>
+                            {% set thId = 'name' %}
+                            {% include 'parts/sorted-th.html' %}
+                        </th>
+                        <th>#</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for payroll in payrolls %}
+                    <tr>
+                        <td><a href="/payroll/{{payroll._id}}">{{payroll.name}}</a></td>
+                        <td><a href="/payroll/{{payroll._id}}">{{payroll.employees.length}}</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="row">
+
+            <div class="col-md-6 text-center text-md-left">
+
+            </div>
+            <div class="col-md-6 text-center text-md-right">
+                {% include "parts/pagination.html" %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

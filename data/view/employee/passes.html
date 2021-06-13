@@ -1,0 +1,107 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'parts/employee-header.html' %}
+    {% include 'parts/employee-profile-photo.html' %}
+    {% include 'parts/employee-tabs.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/passes/{{person._id}}" method="POST" class="form-default">
+            <input type="hidden" name="type" value="outbound">
+            <h3>Outbound Pass</h3>
+            {% if person.passes.length <= 0 %}
+            <p>No passes found.</p>
+            {% else %}
+            <div class="table-responsive">
+                <table class="table table-striped table-sm">
+                    <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Issued</th>
+                        <th>Expires</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for pass in person.passes %}
+                    <tr>
+                        <td>{{pass.type}}</td>
+                        <td>{{pass.createdAt|from_now}} - <em>{{pass.createdAt|format_date('MMM DD, YYYY / hh:mm:ss A')}}</em></td>
+                        <td>{{pass.expiredAt|from_now}} - <em>{{pass.expiredAt|format_date('MMM DD, YYYY / hh:mm:ss A')}}</em></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="btn-toolbar mb-2 mb-md-0 pt-2">
+                <div class="btn-group ml-auto mr-auto">
+                    <a href="#" class="btn btn-sm btn-outline-primary">Back</a>
+                    <a href="#" class="btn btn-sm btn-outline-primary">Next</a>
+                </div>
+            </div>
+            {% endif %}
+            <div class="pt-2 pb-2">
+                <button class="btn btn-primary mb-1">Issue Outbound Pass</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            firstName: '{{person.firstName}}',
+            middleName: '{{person.middleName}}',
+            lastName: '{{person.lastName}}',
+            suffix: '{{person.suffix}}',
+            gender: '{{person.gender|default(true, "M")}}',
+            birthDate: '{{person.birthDate|format_date("YYYY-MM-DD")}}',
+            civilStatus: '{{person.civilStatus|default(true, "S")}}',
+        },
+        validations: {
+            firstName: {
+                required: window.validators.required
+            },
+            middleName: {
+                required: window.validators.required
+            },
+            lastName: {
+                required: window.validators.required
+            },
+            gender: {
+                required: window.validators.required
+            },
+            birthDate: {
+                required: window.validators.required
+            },
+            civilStatus: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

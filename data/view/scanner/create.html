@@ -1,0 +1,103 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Add</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/scanner/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/scanner/create/{{entity._id}}" method="POST" class="form-default">
+        <h3>Scanner Settings</h3>
+
+        {% set name = 'name' %}
+        {% set label = 'Name' %}
+        {% include 'parts/form-group-text.html' %}
+        {% set label = '' %}
+
+        {% set name = 'campus' %}
+        {% set label = 'Campus' %}
+        {% set options = [{value: '', text:''}, {value: 'main', text:'Main'}, {value: 'baterna', text:'Baterna'}, {value: 'mosqueda', text:'Mosqueda'}] %}
+        {% include 'parts/form-group-select.html' %}
+        {% set label = '' %}
+
+        <div class="form-group">
+                <label for="userId">Assign User <span class="text-danger">*</span></label>
+                <div>
+                    <autocomplete v-model="userId"
+                        name="userId"
+                        initial-value="{{''}}"
+                        initial-display="{{''}}"
+                        placeholder="Type user email..."
+                        :source="dataSource"
+                        input-class="form-control"
+                        :request-headers="headers"
+                        v-on:selected="onSelect"
+                        >
+                    </autocomplete>
+                    <small class="invalid-feedback">${getError('userId')}</small>
+                </div>
+        </div>
+        <div class="form-row pt-3 pb-3">
+            <div class="col-md-12">
+                <button class="btn btn-primary">Add</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vue-ph-address.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            VuePhAddress.mixin
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        data: {
+            name: '',
+            campus: 'main',
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+            campus: {
+                required: window.validators.required
+            },
+            userId: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            dataSource: function(input) {
+                return '/users?s=' + input
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

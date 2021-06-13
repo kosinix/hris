@@ -1,0 +1,22 @@
+{% extends "document-public.html" %}
+
+{% block body %}
+<div class="col-md-6 ml-auto mr-auto pt-5 mt-5">
+    <div id="vApp">
+        <div class="form-login" >
+
+            <div class="form-header">
+                <h1 class="h6 mb-0">Error</h1>
+            </div>
+            <div class="form-body text-center">
+               <div class="alert alert-danger">{{error}}</div>
+               <a href="/scanner/{{scanner.uid}}/scan" class="btn btn-lg btn-success">Back to Scanner</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+
+{% endblock %}

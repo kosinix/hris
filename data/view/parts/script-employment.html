@@ -1,0 +1,39 @@
+<script>
+    var vModalUpdate = new Vue({
+        el: '#modal-update',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        components: {
+        },
+        data: {
+            disabled: false,
+            baseUrl: "/payroll/employees/{{payroll._id}}",
+            formUrl: "/payroll/employees/{{payroll._id}}",
+            // fields
+            employeeId: "",
+            field: "",
+            value: "",
+            label: "",
+        },
+        validations: {
+            
+        },
+        methods: {
+            onSubmit: function () {
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert("Please correct the errors to continue...")
+                } else {
+                    me.$nextTick(function() {
+                        me.disabled = true;
+                        me.$refs.form.submit()
+                    });
+                }
+            },
+        }
+    });
+</script>

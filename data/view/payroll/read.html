@@ -1,0 +1,103 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    
+    {% include 'parts/flash.html' %}
+    {% include 'parts/payroll-header.html' %}
+
+    {% if payroll.employees.length > 0 %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>
+                        {% set thId = 'name' %}
+                        {% include 'parts/sorted-th.html' %}
+                    </th>
+                    <th>Basic</th>
+                    {% for incentive in payroll.incentives %}
+                        <th>{{incentive.name}}</th>
+                    {% endfor %}
+                    <th>Total w Incentives</th>
+                    
+                    {% for deduction in payroll.deductions %}
+                        <th>{{deduction.name}}</th>
+                    {% endfor %}
+                    <th>Total Deductions</th>
+                    <th>Net Amount</th>
+
+                </tr>
+            </thead>
+            <tbody>
+            {% for employee in payroll.employees %}
+                <tr>
+                    <td><a href="/payroll/{{payroll._id}}"><u>{{employee.lastName}}</u>, <u>{{employee.firstName}}</u> <u>{{employee.middleName|first}}</u></a></td>
+                    <td><a href="/payroll/{{payroll._id}}">{{employee.salary|currency}}</a></td>
+                    {% for incentive in employee.incentives %}
+                        <td>{{incentive.amount|currency}}</td>
+                    {% endfor %}
+                    <td>{{employee.netAmountPostIncentives|currency}}</td>
+
+                    {% for deduction in employee.deductions %}
+                        <td>{{deduction.amount|currency}}</td>
+                    {% endfor %}
+                    <td>{{employee.totalDeductions|currency}}</td>
+                    <td>{{employee.netAmountPostDeductions|currency}}</td>
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div> 
+    {% endif %}
+
+    {% include 'parts/payroll-tabs.html' %}
+
+
+    
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vue-ph-address.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            VuePhAddress.mixin
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        data: {
+            employeeId: '',
+        },
+        validations: {
+            employeeId: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            dataSource: function(input) {
+                return '/employee?s=' + input
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

@@ -1,0 +1,87 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'parts/resident-header.html' %}
+    {% include 'parts/resident-profile-photo.html' %}
+    {% include 'parts/resident-tabs.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/resident/address/{{person._id}}" method="POST" class="form-default">
+            <div class="form-group">
+                <label for="psgc">Address <span class="text-danger">*</span></label>
+                <div>
+                    <autocomplete v-model="psgc"
+                        name="psgc"
+                        initial-value="{{person.addressPsgc}}"
+                        initial-display="{{person.address}}"
+                        placeholder="Type your barangay and city/municipality..."
+                        :source="dataSource"
+                        input-class="form-control"
+                        :request-headers="headers"
+                        v-on:selected="onSelect"
+                        >
+                    </autocomplete>
+                    <small class="invalid-feedback">${getError('psgc')}</small>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="unit">House No. or Street No. or Purok</label>
+                <div>
+                    <input name="unit" id="unit" v-model="unit" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('unit')}</small>
+                </div>
+            </div>
+
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">Save Address</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vue-ph-address.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            VuePhAddress.mixin
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        data: {
+            psgc: '{{person.addressPsgc}}',
+            unit: '{{person.addressUnit}}',
+        },
+        validations: {
+            psgc: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

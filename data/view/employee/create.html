@@ -1,0 +1,119 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Add Employee</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/employee/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/create" method="POST" class="form-default">
+        <h3>Personal Info</h3>
+        {% set name = 'firstName' %}
+        {% include 'parts/form-group-text.html' %}
+
+        {% set name = 'middleName' %}
+        {% include 'parts/form-group-text.html' %}
+
+        {% set name = 'lastName' %}
+        {% include 'parts/form-group-text.html' %}
+
+        {% set name = 'suffix' %}
+        {% set options = [{value:'', text:''}, {value:'II', text:'II'}, {value:'III', text:'III'}, {value:'IV', text:'IV'}, {value:'Jr.', text:'Jr.'}, {value:'Sr.', text:'Sr.'}] %}
+        {% include 'parts/form-group-select.html' %}
+
+        {% set name = 'birthDate' %}
+        {% include 'parts/form-group-date.html' %}
+
+        {% set name = 'gender' %}
+        {% set options = [{value:'', text:''}, {value:'M', text:'Male'}, {value:'F', text:'Female'}, {value:'O', text:'Other'}] %}
+        {% include 'parts/form-group-select.html' %}
+
+        {% set name = 'civilStatus' %}
+        {% set options = [{value:'', text:''}, {value:'Single', text:'Single'}, {value:'Married', text:'Married'}, {value:'Separated', text:'Separated'}, {value:'Widowed', text:'Widowed'}] %}
+        {% include 'parts/form-group-select.html' %}
+
+        <div class="form-row pt-3 pb-3">
+            <div class="col-md-12">
+                <button class="btn btn-primary">Add Employee</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            firstName: '',
+            middleName: '',
+            lastName: '',
+            suffix: '',
+            gender: 'M',
+            civilStatus: 'Single',
+            birthDate: '',
+            // region1: '06',
+            // province1: '0679',
+            // cityMun1: '067901',
+            // brgyDistrict1: '',
+            // unit1: '',
+            // addressSame: false
+        },
+        validations: {
+            firstName: {
+                required: window.validators.required
+            },
+            middleName: {
+                required: window.validators.required
+            },
+            lastName: {
+                required: window.validators.required
+            },
+            gender: {
+                required: window.validators.required
+            },
+            civilStatus: {
+                required: window.validators.required
+            },
+            birthDate: {
+                required: window.validators.required
+            },
+            // region1: {
+            //     required: window.validators.required
+            // },
+            // cityMun1: {
+            //     required: window.validators.required
+            // },
+            // brgyDistrict1: {
+            //     required: window.validators.required
+            // },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

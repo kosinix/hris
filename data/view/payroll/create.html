@@ -1,0 +1,99 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Add Payroll</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/payroll/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/payroll/create" method="POST" class="form-default">
+
+        {% set name = 'name' %}
+        {% set label = 'Payroll Name *' %}
+        {% include 'parts/form-group-text.html' %}
+        {% set label = '' %}
+
+        <div class="form-group">
+            <label for="dateStart">Period *</label>
+            <div class="d-flex">
+                <div>
+                    <input name="dateStart" id="dateStart" v-model="dateStart" type="date" class="form-control">
+                    <small class="invalid-feedback">${getError('dateStart')}</small>
+                </div>
+                <div class="align-self-center pl-2 pr-2"> to </div>
+                <div>
+                    <input name="dateEnd" id="dateEnd" v-model="dateEnd" type="date" class="form-control">
+                    <small class="invalid-feedback">${getError('dateEnd')}</small>
+                </div>
+            </div>
+
+        </div>
+
+        {% set name = 'template' %}
+        {% set label = 'Template *' %}
+        {% set options = [{value:'', text:''}, {value:'permanent', text:'Permanent'}, {value:'cos_faculty', text:'COS Faculty'}, {value:'cos_staff', text:'COS Staff'}] %}
+        {% include 'parts/form-group-select.html' %}
+        {% set label = '' %}
+
+
+        <div class="form-row pt-3 pb-3">
+            <div class="col-md-12">
+                <button class="btn btn-primary">Create</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            name: '',
+            dateStart: '',
+            dateEnd: '',
+            template: '',
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+            dateStart: {
+                required: window.validators.required
+            },
+            dateEnd: {
+                required: window.validators.required
+            },
+            template: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

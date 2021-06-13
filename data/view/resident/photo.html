@@ -1,0 +1,56 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'parts/resident-header.html' %}
+
+    <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/resident/photo/{{person._id}}" method="POST" enctype="multipart/form-data" class="form-default">
+        {% if person.profilePhoto %}
+        <img src="{{person.profilePhoto|s3_url('medium')}}" alt="">
+        {% endif %}
+        
+        {% set name = 'photo' %}
+        {% include 'parts/form-group-file.html' %}
+
+        <div class="form-row pt-3 pb-3">
+            <div class="col-md-12">
+                <button class="btn btn-primary">Update Profile Photo</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vue-ph-address.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            photo: '',
+        },
+        validations: {
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

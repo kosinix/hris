@@ -1,0 +1,60 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/entity/{{entity._id}}" method="POST" class="form-default">
+            <h3>Scanner Name: {{scanner.name}} </h3>
+            <p>Scanner ID: {{scanner.uid}}</p>
+            <p>Scanner Password: [*password hidden for security*] - <a href="/scanner/{{scanner._id}}/code">Reset Password</a></p>
+            <p>Type: {% if scanner.type === 1 %}Entrance{% elif scanner.type === 2 %}Exit{% endif %}</p>
+            {% set name = 'name' %}
+            {% include 'parts/form-group-text.html' %}
+
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            name: '{{scanner.name}}',
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

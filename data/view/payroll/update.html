@@ -1,0 +1,86 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    
+    {% include 'parts/flash.html' %}
+    {% include 'parts/payroll-header.html' %}
+    {% include 'parts/payroll-tabs.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/payroll/update/{{payroll._id}}" method="POST" class="form-default">
+
+            {% set name = 'name' %}
+            {% set label = 'Payroll Name *' %}
+            {% include 'parts/form-group-text.html' %}
+            {% set label = '' %}
+
+            <div class="form-group">
+                <label for="dateStart">Period *</label>
+                <div class="d-flex">
+                    <div>
+                        <input name="dateStart" id="dateStart" v-model="dateStart" type="date" class="form-control">
+                        <small class="invalid-feedback">${getError('dateStart')}</small>
+                    </div>
+                    <div class="align-self-center pl-2 pr-2"> to </div>
+                    <div>
+                        <input name="dateEnd" id="dateEnd" v-model="dateEnd" type="date" class="form-control">
+                        <small class="invalid-feedback">${getError('dateEnd')}</small>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">Update</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            name: '{{payroll.name}}',
+            dateStart: '{{payroll.dateStart|format_date("YYYY-MM-DD")}}',
+            dateEnd: '{{payroll.dateEnd|format_date("YYYY-MM-DD")}}',
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+            dateStart: {
+                required: window.validators.required
+            },
+            dateEnd: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

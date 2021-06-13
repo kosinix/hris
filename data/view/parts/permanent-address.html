@@ -1,0 +1,34 @@
+<h3 class="form-design-title">Permanent Address</h3>
+<p>This is the address that appears in your legal documents.</p>
+<div class="form-group mb-4">
+    <label class="mr-2" for="region1">Region</label>
+    <select v-model="region1" name="region1" id="region1" class="form-control">
+        <option v-for="region in regions" v-bind:value="region.regCode">${region.regDesc}</option>
+    </select>
+    <small class="invalid-feedback">${getError('region1')}</small>
+</div>
+<div v-if="region1 != '13'" class="form-group mb-4">
+    <label class="mr-2" for="province1">Province</label>
+    <select v-model="province1" name="province1" id="province1" class="form-control">
+        <option v-for="province in provinces1" v-bind:value="province.provCode">${province.provDesc}</option>
+    </select>
+    <small class="invalid-feedback">${getError('region1')}</small>
+</div>
+<div class="form-group mb-4">
+    <label class="mr-2" for="cityMun1">City or Municipality</label>
+    <select v-model="cityMun1" name="cityMun1" id="cityMun1" class="form-control">
+        <option v-for="citiesMun in citiesMuns1" v-bind:value="citiesMun.citymunCode">${citiesMun.citymunDesc}</option>
+    </select>
+    <small class="invalid-feedback">${getError('cityMun1')}</small>
+</div>
+<div class="form-group mb-4">
+    <label class="mr-2" for="brgyDistrict1">Barangay/District Name</label>
+    <input v-model="brgyDistrict1" type="text" id="brgyDistrict1" name="brgyDistrict1" class="form-control">
+    <small class="invalid-feedback">${getError('brgyDistrict1')}</small>
+</div>
+
+<div class="form-group mb-4">
+    <label class="mr-2" for="unit1">House No. and/or Purok</label>
+    <input v-model="unit1" type="text" id="unit1" name="unit1" class="form-control">
+    <small class="invalid-feedback">${getError('unit1')}</small>
+</div>

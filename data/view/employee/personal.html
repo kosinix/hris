@@ -1,0 +1,102 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'parts/employee-header.html' %}
+    {% include 'parts/employee-profile-photo.html' %}
+    {% include 'parts/employee-tabs.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/personal/{{employee._id}}" method="POST" class="form-default">
+            <h3>Personal Information</h3>
+            {% set name = 'firstName' %}
+            {% include 'parts/form-group-text.html' %}
+
+            {% set name = 'middleName' %}
+            {% include 'parts/form-group-text.html' %}
+
+            {% set name = 'lastName' %}
+            {% include 'parts/form-group-text.html' %}
+
+            {% set name = 'suffix' %}
+            {% set options = [{value:'', text:''}, {value:'II', text:'II'}, {value:'III', text:'III'}, {value:'IV', text:'IV'}, {value:'Jr.', text:'Jr.'}, {value:'Sr.', text:'Sr.'}] %}
+            {% include 'parts/form-group-select.html' %}
+
+            {% set name = 'birthDate' %}
+            {% include 'parts/form-group-date.html' %}
+
+            {% set name = 'gender' %}
+            {% set options = [{value:'', text:''}, {value:'M', text:'Male'}, {value:'F', text:'Female'}, {value:'O', text:'Other'}] %}
+            {% include 'parts/form-group-select.html' %}
+
+            {% set name = 'civilStatus' %}
+            {% set options = [{value:'', text:''}, {value:'Single', text:'Single'}, {value:'Married', text:'Married'}, {value:'Separated', text:'Separated'}, {value:'Widowed', text:'Widowed'}] %}
+            {% include 'parts/form-group-select.html' %}
+
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">Save Info</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            firstName: '{{employee.firstName}}',
+            middleName: '{{employee.middleName}}',
+            lastName: '{{employee.lastName}}',
+            suffix: '{{employee.suffix}}',
+            gender: '{{employee.gender|default(true, "M")}}',
+            birthDate: '{{employee.birthDate|format_date("YYYY-MM-DD")}}',
+            civilStatus: '{{employee.civilStatus|default(true, "S")}}',
+        },
+        validations: {
+            firstName: {
+                required: window.validators.required
+            },
+            middleName: {
+                required: window.validators.required
+            },
+            lastName: {
+                required: window.validators.required
+            },
+            gender: {
+                required: window.validators.required
+            },
+            birthDate: {
+                required: window.validators.required
+            },
+            civilStatus: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

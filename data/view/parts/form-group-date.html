@@ -1,0 +1,7 @@
+<div class="form-group">
+    <label for="{{name}}">{{name|start_case}}</label>
+    <div>
+        <input name="{{name}}" id="{{name}}" v-model="{{name}}" type="date" class="form-control">
+        <small class="invalid-feedback">${getError('{{name}}')}</small>
+    </div>
+</div>

@@ -1,0 +1,28 @@
+<h3 class="form-design-title">Present Address</h3>
+<p>This is the place where you mostly stay. Example: Apartment in Iloilo City, boarding house, dormitory, etc.</p>
+<div class="form-group mb-4">
+    <label class="mr-2" for="region2">Region</label>
+    <select v-model="region2" name="region2" id="region2" class="form-control">
+        <option v-for="region in regions" v-bind:value="region.regCode">${region.regDesc}</option>
+    </select>
+    <small class="invalid-feedback">${getError('region2')}</small>
+</div>
+<div v-if="region2 != '13'" class="form-group mb-4">
+    <label class="mr-2" for="province2">Province</label>
+    <select v-model="province2" name="province2" id="province2" class="form-control">
+        <option v-for="province in provinces2" v-bind:value="province.provCode">${province.provDesc}</option>
+    </select>
+    <small class="invalid-feedback">${getError('region2')}</small>
+</div>
+<div class="form-group mb-4">
+    <label class="mr-2" for="cityMun2">City or Municipality</label>
+    <select v-model="cityMun2" name="cityMun2" id="cityMun2" class="form-control">
+        <option v-for="citiesMun in citiesMuns2" v-bind:value="citiesMun.citymunCode">${citiesMun.citymunDesc}</option>
+    </select>
+    <small class="invalid-feedback">${getError('cityMun2')}</small>
+</div>
+<div class="form-group mb-4">
+    <label class="mr-2" for="brgyDistrict2">Barangay/District Name</label>
+    <input v-model="brgyDistrict2" type="text" id="brgyDistrict2" name="brgyDistrict2" class="form-control">
+    <small class="invalid-feedback">${getError('brgyDistrict2')}</small>
+</div>

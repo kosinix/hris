@@ -1,0 +1,119 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'parts/resident-header.html' %}
+    {% include 'parts/resident-profile-photo.html' %}
+    {% include 'parts/resident-tabs.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/resident/personal/{{person._id}}" method="POST" class="form-default">
+            <h3>Sources of Income</h3>
+            {% if person.incomes.length <= 0 %}
+            <p>None found.</p>
+            {% else %}
+            <div class="table-responsive">
+                <table class="table table-striped table-sm">
+                    <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Sector</th>
+                        <th>Occupation</th>
+                        <th>Status</th>
+                        <th>Monthly Income</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for income in person.incomes %}
+                    <tr>
+                        <td>{{income.type}}</td>
+                        <td>{{income.employmentSector}}</td>
+                        <td>{{income.occupation}}</td>
+                        <td>{{income.employmentStatus}}</td>
+                        <td>{{income.estimatedMonthlyIncome|currency}}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+<!--            <div class="btn-toolbar mb-2 mb-md-0 pt-2">-->
+<!--                <div class="btn-group ml-auto mr-auto">-->
+<!--                    <a href="#" class="btn btn-sm btn-outline-primary">Back</a>-->
+<!--                    <a href="#" class="btn btn-sm btn-outline-primary">Next</a>-->
+<!--                </div>-->
+<!--            </div>-->
+            {% endif %}
+            <div class="pt-2 pb-2">
+                <a href="/resident/income/{{person._id}}/employment/add" v-on:click.prevent="showModal" class="btn btn-primary mb-1">Add Employment</a>
+                <a href="/resident/income/{{person._id}}/business/add" class="btn btn-primary mb-1">Add Business</a>
+                <a href="/resident/income/{{person._id}}/pension/add" class="btn btn-primary mb-1">Add Pension</a>
+                <a href="/resident/income/{{person._id}}/remittance/add" class="btn btn-primary mb-1">Add Remittance</a>
+                <a href="/resident/income/{{person._id}}/others/add" class="btn btn-primary mb-1">Others</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% include "parts/modal-employment.html" %}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{% include "parts/script-employment.html" %}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            firstName: '{{person.firstName}}',
+            middleName: '{{person.middleName}}',
+            lastName: '{{person.lastName}}',
+            suffix: '{{person.suffix}}',
+            gender: '{{person.gender|default(true, "M")}}',
+            birthDate: '{{person.birthDate|format_date("YYYY-MM-DD")}}',
+            civilStatus: '{{person.civilStatus|default(true, "S")}}',
+        },
+        validations: {
+            firstName: {
+                required: window.validators.required
+            },
+            middleName: {
+                required: window.validators.required
+            },
+            lastName: {
+                required: window.validators.required
+            },
+            gender: {
+                required: window.validators.required
+            },
+            birthDate: {
+                required: window.validators.required
+            },
+            civilStatus: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            showModal: function(label, field, files){
+                jQuery('#modal-employment').modal('show');
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

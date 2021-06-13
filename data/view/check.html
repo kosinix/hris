@@ -1,0 +1,112 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% set pageTitle = 'Find Resident' %}
+    {% include 'parts/header-main.html' %}
+    <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/resident/find" method="GET" class="form-default">
+        <input type="hidden" name="code" v-model="code">
+        <canvas id="canvas" style="width:100%; max-width:400px; min-height:300px; margin:0 auto; background:black" ></canvas>
+        {# <button v-on:click="onCapture">Scan QR Code</button> #}
+        <p>Point Camera on QR Code</p>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/jsQR.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            code: ''
+        },
+        validations: {
+
+        },
+        mounted: function(){
+            this.onCapture()
+        },
+        methods: {
+            onCapture: function() {
+                var me = this;
+                var video = document.createElement("video");
+                var canvasElement = document.getElementById("canvas");
+                var canvas = canvasElement.getContext("2d");
+
+                // Use facingMode: environment to attemt to get the front camera on phones
+                navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: 400,
+                        height: 300,
+                        facingMode: "environment"
+                    }
+                }).then(function (stream) {
+                    video.srcObject = stream;
+                    me.stream = stream
+                    video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
+                    video.play();
+                    requestAnimationFrame(tick);
+                }).catch(function (error) {
+                    alert(error)
+                })
+
+                function drawLine(begin, end, color) {
+                    canvas.beginPath();
+                    canvas.moveTo(begin.x, begin.y);
+                    canvas.lineTo(end.x, end.y);
+                    canvas.lineWidth = 4;
+                    canvas.strokeStyle = color;
+                    canvas.stroke();
+                }
+
+                var stopLoop = false;
+
+                function tick() {
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        canvasElement.hidden = false;
+                        canvasElement.height = video.videoHeight;
+                        canvasElement.width = video.videoWidth;
+                        canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                        var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                        var code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: "dontInvert",
+                        });
+                        if (code) {
+                            drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
+                            drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
+                            drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#ff3b58");
+                            drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
+                            stopLoop = true;
+                            me.code = code.data
+                            me.onSubmit()
+                        } else {
+                        }
+                    }
+                    if (!stopLoop) {
+                        requestAnimationFrame(tick);
+                    }
+                }
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

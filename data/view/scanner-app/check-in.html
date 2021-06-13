@@ -1,0 +1,72 @@
+{% extends "document-public.html" %}
+
+{% block body %}
+<div class="col-md-6 ml-auto mr-auto pt-5 mt-5">
+    <div id="vApp" v-cloak>
+        <div class="form-login">
+            <div class="form-header">
+                <h1 class="h6 mb-0">Scanner: {{authScanner.name}}</h1>
+            </div>
+            <div class="form-body text-center">
+                <div v-if="remaining > 0" class="h3 mb-4">
+                    <div v-if="!hideCancel" class="mb-4">Returning to scanner in ${remaining} seconds...</div>
+                    <button v-on:click.prevent="onCancel" v-if="!hideCancel" class="btn btn-danger" type="button">Cancel Return</button>
+                    <a v-if="hideCancel" class="btn btn-success" href="/scanner-app">Return to scanner</a>
+                </div>
+                {% if log.inside === true %}
+                <div class="alert alert-warning text-left">You have checked-in {{log.timeIn|from_now}} <br>Time-in: {{log.scanAt|format_date("hh:mm:ss A")}}.</div>
+                {% else %}
+                <div class="alert alert-success text-left">You have checked-out {{log.timeOut|from_now}} <br>Time-out: {{log.scanAt|format_date("hh:mm:ss A")}}</div>
+                {% endif %}
+                <div class="profile-photo">
+                    {% if employee.profilePhoto %}
+                    <img src="{{employee.profilePhoto|s3_url('medium')}}" alt="photo">
+                    {% else %}
+                    <span class="initials">{{employee.firstName|first}} {{employee.lastName|first}}</span>
+                    {% endif %}
+                </div>
+                <h1 class="h3 mb-5"><u>{{employee.firstName}}</u> <u>{{employee.lastName}}</u></h1>
+                <p class="text-left">Address: {{employee.address}}</p>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            code: '',
+            remaining: 5,
+            timer: null,
+            hideCancel: false
+        },
+        validations: {
+        },
+        mounted: function(){
+            var me = this;
+            me.timer = setInterval(function(){
+                me.remaining -= 1;
+                if (me.remaining <= 0) {
+                    clearInterval(me.timer)
+                    window.location.replace("/scanner-app");
+                }
+            },1000)
+        },
+        methods: {
+            onCancel: function(){
+                this.hideCancel = true;
+                clearInterval(this.timer)
+            },
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% set pageTitle = 'Reports' %}
+    {% include 'parts/header-main.html' %}
+
+    <div>
+        <div>
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/reports/person">Find Person</a>
+                </li>
+            </ul>
+        </div>
+        <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+            <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/reports/person" method="GET" class="form-default">
+                <div class="form-group">
+                    <label for="firstName">First Name</label>
+                    <div>
+                        <input name="firstName" id="firstName" v-model="firstName" type="text" class="form-control">
+                        <small class="invalid-feedback">${getError('firstName')}</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="middleName">Middle Name</label>
+                    <div>
+                        <input name="middleName" id="middleName" v-model="middleName" type="text" class="form-control">
+                        <small class="invalid-feedback">${getError('middleName')}</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">Last Name</label>
+                    <div>
+                        <input name="lastName" id="lastName" v-model="lastName" type="text" class="form-control">
+                        <small class="invalid-feedback">${getError('lastName')}</small>
+                    </div>
+                </div>
+
+
+                <ul>
+                    {% for log in logs %}
+                        <li>
+                            Person: {{log.person.firstName}} {{log.person.lastName}}
+                            <br>{{log.entity.name}} - {{log.entity.type}}
+                            <br>entered {{log.scannerIn.name}} {{log.enteredAt}}
+                            <br>exited {{log.scannerOut.name}} {{log.enteredAt}}
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <div class="form-row pt-3 pb-3">
+                    <div class="col-md-12">
+                        <button class="btn btn-primary">Search</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        components: {
+        },
+        data: {
+            firstName: '',
+            middleName: '',
+            lastName: '',
+        },
+        validations: {
+            firstName: {
+                required: window.validators.required
+            },
+            middleName: {
+                required: window.validators.required
+            },
+            lastName: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

@@ -1,0 +1,74 @@
+{
+  "app": {
+    "port": "9094",
+    "url": "http://localhost:9094",
+    "dir": "${APP_DIR}",
+    "dirs": {
+      "data": "${APP_DIR}/data",
+      "src": "${APP_DIR}/src",
+      "public": "${APP_DIR}/data/public",
+      "view": "${APP_DIR}/data/view",
+      "upload": "${APP_DIR}/data/upload"
+    }
+  },
+  "express": {
+    "trustProxy": false
+  },
+  "nunjucks": {
+    "loader": {
+      "watch": true,
+      "noCache": true
+    },
+    "environment": {
+      "autoescape": true,
+      "throwOnUndefined": false,
+      "trimBlocks": false,
+      "lstripBlocks": false
+    }
+  },
+  "session": {
+    "name": "gsc_hr_is_app_sid",
+    "store": {
+      "db": "sessions.db",
+      "dir": "${APP_DIR}/data"
+    },
+    "cookie": {
+      "httpOnly": false,
+      "maxAge": 31536000000,
+      "secure": false
+    }
+  },
+  "mongodb": {
+    "connections": {
+      "admin": {
+        "host": "127.0.0.1:27017",
+        "db": "admin"
+      },
+      "main": {
+        "host": "127.0.0.1:27017",
+        "db": "hrmo",
+        "options": {
+          "useCreateIndex": true,
+          "useNewUrlParser": true,
+          "useUnifiedTopology": true
+        }
+      }
+    }
+  },
+  "aws": {
+    "region": "ap-southeast-1",
+    "bucket1": {
+      "name": "ridsys-storage",
+      "url": "https://ridsys-storage.s3-ap-southeast-1.amazonaws.com/files-sandbox/",
+      "prefix": "files-sandbox"
+    }
+  },
+  "ipCheck": false,
+  "ip": {
+    "allowed": [
+      "::1"
+    ]
+  },
+  "minPasswordLength": 8,
+  "minSaltLength": 8
+}

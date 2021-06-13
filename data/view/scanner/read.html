@@ -1,0 +1,57 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+            <h3>Scanner Name: {{scanner.name}} </h3>
+            {# <p>Campus: {{scanner.campus|capitalize}}</p> #}
+            <p>Scanner ID: {{scanner.uid}}</p>
+            <p>Active: {{scanner.active|capitalize}}</p>
+            <p>Assigned To: {{scanner.user.email}}</p>
+            {# <p>Type: {% if scanner.type === 1 %}Entrance{% elif scanner.type === 2 %}Exit{% endif %}</p> #}
+
+            <ol>
+                <li>Login at <span class="text-success">{{CONFIG.app.url}}/login</span> using the checker account (with use_scanner permission). </li>
+                <li>Go to the scanner: <a href="{{CONFIG.app.url}}/scanner/{{scanner.uid}}/scan" class="text-success">{{CONFIG.app.url}}/scanner/{{scanner.uid}}/scan</a></li>
+            </ol>
+    </div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            name: '{{scanner.name}}',
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

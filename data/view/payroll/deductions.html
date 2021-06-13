@@ -1,0 +1,104 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    
+    {% include 'parts/flash.html' %}
+    {% include 'parts/payroll-header.html' %}
+    {% include 'parts/payroll-tabs.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        {% if payroll.deductions %}
+        <ul>
+            {% for payroll in payroll.deductions %}
+            <li>{{ payroll.name }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/payroll/deductions/{{payroll._id}}" method="POST" class="form-default">
+
+            {% set name = 'name' %}
+            {% set label = 'Name *' %}
+            {% include 'parts/form-group-text.html' %}
+            {% set label = '' %}
+
+            {% set name = 'deductionType' %}
+            {% set label = 'Type *' %}
+            {% set options = [{value:'', text:''}, {value:'normal', text:'Normal'}, {value:'percentage', text:'Percentage of Basic Salary'}] %}
+            {% include 'parts/form-group-select.html' %}
+            {% set label = '' %}
+            
+
+            <div v-if="deductionType==='percentage'">
+                
+                {% set name = 'percentage' %}
+                {% set label = 'Percentage *' %}
+                {% include 'parts/form-group-text.html' %}
+                {% set label = '' %}
+
+            </div>
+
+            <div v-if="deductionType==='normal'">
+                
+                {% set name = 'initialAmount' %}
+                {% set label = 'Initial Amount (Optional)' %}
+                {% include 'parts/form-group-text.html' %}
+                {% set label = '' %}
+
+            </div>
+            
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">Add Deductions</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            deductionType: '',
+            name: '',
+            percentage: '',
+            initialAmount: '',
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+            deductionType: {
+                required: window.validators.required
+            },
+            percentage: {
+                required: window.validators.requiredIf(function (nestedModel) {
+                    return this.deductionType === 'percentage';
+                })
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

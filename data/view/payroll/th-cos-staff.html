@@ -1,0 +1,83 @@
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Office Assigned</th>
+                <th>Daily Wage</th>
+                <th>No. of Days/Hrs/Mins <br>Rendered</th>
+                <th>Amount</th>
+                {% for deduction in payroll.deductions %}
+                    <th>{{deduction.name}}</th>
+                {% endfor %}
+                <th>Total Deductions</th>
+                <th>Net Amount Received</th>
+            </tr>
+        </thead>
+        <tbody>
+        <tr v-for="(employee, e) in payroll.employees">
+            <td><a v-bind:href="'/payroll/' + payroll._id"><u>${employee.lastName}</u>, <u>${employee.firstName}</u> <u>${employee.middleName}</u></a></td>
+            <td>${employee.position}</td>
+            <td>${employee.department}</td>
+            <td>${employee.salary}</td>
+            <td>
+                <div class="d-flex">
+                    <div>${employee.timeRecord.renderedDays} days</div>
+                    <div class="pl-2 pr-2">${employee.timeRecord.renderedHours} hrs</div>
+                    <div>${employee.timeRecord.renderedMinutes} mins</div>
+                </div>
+            </td>
+            <td>${employee.amountPostIncentives}</td>
+            <td v-for="(deduction, d) in employee.deductions">
+                <input class="form-control" v-model="deduction.amount" v-bind:disabled="deduction.vueDisabled" v-bind:readonly="deduction.vueReadOnly" v-on:click="deduction.vueReadOnly = false" v-on:blur="saveNow($event.target.value, deduction, e, d); updateAmount()" type="text">
+            </td>
+            <td>${employee.totalDeductions}</td>
+            <td>${employee.amountPostDeductions}</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>TOTAL</strong></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>${payroll.totalAmountPostIncentives}</td>
+            <td v-for="(deduction, index) in payroll.deductions"></td>
+            <td></td>
+            <td>${payroll.totalAmountPostDeductions}</td>
+        </tr>
+        {# {% for employee in payroll.employees %}
+            <tr>
+                <td><a href="/payroll/{{payroll._id}}"><u>{{employee.lastName}}</u>, <u>{{employee.firstName}}</u> <u>{{employee.middleName|first}}</u></a></td>
+                <td>{{employee.position}}</td>
+                <td>{{employee.department}}</td>
+                <td>{{employee.salary|currency}}</td>
+                <td>
+                    {{employee.timeRecord.renderedDays}} days
+                    {{employee.timeRecord.renderedHours}} hrs
+                    {{employee.timeRecord.renderedMinutes}} mins
+                </td>
+                <td>{{employee.amountPostIncentives|currency}}</td>
+                {% for deduction in employee.deductions %}
+                    <td>
+                        <a v-on:click.prevent="showModal('{{deduction.uid}}', '{{deduction.name}}', '{{deduction.amount}}', '{{employee._id}}')" href="#">{{deduction.amount|currency}}</a>
+                    </td>
+                {% endfor %}
+                <td>{{employee.totalDeductions|currency}}</td>
+                <td>{{employee.amountPostDeductions|currency}}</td>
+            </tr>
+        {% endfor %}
+        <tr>
+            <td colspan="2"><strong>TOTAL</strong></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>{{payroll.totalAmountPostIncentives}}</td>
+            {% for deduction in payroll.deductions %}
+                    <td></td>
+            {% endfor %}
+            <td></td>
+            <td>{{payroll.totalAmountPostDeductions}}</td>
+        </tr> #}
+        </tbody>
+    </table>
+</div> 

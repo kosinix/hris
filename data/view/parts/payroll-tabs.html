@@ -1,0 +1,16 @@
+<div>
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/payroll\/employees\/(.)+/])}}" href="/payroll/employees/{{payroll._id}}">Employees</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/payroll\/incentives\/(.)+/])}}" href="/payroll/incentives/{{payroll._id}}">Incentives</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/payroll\/deductions\/(.)+/])}}" href="/payroll/deductions/{{payroll._id}}">Deductions</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/payroll\/update\/(.)+/])}}" href="/payroll/update/{{payroll._id}}">Settings</a>
+        </li>
+    </ul>
+</div>

@@ -1,0 +1,103 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">{{entity.name}}</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/entity/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    <a class="btn btn-primary" href="/scanner/create/{{entity._id}}">Add Scanner</a>
+
+    {% set scanners = entity.scanners %}
+    {% if scanners.length <= 0 %}
+        
+    {% else %}
+        <div class="d-flex justify-content-end">
+            <div class=" pb-3">
+                {% include 'parts/form-per-page.html' %}
+            </div>
+        </div>
+        <div class="table-responsive">
+            <h2 class="h6">Access Points</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>
+                            {% set thId = 'name' %}
+                            {% include 'parts/sorted-th.html' %}
+                        </th>
+                        <th>
+                            {% set thId = 'type' %}
+                            {% include 'parts/sorted-th.html' %}
+                        </th>
+                        <th>
+                            {% set thId = 'uid' %}
+                            {% include 'parts/sorted-th.html' %}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for scanner in scanners %}
+                    <tr>
+                        <td><a href="/scanner/{{scanner._id}}">{{scanner.name}}</a></td>
+                        <td>{% if scanner.type === 1 %}Entrance{% elif scanner.type === 2 %}Exit{% endif %}</td>
+                        <td>{{scanner.uid}}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="row">
+            <div class="col-md-6 text-center text-md-left">
+            </div>
+            <div class="col-md-6 text-center text-md-right">
+                {% include "parts/pagination.html" %}
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            name: '{{entity.name}}',
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

@@ -1,0 +1,54 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <div class="pt-2">
+                {% include 'parts/btn-toggle.html' %}
+            </div>
+            <h1 class="h2 ml-2">Resident Applications</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/application/create" class="btn btn-sm btn-outline-primary">Add Application</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    {% if applications.length <= 0 %}
+        <p>None found.</p>
+    {% else %}
+        <h6>Showing {{applications.length}} of {{applications.length}}</h6>
+        <div class="table-responsive">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>Last Name</th>
+                        <th>First Name</th>
+                        <th>Age</th>
+                        <th>Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for application in applications %}
+                    <tr>
+                        <td><a href="/application/{{application._id}}">{{application.lastName}}</a></td>
+                        <td>{{application.firstName}} {{application.middleName|first}}</td>
+                        <td>{{application.birthDate|age}}</td>
+                        <td>{{application.address}}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0 pt-2">
+        <div class="btn-group ml-auto mr-auto">
+            <a href="#" class="btn btn-sm btn-outline-primary">Back</a>
+            <a href="#" class="btn btn-sm btn-outline-primary">Next</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

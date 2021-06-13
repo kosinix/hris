@@ -1,0 +1,136 @@
+<div class="sidebar">
+    <div class="d-flex p-3 align-items-center brand">
+        <div class="mr-2">
+            <a href="/">
+                <img height="28" width="28" src="/images/logo.png" alt="logo">
+            </a>
+        </div>
+        <h1>HR Information System</h1>
+        <div class="text-right col pr-0">
+            {% include 'parts/btn-toggle.html' %}
+        </div>
+    </div>
+    {% if user.roles.includes('employee') %}
+    <ul class="nav flex-column mb-2">
+        <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/(.)+/])}}" href="/e-profile/dtr">
+                <svg style="width:16px;height:16px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22 17V16.5C22 15.12 20.88 14 19.5 14S17 15.12 17 16.5V17C16.45 17 16 17.45 16 18V22C16 22.55 16.45 23 17 23H22C22.55 23 23 22.55 23 22V18C23 17.45 22.55 17 22 17M21 17H18V16.5C18 15.67 18.67 15 19.5 15S21 15.67 21 16.5V17M8 8C8 5.79 9.79 4 12 4S16 5.79 16 8 14.21 12 12 12 8 10.21 8 8M14 20H4V18C4 15.79 7.58 14 12 14C13.27 14 14.46 14.15 15.53 14.41C15.32 14.82 15.15 15.25 15.07 15.71C14.42 16.26 14 17.08 14 18V20Z" />
+                </svg>
+                My E-Profile
+            </a>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/dtr/])}}" href="/e-profile/dtr">
+                        DTR
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/payroll/])}}" href="/e-profile/payroll">
+                        Payroll
+                    </a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+    {% else %}
+    <ul class="nav flex-column mb-2">
+        <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/employee\/(.)+/])}}" href="/employee/all">
+                <svg style="width:16px;height:16px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,5.5A3.5,3.5 0 0,1 15.5,9A3.5,3.5 0 0,1 12,12.5A3.5,3.5 0 0,1 8.5,9A3.5,3.5 0 0,1 12,5.5M5,8C5.56,8 6.08,8.15 6.53,8.42C6.38,9.85 6.8,11.27 7.66,12.38C7.16,13.34 6.16,14 5,14A3,3 0 0,1 2,11A3,3 0 0,1 5,8M19,8A3,3 0 0,1 22,11A3,3 0 0,1 19,14C17.84,14 16.84,13.34 16.34,12.38C17.2,11.27 17.62,9.85 17.47,8.42C17.92,8.15 18.44,8 19,8M5.5,18.25C5.5,16.18 8.41,14.5 12,14.5C15.59,14.5 18.5,16.18 18.5,18.25V20H5.5V18.25M0,20V18.5C0,17.11 1.89,15.94 4.45,15.6C3.86,16.28 3.5,17.22 3.5,18.25V20H0M24,20H20.5V18.25C20.5,17.22 20.14,16.28 19.55,15.6C22.11,15.94 24,17.11 24,18.5V20Z" /></svg>
+                Employees
+            </a>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/employee\/all/])}}" href="/employee/all">
+                        All Employees
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/employee\/create/])}}" href="/employee/create">
+                        Add Employee
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/payroll\/(.)+/])}}" href="/payroll/all">
+                <svg style="width:16px;height:16px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M18,15H16V17H18M18,11H16V13H18M20,19H12V17H14V15H12V13H14V11H12V9H20M10,7H8V5H10M10,11H8V9H10M10,15H8V13H10M10,19H8V17H10M6,7H4V5H6M6,11H4V9H6M6,15H4V13H6M6,19H4V17H6M12,7V3H2V21H22V7H12Z" />
+                </svg>
+                Payroll
+            </a>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/payroll\/create/, r/^\/payroll\/([a-f\d]{24})/])}}" href="/payroll/create">
+                        Create
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/payroll\/all/, r/^\/payroll\/([a-f\d]{24})/])}}" href="/payroll/all">
+                        All Payroll
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/scanner\/all/, r/^\/scanner\//])}}" href="/scanner/all">
+                <svg style="width:16px;height:16px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
+                </svg>
+                Scanners
+            </a>
+            <ul class="nav flex-column">
+                
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/scanner\/create/, r/^\/entity\/([a-f\d]{24})/])}}" href="/scanner/create">
+                        Create
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/attendance\/all/, r/^\/attendance\//])}}" href="/scanner/all">
+                <svg style="width:16px;height:16px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
+                </svg>
+                Attendance
+            </a>
+            <ul class="nav flex-column">
+                
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/attendance\/all/, r/^\/attendance\/([a-f\d]{24})/])}}" href="/entity/all">
+                        All Attendance
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/attendance\/dtr/])}}" href="/attendance/dtr">
+                        DTR
+                    </a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+    
+    
+    
+    <ul class="nav flex-column mb-2">
+        <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/admin\/(.)+/])}}" href="/admin/all">
+                <svg style="width:16px;height:16px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22 17V16.5C22 15.12 20.88 14 19.5 14S17 15.12 17 16.5V17C16.45 17 16 17.45 16 18V22C16 22.55 16.45 23 17 23H22C22.55 23 23 22.55 23 22V18C23 17.45 22.55 17 22 17M21 17H18V16.5C18 15.67 18.67 15 19.5 15S21 15.67 21 16.5V17M8 8C8 5.79 9.79 4 12 4S16 5.79 16 8 14.21 12 12 12 8 10.21 8 8M14 20H4V18C4 15.79 7.58 14 12 14C13.27 14 14.46 14.15 15.53 14.41C15.32 14.82 15.15 15.25 15.07 15.71C14.42 16.26 14 17.08 14 18V20Z" />
+                </svg>
+                Access
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/reports\/(.)+/])}}" href="/reports/all">
+                <svg style="width:16px;height:16px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22 17V16.5C22 15.12 20.88 14 19.5 14S17 15.12 17 16.5V17C16.45 17 16 17.45 16 18V22C16 22.55 16.45 23 17 23H22C22.55 23 23 22.55 23 22V18C23 17.45 22.55 17 22 17M21 17H18V16.5C18 15.67 18.67 15 19.5 15S21 15.67 21 16.5V17M8 8C8 5.79 9.79 4 12 4S16 5.79 16 8 14.21 12 12 12 8 10.21 8 8M14 20H4V18C4 15.79 7.58 14 12 14C13.27 14 14.46 14.15 15.53 14.41C15.32 14.82 15.15 15.25 15.07 15.71C14.42 16.26 14 17.08 14 18V20Z" />
+                </svg>
+                Reports
+            </a>
+        </li>
+    </ul>
+    {% endif %}
+</div>

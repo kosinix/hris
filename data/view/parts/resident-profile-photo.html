@@ -1,0 +1,11 @@
+<div class="text-center mb-2">
+    <div class="profile-photo">
+        <a href="/resident/photo/{{person._id}}">
+        {% if person.profilePhoto %}
+            <img src="{{person.profilePhoto|s3_url('medium')}}" alt="photo">
+        {% else %}
+            <span class="initials">{{person.firstName|first}} {{person.lastName|first}}</span>
+        {% endif %}
+        </a>
+    </div>
+</div>

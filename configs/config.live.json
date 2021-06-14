@@ -1,6 +1,5 @@
 {
   "app": {
-    "port": "9094",
-    "url": "http://hris.codefleet.net"
+    "url": "https://hris.codefleet.net"
   }
 }

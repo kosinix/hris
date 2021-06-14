@@ -19,12 +19,10 @@ let router = express.Router()
 
 router.use('/e-profile', middlewares.requireAuthUser )
 
-router.get('/e-profile/all', middlewares.guardRoute(['use_employee_profile']), async (req, res, next) => {
+router.get('/e-profile/all', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
-        let employee = {
-            _id: '60b22ee0e846b00efc16941a',
-            uid: '371170237238',
-        }
+        let employee = res.employee.toObject()
+        
         let payroll = {
             startDate: '2021-06-01',
             endDate: '2021-06-30',
@@ -74,12 +72,9 @@ router.get('/e-profile/all', middlewares.guardRoute(['use_employee_profile']), a
     }
 });
 
-router.get('/e-profile/dtr', middlewares.guardRoute(['use_employee_profile']), async (req, res, next) => {
+router.get('/e-profile/dtr', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
-        let employee = {
-            _id: '60b22ee0e846b00efc16941a',
-            uid: '371170237238',
-        }
+        let employee = res.employee.toObject()
 
         // Today attendance
         let attendance = await db.main.Attendance.findOne({
@@ -107,12 +102,9 @@ router.get('/e-profile/dtr', middlewares.guardRoute(['use_employee_profile']), a
     }
 });
 
-router.get('/e-profile/dtr-qr', middlewares.guardRoute(['use_employee_profile']), async (req, res, next) => {
+router.get('/e-profile/dtr-qr', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
-        let employee = {
-            _id: '60b22ee0e846b00efc16941a',
-            uid: '371170237238',
-        }
+        let employee = res.employee.toObject()
 
         // Today attendance
         let attendance = await db.main.Attendance.findOne({

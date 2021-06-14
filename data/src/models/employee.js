@@ -146,6 +146,9 @@ const schema = new Schema({
             },
         }
     ],
+    userId: {
+        $type: mongoose.Schema.Types.ObjectId, // assoc. user account 
+    },
     custom: {}
 }, {timestamps: true, typeKey: '$type'})
 

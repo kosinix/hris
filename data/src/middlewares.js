@@ -279,5 +279,20 @@ module.exports = {
         } catch (err) {
             next(err)
         }
-    }
+    },
+    requireAssocEmployee: async (req, res, next) => {
+        try {
+            let employee = await db.main.Employee.findOne({
+                userId: res.user._id
+            })
+            if(!employee){
+                throw new Error('No employee associated with this user.')
+            }
+            res.employee = employee
+
+            next();
+        } catch (err) {
+            next(err)
+        }
+    },
 }

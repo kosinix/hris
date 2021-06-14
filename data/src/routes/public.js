@@ -55,7 +55,7 @@ router.post('/login', async (req, res, next) => {
         lodash.set(req, 'session.acsrf', antiCsrfToken);
 
         if(user.roles.includes('employee')){
-            return res.redirect('/e-profile')
+            return res.redirect('/e-profile/dtr')
         }
         return res.redirect('/');
     } catch (err) {

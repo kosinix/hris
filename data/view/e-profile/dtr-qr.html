@@ -4,7 +4,7 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h3">Daily Time Record</h1>
+            <h1 class="h3">E-DTR <em>({{momentNow|format_date('dddd - MMMM DD, YYYY')}})</em></h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
@@ -14,7 +14,7 @@
     </div>
     <div class="text-center">
         <h2>Attendance QR Code</h2>
-        <h3 class="mb-5">{{moment.now()|format_date('dddd - MMM DD, YYYY')}}</h3>
+        <h3 class="mb-5">{{momentNow|format_date('dddd - MMM DD, YYYY')}}</h3>
         <p class="mb-5">Place the code below in front of the scanner camera.</p>
         
         <div>{{qrCodeSvg|safe}}</div>

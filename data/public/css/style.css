@@ -301,6 +301,16 @@ h4, h5, h6 {
     display: inline-block;
 }
 
+.table-dtr tr.selected td{
+    background: #ecc5c5;
+}
+
+.table-dtr th,
+.table-dtr td {
+    padding: 2px 5px;
+}
+
+
 /* Nav */
 
 /* Breakpoints */

@@ -21,13 +21,23 @@
             </a>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/dtr/])}}" href="/e-profile/dtr">
-                        DTR
+                    <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/dtr$/])}}" href="/e-profile/dtr">
+                        E-DTR
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/dtr-qr$/])}}" href="/e-profile/dtr-qr">
+                        Scan QR
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/payroll/])}}" href="/e-profile/payroll">
-                        Payroll
+                        My Payslip
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/pds/])}}" href="/e-profile/pds">
+                        Personal Data Sheet
                     </a>
                 </li>
             </ul>

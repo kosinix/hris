@@ -81,6 +81,7 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
         lodash.set(patch, 'suffix', lodash.get(body, 'suffix'))
         lodash.set(patch, 'birthDate', lodash.get(body, 'birthDate'))
         lodash.set(patch, 'gender', lodash.get(body, 'gender'))
+        lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
         
         // TODO: Check duplicate
         let matches = await db.main.Employee.find({

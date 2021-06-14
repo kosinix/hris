@@ -1,5 +1,7 @@
 {
   "app": {
+    "title": "GSC - HR Information System",
+    "description": "Guimaras State College - Human Resource Information System",
     "port": "9094",
     "url": "http://localhost:9094",
     "dir": "${APP_DIR}",

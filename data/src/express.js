@@ -30,8 +30,8 @@ app.set('x-powered-by', false);
 // Assign view variables once - on app start
 app.use(function (req, res, next) {
     app.locals.app = {}
-    app.locals.app.title = PACKAGE_JSON.name;
-    app.locals.app.description = PACKAGE_JSON.description;
+    app.locals.app.title = CONFIG.app.title;
+    app.locals.app.description = CONFIG.description;
     app.locals.CONFIG = lodash.cloneDeep(CONFIG) // Config
     next();
 });
@@ -82,6 +82,26 @@ app.use(async (req, res, next) => {
 
         res.locals.hideNav = lodash.get(req, 'cookies.hideNav', 'true')
 
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
+//// Sane titles
+app.use(async (req, res, next) => {
+    try {
+        if (!res.locals.title && !req.xhr) {
+            let title = lodash.trim(req.originalUrl.split('/').join(' '));
+            title = lodash.trim(title.replace('-', ' '));
+            let words = lodash.map(title.split(' '), (word) => {
+                return lodash.capitalize(word);
+            })
+            title = words.join(' - ')
+            if (title) {
+                res.locals.title = `${title} | ${app.locals.app.title} `;
+            }
+        }
         next();
     } catch (error) {
         next(error);

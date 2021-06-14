@@ -1,7 +1,7 @@
 {
   "name": "hr-is-payroll",
   "version": "1.0.0",
-  "description": "",
+  "description": "HR-IS",
   "main": "index.js",
   "scripts": {
     "dev": "set NODE_ENV=dev&& nodemon index.js",

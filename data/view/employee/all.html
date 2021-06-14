@@ -36,13 +36,16 @@
                             {% include 'parts/sorted-th.html' %}
                         </th>
                         <th>
-                            {% set thId = 'gender' %}
-                            {% include 'parts/sorted-th.html' %}
+                            Department
                         </th>
                         <th>
-                            {% set thLabel = 'Age' %}
-                            {% set thId = 'birthDate' %}
-                            {% include 'parts/sorted-th.html' %}
+                            Employment Type
+                        </th>
+                        <th>
+                            Group
+                        </th>
+                        <th>
+                            Campus
                         </th>
                         <th>
                             {% set thLabel = 'Address' %}
@@ -56,8 +59,10 @@
                     <tr>
                         <td><a href="/employee/personal/{{employee._id}}">{{employee.lastName}}</a></td>
                         <td>{{employee.firstName}} {{employee.middleName|first}}</td>
-                        <td>{{employee.gender|capitalize}}</td>
-                        <td>{{employee.birthDate|age}}</td>
+                        <td>{{employee.employments[0].department}}</td>
+                        <td>{{employee.employments[0].employmentType}}</td>
+                        <td>{{employee.employments[0].group}}</td>
+                        <td>{{employee.employments[0].campus}}</td>
                         <td>{{employee.address}}</td>
                     </tr>
                 {% endfor %}

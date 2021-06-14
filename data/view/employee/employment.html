@@ -16,6 +16,12 @@
             {% include 'parts/form-group-select.html' %}
             {% set label = '' %}
 
+            {% set name = 'group' %}
+            {% set label = 'Group *' %}
+            {% set options = [{value:'', text:''}, {value:'staff', text:'Staff'}, {value:'faculty', text:'Faculty'}, {value:'other', text:'Others'}] %}
+            {% include 'parts/form-group-select.html' %}
+            {% set label = '' %}
+
             {% set name = 'position' %}
             {% set label = 'Position *' %}
             {% include 'parts/form-group-text.html' %}
@@ -23,7 +29,7 @@
 
             {% set name = 'employmentType' %}
             {% set label = 'Employment Type *' %}
-            {% set options = [{value:'', text:''}, {value:'permanent', text:'Permanent'}, {value:'cos', text:'Contract of Service'}, {value:'jo', text:'Job Order'}] %}
+            {% set options = [{value:'', text:''}, {value:'permanent', text:'Permanent'}, {value:'cos', text:'Contract of Service'}, {value:'jo', text:'Job Order'}, {value:'part-time', text:'Part-Time'}] %}
             {% include 'parts/form-group-select.html' %}
             {% set label = '' %}
 
@@ -68,6 +74,7 @@
         ],
         data: {
             campus: '{{employee.employments[0].campus}}',
+            group: '{{employee.employments[0].group}}',
             position: '{{employee.employments[0].position}}',
             employmentType: '{{employee.employments[0].employmentType}}',
             salary: '{{employee.employments[0].salary}}',
@@ -76,6 +83,9 @@
         },
         validations: {
             campus: {
+                required: window.validators.required
+            },
+            group: {
                 required: window.validators.required
             },
             position: {

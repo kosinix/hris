@@ -112,6 +112,10 @@ const schema = new Schema({
                 $type: String,
                 trim: true,
             },
+            group: {
+                $type: String,
+                trim: true,
+            },
             position: {
                 $type: String,
                 trim: true,

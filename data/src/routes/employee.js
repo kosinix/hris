@@ -155,6 +155,7 @@ router.post('/employee/employment/:employeeId', middlewares.guardRoute(['create_
         
         lodash.set(patch, 'employments.0._id', db.mongoose.Types.ObjectId())
         lodash.set(patch, 'employments.0.campus', lodash.get(body, 'campus'))
+        lodash.set(patch, 'employments.0.group', lodash.get(body, 'group'))
         lodash.set(patch, 'employments.0.position', lodash.get(body, 'position'))
         lodash.set(patch, 'employments.0.department', lodash.get(body, 'department'))
         lodash.set(patch, 'employments.0.employmentType', lodash.get(body, 'employmentType'))

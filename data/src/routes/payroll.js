@@ -261,13 +261,14 @@ router.get('/payroll/update/:payrollId', middlewares.guardRoute(['read_payroll',
 });
 router.post('/payroll/update/:payrollId', middlewares.guardRoute(['read_payroll', 'update_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
-        let payroll = res.employee
+        let payroll = res.payroll
 
         let body = req.body
         let patch = {}
         lodash.set(patch, 'name', lodash.get(body, 'name'))
         lodash.set(patch, 'dateStart', lodash.get(body, 'dateStart'))
         lodash.set(patch, 'dateEnd', lodash.get(body, 'dateEnd'))
+        lodash.set(patch, 'template', lodash.get(body, 'template'))
 
         lodash.merge(payroll, patch)
         await payroll.save()

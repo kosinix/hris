@@ -7,7 +7,7 @@
     {% include 'parts/payroll-header.html' %}
     {% include 'parts/payroll-tabs.html' %}
 
-    <div id="vApp" class="tab-content pt-3 pb-2 pl-3 pr-2">
+    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-2">
         {% if payroll.employees.length > 0 %}
             {% if payroll.template === 'cos_staff' %}
                 {% include 'payroll/th-cos-staff.html' %}

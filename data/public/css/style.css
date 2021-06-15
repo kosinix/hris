@@ -310,6 +310,37 @@ h4, h5, h6 {
     padding: 2px 5px;
 }
 
+/* Show/hide password field */
+.toggled-password-group {
+    display: flex;
+}
+.toggled-password-group input{
+    flex: 1;
+    border-radius: .25rem 0 0 .25rem;
+}
+.toggled-password-group button {
+    border-radius: 0 .25rem .25rem 0;
+    display: flex;
+    justify-content: center;
+    flex: 0;
+    border: 1px solid #ccc;
+    border-left: 0;
+}
+
+button.btn-eye svg:nth-child(1) {
+    fill:#444;
+}
+button.btn-eye svg:nth-child(2) {
+    display: none;
+    fill:#222;
+}
+button.btn-eye[data-state="text"] svg:nth-child(1) {
+    display: none;
+}
+button.btn-eye[data-state="text"] svg:nth-child(2) {
+    display: block;
+}
+
 
 /* Nav */
 

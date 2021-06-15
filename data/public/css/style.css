@@ -373,7 +373,9 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
 }
 /* ≥576px	Small */
 @media (max-width:576px){
-
+    .table-dtr {
+        font-size: 10px;
+    }
 }
 /* <576px Extra Small */
 @media (min-width:575px){

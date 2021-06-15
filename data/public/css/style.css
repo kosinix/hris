@@ -4,6 +4,9 @@ a {
 body {
     background: #F1F1F1;
 }
+body.body-public {
+    background: #FFF;
+}
 body, pre {
     color: #4b4b4b;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -341,7 +344,16 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     display: block;
 }
 
-
+.login-form {
+    background: #eeeeee;
+    background: -moz-linear-gradient(top,  #eeeeee 0%, #eeeeee 100%);
+    background: -webkit-linear-gradient(top,  #eeeeee 0%,#eeeeee 100%);
+    background: linear-gradient(to bottom,  #eeeeee 0%,#eeeeee 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#eeeeee',GradientType=0 );
+    box-shadow: 0 0 5px #222;
+    border-radius: 10px;
+    padding: 20px ;
+}
 /* Nav */
 
 /* Breakpoints */

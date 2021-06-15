@@ -68,7 +68,7 @@ let getCosStaff = async (payroll, workDays = 22) => {
             }
         }).lean()
         let minutes = getTotalAttendanceMinutes(attendances)
-        minutes = 3840
+        // minutes = 3840
         employee.attendances = attendances
         let hoursPerDay = 8
         let minutesPerDay = 60 * hoursPerDay
@@ -139,6 +139,7 @@ let getCosStaff = async (payroll, workDays = 22) => {
         totalAmountPostDeductions += employee.amountPostDeductions
 
         payroll.employees[x] = lodash.merge(employee, details)
+        
     }
     payroll.totalAmountPostIncentives = totalAmountPostIncentives
     payroll.totalAmountPostDeductions = totalAmountPostDeductions

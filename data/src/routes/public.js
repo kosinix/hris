@@ -57,6 +57,14 @@ router.post('/login', async (req, res, next) => {
         if(user.roles.includes('employee')){
             return res.redirect('/e-profile/dtr')
         }
+        if(user.roles.includes('checker')){
+            let scanner = await db.main.Scanner.findOne({
+                userId: user._id
+            })
+            if(scanner){
+                return res.redirect(`${CONFIG.app.url}/scanner/${scanner.uid}/scan`)
+            }
+        }
         return res.redirect('/');
     } catch (err) {
         flash.error(req, 'login', err.message);

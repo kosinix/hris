@@ -30,7 +30,7 @@
             </td>
             <td>${employee.amountPostIncentives}</td>
             <td v-for="(deduction, d) in employee.deductions">
-                <input class="form-control" v-model="deduction.amount" v-bind:disabled="deduction.vueDisabled" v-bind:readonly="deduction.vueReadOnly" v-on:click="deduction.vueReadOnly = false" v-on:blur="saveNow($event.target.value, deduction, e, d); updateAmount()" type="text">
+                <input style="min-width:50px" class="form-control" v-model="deduction.amount" v-bind:disabled="deduction.vueDisabled" v-bind:readonly="deduction.vueReadOnly" v-on:click="deduction.vueReadOnly = false" v-on:blur="saveNow($event.target.value, deduction, e, d); updateAmount()" type="text">
             </td>
             <td>${employee.totalDeductions}</td>
             <td>${employee.amountPostDeductions}</td>

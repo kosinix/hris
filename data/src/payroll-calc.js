@@ -20,28 +20,54 @@ let getPerMinuteRate = (monthlyRate, workDays = 22, hoursPerDay = 8) => {
     return monthlyRate / workDays / hoursPerDay / 60
 }
 
-// TODO: Grace period
-let getTotalAttendanceMinutes = (attendances) => {
+let getTotalAttendanceMinutes = (attendances, gracePeriod) => {
+    
+    gracePeriod = [
+        {
+            hour: 8, // 8:15 AM
+            minute: 15
+        },
+        {
+            hour: 13, // 1:15 PM
+            minute: 15
+        }
+    ]
+    let travelPoints = 480 // 480 minutes = 8 hours 
     let minutes = 0
     for (let a = 0; a < attendances.length; a++) {
-        let attendance = attendances[a]
+        let attendance = attendances[a] // daily
 
-        if (attendance.inAM) {
-            let momentInAM = moment(attendance.inAM)
-            if (attendance.outAM) {
-                let momentOutAM = moment(attendance.outAM)
-                minutes += Math.round(momentOutAM.diff(momentInAM) / 60000)
+        if(attendance.onTravel){
+            minutes += travelPoints
+        } else {
+            // roll logs 
+            let momentIn = null
+            for (let l = 0; l < attendance.logs.length; l++) {
+                let log = attendance.logs[l]
+                if(log.mode === 1) {
+                    momentIn = moment(log.dateTime)
+                    if(momentIn.format('A') === 'AM'){ // morning
+                        // TODO: Null checks
+                        let momentGrace = moment().hour(gracePeriod[0].hour).minutes(gracePeriod[0].minute)
+                        if(momentIn.isSameOrBefore(momentGrace)){
+                            momentIn = momentIn.hour(8).minute(0)
+                        }
+                    } else {
+                        // TODO: Null checks
+                        let momentGrace = moment().hour(gracePeriod[1].hour).minutes(gracePeriod[1].minute)
+                        if(momentIn.isSameOrBefore(momentGrace)){
+                            momentIn = momentIn.hour(13).minute(0)
+                        }
+                    }
+                } else if (log.mode === 0) {
+                    let momentOut = moment(log.dateTime)
+                    minutes += Math.round(momentOut.diff(momentIn) / 60000)
+                    console.log(momentIn, momentOut, minutes)
+                }
             }
         }
-        if (attendance.inPM) {
-            let momentInPM = moment(attendance.inPM)
-            if (attendance.outPM) {
-                let momentOutPM = moment(attendance.outPM)
-                minutes += Math.round(momentOutPM.diff(momentInPM) / 60000)
-            }
-        }
-
     }
+    console.log(minutes)
     return minutes
 }
 let getCosStaff = async (payroll, workDays = 22) => {
@@ -82,7 +108,7 @@ let getCosStaff = async (payroll, workDays = 22) => {
             renderedMinutes: minutes % 60
         }
 
-        
+
         if (employee.salaryType === 'monthly') {
             let perDay = employee.salary / workDays
             let perHour = perDay / 8
@@ -139,7 +165,7 @@ let getCosStaff = async (payroll, workDays = 22) => {
         totalAmountPostDeductions += employee.amountPostDeductions
 
         payroll.employees[x] = lodash.merge(employee, details)
-        
+
     }
     payroll.totalAmountPostIncentives = totalAmountPostIncentives
     payroll.totalAmountPostDeductions = totalAmountPostDeductions

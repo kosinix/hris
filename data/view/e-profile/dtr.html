@@ -53,10 +53,14 @@
                     {% set attendance = day.attendance %}
                     <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %}">
                         <td class="text-center">{{day.day}}</td>
-                        <td>{% if attendance.inAM %} {{attendance.inAM|format_date('hh:mm A')}} {% endif %}</td>
-                        <td>{% if attendance.outAM %} {{attendance.outAM|format_date('hh:mm A')}} {% endif %}</td>
-                        <td>{% if attendance.inPM %} {{attendance.inPM|format_date('hh:mm A')}} {% endif %}</td>
-                        <td>{% if attendance.outPM %} {{attendance.outPM|format_date('hh:mm A')}} {% endif %}</td>
+                        {% if attendance.onTravel %}
+                        <td colspan="4">On Travel</td>
+                        {% else %}
+                        <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        {% endif %}
                         <td></td>
                         <td></td>
                     </tr>

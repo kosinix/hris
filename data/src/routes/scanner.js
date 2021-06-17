@@ -126,7 +126,7 @@ router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']),
             scanner: scanner
         })
     } catch (err) {
-        res.render('scanner/error.html',{
+        res.render('scanner/error.html', {
             error: err.message,
             scanner: scanner,
         })
@@ -166,11 +166,11 @@ router.get('/scanner/:scannerUid/find', middlewares.guardRoute(['use_scanner']),
         })
         if (attendance && attendance.inAM && attendance.outAM && attendance.inPM && attendance.outPM) {
             throw new Error(`Attendance for "${employee.firstName} ${employee.lastName}" already completed for today. `)
-        } 
+        }
 
         return res.redirect(`/scanner/${scanner.uid}/verify?code=${code}`)
     } catch (err) {
-        res.render('scanner/error.html',{
+        res.render('scanner/error.html', {
             error: err.message,
             scanner: scanner,
         })
@@ -202,7 +202,7 @@ router.get('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner']
             employee: employee,
         })
     } catch (err) {
-        res.render('scanner/error.html',{
+        res.render('scanner/error.html', {
             error: err.message,
             scanner: scanner,
         })
@@ -236,24 +236,35 @@ router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner'
         if (!attendance) {
             attendance = new db.main.Attendance({
                 employeeId: employee._id,
-                scannerId: scanner._id,
-                inAM: moment().toDate(),
+                onTravel: false,
+                logs: [
+                    {
+                        scannerId: scanner._id,
+                        dateTime: moment().toDate(),
+                        mode: 1 // in
+                    }
+                ]
             })
         } else {
-            if (!attendance.outAM) {
-                attendance.outAM = new Date()
-            } else if (!attendance.inPM) {
-                attendance.inPM = new Date()
-            } else if (!attendance.outPM) {
-                attendance.outPM = new Date()
+            if (!attendance.logs.length) {
+                throw new Error('Bad attendance data.') // should have at least 1 log
             }
+            let lastLog = attendance.logs[attendance.logs.length - 1]
+            
+            let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0
+
+            attendance.logs.push({
+                scannerId: scanner._id,
+                dateTime: moment().toDate(),
+                mode: mode
+            })
         }
         await attendance.save()
         // return res.send(attendance)
 
         return res.redirect(`/scanner/${scanner.uid}/check-in?code=${code}`)
     } catch (err) {
-        res.render('scanner/error.html',{
+        res.render('scanner/error.html', {
             error: err.message,
             scanner: scanner,
         })
@@ -286,7 +297,7 @@ router.get('/scanner/:scannerUid/check-in', middlewares.guardRoute(['use_scanner
             employee: employee,
         })
     } catch (err) {
-        res.render('scanner/error.html',{
+        res.render('scanner/error.html', {
             error: err.message,
             scanner: scanner,
         })

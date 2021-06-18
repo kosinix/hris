@@ -20,7 +20,7 @@
             <td><a v-bind:href="'/payroll/' + payroll._id"><u>${employee.lastName}</u>, <u>${employee.firstName}</u> <u>${employee.middleName}</u></a></td>
             <td>${employee.position}</td>
             <td>${employee.department}</td>
-            <td>${employee.salary}</td>
+            <td>${currency(employee.salary)}</td>
             <td>
                 <div class="d-flex">
                     <div>${employee.timeRecord.renderedDays} days</div>
@@ -28,22 +28,22 @@
                     <div>${employee.timeRecord.renderedMinutes} mins</div>
                 </div>
             </td>
-            <td>${employee.amountPostIncentives}</td>
+            <td>${currency(employee.amountPostIncentives)}</td>
             <td v-for="(deduction, d) in employee.deductions">
                 <input style="min-width:50px" class="form-control" v-model="deduction.amount" v-bind:disabled="deduction.vueDisabled" v-bind:readonly="deduction.vueReadOnly" v-on:click="deduction.vueReadOnly = false" v-on:blur="saveNow($event.target.value, deduction, e, d); updateAmount()" type="text">
             </td>
-            <td>${employee.totalDeductions}</td>
-            <td>${employee.amountPostDeductions}</td>
+            <td>${currency(employee.totalDeductions)}</td>
+            <td>${currency(employee.amountPostDeductions)}</td>
         </tr>
         <tr>
             <td colspan="2"><strong>TOTAL</strong></td>
             <td></td>
             <td></td>
             <td></td>
-            <td>${payroll.totalAmountPostIncentives}</td>
+            <td>${currency(payroll.totalAmountPostIncentives)}</td>
             <td v-for="(deduction, index) in payroll.deductions"></td>
             <td></td>
-            <td>${payroll.totalAmountPostDeductions}</td>
+            <td>${currency(payroll.totalAmountPostDeductions)}</td>
         </tr>
         {# {% for employee in payroll.employees %}
             <tr>

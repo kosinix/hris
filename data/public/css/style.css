@@ -305,7 +305,10 @@ h4, h5, h6 {
 }
 
 .table-dtr tr.selected td{
-    background: #ecc5c5;
+    background: #a1f8b4;
+}
+.table-dtr tr.undertime td{
+    background: #f8a1a1;
 }
 
 .table-dtr th,

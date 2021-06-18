@@ -72,5 +72,10 @@
     ]
   },
   "minPasswordLength": 8,
-  "minSaltLength": 8
+  "minSaltLength": 8,
+  "workTime": {
+    "workDays": 22,
+    "hoursPerDay": 8,
+    "travelPoints": 480
+  }
 }

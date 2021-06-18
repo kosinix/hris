@@ -118,7 +118,7 @@ router.get('/payroll/employees/:payrollId', middlewares.guardRoute(['read_payrol
     try {
         let payroll = res.payroll.toObject()
 
-        payroll = await payrollCalc.getCosStaff(payroll)
+        payroll = await payrollCalc.getCosStaff(payroll, CONFIG.workTime.workDays, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 
         // return res.send(payroll)
         res.render('payroll/employees.html', {

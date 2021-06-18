@@ -8,6 +8,17 @@ const money = require("money-math")
 //// Modules
 const db = require('./db');
 
+let gracePeriod = [
+    {
+        hour: 8, // 8:15 AM
+        minute: 15
+    },
+    {
+        hour: 13, // 1:15 PM
+        minute: 15
+    }
+]
+
 let getDailyRate = (monthlyRate, workDays = 22) => {
     return monthlyRate / workDays
 }
@@ -20,57 +31,106 @@ let getPerMinuteRate = (monthlyRate, workDays = 22, hoursPerDay = 8) => {
     return monthlyRate / workDays / hoursPerDay / 60
 }
 
-let getTotalAttendanceMinutes = (attendances, gracePeriod) => {
-    
-    gracePeriod = [
-        {
-            hour: 8, // 8:15 AM
-            minute: 15
-        },
-        {
-            hour: 13, // 1:15 PM
-            minute: 15
+let calcRenderedTime = (minutes, hoursPerDay) => {
+    let momentWorkDuration = moment.duration(minutes, 'minutes')
+    let momentWorkHours = moment.duration(hoursPerDay, 'hours')
+    let renderedHours = momentWorkDuration.hours()
+    let renderedMinutes = momentWorkDuration.minutes()
+
+    let renderedDays = Math.floor(renderedHours / hoursPerDay)
+    renderedHours = renderedDays >= 1 ? (renderedHours % hoursPerDay) : renderedHours
+
+
+    let undertime = false
+    let underDays = 0
+    let underHours = 0
+    let underMinutes = 0
+
+    if(renderedDays <= 0){
+        undertime = true
+        underDays =  momentWorkHours.clone().subtract(momentWorkDuration).days()
+        underHours =  momentWorkHours.clone().subtract(momentWorkDuration).hours()
+        underMinutes = momentWorkHours.clone().subtract(momentWorkDuration).minutes()
+    }
+   
+    return {
+        totalMinutes: minutes,
+        renderedDays: Math.floor(renderedDays),
+        renderedHours: renderedHours,
+        renderedMinutes: renderedMinutes,
+        underDays: underDays,
+        underHours: underHours,
+        underMinutes: underMinutes,
+        undertime: undertime
+    }
+}
+
+let calcDailyAttendance = (attendance, hoursPerDay, travelPoints) => {
+    // travelPoints 480 minutes = 8 hours 
+    if (null === attendance) return null
+
+    // Daily minutes
+    let minutes = 0
+    if (attendance.onTravel) {
+        minutes += travelPoints
+    } else {
+        // roll logs 
+        let momentIn = null
+        for (let l = 0; l < attendance.logs.length; l++) {
+            let log = attendance.logs[l]
+            if (log.mode === 1) {
+                momentIn = moment(log.dateTime)
+
+                // Grace period
+                if (momentIn.format('A') === 'AM') { // morning
+                    // TODO: Null checks
+                    let gracePeriodHour = gracePeriod[0].hour
+                    let gracePeriodMinute = gracePeriod[0].minute
+                    if(momentIn.hours() <= gracePeriodHour && momentIn.minutes() <= gracePeriodMinute) {
+                        momentIn = momentIn.hour(gracePeriodHour).minute(0)
+                    }
+                } else {
+                    // TODO: Null checks
+                    let gracePeriodHour = gracePeriod[1].hour
+                    let gracePeriodMinute = gracePeriod[1].minute
+                    if(momentIn.hours() <= gracePeriodHour && momentIn.minutes() <= gracePeriodMinute) {
+                        momentIn = momentIn.hour(gracePeriodHour).minute(0)
+                    }
+                }
+            } else if (log.mode === 0) {
+                let momentOut = moment(log.dateTime)
+                minutes += Math.round(momentOut.diff(momentIn) / 60000)
+                console.log(momentIn, momentOut, minutes)
+            }
         }
-    ]
-    let travelPoints = 480 // 480 minutes = 8 hours 
+    }
+
+    if(minutes > 60 * hoursPerDay) {
+        minutes = 60 * hoursPerDay
+    }
+    return calcRenderedTime(minutes, hoursPerDay)
+}
+
+let getTotalAttendanceMinutes = (attendances) => {
     let minutes = 0
     for (let a = 0; a < attendances.length; a++) {
         let attendance = attendances[a] // daily
 
-        if(attendance.onTravel){
-            minutes += travelPoints
-        } else {
-            // roll logs 
-            let momentIn = null
-            for (let l = 0; l < attendance.logs.length; l++) {
-                let log = attendance.logs[l]
-                if(log.mode === 1) {
-                    momentIn = moment(log.dateTime)
-                    if(momentIn.format('A') === 'AM'){ // morning
-                        // TODO: Null checks
-                        let momentGrace = moment().hour(gracePeriod[0].hour).minutes(gracePeriod[0].minute)
-                        if(momentIn.isSameOrBefore(momentGrace)){
-                            momentIn = momentIn.hour(8).minute(0)
-                        }
-                    } else {
-                        // TODO: Null checks
-                        let momentGrace = moment().hour(gracePeriod[1].hour).minutes(gracePeriod[1].minute)
-                        if(momentIn.isSameOrBefore(momentGrace)){
-                            momentIn = momentIn.hour(13).minute(0)
-                        }
-                    }
-                } else if (log.mode === 0) {
-                    let momentOut = moment(log.dateTime)
-                    minutes += Math.round(momentOut.diff(momentIn) / 60000)
-                    console.log(momentIn, momentOut, minutes)
-                }
-            }
-        }
+        minutes += attendance.dtr.totalMinutes || 0
     }
-    console.log(minutes)
     return minutes
 }
-let getCosStaff = async (payroll, workDays = 22) => {
+
+let addDtr = (attendances, hoursPerDay, travelPoints) => {
+    for (let a = 0; a < attendances.length; a++) {
+        let attendance = attendances[a] // daily
+        let dtr = calcDailyAttendance(attendance, hoursPerDay, travelPoints)
+        attendances[a].dtr = dtr
+    }
+    return attendances
+}
+
+let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) => {
 
     let totalAmountPostIncentives = 0
     let totalAmountPostDeductions = 0
@@ -93,20 +153,14 @@ let getCosStaff = async (payroll, workDays = 22) => {
                 $lt: moment(payroll.dateEnd).endOf('day').toDate(),
             }
         }).lean()
+        // add computed values
+        attendances = addDtr(attendances, hoursPerDay, travelPoints)
+
         let minutes = getTotalAttendanceMinutes(attendances)
         // minutes = 3840
+        console.log(minutes)
         employee.attendances = attendances
-        let hoursPerDay = 8
-        let minutesPerDay = 60 * hoursPerDay
-        let renderedDays = minutes / minutesPerDay
-
-        employee.timeRecord = {
-            totalMinutes: minutes,
-            daysReported: attendances.length,
-            renderedDays: Math.floor(renderedDays),
-            renderedHours: Math.floor((renderedDays - Math.floor(renderedDays)) * hoursPerDay),
-            renderedMinutes: minutes % 60
-        }
+        employee.timeRecord = calcRenderedTime(minutes, hoursPerDay)
 
 
         if (employee.salaryType === 'monthly') {
@@ -176,6 +230,7 @@ let getCosStaff = async (payroll, workDays = 22) => {
 
 
 module.exports = {
+    calcDailyAttendance: calcDailyAttendance,
     getCosStaff: getCosStaff,
     getDailyRate: getDailyRate,
     getHourlyRate: getHourlyRate

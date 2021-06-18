@@ -10,8 +10,7 @@ const qr = require('qr-image')
 //// Modules
 const db = require('../db');
 const middlewares = require('../middlewares');
-const paginator = require('../paginator');
-const passwordMan = require('../password-man');
+const payrollCalc = require('../payroll-calc');
 
 
 // Router
@@ -93,12 +92,16 @@ router.get('/e-profile/dtr', middlewares.guardRoute(['use_employee_profile']), m
         let year = momentNow.format('YYYY')
         let month = momentNow.format('MM')
         days = days.fill(1).map((v, i) => {
+            let attendance = attendances[`${year}-${month}-${String(v+i).padStart(2,'0')}`] || null
+            let dtr = payrollCalc.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
+            
             return {
                 date: `${year}-${month}-${String(v+i).padStart(2,'0')}`,
                 year: year,
                 month: month,
                 day: v + i,
-                attendance: attendances[`${year}-${month}-${String(v+i).padStart(2,'0')}`] || null
+                dtr: dtr,
+                attendance: attendance
             }
         })
         res.render('e-profile/dtr.html', {
@@ -197,7 +200,6 @@ router.post('/attendance/dtr', middlewares.guardRoute(['create_scanner']), async
         // await scanner.save()
 
         // flash.ok(req, 'entity', `Added ${scanner.name}. ID is "${scanner.uid}" and password is "${password}". You will only see your password once so please save it in a secure place.`)
-        console.log(body)
         res.redirect(`/attendance/dtr`)
     } catch (err) {
         next(err);
@@ -219,11 +221,6 @@ router.get('/attendance/dtr/confirm', middlewares.guardRoute(['create_scanner'])
                 $lt: moment().endOf('day').toDate(),
             }
         })
-
-        console.log(attendance)
-        if (attendance) {
-            console.log(moment(attendance.inAM).format('dddd - MMM DD, YYYY hh:mm:ss A'))
-        }
 
         let qrCodeSvg = qr.imageSync(employee.uid, { size: 6, type: 'svg' })
 
@@ -306,7 +303,6 @@ router.post('/attendance/dtr/confirm', middlewares.guardRoute(['create_scanner']
         // await scanner.save()
 
         // flash.ok(req, 'entity', `Added ${scanner.name}. ID is "${scanner.uid}" and password is "${password}". You will only see your password once so please save it in a secure place.`)
-        console.log(body)
         res.redirect(`/attendance/dtr`)
     } catch (err) {
         next(err);

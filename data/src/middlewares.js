@@ -188,14 +188,14 @@ module.exports = {
             next(err);
         }
     },
-    getEntity: async (req, res, next) => {
+    getGroup: async (req, res, next) => {
         try {
-            let entityId = req.params.entityId || ''
-            let entity = await db.main.Entity.findById(entityId);
-            if (!entity) {
-                return res.render('error.html', { error: "Sorry, entity not found." })
+            let groupId = req.params.groupId || ''
+            let group = await db.main.Group.findById(groupId);
+            if (!group) {
+                return res.render('error.html', { error: "Sorry, group not found." })
             }
-            res.entity = entity
+            res.group = group
             next();
         } catch (err) {
             next(err);

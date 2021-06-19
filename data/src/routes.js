@@ -11,11 +11,11 @@ router.use(require('./routes/public'));
 router.use(require('./routes/protected'));
 router.use(require('./routes/e-profile'));
 router.use(require('./routes/employee'));
+router.use(require('./routes/group'));
 router.use(require('./routes/payroll'));
 // router.use(require('./routes/admin'));
 router.use(require('./routes/attendance'));
 router.use(require('./routes/application'));
-router.use(require('./routes/entity'));
 router.use(require('./routes/scanner'));
 // router.use(require('./routes/reports'));
 

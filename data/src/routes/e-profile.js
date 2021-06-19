@@ -146,7 +146,6 @@ router.post('/attendance/dtr', middlewares.guardRoute(['create_scanner']), async
             }
         })
 
-        // let entity = res.entity
         let body = req.body
         if (body.inAM && !attendance) {
 
@@ -190,7 +189,6 @@ router.post('/attendance/dtr', middlewares.guardRoute(['create_scanner']), async
         // let salt = passwordMan.randomString(16)
         // let passwordHash = passwordMan.hashPassword(password, salt)
 
-        // lodash.set(patch, 'entityId', lodash.get(entity, '_id'))
         // lodash.set(patch, 'name', lodash.get(body, 'name'))
         // lodash.set(patch, 'type', lodash.get(body, 'type'))
         // lodash.set(patch, 'passwordHash', passwordHash)
@@ -199,7 +197,6 @@ router.post('/attendance/dtr', middlewares.guardRoute(['create_scanner']), async
         // let scanner = new db.main.Scanner(patch)
         // await scanner.save()
 
-        // flash.ok(req, 'entity', `Added ${scanner.name}. ID is "${scanner.uid}" and password is "${password}". You will only see your password once so please save it in a secure place.`)
         res.redirect(`/attendance/dtr`)
     } catch (err) {
         next(err);
@@ -249,7 +246,6 @@ router.post('/attendance/dtr/confirm', middlewares.guardRoute(['create_scanner']
             }
         })
 
-        // let entity = res.entity
         let body = req.body
         if (body.inAM && !attendance) {
 
@@ -293,7 +289,6 @@ router.post('/attendance/dtr/confirm', middlewares.guardRoute(['create_scanner']
         // let salt = passwordMan.randomString(16)
         // let passwordHash = passwordMan.hashPassword(password, salt)
 
-        // lodash.set(patch, 'entityId', lodash.get(entity, '_id'))
         // lodash.set(patch, 'name', lodash.get(body, 'name'))
         // lodash.set(patch, 'type', lodash.get(body, 'type'))
         // lodash.set(patch, 'passwordHash', passwordHash)
@@ -302,7 +297,6 @@ router.post('/attendance/dtr/confirm', middlewares.guardRoute(['create_scanner']
         // let scanner = new db.main.Scanner(patch)
         // await scanner.save()
 
-        // flash.ok(req, 'entity', `Added ${scanner.name}. ID is "${scanner.uid}" and password is "${password}". You will only see your password once so please save it in a secure place.`)
         res.redirect(`/attendance/dtr`)
     } catch (err) {
         next(err);

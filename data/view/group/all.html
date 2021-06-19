@@ -4,23 +4,22 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h2">All Entities</h1>
+            <h1 class="h2">All Groups</h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                <a href="/entity/create" class="btn btn-sm btn-outline-primary">Add Entity</a>
+                <a href="/group/create" class="btn btn-sm btn-outline-primary">Add Group</a>
             </div>
         </div>
     </div>
     {% include 'parts/flash.html' %}
     
-    {% if entities.length <= 0 %}
+    {% if groups.length <= 0 %}
         <p>None found.</p>
     {% else %}
-
         <div class="d-flex justify-content-end">
             <div class=" pb-3">
-                {% set url = '/entity/all' %}
+                {% set url = '/group/all' %}
                 {% include 'parts/form-per-page.html' %}
             </div>
         </div>
@@ -32,25 +31,26 @@
                             {% set thId = 'name' %}
                             {% include 'parts/sorted-th.html' %}
                         </th>
-                        <th>Type</th>
-                        <th>Scanners</th>
+                        <th>{% set thId = 'description' %}
+                            {% include 'parts/sorted-th.html' %}</th>
+
+                        <th>{% set thId = 'parentId' %}
+                        {% include 'parts/sorted-th.html' %}</th>
                     </tr>
                 </thead>
                 <tbody>
-                {% for entity in entities %}
+                {% for group in groups %}
                     <tr>
-                        <td><a href="/entity/{{entity._id}}">{{entity.name}}</a></td>
-                        <td><a href="/entity/{{entity._id}}">{{entity.type}}</a></td>
-                        <td><a href="/entity/{{entity._id}}">{{entity.scanners.length}}</a></td>
+                        <td><a href="/group/{{group._id}}">{{group.name}}</a></td>
+                        <td>{{group.description}}</td>
+                        <td><a href="/group/{{group.parent._id}}">{{group.parent.name}}</a></td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
         <div class="row">
-
             <div class="col-md-6 text-center text-md-left">
-
             </div>
             <div class="col-md-6 text-center text-md-right">
                 {% include "parts/pagination.html" %}

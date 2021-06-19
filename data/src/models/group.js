@@ -10,9 +10,12 @@ let schema = mongoose.Schema({
         $type: String,
         trim: true,
     },
-    type: {
+    description: {
         $type: String,
         trim: true,
+    },
+    parentId: {
+        $type: mongoose.Schema.Types.ObjectId,
     },
 }, {timestamps: true, typeKey: '$type'})
 

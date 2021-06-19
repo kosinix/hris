@@ -95,9 +95,7 @@ router.get('/reports/person/:personId/logs', async (req, res, next) => {
         for (let x = 0; x < logs.length; x++) {
             let log = logs[x].toObject()
             log.person = person.toObject()
-            log.entity = await db.main.Entity.findOne({
-                _id: log.entityId
-            })
+           
             log.scannerIn = await db.main.Scanner.findOne({
                 _id: log.enteredOn
             })

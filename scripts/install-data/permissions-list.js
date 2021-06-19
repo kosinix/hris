@@ -22,11 +22,11 @@ module.exports = [
     'delete_payroll',
 
     // Entities
-    'read_all_entity',
-    'create_entity',
-    'read_entity',
-    'update_entity',
-    'delete_entity',
+    'read_all_group',
+    'create_group',
+    'read_group',
+    'update_group',
+    'delete_group',
 
     // Scanners
     'read_all_scanner',

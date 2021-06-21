@@ -141,7 +141,7 @@ window.customValidators = {
                 errMsg: errMsg || 'Not a valid money format.'
             },
             function (value){
-                return /^(-?)((\d+)|(\d{1,3})(\,\d{3}|)*)(\.\d{2}|)$/.test(value);
+                return !window.validators.helpers.req(value) || /^(-?)((\d+)|(\d{1,3})(\,\d{3}|)*)(\.\d{2}|)$/.test(value);
             }
         )
     }

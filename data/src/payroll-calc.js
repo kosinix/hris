@@ -2,22 +2,11 @@
 
 //// External modules
 const lodash = require('lodash')
-const moment = require("moment")
-const money = require("money-math")
+const momentRange = require("moment-range")
+const moment = momentRange.extendMoment(require("moment"));
 
 //// Modules
 const db = require('./db');
-
-let gracePeriod = [
-    {
-        hour: 8, // 8:15 AM
-        minute: 15
-    },
-    {
-        hour: 13, // 1:15 PM
-        minute: 15
-    }
-]
 
 let getDailyRate = (monthlyRate, workDays = 22) => {
     return monthlyRate / workDays
@@ -46,13 +35,14 @@ let calcRenderedTime = (minutes, hoursPerDay) => {
     let underHours = 0
     let underMinutes = 0
 
-    if(renderedDays <= 0){
+
+    if (renderedDays <= 0) {
         undertime = true
-        underDays =  momentWorkHours.clone().subtract(momentWorkDuration).days()
-        underHours =  momentWorkHours.clone().subtract(momentWorkDuration).hours()
+        underDays = momentWorkHours.clone().subtract(momentWorkDuration).days()
+        underHours = momentWorkHours.clone().subtract(momentWorkDuration).hours()
         underMinutes = momentWorkHours.clone().subtract(momentWorkDuration).minutes()
     }
-   
+
     return {
         totalMinutes: minutes,
         renderedDays: Math.floor(renderedDays),
@@ -65,7 +55,21 @@ let calcRenderedTime = (minutes, hoursPerDay) => {
     }
 }
 
-let calcDailyAttendance = (attendance, hoursPerDay, travelPoints) => {
+let calcDailyAttendance = (attendance, hoursPerDay, travelPoints, gracePeriods) => {
+
+    // let gracePeriods = [
+    //     {
+    //         mode: 1, // 1 log-in, 0 log-out
+    //         start: {
+    //             hour: 7,
+    //             minute: 0
+    //         },
+    //         end: {
+    //             hour: 7,
+    //             minute: 15
+    //         }
+    //     },
+    // ]
     // travelPoints 480 minutes = 8 hours 
     if (null === attendance) return null
 
@@ -81,31 +85,30 @@ let calcDailyAttendance = (attendance, hoursPerDay, travelPoints) => {
             if (log.mode === 1) {
                 momentIn = moment(log.dateTime)
 
-                // Grace period
-                if (momentIn.format('A') === 'AM') { // morning
-                    // TODO: Null checks
-                    let gracePeriodHour = gracePeriod[0].hour
-                    let gracePeriodMinute = gracePeriod[0].minute
-                    if(momentIn.hours() <= gracePeriodHour && momentIn.minutes() <= gracePeriodMinute) {
-                        momentIn = momentIn.hour(gracePeriodHour).minute(0)
-                    }
-                } else {
-                    // TODO: Null checks
-                    let gracePeriodHour = gracePeriod[1].hour
-                    let gracePeriodMinute = gracePeriod[1].minute
-                    if(momentIn.hours() <= gracePeriodHour && momentIn.minutes() <= gracePeriodMinute) {
-                        momentIn = momentIn.hour(gracePeriodHour).minute(0)
+                for (let g = 0; g < gracePeriods.length; g++) {
+                    let grace = gracePeriods[g]
+                    if (grace.mode === log.mode) {
+                        if (momentIn.hours() >= grace.start.hour &&
+                            momentIn.hours() <= grace.end.hour &&
+                            momentIn.minutes() >= grace.start.minute &&
+                            momentIn.minutes() <= grace.end.minute) {
+                            momentIn = momentIn.hour(grace.start.hour).minute(grace.start.minute)
+                        }
                     }
                 }
+
             } else if (log.mode === 0) {
                 let momentOut = moment(log.dateTime)
-                minutes += Math.round(momentOut.diff(momentIn) / 60000)
-                console.log(momentIn, momentOut, minutes)
+                
+                let momentWorkShift = moment.range(momentIn, momentOut)
+                minutes += momentWorkShift.diff('minutes')
+                console.log(log.mode, momentIn.format('HH:mm A'), momentOut.format('HH:mm A'), momentWorkShift.diff('minutes'), minutes)
             }
         }
     }
 
-    if(minutes > 60 * hoursPerDay) {
+    // Upper limit
+    if (minutes > 60 * hoursPerDay) {
         minutes = 60 * hoursPerDay
     }
     return calcRenderedTime(minutes, hoursPerDay)
@@ -121,10 +124,10 @@ let getTotalAttendanceMinutes = (attendances) => {
     return minutes
 }
 
-let addDtr = (attendances, hoursPerDay, travelPoints) => {
+let addDtr = (attendances, hoursPerDay, travelPoints, gracePeriods) => {
     for (let a = 0; a < attendances.length; a++) {
         let attendance = attendances[a] // daily
-        let dtr = calcDailyAttendance(attendance, hoursPerDay, travelPoints)
+        let dtr = calcDailyAttendance(attendance, hoursPerDay, travelPoints, gracePeriods)
         attendances[a].dtr = dtr
     }
     return attendances
@@ -154,7 +157,7 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
             }
         }).lean()
         // add computed values
-        attendances = addDtr(attendances, hoursPerDay, travelPoints)
+        attendances = addDtr(attendances, hoursPerDay, travelPoints, CONFIG.workTime.gracePeriods)
 
         let minutes = getTotalAttendanceMinutes(attendances)
         // minutes = 3840

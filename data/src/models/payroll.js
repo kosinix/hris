@@ -22,6 +22,7 @@ let schema = mongoose.Schema({
         $type: String,
         trim: true,
     },
+    gracePeriods: [],
     incentives: [
         {
             _id: {

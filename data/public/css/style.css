@@ -287,8 +287,8 @@ h4, h5, h6 {
 .main .toggler {
     display: none;
     height: 20px;
-    border: 1px solid #584475;
-    background: #584475
+    border: 1px solid #800000;
+    background: #800000
 }
 .main .toggler span {
     background: #fff;

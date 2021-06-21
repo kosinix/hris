@@ -39,7 +39,7 @@ const db = require('../data/src/db-install');
 
 (async () => {
     try {
-        let employeeId = new db.mongoose.Types.ObjectId("60bf74b1b8dd50443837fd3e")
+        let employeeId = new db.mongoose.Types.ObjectId("60b22ee0e846b00efc16941a")
         let attendances = [
             {
 
@@ -53,17 +53,17 @@ const db = require('../data/src/db-install');
                     },
                     {
                         "scannerId": new db.mongoose.Types.ObjectId("60c02806cac3cc38e0ccccbf"),
-                        "dateTime": moment().hour(12).minutes(0).toDate(),
+                        "dateTime": moment().hour(14).minutes(0).toDate(),
                         "mode": 0
                     },
                     {
                         "scannerId": new db.mongoose.Types.ObjectId("60c02806cac3cc38e0ccccbf"),
-                        "dateTime": moment().hour(13).minutes(15).toDate(),
+                        "dateTime": moment().hour(14).minutes(0).toDate(), 
                         "mode": 1
                     },
                     {
                         "scannerId": new db.mongoose.Types.ObjectId("60c02806cac3cc38e0ccccbf"),
-                        "dateTime": moment().hour(17).minutes(30).toDate(),
+                        "dateTime": moment().hour(17).minutes(0).toDate(),
                         "mode": 0
                     }
                 ]

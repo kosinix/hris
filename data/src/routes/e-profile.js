@@ -93,7 +93,7 @@ router.get('/e-profile/dtr', middlewares.guardRoute(['use_employee_profile']), m
         let month = momentNow.format('MM')
         days = days.fill(1).map((v, i) => {
             let attendance = attendances[`${year}-${month}-${String(v+i).padStart(2,'0')}`] || null
-            let dtr = payrollCalc.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
+            let dtr = payrollCalc.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, CONFIG.workTime.gracePeriods)
             
             return {
                 date: `${year}-${month}-${String(v+i).padStart(2,'0')}`,

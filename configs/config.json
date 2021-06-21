@@ -76,6 +76,30 @@
   "workTime": {
     "workDays": 22,
     "hoursPerDay": 8,
-    "travelPoints": 480
+    "travelPoints": 480,
+    "gracePeriods": [
+      {
+        "mode": 1,
+        "start": {
+          "hour": 8,
+          "minute": 0
+        },
+        "end": {
+          "hour": 8,
+          "minute": 15
+        }
+      },
+      {
+        "mode": 1,
+        "start": {
+          "hour": 13,
+          "minute": 0
+        },
+        "end": {
+          "hour": 13,
+          "minute": 15
+        }
+      }
+    ]
   }
 }

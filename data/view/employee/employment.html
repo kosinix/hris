@@ -49,6 +49,17 @@
             {% include 'parts/form-group-text.html' %}
             {% set label = '' %}
 
+            {% set name = 'fundSource' %}
+            {% set label = 'Source of Fund' %}
+            {% include 'parts/form-group-text.html' %}
+            {% set label = '' %}
+
+            {% set name = 'sssDeduction' %}
+            {% set label = 'SSS Amount' %}
+            {% include 'parts/form-group-text.html' %}
+            {% set label = '' %}
+
+
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
                     <button class="btn btn-primary">Save Info</button>
@@ -80,6 +91,8 @@
             salary: '{{employee.employments[0].salary}}',
             salaryType: '{{employee.employments[0].salaryType}}',
             department: '{{employee.employments[0].department}}',
+            fundSource: '{{employee.employments[0].fundSource}}',
+            sssDeduction: '{{employee.employments[0].sssDeduction}}',
         },
         validations: {
             campus: {
@@ -100,6 +113,9 @@
             },
             salaryType: {
                 required: window.validators.required,
+            },
+            sssDeduction: {
+                isMoneyFormat: window.customValidators.isMoneyFormat('Not a valid money format.')
             },
         },
         methods: {

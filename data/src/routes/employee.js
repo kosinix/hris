@@ -19,7 +19,7 @@ const s3 = require('../aws-s3');
 // Router
 let router = express.Router()
 
-router.use('/employee', middlewares.requireAuthUser )
+router.use('/employee', middlewares.requireAuthUser)
 
 router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
     try {
@@ -27,12 +27,18 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
         let sortBy = lodash.get(req, 'query.sortBy', '_id')
         let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', 1))
-        let customSort = parseInt(lodash.get(req, 'query.customSort'))
+        let customSort = lodash.get(req, 'query.customSort')
+        let customFilter = lodash.get(req, 'query.customFilter')
+        let customFilterValue = lodash.get(req, 'query.customFilterValue')
         lodash.set(req, 'session.pagination.perPage', perPage)
 
         let query = {}
         let projection = {}
 
+        if (['department', 'employmentType', 'group'].includes(customFilter)) {
+            query[`employments.0.${customFilter}`] = customFilterValue
+        }
+        
         // Pagination
         let totalDocs = await db.main.Employee.countDocuments(query)
         let pagination = paginator.paginate(
@@ -46,8 +52,12 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         let options = { skip: (page - 1) * perPage, limit: perPage };
         let sort = {}
         sort = lodash.set(sort, sortBy, sortOrder)
+        if (['department', 'employmentType', 'group'].includes(sortBy)) {
+            sort[`employments.0.${sortBy}`] = sortOrder
+        }
+        
 
-        // console.log(query, projection, options, sort)
+        console.log(query, projection, options, sort)
 
         let employees = await db.main.Employee.find(query, projection, options).sort(sort)
 
@@ -82,14 +92,14 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
         lodash.set(patch, 'birthDate', lodash.get(body, 'birthDate'))
         lodash.set(patch, 'gender', lodash.get(body, 'gender'))
         lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
-        
+
         // TODO: Check duplicate
         let matches = await db.main.Employee.find({
             firstName: patch.firstName,
             middleName: patch.middleName,
             lastName: patch.lastName,
         })
-        if(matches.length > 0){
+        if (matches.length > 0) {
             throw new Error("Dupe")
         }
 
@@ -153,7 +163,7 @@ router.post('/employee/employment/:employeeId', middlewares.guardRoute(['create_
         let employee = res.employee
         let body = req.body
         let patch = {}
-        
+
         lodash.set(patch, 'employments.0._id', db.mongoose.Types.ObjectId())
         lodash.set(patch, 'employments.0.campus', lodash.get(body, 'campus'))
         lodash.set(patch, 'employments.0.group', lodash.get(body, 'group'))
@@ -162,6 +172,8 @@ router.post('/employee/employment/:employeeId', middlewares.guardRoute(['create_
         lodash.set(patch, 'employments.0.employmentType', lodash.get(body, 'employmentType'))
         lodash.set(patch, 'employments.0.salary', lodash.get(body, 'salary').replace(/,/g, ''))
         lodash.set(patch, 'employments.0.salaryType', lodash.get(body, 'salaryType'))
+        lodash.set(patch, 'employments.0.fundSource', lodash.get(body, 'fundSource'))
+        lodash.set(patch, 'employments.0.sssDeduction', lodash.get(body, 'sssDeduction'))
 
         lodash.merge(employee, patch)
         await employee.save()
@@ -193,11 +205,11 @@ router.post('/employee/address/:employeeId', middlewares.guardRoute(['create_emp
         let body = req.body
         let patch = {}
 
-        if(!body.psgc){
+        if (!body.psgc) {
             throw new Error('Invalid address.')
         }
-        
-        
+
+
         lodash.set(patch, 'addresses.0._id', db.mongoose.Types.ObjectId())
         lodash.set(patch, 'addresses.0.unit', lodash.get(body, 'unit'))
         lodash.set(patch, 'addresses.0.psgc', lodash.get(body, 'psgc'))
@@ -205,7 +217,7 @@ router.post('/employee/address/:employeeId', middlewares.guardRoute(['create_emp
         let address = await db.main.Address.findOne({
             code: lodash.get(body, 'psgc', '')
         })
-        if(address){
+        if (address) {
             lodash.set(patch, 'addresses.0.full', lodash.get(address, 'full'))
             lodash.set(patch, 'address', lodash.get(address, 'full'))
         }
@@ -296,7 +308,7 @@ router.get('/employee/find', middlewares.guardRoute(['create_employee', 'update_
         let employee = await db.main.Employee.findOne({
             uid: code
         })
-        if(!employee){
+        if (!employee) {
             throw new Error('Not found')
         }
         res.redirect(`/employee/personal/${employee._id}`)
@@ -319,18 +331,18 @@ router.get('/employee/delete/:employeeId', middlewares.guardRoute(['delete_emplo
         let promises = []
 
         let photo = employeePlain.profilePhoto
-        if(photo) {
+        if (photo) {
             let promise = s3.deleteObjects({
                 Bucket: bucketName,
                 Delete: {
                     Objects: [
-                        {Key: `${bucketKeyPrefix}${photo}`},
-                        {Key: `${bucketKeyPrefix}tiny-${photo}`},
-                        {Key: `${bucketKeyPrefix}small-${photo}`},
-                        {Key: `${bucketKeyPrefix}medium-${photo}`},
-                        {Key: `${bucketKeyPrefix}large-${photo}`},
-                        {Key: `${bucketKeyPrefix}xlarge-${photo}`},
-                        {Key: `${bucketKeyPrefix}orig-${photo}`},
+                        { Key: `${bucketKeyPrefix}${photo}` },
+                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                        { Key: `${bucketKeyPrefix}small-${photo}` },
+                        { Key: `${bucketKeyPrefix}medium-${photo}` },
+                        { Key: `${bucketKeyPrefix}large-${photo}` },
+                        { Key: `${bucketKeyPrefix}xlarge-${photo}` },
+                        { Key: `${bucketKeyPrefix}orig-${photo}` },
                     ]
                 }
             }).promise()

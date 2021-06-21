@@ -124,6 +124,10 @@ const schema = new Schema({
                 $type: String,
                 trim: true,
             },
+            department2: {
+                $type: String,
+                trim: true,
+            },
             employmentType: {
                 $type: String,
                 trim: true,
@@ -134,6 +138,17 @@ const schema = new Schema({
             salaryType: { // monthly, daily
                 $type: String,
                 trim: true,
+            },
+            fundSource: {
+                $type: String,
+                trim: true,
+            },
+            sssID: {
+                $type: String,
+                trim: true,
+            },
+            sssDeduction: {
+                $type: Number,
             },
         }
     ],

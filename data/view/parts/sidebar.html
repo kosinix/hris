@@ -84,6 +84,21 @@
             </ul>
         </li>
         <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/attendance\/all/, r/^\/attendance\//])}}" href="/attendance/all">
+                <svg style="width:16px;height:16px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19Z" />
+                </svg>
+                Attendance
+            </a>
+            {# <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/attendance\/all/, r/^\/attendance\/([a-f\d]{24})/])}}" href="/entity/all">
+                        All Attendance
+                    </a>
+                </li>
+            </ul> #}
+        </li>
+        <li class="nav-item">
             <a class="nav-link {{urlPath|active_class([r/^\/scanner\/all/, r/^\/scanner\//])}}" href="/scanner/all">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
@@ -99,27 +114,7 @@
                 </li>
             </ul>
         </li>
-        {# <li class="nav-item">
-            <a class="nav-link {{urlPath|active_class([r/^\/attendance\/all/, r/^\/attendance\//])}}" href="/scanner/all">
-                <svg style="width:16px;height:16px" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
-                </svg>
-                Attendance
-            </a>
-            <ul class="nav flex-column">
-                
-                <li class="nav-item">
-                    <a class="nav-link {{urlPath|active_class([r/^\/attendance\/all/, r/^\/attendance\/([a-f\d]{24})/])}}" href="/entity/all">
-                        All Attendance
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{urlPath|active_class([r/^\/attendance\/dtr/])}}" href="/attendance/dtr">
-                        DTR
-                    </a>
-                </li>
-            </ul>
-        </li> #}
+        
     </ul>
     
     

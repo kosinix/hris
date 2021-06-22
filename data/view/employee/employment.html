@@ -8,65 +8,48 @@
     {% include 'parts/employee-tabs.html' %}
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/employment/{{employee._id}}" method="POST" class="form-default">
-            
-            {% set name = 'campus' %}
-            {% set label = 'Campus *' %}
-            {% set options = [{value:'', text:''}, {value:'main', text:'Main'}, {value:'baterna', text:'Baterna'}, {value:'mosqueda', text:'Mosqueda'}] %}
-            {% include 'parts/form-group-select.html' %}
-            {% set label = '' %}
-
-            {% set name = 'group' %}
-            {% set label = 'Group *' %}
-            {% set options = [{value:'', text:''}, {value:'staff', text:'Staff'}, {value:'faculty', text:'Faculty'}, {value:'other', text:'Others'}] %}
-            {% include 'parts/form-group-select.html' %}
-            {% set label = '' %}
-
-            {% set name = 'position' %}
-            {% set label = 'Position *' %}
-            {% include 'parts/form-group-text.html' %}
-            {% set label = '' %}
-
-            {% set name = 'employmentType' %}
-            {% set label = 'Employment Type *' %}
-            {% set options = [{value:'', text:''}, {value:'permanent', text:'Permanent'}, {value:'cos', text:'Contract of Service'}, {value:'jo', text:'Job Order'}, {value:'part-time', text:'Part-Time'}] %}
-            {% include 'parts/form-group-select.html' %}
-            {% set label = '' %}
-
-            {% set name = 'salary' %}
-            {% set label = 'Salary *' %}
-            {% include 'parts/form-group-text.html' %}
-            {% set label = '' %}
-
-            {% set name = 'salaryType' %}
-            {% set label = 'Salary Rate *' %}
-            {% set options = [{value:'', text:''}, {value:'monthly', text:'Monthly'}, {value:'daily', text:'Daily'}] %}
-            {% include 'parts/form-group-select.html' %}
-            {% set label = '' %}
-
-            {% set name = 'department' %}
-            {% set label = 'Department' %}
-            {% include 'parts/form-group-text.html' %}
-            {% set label = '' %}
-
-            {% set name = 'fundSource' %}
-            {% set label = 'Source of Fund' %}
-            {% include 'parts/form-group-text.html' %}
-            {% set label = '' %}
-
-            {% set name = 'sssDeduction' %}
-            {% set label = 'SSS Amount' %}
-            {% include 'parts/form-group-text.html' %}
-            {% set label = '' %}
-
-
-            <div class="form-row pt-3 pb-3">
-                <div class="col-md-12">
-                    <button class="btn btn-primary">Save Info</button>
-                </div>
+        
+        {% if employee.employments.length > 0 %}
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>Source of Fund</th>
+                        <th>Position</th>
+                        <th>Salary</th>
+                        <th>Salary Rate</th>
+                        <th>Employment Type</th>
+                        <th>Campus</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employment in employee.employments %}
+                    <tr>
+                        <td>{{employment.fundSource}}</td>
+                        <td>{{employment.position}}</td>
+                        <td>{{employment.salary|currency}}</td>
+                        <td>{{employment.salaryType}}</td>
+                        <td>{{employment.employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</td>
+                        <td>{{employment.campus|capitalize}}</td>
+                        <td>
+                            <a href="/employee/employment/{{employee._id}}/{{employment._id}}">View</a>
+                            <a href="/employee/employment/{{employee._id}}/{{employment._id}}/delete" class="text-danger">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p>No employment. <a href="/employee/employment/{{employee._id}}/create" class="btn btn-link">Add Employment</a></p>
+        {% endif %}
+        <div class="form-row pt-3 pb-3">
+            <div class="col-md-12">
+                <a href="/employee/employment/{{employee._id}}/create" class="btn btn-primary">Add Employment</a>
             </div>
+        </div>
 
-        </form>
     </div>
 
 </div>

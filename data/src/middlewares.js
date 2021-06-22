@@ -235,6 +235,24 @@ module.exports = {
             next(err);
         }
     },
+    getEmploymentIndex: async (req, res, next) => {
+        try {
+            if (!res.employee) {
+                return res.render('error.html', { error: "Sorry, employee not found." })
+            }
+            let employmentId = req.params.employmentId || ''
+            let employmentIndex = res.employee.employments.findIndex((e)=>{
+                return e._id.toString() === employmentId
+            })
+            if (employmentIndex === -1) {
+                return res.render('error.html', { error: "Sorry, employment not found." })
+            }
+            res.employmentIndex = employmentIndex
+            next();
+        } catch (err) {
+            next(err);
+        }
+    },
     // TODO: Check code
     getAdmin: async (req, res, next) => {
         try {

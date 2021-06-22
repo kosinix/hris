@@ -35,7 +35,7 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         let query = {}
         let projection = {}
 
-        if (['department', 'employmentType', 'group'].includes(customFilter)) {
+        if (['department', 'employmentType', 'group', 'position'].includes(customFilter)) {
             query[`employments.0.${customFilter}`] = customFilterValue
         }
 
@@ -166,10 +166,13 @@ router.post('/employee/personal/:employeeId', middlewares.guardRoute(['create_em
 router.get('/employee/employment/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
+        let employmentIndex = employee.employments.length
 
         res.render('employee/employment.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
+            employment: employee.employments[employmentIndex],
+            employmentIndex: employmentIndex
         });
     } catch (err) {
         next(err);
@@ -201,6 +204,104 @@ router.post('/employee/employment/:employeeId', middlewares.guardRoute(['create_
         next(err);
     }
 });
+
+router.get('/employee/employment/:employeeId/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        res.render('employee/employment-create.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/employment/:employeeId/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee
+        let body = req.body
+        let patch = {}
+        let employmentIndex = employee.employments.length
+
+        lodash.set(patch, `employments.${employmentIndex}._id`, db.mongoose.Types.ObjectId())
+        lodash.set(patch, `employments.${employmentIndex}.campus`, lodash.get(body, 'campus'))
+        lodash.set(patch, `employments.${employmentIndex}.group`, lodash.get(body, 'group'))
+        lodash.set(patch, `employments.${employmentIndex}.position`, lodash.get(body, 'position'))
+        lodash.set(patch, `employments.${employmentIndex}.department`, lodash.get(body, 'department'))
+        lodash.set(patch, `employments.${employmentIndex}.employmentType`, lodash.get(body, 'employmentType'))
+        lodash.set(patch, `employments.${employmentIndex}.salary`, lodash.get(body, 'salary').replace(/,/g, ''))
+        lodash.set(patch, `employments.${employmentIndex}.salaryType`, lodash.get(body, 'salaryType'))
+        lodash.set(patch, `employments.${employmentIndex}.fundSource`, lodash.get(body, 'fundSource'))
+        lodash.set(patch, `employments.${employmentIndex}.sssDeduction`, lodash.get(body, 'sssDeduction'))
+
+        lodash.merge(employee, patch)
+        await employee.save()
+        flash.ok(req, 'employee', `Added to "${employee.firstName} ${employee.lastName}'s" employment.`)
+        res.redirect(`/employee/employment/${employee._id}`)
+
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/employee/employment/:employeeId/:employmentId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmploymentIndex, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employmentIndex = res.employmentIndex
+
+        res.render('employee/employment-update.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            employment: employee.employments[employmentIndex],
+            employmentIndex: employmentIndex,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/employment/:employeeId/:employmentId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmploymentIndex, async (req, res, next) => {
+    try {
+        let employee = res.employee
+        let employmentIndex = res.employmentIndex
+        let body = req.body
+        let patch = {}
+
+        lodash.set(patch, `employments.${employmentIndex}.campus`, lodash.get(body, 'campus'))
+        lodash.set(patch, `employments.${employmentIndex}.group`, lodash.get(body, 'group'))
+        lodash.set(patch, `employments.${employmentIndex}.position`, lodash.get(body, 'position'))
+        lodash.set(patch, `employments.${employmentIndex}.department`, lodash.get(body, 'department'))
+        lodash.set(patch, `employments.${employmentIndex}.employmentType`, lodash.get(body, 'employmentType'))
+        lodash.set(patch, `employments.${employmentIndex}.salary`, lodash.get(body, 'salary').replace(/,/g, ''))
+        lodash.set(patch, `employments.${employmentIndex}.salaryType`, lodash.get(body, 'salaryType'))
+        lodash.set(patch, `employments.${employmentIndex}.fundSource`, lodash.get(body, 'fundSource'))
+        lodash.set(patch, `employments.${employmentIndex}.sssDeduction`, lodash.get(body, 'sssDeduction'))
+
+        lodash.merge(employee, patch)
+        await employee.save()
+        flash.ok(req, 'employee', `Updated "${employee.firstName} ${employee.lastName}'s" employment.`)
+        res.redirect(`/employee/employment/${employee._id}`)
+
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/employee/employment/:employeeId/:employmentId/delete', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmploymentIndex, async (req, res, next) => {
+    try {
+        let employee = res.employee
+        let employmentIndex = res.employmentIndex
+
+        employee.employments.splice(employmentIndex, 1)
+        await employee.save()
+
+        flash.ok(req, 'employee', `Deleted "${employee.firstName} ${employee.lastName}'s" employment.`)
+        res.redirect(`/employee/employment/${employee._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+
 
 router.get('/employee/address/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {

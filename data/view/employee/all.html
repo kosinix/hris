@@ -34,6 +34,7 @@
             <table class="table table-sm table-striped">
                 <thead>
                     <tr>
+                        <th></th>
                         <th>
                             {% set thId = 'lastName' %}
                             {% include 'parts/sorted-th.html' %}
@@ -42,10 +43,10 @@
                             {% set thId = 'firstName' %}
                             {% include 'parts/sorted-th.html' %}
                         </th>
-                        <th>
+                        {# <th>
                             {% set thId = 'department' %}
                             {% include 'parts/sorted-th.html' %}
-                        </th>
+                        </th> #}
                         <th>
                             {% set thId = 'employmentType' %}
                             {% include 'parts/sorted-th.html' %}
@@ -54,7 +55,7 @@
                             {% set thId = 'group' %}
                             {% include 'parts/sorted-th.html' %}
                         </th>
-                        <th>
+                        {# <th>
                             {% set thId = 'campus' %}
                             {% include 'parts/sorted-th.html' %}
                         </th>
@@ -62,19 +63,20 @@
                             {% set thLabel = 'Address' %}
                             {% set thId = 'address' %}
                             {% include 'parts/sorted-th.html' %}
-                        </th>
+                        </th> #}
                     </tr>
                 </thead>
                 <tbody>
                 {% for employee in employees %}
                     <tr>
+                        <td>{{loop.index}}</td>
                         <td><a href="/employee/employment/{{employee._id}}">{{employee.lastName}}</a></td>
                         <td><a href="/employee/employment/{{employee._id}}">{{employee.firstName}}</a></td>
-                        <td><a href="/employee/all?customFilter=department&customFilterValue={{employee.employments[0].department}}">{{employee.employments[0].department}}</a></td>
-                        <td><a href="/employee/all?customFilter=employmentType&customFilterValue={{employee.employments[0].employmentType}}">{{employee.employments[0].employmentType|replace('jo','Job Order')}}</a></td>
+                        {# <td><a href="/employee/all?customFilter=department&customFilterValue={{employee.employments[0].department}}">{{employee.employments[0].department}}</a></td> #}
+                        <td><a href="/employee/all?customFilter=employmentType&customFilterValue={{employee.employments[0].employmentType}}">{{employee.employments[0].employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</a></td>
                         <td><a href="/employee/all?customFilter=group&customFilterValue={{employee.employments[0].group}}">{{employee.employments[0].group|capitalize}}</a></td>
-                        <td><a href="/employee/all?customFilter=campus&customFilterValue={{employee.employments[0].campus}}">{{employee.employments[0].campus|capitalize}}</a></td>
-                        <td>{{employee.address}}</td>
+                        {# <td><a href="/employee/all?customFilter=campus&customFilterValue={{employee.employments[0].campus}}">{{employee.employments[0].campus|capitalize}}</a></td>
+                        <td>{{employee.address}}</td> #}
                     </tr>
                 {% endfor %}
                 </tbody>

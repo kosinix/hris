@@ -38,7 +38,24 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         if (['department', 'employmentType', 'group'].includes(customFilter)) {
             query[`employments.0.${customFilter}`] = customFilterValue
         }
-        
+
+        if (['permanent-faculty'].includes(customFilter)) {
+            query[`employments.0.employmentType`] = 'permanent'
+            query[`employments.0.group`] = 'faculty'
+        }
+        if (['permanent-staff'].includes(customFilter)) {
+            query[`employments.0.employmentType`] = 'permanent'
+            query[`employments.0.group`] = 'staff'
+        }
+        // if (['cos-faculty'].includes(customFilter)) {
+        //     query[`employments.0.employmentType`] = 'part-time'
+        //     query[`employments.0.group`] = 'faculty'
+        // }
+        if (['cos-staff'].includes(customFilter)) {
+            query[`employments.0.employmentType`] = 'cos'
+            query[`employments.0.group`] = 'staff'
+        }
+
         // Pagination
         let totalDocs = await db.main.Employee.countDocuments(query)
         let pagination = paginator.paginate(

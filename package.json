@@ -21,6 +21,7 @@
     "connect-mongodb-session": "^2.4.1",
     "cookie-parser": "^1.4.5",
     "excel4node": "^1.7.2",
+    "exceljs": "^4.2.1",
     "exif-reader": "^1.0.3",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",

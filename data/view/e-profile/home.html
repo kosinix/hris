@@ -1,0 +1,98 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">E-Profile Home</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/e-profile/dtr" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+
+    <div class=" mb-5">
+        <div style="max-width:500px" class=" ml-auto mr-auto" >
+            <div class="text-center">
+                
+                
+                <div class="text-center pt-3 pb-3">
+                    <div class="photo ml-auto mr-auto " style="overflow:hidden;max-width: 200px; border-radius:2px">
+                        {% if employee.profilePhoto %}
+                            <img src="{{employee.profilePhoto|s3_url('medium')}}" alt="{{employee.firstName|first}}. {{employee.lastName|first}}.">
+                        {% else %}
+                            {# <span class="initials">{{employee.firstName|first}} {{employee.lastName|first}}</span> #}
+                        {% endif %}
+                    </div>
+                </div>
+                <h4 class="h5 mb-3">Welcome, {{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
+                
+                <h3 class="mb-5">Today is {{momentNow|format_date('dddd - MMM DD, YYYY')}}</h3>
+                <p class="mb-5">Place the code below in front of the scanner camera.</p>
+                
+                <div id="carouselExampleControls" class="carousel slide" data-wrap="false" data-interval="false" data-ride="carousel">
+                    <div class="carousel-inner">
+                        {% for qrCode in qrCodes %}
+                        <div class="carousel-item {% if loop.index === 1 %}active{% endif %}">
+                            <img src="data:image/png;base64, {{qrCode.data|safe}}" alt="QR">
+                            <p class="h3 pt-3">{{qrCode.title}}</p>
+                            <div class="text-center">
+                                <a href="/e-profile/dtr/{{qrCode.employment._id}}" class="mt-3 btn btn-primary">View My DTR</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </div>
+                
+
+            </div>
+            
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            name: '',
+            type: 1,
+        },
+        validations: {
+            
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

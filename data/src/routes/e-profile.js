@@ -18,54 +18,34 @@ let router = express.Router()
 
 router.use('/e-profile', middlewares.requireAuthUser)
 
-router.get('/e-profile/all', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.get('/e-profile/home', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
 
-        let payroll = {
-            startDate: '2021-06-01',
-            endDate: '2021-06-30',
-        }
-        //
-        // let date = new Date('2021-06-01 08:00:00')
-        let date = moment('06-01-2021 08:00 AM', 'MM-DD-YYYY hh:mm A')
-        let attendance = new db.main.Attendance({
-            employeeId: employee._id,
-            createdAt: date.clone().toDate(),
-
-            inAM: {
-                dateTime: date.clone().toDate(),
-                confirmed: true,
-            },
-            outAM: date.add(4, 'hours').toDate(),
-            inPM: date.add(1, 'hours').toDate(),
-            outPM: date.add(4, 'hours').toDate(),
-        })
-        await attendance.save()
-
-        date = moment('06-02-2021 08:00 AM', 'MM-DD-YYYY hh:mm A')
-        attendance = new db.main.Attendance({
-            employeeId: employee._id,
-            createdAt: date.clone().toDate(),
-
-            inAM: date.clone().toDate(),
-            outAM: date.add(4, 'hours').toDate(),
-            inPM: date.add(1, 'hours').toDate(),
-            outPM: date.add(4, 'hours').toDate(),
-        })
-        await attendance.save()
-        //
-
-        // All attendances
-        let attendances = await db.main.Attendance.find({
-            employeeId: employee._id,
-            createdAt: {
-                $gte: moment(payroll.startDate).startOf('day').toDate(),
-                $lt: moment(payroll.endDate).endOf('day').toDate(),
+        let qrCodes = []
+        employee.employments.forEach((e)=>{
+            let qrData = {
+                type: 2,
+                employeeId: employee._id,
+                employmentId: e._id
             }
-        })
+            qrData = Buffer.from(JSON.stringify(qrData)).toString('base64')
+            console.log(qrData)
 
-        res.send(attendances)
+            qrData = qr.imageSync(qrData, { size: 5, type: 'png' }).toString('base64')
+            qrCodes.push({
+                data: qrData,
+                employment: e,
+                title: e.position || 'Employment',
+            })
+        })
+        
+        res.render('e-profile/home.html', {
+            employee: employee,
+            momentNow: moment(),
+            qrCodes: qrCodes,
+        });
+        
     } catch (err) {
         next(err);
     }
@@ -75,6 +55,7 @@ router.get('/e-profile/dtr', middlewares.guardRoute(['use_employee_profile']), m
     try {
         let employee = res.employee.toObject()
 
+        console.log(employee.employments)
         // Today attendance
         let attendances = await db.main.Attendance.find({
             employeeId: employee._id,
@@ -104,11 +85,14 @@ router.get('/e-profile/dtr', middlewares.guardRoute(['use_employee_profile']), m
                 attendance: attendance
             }
         })
+        let qrCodeSvg = qr.imageSync(employee.uid, { size: 10, type: 'png' })
+
         res.render('e-profile/dtr.html', {
             momentNow: momentNow,
             days: days,
             attendances: attendances,
             employee: employee,
+            qrCodeSvg: qrCodeSvg.toString('base64'),
         });
     } catch (err) {
         next(err);
@@ -130,177 +114,5 @@ router.get('/e-profile/dtr-qr', middlewares.guardRoute(['use_employee_profile'])
     }
 });
 
-router.post('/attendance/dtr', middlewares.guardRoute(['create_scanner']), async (req, res, next) => {
-    try {
-
-        let employee = {
-            _id: '60b22ee0e846b00efc16941a',
-            uid: '371170237238',
-        }
-        // Today attendance
-        let attendance = await db.main.Attendance.findOne({
-            employeeId: employee._id,
-            createdAt: {
-                $gte: moment().startOf('day').toDate(),
-                $lt: moment().endOf('day').toDate(),
-            }
-        })
-
-        let body = req.body
-        if (body.inAM && !attendance) {
-
-            let attendance = new db.main.Attendance({
-                employeeId: employee._id,
-                inAM: new Date(),
-                inAM2: {
-                    // scannerId: ,
-                    dateTime: new Date(),
-                    confirmed: false
-                }
-            })
-            await attendance.save()
-            return res.redirect('/attendance/dtr/confirm')
-        }
-        if (body.outAM && attendance && attendance.inAM) {
-
-            attendance.outAM = new Date()
-            await attendance.save()
-
-        }
-        if (body.inPM && attendance && attendance.outAM) {
-
-            attendance.inPM = new Date()
-            await attendance.save()
-
-        }
-        if (body.outPM && attendance && attendance.inPM) {
-
-            attendance.outPM = new Date()
-            await attendance.save()
-
-        }
-
-
-        return res.redirect('/attendance/dtr')
-
-        // let patch = {}
-
-        // let password = passwordMan.randomString(8)
-        // let salt = passwordMan.randomString(16)
-        // let passwordHash = passwordMan.hashPassword(password, salt)
-
-        // lodash.set(patch, 'name', lodash.get(body, 'name'))
-        // lodash.set(patch, 'type', lodash.get(body, 'type'))
-        // lodash.set(patch, 'passwordHash', passwordHash)
-        // lodash.set(patch, 'salt', salt)
-
-        // let scanner = new db.main.Scanner(patch)
-        // await scanner.save()
-
-        res.redirect(`/attendance/dtr`)
-    } catch (err) {
-        next(err);
-    }
-});
-
-router.get('/attendance/dtr/confirm', middlewares.guardRoute(['create_scanner']), async (req, res, next) => {
-    try {
-        let employee = {
-            _id: '60b22ee0e846b00efc16941a',
-            uid: '371170237238',
-        }
-
-        // Today attendance
-        let attendance = await db.main.Attendance.findOne({
-            employeeId: employee._id,
-            createdAt: {
-                $gte: moment().startOf('day').toDate(),
-                $lt: moment().endOf('day').toDate(),
-            }
-        })
-
-        let qrCodeSvg = qr.imageSync(employee.uid, { size: 6, type: 'svg' })
-
-        res.render('attendance/dtr-confirm.html', {
-            moment: moment,
-            attendance: attendance,
-            qrCodeSvg: qrCodeSvg
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-router.post('/attendance/dtr/confirm', middlewares.guardRoute(['create_scanner']), async (req, res, next) => {
-    try {
-
-        let employee = {
-            _id: '60b22ee0e846b00efc16941a',
-            uid: '371170237238',
-        }
-        // Today attendance
-        let attendance = await db.main.Attendance.findOne({
-            employeeId: employee._id,
-            createdAt: {
-                $gte: moment().startOf('day').toDate(),
-                $lt: moment().endOf('day').toDate(),
-            }
-        })
-
-        let body = req.body
-        if (body.inAM && !attendance) {
-
-            let attendance = new db.main.Attendance({
-                employeeId: employee._id,
-                inAM: new Date(),
-                inAM2: {
-                    // scannerId: ,
-                    dateTime: new Date(),
-                    confirmed: false
-                }
-            })
-            await attendance.save()
-            return res.redirect('/attendance/dtr/confirm')
-        }
-        if (body.outAM && attendance && attendance.inAM) {
-
-            attendance.outAM = new Date()
-            await attendance.save()
-
-        }
-        if (body.inPM && attendance && attendance.outAM) {
-
-            attendance.inPM = new Date()
-            await attendance.save()
-
-        }
-        if (body.outPM && attendance && attendance.inPM) {
-
-            attendance.outPM = new Date()
-            await attendance.save()
-
-        }
-
-
-        return res.redirect('/attendance/dtr')
-
-        // let patch = {}
-
-        // let password = passwordMan.randomString(8)
-        // let salt = passwordMan.randomString(16)
-        // let passwordHash = passwordMan.hashPassword(password, salt)
-
-        // lodash.set(patch, 'name', lodash.get(body, 'name'))
-        // lodash.set(patch, 'type', lodash.get(body, 'type'))
-        // lodash.set(patch, 'passwordHash', passwordHash)
-        // lodash.set(patch, 'salt', salt)
-
-        // let scanner = new db.main.Scanner(patch)
-        // await scanner.save()
-
-        res.redirect(`/attendance/dtr`)
-    } catch (err) {
-        next(err);
-    }
-});
 
 module.exports = router;

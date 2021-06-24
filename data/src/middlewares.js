@@ -222,6 +222,24 @@ module.exports = {
             next(err);
         }
     },
+    qrDecode: async (req, res, next) => {
+        try {
+            let code = req.query.code || ''
+            if (!code) {
+                code = req.body.code || ''
+            }
+            if (!code) {
+                return res.render('error.html', { error: "Sorry, QR not found." })
+            }
+            let qrData = Buffer.from(code, 'base64').toString('utf8')
+            qrData = JSON.parse(qrData)
+            res.qrCode = code
+            res.qrData = qrData
+            next();
+        } catch (err) {
+            next(err);
+        }
+    },
     getEmployee: async (req, res, next) => {
         try {
             let employeeId = req.params.employeeId || ''

@@ -81,11 +81,11 @@
       {
         "mode": 1,
         "start": {
-          "hour": 8,
+          "hour": 7,
           "minute": 0
         },
         "end": {
-          "hour": 8,
+          "hour": 7,
           "minute": 15
         }
       },

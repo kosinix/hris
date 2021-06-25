@@ -232,7 +232,11 @@ module.exports = {
                 return res.render('error.html', { error: "Sorry, QR not found." })
             }
             let qrData = Buffer.from(code, 'base64').toString('utf8')
-            qrData = JSON.parse(qrData)
+            try {
+                qrData = JSON.parse(qrData)
+            } catch (errr) {
+                throw new Error('Invalid QR code.')
+            }
             res.qrCode = code
             res.qrData = qrData
             next();

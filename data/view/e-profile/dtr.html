@@ -4,7 +4,7 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h3">E-DTR <em>({{momentNow|format_date('dddd - MMMM DD, YYYY')}})</em></h1>
+            <h1 class="h3">DTR <em>({{momentNow|format_date('MMMM, YYYY')}})</em></h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
@@ -20,11 +20,11 @@
                 <div class="">-----o0o-----</div>
 
                 <div class="text-center pt-3 pb-3">
-                    <div class="photo ml-auto mr-auto " style="overflow:hidden;max-width: 200px; border: 3px solid #800000; border-radius:2px">
+                    <div class="photo ml-auto mr-auto " style="overflow:hidden;max-width: 200px; border-radius:2px">
                         {% if employee.profilePhoto %}
                             <img src="{{employee.profilePhoto|s3_url('medium')}}" alt="{{employee.firstName|first}}. {{employee.lastName|first}}.">
                         {% else %}
-                            <span class="initials">{{employee.firstName|first}} {{employee.lastName|first}}</span>
+                            {# <span class="initials">{{employee.firstName|first}} {{employee.lastName|first}}</span> #}
                         {% endif %}
                     </div>
                 </div>

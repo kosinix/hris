@@ -51,7 +51,7 @@
                     </tr>
                     {% for day in days %}
                     {% set attendance = day.attendance %}
-                    <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
+                    <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertimexxx {% endif %}">
                         <td class="text-center">{{day.day}}</td>
                         {% if attendance.onTravel %}
                             <td colspan="6">On Travel</td>
@@ -68,7 +68,7 @@
                 </table>
             </div>
             <div class="text-center">
-                <a href="/e-profile/dtr-qr" class="mt-3 btn btn-primary">Scan QR Code To Log Attendance</a>
+                {# <a href="/e-profile/dtr-qr" class="mt-3 btn btn-primary">Scan QR Code To Log Attendance</a> #}
             </div>
         </div>
     </div>

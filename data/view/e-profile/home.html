@@ -32,23 +32,28 @@
                 <h3 class="mb-5">Today is {{momentNow|format_date('dddd - MMM DD, YYYY')}}</h3>
                 <p class="mb-5">Place the code below in front of the scanner camera.</p>
                 
-                <div id="carouselExampleControls" class="carousel slide" data-wrap="false" data-interval="false" data-ride="carousel">
+                <div id="carouselQr" style="background: #fff; padding: 15px 0;" class="carousel slide" data-wrap="false" data-interval="false" data-ride="carousel">
+                    <ol class="carousel-indicators">
+                        {% for qrCode in qrCodes %}
+                        <li data-target="#carouselQr" data-slide-to="{{loop.index0}}" class="{% if loop.index === 1 %}active{% endif %}"></li>
+                        {% endfor %}
+                    </ol>
                     <div class="carousel-inner">
                         {% for qrCode in qrCodes %}
                         <div class="carousel-item {% if loop.index === 1 %}active{% endif %}">
                             <img src="data:image/png;base64, {{qrCode.data|safe}}" alt="QR">
                             <p class="h3 pt-3">{{qrCode.title}}</p>
-                            <div class="text-center">
+                            <div class="text-center pb-5">
                                 <a href="/e-profile/dtr/{{qrCode.employment._id}}" class="mt-3 btn btn-primary">View My DTR</a>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
-                    <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+                    <a class="carousel-control-prev" href="#carouselQr" role="button" data-slide="prev">
                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                         <span class="sr-only">Previous</span>
                     </a>
-                    <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+                    <a class="carousel-control-next" href="#carouselQr" role="button" data-slide="next">
                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
                         <span class="sr-only">Next</span>
                     </a>

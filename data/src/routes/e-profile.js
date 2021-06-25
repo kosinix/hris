@@ -64,6 +64,7 @@ router.get('/e-profile/dtr', middlewares.guardRoute(['use_employee_profile']), m
                 $lt: moment().endOf('month').toDate(),
             }
         })
+
         attendances = lodash.mapKeys(attendances, (a) => {
             return moment(a.createdAt).format('YYYY-MM-DD')
         })
@@ -114,5 +115,53 @@ router.get('/e-profile/dtr-qr', middlewares.guardRoute(['use_employee_profile'])
     }
 });
 
+router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employmentId = req.params.employmentId
 
+        // Today attendance
+        let attendances = await db.main.Attendance.find({
+            employeeId: employee._id,
+            employmentId: employmentId,
+            createdAt: {
+                $gte: moment().startOf('month').toDate(),
+                $lt: moment().endOf('month').toDate(),
+            }
+        })
+
+        attendances = lodash.mapKeys(attendances, (a) => {
+            return moment(a.createdAt).format('YYYY-MM-DD')
+        })
+
+        let momentNow = moment()
+        let days = new Array(momentNow.daysInMonth())
+        let year = momentNow.format('YYYY')
+        let month = momentNow.format('MM')
+        days = days.fill(1).map((v, i) => {
+            let attendance = attendances[`${year}-${month}-${String(v+i).padStart(2,'0')}`] || null
+            let dtr = payrollCalc.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, CONFIG.workTime.gracePeriods)
+            
+            return {
+                date: `${year}-${month}-${String(v+i).padStart(2,'0')}`,
+                year: year,
+                month: month,
+                day: v + i,
+                dtr: dtr,
+                attendance: attendance
+            }
+        })
+        let qrCodeSvg = qr.imageSync(employee.uid, { size: 10, type: 'png' })
+
+        res.render('e-profile/dtr.html', {
+            momentNow: momentNow,
+            days: days,
+            attendances: attendances,
+            employee: employee,
+            qrCodeSvg: qrCodeSvg.toString('base64'),
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

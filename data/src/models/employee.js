@@ -150,6 +150,10 @@ const schema = new Schema({
             sssDeduction: {
                 $type: Number,
             },
+            active: {
+                $type: Boolean,
+                default: true
+            }
         }
     ],
     documents: [

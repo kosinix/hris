@@ -121,7 +121,6 @@ router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']),
     let scanner = res.scanner.toObject()
 
     try {
-
         res.render('scanner/scan.html', {
             scanner: scanner
         })
@@ -132,53 +131,13 @@ router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']),
         })
     }
 });
-
 // Decide on what to do with QR code
-router.get('/scanner/:scannerUid/find', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.qrDecode, async (req, res, next) => {
+router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.qrDecode, async (req, res, next) => {
     let scanner = res.scanner.toObject()
 
     try {
-        let code = lodash.get(req, 'query.code')
         let qrData = res.qrData
-
-        if (qrData.type === 3) { // healthdec
-            // return res.send('health dec for ' + splits[1])
-        }
-
-        // return res.send(code)
-        let employee = await db.main.Employee.findOne({
-            _id: qrData.employeeId
-        })
-        if (!employee) {
-            throw new Error('Employee not found.')
-        }
-        //
-        // Today attendance
-        // let attendance = await db.main.Attendance.findOne({
-        //     employeeId: employee._id,
-        //     createdAt: {
-        //         $gte: moment().startOf('day').toDate(),
-        //         $lt: moment().endOf('day').toDate(),
-        //     }
-        // })
-        // if (attendance && attendance.inAM && attendance.outAM && attendance.inPM && attendance.outPM) {
-        //     throw new Error(`Attendance for "${employee.firstName} ${employee.lastName}" already completed for today. `)
-        // }
-
-        return res.redirect(`/scanner/${scanner.uid}/verify?code=${code}`)
-    } catch (err) {
-        res.render('scanner/error.html', {
-            error: err.message,
-            scanner: scanner,
-        })
-    }
-});
-router.get('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.qrDecode, async (req, res, next) => {
-    let scanner = res.scanner.toObject()
-
-    try {
-        let code = req.query.code || ''
-        let qrData = res.qrData
+        let code = res.qrCode
 
         // return res.send(code)
         let employee = await db.main.Employee.findOne({
@@ -188,11 +147,23 @@ router.get('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner']
             throw new Error('Employee not found.')
         }
 
-        return res.render('scanner/verify.html', {
-            scanner: scanner,
-            employee: employee,
-            code: code,
-        })
+        if (qrData.type === 2) { // attendance
+            return res.render('scanner/verify.html', {
+                scanner: scanner,
+                employee: employee,
+                qrData: qrData,
+                code: code,
+            })
+        } else if (qrData.type === 3) { // healthdec
+            return res.render('scanner/verify-hdf.html', {
+                scanner: scanner,
+                employee: employee,
+                qrData: qrData,
+                code: code,
+            })
+        } else {
+            throw new Error('Invalid QR code.')
+        }
     } catch (err) {
         res.render('scanner/error.html', {
             error: err.message,
@@ -264,6 +235,50 @@ router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner'
     }
 });
 
+router.post('/scanner/:scannerUid/verify-hdf', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.qrDecode, async (req, res, next) => {
+    let scanner = res.scanner.toObject()
+
+    try {
+        let qrData = res.qrData
+        let code = res.qrCode
+
+        // return res.send(code)
+        let employee = await db.main.Employee.findOne({
+            _id: qrData.employeeId
+        })
+        if (!employee) {
+            throw new Error('Employee not found.')
+        }
+
+        // Today attendance
+        let hd = await db.main.HealthDeclaration.findOne({
+            employeeId: employee._id,
+            createdAt: {
+                $gte: moment().startOf('day').toDate(),
+                $lt: moment().endOf('day').toDate(),
+            }
+        })
+        if (hd) {
+            throw new Error('Already submitted today.')
+        } else {
+
+            hd = new db.main.HealthDeclaration({
+                employeeId: employee._id,
+                data: qrData.frm
+            })
+            await hd.save()
+        }
+        // return res.send(hd)
+
+        return res.redirect(`/scanner/${scanner.uid}/check-in?code=${code}`)
+    } catch (err) {
+        res.render('scanner/error.html', {
+            error: err.message,
+            scanner: scanner,
+        })
+    }
+});
+
 router.get('/scanner/:scannerUid/check-in', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.qrDecode, async (req, res, next) => {
     let scanner = res.scanner.toObject()
 
@@ -279,8 +294,14 @@ router.get('/scanner/:scannerUid/check-in', middlewares.guardRoute(['use_scanner
             throw new Error('Employee not found.')
         }
 
+        let message = 'Attendance logged successfully.'
+        if (qrData.type == 3) {
+            message = 'Health declaration submitted successfully.'
+        }
+
         return res.render('scanner/check-in.html', {
             scanner: scanner,
+            message: message,
             employee: employee,
         })
     } catch (err) {

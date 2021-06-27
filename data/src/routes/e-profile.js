@@ -285,4 +285,20 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
         next(err);
     }
 });
+
+router.get('/e-profile/payroll', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        throw new Error('Page under development.')
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/e-profile/pds', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        throw new Error('Page under development.')
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

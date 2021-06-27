@@ -28,6 +28,7 @@ main.App = main.model('App', require('./models/app'));
 main.Application = main.model('Application', require('./models/application'));
 main.Employee = main.model('Employee', require('./models/employee'));
 main.Group = main.model('Group', require('./models/group'));
+main.HealthDeclaration = main.model('HealthDeclaration', require('./models/health-declaration'));
 main.Login = main.model('Login', require('./models/login'));
 main.Pass = main.model('Pass', require('./models/pass'));
 main.Payroll = main.model('Payroll', require('./models/payroll'));

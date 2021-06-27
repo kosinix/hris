@@ -3,7 +3,7 @@
 {% block body %}
 <div class="col-md-4 col-sm-6 ml-auto mr-auto pt-5 mt-5">
     <div id="vApp" v-cloak>
-        <form ref="form" v-on:submit.prevent="onSubmit" action="/scanner/{{scanner.uid}}/find" method="GET" class="form-login" novalidate>
+        <form ref="form" v-on:submit.prevent="onSubmit" action="/scanner/{{scanner.uid}}/scan" method="POST" class="form-login" novalidate>
             <div class="form-header">
                 <h1 class="h6 mb-0">Scanner: {{scanner.name}}</h1>
             </div>

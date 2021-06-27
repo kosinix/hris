@@ -15,7 +15,7 @@
 
                     <a v-if="hideCancel" class="btn btn-success" href="/scanner/{{scanner.uid}}/scan">Return to scanner</a>
                 </div>
-                <div class="alert alert-success text-left">Attendance logged successfully.</div>
+                <div class="alert alert-success text-left">{{message}}</div>
                 <div class="profile-photo mb-3">
                     {% if employee.profilePhoto %}
                     <img src="{{employee.profilePhoto|s3_url('medium')}}" alt="photo">

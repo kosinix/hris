@@ -1,0 +1,294 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Individual Health Declaration Checklist</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                {# <a href="/e-profile/dtr" class="btn btn-sm btn-outline-primary">Back</a> #}
+            </div>
+        </div>
+    </div>
+
+    <div class=" mb-5">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/hdf" method="POST" class="form-default">
+            <div class="form-row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="temperature">Temperature</label>
+                        <div>
+                            <input name="temperature" id="temperature" v-model="temperature" type="number" class="form-control">
+                            <small class="invalid-feedback">${getError('temperature')}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h2 class="h5 mb-4">A. Personal Data</h2>
+            <div class="form-row">
+                <div class="col">
+                    {% set name = 'lastName' %}
+                    {% include 'parts/form-group-text.html' %}
+                </div>
+                <div class="col">
+                    {% set name = 'firstName' %}
+                    {% include 'parts/form-group-text.html' %}
+                </div>
+                <div class="col">
+                    {% set name = 'middleName' %}
+                    {% include 'parts/form-group-text.html' %}
+                </div>
+                <div class="col">
+                    {% set name = 'age' %}
+                    {% include 'parts/form-group-number.html' %}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col">
+                    {% set name = 'sex' %}
+                    {% set options = [{value:'', text:''}, {value:'M', text:'Male'}, {value:'F', text:'Female'}] %}
+                    {% include 'parts/form-group-select.html' %}
+                    {% set name = 'civilStatus' %}
+                </div>
+                <div class="col">
+                    {% set options = [{value:'Single', text:'Single'}, {value:'Married', text:'Married'}, {value:'Divorced', text:'Divorced'}, {value:'Separated', text:'Separated'}, {value:'Widowed', text:'Widowed'}] %}
+                    {% include 'parts/form-group-select.html' %}
+                </div>
+            </div>
+
+            {% set name = 'address' %}
+            {% include 'parts/form-group-text.html' %}
+            
+            <div class="form-row">
+                <div class="col">
+                    {% set name = 'contactNumber' %}
+                    {% include 'parts/form-group-text.html' %}
+                </div>
+                <div class="col">
+                    {% set name = 'department' %}
+                    {% include 'parts/form-group-text.html' %}
+                </div>
+            </div>
+
+            <h2 class="h5 mb-4">B. Check if you have any of the following at present or during tha past 14 days:</h2>
+            <div class="form-row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {% for symptom in optionsSymptoms1 %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" v-model="symptoms" name="symptoms[]" value="{{symptom}}" id="{{symptom}}">
+                                <label class="form-check-label" for="{{symptom}}">
+                                    {{symptom}}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        {% for symptom in optionsSymptoms2 %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" v-model="symptoms" name="symptoms[]" value="{{symptom}}" id="{{symptom}}">
+                                <label class="form-check-label" for="{{symptom}}">
+                                    {{symptom}}
+                                </label>
+                            </div>
+                        {% endfor %}
+                        <div class="form-group" v-if="symptoms.indexOf('others')!==-1">
+                            <div>
+                                <input placeholder="Please specify..." name="symptoms[]" id="otherSymptoms" v-model="otherSymptoms" type="text" class="form-control">
+                                <small class="invalid-feedback">${getError('otherSymptoms')}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h2 class="h5 mb-4">C.</h2>
+            <h2 class="h5 mb-4">1. Did you recently visit any health facility/hospital/clinic?</h2>
+            <div class="form-group">
+                <div class="form-group">
+                    <select name="visitedMedicalFacility" id="visitedMedicalFacility" v-model="visitedMedicalFacility"class="form-control">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                    <small class="invalid-feedback">${getError('{{visitedMedicalFacilityPurposes}}')}</small>
+                </div>
+                <div class="form-group" v-if="visitedMedicalFacility==='Yes'">
+                    <label for="visitedMedicalFacilityPurpose">What was the purpose if visit?</label>
+                   {% for visitedMedicalFacilityPurpose in visitedMedicalFacilityPurposes %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" v-model="visitedMedicalFacilityPurposes" name="visitedMedicalFacilityPurposes[]" value="{{visitedMedicalFacilityPurpose}}" id="visitedMedicalFacilityPurpose{{visitedMedicalFacilityPurpose}}">
+                            <label class="form-check-label" for="visitedMedicalFacilityPurpose{{visitedMedicalFacilityPurpose}}">
+                                {{visitedMedicalFacilityPurpose}}
+                            </label>
+                        </div>
+                    {% endfor %}
+                    <div class="form-group" v-if="visitedMedicalFacilityPurposes.indexOf('Others')!==-1">
+                        <div>
+                            <input placeholder="Please specify..." name="visitedMedicalFacilityPurposes[]" id="visitedMedicalFacilityPurposeOthers" v-model="visitedMedicalFacilityPurposeOthers" type="text" class="form-control">
+                            <small class="invalid-feedback">${getError('visitedMedicalFacilityPurposeOthers')}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="h5 mb-4">2. Have you ever been considered a suspect or probable case of COVID-19 by any health authority?</h2>
+            <div class="form-group">
+                <div>
+                    <select name="suspectedCovidPatient" id="suspectedCovidPatient" v-model="suspectedCovidPatient"class="form-control">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                    <small class="invalid-feedback">${getError('suspectedCovidPatient')}</small>
+                </div>
+            </div>
+            <div class="form-group" v-if="suspectedCovidPatient==='Yes'">
+                <label for="suspectedCovidPatientDetails">If Yes, specify date of arrival/departure from the said place</label>
+                <div>
+                    <input name="suspectedCovidPatientDetails" id="suspectedCovidPatientDetails" v-model="suspectedCovidPatientDetails" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('suspectedCovidPatientDetails')}</small>
+                </div>
+            </div>
+
+            <h2 class="h5 mb-4">2. Do you have any member of the family who are sick & have symptoms of COVID-19?</h2>
+            <div class="form-group">
+                <div>
+                    <select name="sickFamilyMembers" id="sickFamilyMembers" v-model="sickFamilyMembers"class="form-control">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                    <small class="invalid-feedback">${getError('sickFamilyMembers')}</small>
+                </div>
+            </div>
+            <div class="form-group" v-if="sickFamilyMembers==='Yes'">
+                <label for="sickFamilyMembersDetails">If Yes, please specify </label>
+                <div>
+                    <input name="sickFamilyMembersDetails" id="sickFamilyMembersDetails" v-model="sickFamilyMembersDetails" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('sickFamilyMembersDetails')}</small>
+                </div>
+            </div>
+
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">Submit Form</button>
+                </div>
+            </div>
+
+           
+
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            temperature: '37',
+            firstName: '{{employee.firstName}}',
+            middleName: '{{employee.middleName}}',
+            lastName: '{{employee.lastName}}',
+            age: '{{employee.birthDate|age}}',
+            sex: '{{employee.gender}}',
+            civilStatus: '{{employee.civilStatus}}',
+            address: '{{employee.address}}',
+            contactNumber: '{{employee.mobileNo}} 09106189160',
+            department: 'MIS',
+            symptoms: [],
+            otherSymptoms: '',
+            visitedMedicalFacility: 'No',
+            visitedMedicalFacilityPurposes: [],
+            visitedMedicalFacilityPurposeOthers: '',
+            suspectedCovidPatient: 'No',
+            suspectedCovidPatientDetails: '',
+            sickFamilyMembers: 'No',
+            sickFamilyMembersDetails: '',
+        },
+        validations: {
+            temperature: {
+                required: window.validators.required
+            },
+            lastName: {
+                required: window.validators.required
+            },
+            middleName: {
+                required: window.validators.required
+            },
+            firstName: {
+                required: window.validators.required
+            },
+            age: {
+                required: window.validators.required
+            },
+            sex: {
+                required: window.validators.required
+            },
+            civilStatus: {
+                required: window.validators.required
+            },
+            address: {
+                required: window.validators.required
+            },
+            contactNumber: {
+                required: window.validators.required
+            },
+            department: {
+                required: window.validators.required
+            },
+            temperature: {
+                required: window.validators.required
+            },
+
+            otherSymptoms: {
+                required: window.validators.requiredIf(function(){
+                    return this.symptoms.indexOf('others')!==-1
+                })
+            },
+            visitedMedicalFacilityPurposes: {
+                required: window.validators.requiredIf(function(){
+                    return this.visitedMedicalFacility==='Yes'
+                })
+            },
+            visitedMedicalFacilityPurposeOthers: {
+                required: window.validators.requiredIf(function(){
+                    return this.visitedMedicalFacilityPurposes.indexOf('Others')!==-1
+                })
+            },
+            suspectedCovidPatientDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.suspectedCovidPatient==='Yes'
+                })
+            },
+            sickFamilyMembersDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.sickFamilyMembers==='Yes'
+                })
+            }
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

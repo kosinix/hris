@@ -16,6 +16,9 @@
         <li class="nav-item">
             <a class="nav-link {{urlPath|active_class([r/^\/employee\/id-card\/(.)+/])}}" href="/employee/id-card/{{employee._id}}">ID Card</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/employee\/user\/(.)+/])}}" href="/employee/user/{{employee._id}}">Web Access</a>
+        </li>
         {# <li class="nav-item">
             <a class="nav-link {{urlPath|active_class([r/^\/employee\/passes\/(.)+/])}}" href="/employee/passes/{{employee._id}}">Passes</a>
         </li> #}

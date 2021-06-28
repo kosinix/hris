@@ -227,19 +227,37 @@ router.get('/employee',  middlewares.requireAuthUser, async (req, res, next) => 
         
         // console.log(util.inspect(query, false, null, true /* enable colors */))
         // raw ops
-        let employees = await db.main.Employee.collection.find(query).limit(10).toArray()
-        employees = lodash.map(employees, (o)=>{
-            let full = [o.firstName]
-            if(o.lastName){
-                full.push(o.lastName)
-            }
-            
-            return {
-                id: o._id,
-                name: full.join(' ')
+        // let employees = await db.main.Employee.collection.find(query).limit(10).toArray()
+        let aggr = []
+        aggr.push({ $match: query })
+        aggr.push({ $limit: 10 })
+        aggr.push({
+            $lookup:
+            {
+                from: "employments",
+                localField: "_id",
+                foreignField: "employeeId",
+                as: "employments"
             }
         })
-        return res.send(employees)
+
+        let employees = await db.main.Employee.aggregate(aggr)
+        let ret = []
+        employees.forEach((employee, i)=>{
+            let full = [employee.firstName]
+            if(employee.lastName){
+                full.push(employee.lastName)
+            }
+            full = full.join(' ')
+            employee.employments.forEach((employment, i)=>{
+                ret.push({
+                    id: employment._id,
+                    name: `${full} - ${employment.position} (${employment.salary})`
+                })
+            })
+        })
+        
+        return res.send(ret)
         
     } catch (err) {
         next(err);

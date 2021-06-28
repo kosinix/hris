@@ -86,14 +86,15 @@ const db = require('../data/src/db-install');
                     return 0;
                 });
                 let notFound = 0
+                let promises = []
                 results.forEach(async (o, i) => {
                     let e = await db.main.Employee.findOne({
                         lastName: new RegExp(o.lastName,"ig"),
                         firstName: new RegExp(o.firstName,"ig"),
                     })
                     if (e) {
-                        e.employments.push({
-                            "_id": new db.mongoose.Types.ObjectId(),
+                        let emplymnt = new db.main.Employment({
+                            "employeeId": e._id,
                             "position": o.position,
                             "salary": o.salary.replace(/,/g, ''),
                             "salaryType": o.salaryType,
@@ -103,7 +104,7 @@ const db = require('../data/src/db-install');
                             "department": o.fundSource,
                             "fundSource": o.fundSource,
                         })
-                        await e.save()
+                        promises.push(emplymnt.save())
                     } else {
 
                         console.log(`${++notFound} "${o.lastName}, ${o.firstName}" not found.`)
@@ -111,7 +112,7 @@ const db = require('../data/src/db-install');
                     // x.employments[0]._id = new db.mongoose.Types.ObjectId()
                     // return x.save()
                 })
-                // await Promise.all(promises)
+                await Promise.all(promises)
                 // db.main.close();
                 // console.log(`${results.length} added`)
                 // fs.writeFileSync(CONFIG.app.dir + '/scripts/install-data/out.json', JSON.stringify(results), { encoding: 'utf8' })

@@ -251,7 +251,24 @@ module.exports = {
             if (!employee) {
                 return res.render('error.html', { error: "Sorry, employee not found." })
             }
+            employee.employments = await db.main.Employment.find({
+                employeeId: employeeId
+            });
+
             res.employee = employee
+            next();
+        } catch (err) {
+            next(err);
+        }
+    },
+    getEmployment: async (req, res, next) => {
+        try {
+            let employmentId = req.params.employmentId || ''
+            let employment = await db.main.Employment.findById(employmentId);
+            if (!employment) {
+                return res.render('error.html', { error: "Sorry, employment not found." })
+            }
+            res.employment = employment
             next();
         } catch (err) {
             next(err);

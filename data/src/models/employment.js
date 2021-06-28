@@ -1,0 +1,80 @@
+//// Core modules
+
+//// External modules
+const mongoose = require('mongoose');
+
+//// Modules
+
+const Schema = mongoose.Schema;
+
+const schema = new Schema({
+    employeeId: {
+        $type: mongoose.Schema.Types.ObjectId,
+    },
+    campus: {
+        $type: String,
+        trim: true,
+    },
+    group: {
+        $type: String,
+        trim: true,
+    },
+    position: {
+        $type: String,
+        trim: true,
+    },
+    department: {
+        $type: String,
+        trim: true,
+    },
+    department2: {
+        $type: String,
+        trim: true,
+    },
+    employmentType: {
+        $type: String,
+        trim: true,
+    },
+    salary: {
+        $type: Number,
+    },
+    salaryType: { // monthly, daily
+        $type: String,
+        trim: true,
+    },
+    fundSource: {
+        $type: String,
+        trim: true,
+    },
+    sssID: {
+        $type: String,
+        trim: true,
+    },
+    sssDeduction: {
+        $type: Number,
+    },
+    active: {
+        $type: Boolean,
+        default: true
+    },
+    documents: [
+        {
+            type: {
+                $type: String,
+                trim: true,
+                default: ""
+            },
+        }
+    ],
+}, { timestamps: true, typeKey: '$type' })
+
+//// Virtuals
+
+
+//// Schema methods
+
+
+//// Middlewares
+
+
+module.exports = schema

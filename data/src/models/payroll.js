@@ -68,6 +68,16 @@ let schema = mongoose.Schema({
             minutesWorked: Number,
         }
     ],
+    employments: [
+        {
+            _id: {
+                $type: mongoose.Schema.Types.ObjectId,
+            }, 
+            employeeId: {
+                $type: mongoose.Schema.Types.ObjectId,
+            }, 
+        }
+    ],
 }, { timestamps: true, typeKey: '$type' })
 
 //// Instance methods

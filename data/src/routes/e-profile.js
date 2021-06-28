@@ -215,26 +215,16 @@ router.get('/e-profile/dtr', middlewares.guardRoute(['use_employee_profile']), m
     }
 });
 
-router.get('/e-profile/dtr-qr', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-
-        let qrCodeSvg = qr.imageSync(employee.uid, { size: 10, type: 'svg' })
-
-        res.render('e-profile/dtr-qr.html', {
-            momentNow: moment(),
-            qrCodeSvg: qrCodeSvg
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-
 router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employmentId = req.params.employmentId
-
+        let found = employee.employments.find((e)=>{
+            return e._id.toString() === employmentId
+        })
+        if (!found) {
+            throw new Error('Employment not found.')
+        }
         // Today attendance
         let attendances = await db.main.Attendance.find({
             employeeId: employee._id,
@@ -244,12 +234,7 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
                 $lt: moment().endOf('month').toDate(),
             }
         })
-        let employees = await db.main.Employee.find({
-            employments: { $elemMatch: { _id: employmentId } }
-        })
-        if (employees.length <= 0) {
-            throw new Error('Not found.')
-        }
+        
 
         attendances = lodash.mapKeys(attendances, (a) => {
             return moment(a.createdAt).format('YYYY-MM-DD')

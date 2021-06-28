@@ -7,16 +7,11 @@ const fs = require('fs');
 const path = require('path');
 
 //// External modules
-const csvParser = require('csv-parser')
-const csvStringify = require('csv-stringify')
 const lodash = require('lodash');
-const moment = require('moment');
 const pigura = require('pigura');
-const uuid = require('uuid');
 
 //// Modules
 const passwordMan = require('../data/src/password-man');
-const uid = require('../data/src/uid');
 
 
 //// First things first
@@ -45,7 +40,8 @@ const db = require('../data/src/db-install');
 
 ;(async () => {
     try {
-        
+        let csvRows = []
+        csvRows.push('"username", "password"')
         let results = []
         let employees = await db.main.Employee.find()
         let promises = employees.map((o)=>{
@@ -69,8 +65,8 @@ const db = require('../data/src/db-install');
                 active: true,
                 permissions: [],
             });
-            
-            console.log(`Inserting "${o.lastName}, ${o.firstName}" - "${username}" - "${password}"...`)
+            csvRows.push(`"${username}", "${password}"`)
+            // console.log(`Inserting "${o.lastName}, ${o.firstName}" - "${username}" - "${password}"...`)
             return user.save()
         })
         let users = await Promise.all(promises)
@@ -80,7 +76,11 @@ const db = require('../data/src/db-install');
                 return employee.save()
         })
         await Promise.all(promises)
+        console.log(`Inserted ${csvRows.length} users - See '/scripts/install-data/logins.csv'`)
 
+        csvRows = csvRows.join("\n")
+
+        fs.writeFileSync(CONFIG.app.dir + '/scripts/install-data/logins.csv', csvRows, { encoding: 'utf8' })
 
     } catch (err) {
         console.log(err)

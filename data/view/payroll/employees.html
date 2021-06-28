@@ -72,10 +72,10 @@
         <hr>
         <form ref="form" v-cloak v-on:submit.prevent="onSubmit" action="/payroll/employees/{{payroll._id}}" method="POST" class="form-default pt-2">
             <div class="form-group">
-                    <label for="employeeId">Add Employee <span class="text-danger">*</span></label>
+                    <label for="employmentId">Add Employee <span class="text-danger">*</span></label>
                     <div>
-                        <autocomplete v-model="employeeId"
-                            name="employeeId"
+                        <autocomplete v-model="employmentId"
+                            name="employmentId"
                             initial-value="{{''}}"
                             initial-display="{{''}}"
                             placeholder="Type employee name..."
@@ -85,7 +85,7 @@
                             v-on:selected="onSelect"
                             >
                         </autocomplete>
-                        <small class="invalid-feedback">${getError('employeeId')}</small>
+                        <small class="invalid-feedback">${getError('employmentId')}</small>
                     </div>
             </div>
             <div class="form-row pb-3">
@@ -117,11 +117,11 @@
             'autocomplete': window["vuejs-autocomplete"]
         },
         data: {
-            employeeId: '',
+            employmentId: '',
             payroll: {{payroll|stringify|safe}}
         },
         validations: {
-            employeeId: {
+            employmentId: {
                 required: window.validators.required
             },
         },
@@ -174,14 +174,6 @@
             },
             dataSource: function(input) {
                 return '/employee?s=' + input
-            },
-            showModal: function(field, label, value, employeeId){
-                vModalUpdate.field = field
-                vModalUpdate.label = label
-                vModalUpdate.value = value
-                vModalUpdate.employeeId = employeeId
-                vModalUpdate.formUrl = vModalUpdate.baseUrl
-                jQuery('#modal-update').modal('show');
             },
             onSubmit: function(){
                 var me = this;

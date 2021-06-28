@@ -21,7 +21,7 @@ module.exports = [
     'update_payroll',
     'delete_payroll',
 
-    // Entities
+    // Groups
     'read_all_group',
     'create_group',
     'read_group',
@@ -35,6 +35,13 @@ module.exports = [
     'update_scanner',
     'delete_scanner',
     'use_scanner',
+
+    // Attendance
+    'read_all_attendance',
+    'create_attendance',
+    'read_attendance',
+    'update_attendance',
+    'delete_attendance',
 
     // Employee 
     'use_employee_profile',

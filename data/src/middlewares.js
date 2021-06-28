@@ -345,6 +345,9 @@ module.exports = {
             if(!employee){
                 throw new Error('No employee associated with this user.')
             }
+            employee.employments = await db.main.Employment.find({
+                employeeId: employee._id
+            }).lean()
             res.employee = employee
 
             next();

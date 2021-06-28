@@ -198,7 +198,7 @@
             firstName: '{{employee.firstName}}',
             middleName: '{{employee.middleName}}',
             lastName: '{{employee.lastName}}',
-            age: '{{employee.birthDate|age}}',
+            age: '{{employee.birthDate|age|default('', true)}}',
             sex: '{{employee.gender}}',
             civilStatus: '{{employee.civilStatus}}',
             address: '{{employee.address}}',

@@ -107,6 +107,7 @@ dist
 .idea/*
 
 credentials/*
+scripts/install-data/logins*
 
 package-lock.json
 

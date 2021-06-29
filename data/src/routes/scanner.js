@@ -328,4 +328,20 @@ router.get('/scanner/:scannerUid/check-in', middlewares.guardRoute(['use_scanner
     }
 });
 
+router.get('/scanner/:scannerUid/pause', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, async (req, res, next) => {
+    let scanner = res.scanner.toObject()
+
+    try {
+       
+        return res.render('scanner/pause.html', {
+            scanner: scanner,
+        })
+    } catch (err) {
+        res.render('scanner/error.html', {
+            error: err.message,
+            scanner: scanner,
+        })
+    }
+});
+
 module.exports = router;

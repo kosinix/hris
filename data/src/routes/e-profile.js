@@ -40,10 +40,6 @@ router.get('/e-profile/home', middlewares.guardRoute(['use_employee_profile']), 
             })
         })
 
-        return res.send({
-            e: employee,
-            qrCodes: qrCodes
-        })
         res.render('e-profile/home.html', {
             employee: employee,
             momentNow: moment(),

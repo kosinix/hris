@@ -28,21 +28,21 @@
             </div>
             <h2 class="h5 mb-4">A. Personal Data</h2>
             <div class="form-row">
-                <div class="col">
+                <div class="col-md-4">
                     {% set name = 'lastName' %}
                     {% include 'parts/form-group-text.html' %}
                 </div>
-                <div class="col">
+                <div class="col-md-4">
                     {% set name = 'firstName' %}
                     {% include 'parts/form-group-text.html' %}
                 </div>
-                <div class="col">
+                <div class="col-md-4">
                     {% set name = 'middleName' %}
                     {% set label = 'Middle' %}
                     {% include 'parts/form-group-text.html' %}
                     {% set label = '' %}
                 </div>
-                <div class="col">
+                <div class="col-md-4">
                     {% set name = 'age' %}
                     {% include 'parts/form-group-number.html' %}
                 </div>

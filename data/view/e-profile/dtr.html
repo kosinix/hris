@@ -60,8 +60,12 @@
                             <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                             <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                             <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                            <td>{{day.dtr.underHours}}</td>
-                            <td>{{day.dtr.underMinutes}}</td>
+                            <td>
+                            {# {{day.dtr.underHours}} #}
+                            </td>
+                            <td>
+                            {# {{day.dtr.underMinutes}} #}
+                            </td>
                         {% endif %}
                     </tr>
                     {% endfor %}

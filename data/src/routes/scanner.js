@@ -43,7 +43,7 @@ router.get('/scanner/all', middlewares.guardRoute(['read_all_scanner', 'read_sca
         let sort = {}
         sort = lodash.set(sort, sortBy, sortOrder)
 
-        console.log(query, projection, options, sort)
+        // console.log(query, projection, options, sort)
 
         let scanners = await db.main.Scanner.find(query, projection, options).sort(sort).lean()
 

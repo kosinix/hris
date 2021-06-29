@@ -14,7 +14,7 @@ let router = express.Router()
 
 router.get('/login', async (req, res, next) => {
     try {
-        console.log(req.session)
+        // console.log(req.session)
         let ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
         res.render('login.html', {
             flash: flash.get(req, 'login'),

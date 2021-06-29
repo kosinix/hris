@@ -30,7 +30,7 @@ router.get('/e-profile/home', middlewares.guardRoute(['use_employee_profile']), 
                 employmentId: e._id
             }
             qrData = Buffer.from(JSON.stringify(qrData)).toString('base64')
-            console.log(qrData)
+            // console.log(qrData)
 
             qrData = qr.imageSync(qrData, { size: 5, type: 'png' }).toString('base64')
             qrCodes.push({

@@ -21,7 +21,7 @@ router.use('/attendance', middlewares.requireAuthUser )
 
 router.get('/attendance/all', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
     try {
-        res.send('none')
+        throw new Error('Page under development.')
     } catch (err) {
         next(err);
     }

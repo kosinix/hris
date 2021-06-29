@@ -146,6 +146,10 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
         if (!employee) {
             throw new Error('Employee not found.')
         }
+        // Attach employments
+        employee.employments = await db.main.Employment.find({
+            employeeId: employee._id
+        })
 
         if (qrData.type === 2) { // attendance
             return res.render('scanner/verify.html', {
@@ -186,6 +190,10 @@ router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner'
         if (!employee) {
             throw new Error('Employee not found.')
         }
+        // Attach employments
+        employee.employments = await db.main.Employment.find({
+            employeeId: employee._id
+        })
 
         // Today attendance
         let attendance = await db.main.Attendance.findOne({
@@ -249,6 +257,10 @@ router.post('/scanner/:scannerUid/verify-hdf', middlewares.guardRoute(['use_scan
         if (!employee) {
             throw new Error('Employee not found.')
         }
+        // Attach employments
+        employee.employments = await db.main.Employment.find({
+            employeeId: employee._id
+        })
 
         // Today attendance
         let hd = await db.main.HealthDeclaration.findOne({
@@ -293,7 +305,11 @@ router.get('/scanner/:scannerUid/check-in', middlewares.guardRoute(['use_scanner
         if (!employee) {
             throw new Error('Employee not found.')
         }
-
+        // Attach employments
+        employee.employments = await db.main.Employment.find({
+            employeeId: employee._id
+        })
+        
         let message = 'Attendance logged successfully.'
         if (qrData.type == 3) {
             message = 'Health declaration submitted successfully.'

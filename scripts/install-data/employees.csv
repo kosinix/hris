@@ -1,384 +1,384 @@
-number,department,name,position,group,employmentType,salary,salaryType
-1,,"Alminaza, Reiner Jun G.",,faculty,permanent,,monthly
-2,,"Alumbro, Adrian C.",,faculty,permanent,,monthly
-3,,"Anas, Anelyn P.",,faculty,permanent,,monthly
-4,,"Arboleda, Daniel John D.",,faculty,permanent,,monthly
-5,,"Arceña, Agustin N.",,faculty,permanent,,monthly
-6,,"Arensol, Joe Russel G.",,faculty,permanent,,monthly
-7,,"Arsenio, Jason S.",,faculty,permanent,,monthly
-8,,"Artajo, Sheila Mae V.",,faculty,permanent,,monthly
-9,,"Artajo, Tommy M.",,faculty,permanent,,monthly
-10,,"Arturo, Rey M.",,faculty,permanent,,monthly
-11,,"Arturo, Rosabeth M.",,faculty,permanent,,monthly
-12,,"Asprilla, Ivony S.",,faculty,permanent,,monthly
-13,,"Bales, Alvin Erick C.",,faculty,permanent,,monthly
-14,,"Basañes, Sol M.",,faculty,permanent,,monthly
-15,,"Berondo, Ronilo G.",,faculty,permanent,,monthly
-16,,"Borro, Rogelio M.",,faculty,permanent,,monthly
-17,,"Buelva, Raquel T.",,faculty,permanent,,monthly
-18,,"Bullo, Jean G.",,faculty,permanent,,monthly
-19,,"Caber, Jocyl C.",,faculty,permanent,,monthly
-20,,"Cablas, Joven C.",,faculty,permanent,,monthly
-21,,"Cadornigara, Jasmine L.",,faculty,permanent,,monthly
-22,,"Cainday, Simeon III J.",,faculty,permanent,,monthly
-23,,"Calumpita, Conrado S.",,faculty,permanent,,monthly
-24,,"Cang, Geraldo B.",,faculty,permanent,,monthly
-25,,"Cariaga, Kissy G.",,faculty,permanent,,monthly
-26,,"Catalan, Eric P.",,faculty,permanent,,monthly
-27,,"Catalan, Ruby D.",,faculty,permanent,,monthly
-28,,"David, Marie Cris",,faculty,permanent,,monthly
-29,,"De Asis, Josephine G.",,faculty,permanent,,monthly
-30,,"De la Cruz, Margie Y.",,faculty,permanent,,monthly
-31,,"De la Rama, Khristian T.",,faculty,permanent,,monthly
-32,,"Dilag, Criste F.",,faculty,permanent,,monthly
-33,,"Dumagpi, Erwin D.",,faculty,permanent,,monthly
-34,,"Efondo, Violeta C.",,faculty,permanent,,monthly
-35,,"Egael, Lovely Joy J.",,faculty,permanent,,monthly
-36,,"Encarquez, Ana P.",,faculty,permanent,,monthly
-37,,"Eres, Aizle F.",,faculty,permanent,,monthly
-38,,"Espin, Antonieta S.",,faculty,permanent,,monthly
-39,,"Estilo, Aziel Lyn Y.",,faculty,permanent,,monthly
-40,,"Fernandez, Jufel D.",,faculty,permanent,,monthly
-41,,"Flora, Rhea Joy D.",,faculty,permanent,,monthly
-42,,"Forca, Adrian J.",,faculty,permanent,,monthly
-43,,"Ga, James Ryan B.",,faculty,permanent,,monthly
-44,,"Gabayoyo, Adora B.",,faculty,permanent,,monthly
-45,,"Gabion, Jonathan G.",,faculty,permanent,,monthly
-46,,"Gabo, Jessierey Heart C.",,faculty,permanent,,monthly
-47,,"Gadian, Jasmin T.",,faculty,permanent,,monthly
-48,,"Gadian, Juliet J.",,faculty,permanent,,monthly
-49,,"Gaitano, Josie H.",,faculty,permanent,,monthly
-50,,"Gajo, Elizabeth G.",,faculty,permanent,,monthly
-51,,"Gal, Frenz Rial G.",,faculty,permanent,,monthly
-52,,"Galapin, Revenlie G.",,faculty,permanent,,monthly
-53,,"Galimba, Dioremark E.",,faculty,permanent,,monthly
-54,,"Gallos, Loveson C.",,faculty,permanent,,monthly
-55,,"Galve, Fermin B.",,faculty,permanent,,monthly
-56,,"Gamo, Gerald Sheo Thon D.",,faculty,permanent,,monthly
-57,,"Garbosa, Freddie Jr.G.",,faculty,permanent,,monthly
-58,,"Gardose, Rences G.",,faculty,permanent,,monthly
-59,,"Garmay, Beverly F.",,faculty,permanent,,monthly
-60,,"Gerada, Jo Ann T.",,faculty,permanent,,monthly
-61,,"Gonzales, Kristine S.",,faculty,permanent,,monthly
-62,,"Gonzales, Michael Victor A.",,faculty,permanent,,monthly
-63,,"Gonzales, Niel John M.",,faculty,permanent,,monthly
-64,,"Gumaling, Riza P.",,faculty,permanent,,monthly
-65,,"Habaña, Jesrelle Vhon G.",,faculty,permanent,,monthly
-66,,"Habaña, Ruben M.",,faculty,permanent,,monthly
-67,,"Herrera, Reynro T.",,faculty,permanent,,monthly
-68,,"Ibieza, Daisy B.",,faculty,permanent,,monthly
-69,,"Infante, Julieta G.",,faculty,permanent,,monthly
-70,,"Isogon, Ervin L.",,faculty,permanent,,monthly
-71,,"Jalando-on, Anthony P.",,faculty,permanent,,monthly
-72,,"Janaban, Anelyn A.",,faculty,permanent,,monthly
-73,,"Japitana, Joel V.",,faculty,permanent,,monthly
-74,,"Job, Aser M.",,faculty,permanent,,monthly
-75,,"Junco, Ethel P.",,faculty,permanent,,monthly
-76,,"Libutaque, Fernando Jr. J.",,faculty,permanent,,monthly
-77,,"Luzuriaga, Jimmy P.",,faculty,permanent,,monthly
-78,,"Magbanua, Jeffrey G.",,faculty,permanent,,monthly
-79,,"Maramento, Ellyn Ly O.",,faculty,permanent,,monthly
-80,,"Marquez, Nenen N.",,faculty,permanent,,monthly
-81,,"Martir, Erly M.",,faculty,permanent,,monthly
-82,,"Martires, Rodney N.",,faculty,permanent,,monthly
-83,,"Molate, Mary Joy T.",,faculty,permanent,,monthly
-84,,"Moralista, Rome B.",,faculty,permanent,,monthly
-85,,"Niego, Katherine L.",,faculty,permanent,,monthly
-86,,"Norilla, Agatha Rica B.",,faculty,permanent,,monthly
-87,,"Occeña, Crisanto G.",,faculty,permanent,,monthly
-88,,"Paglomutan, Rodrigo G.",,faculty,permanent,,monthly
-89,,"Paguntalan, Andrew D.",,faculty,permanent,,monthly
-90,,"Palma, Kyrl S.",,faculty,permanent,,monthly
-91,,"Palma, Norie H.",,faculty,permanent,,monthly
-92,,"Paltiguera, Shiela Mae G.",,faculty,permanent,,monthly
-93,,"Parreño, Mary Elizabeth B.",,faculty,permanent,,monthly
-94,,"Perrocha, Methusela C.",,faculty,permanent,,monthly
-95,,"Pillora, Kert D.",,faculty,permanent,,monthly
-96,,"Pineda, Aubrey D.",,faculty,permanent,,monthly
-97,,"Porras, Ferick Brenz P.",,faculty,permanent,,monthly
-98,,"Ramos, Joebert Diane",,faculty,permanent,,monthly
-99,,"Rodriguez, Nelson J.",,faculty,permanent,,monthly
-100,,"Rueda, Roger B.",,faculty,permanent,,monthly
-101,,"Salinas,  Jerry H.",,faculty,permanent,,monthly
-102,,"Siva, Enriqueta N.",,faculty,permanent,,monthly
-103,,"Sollano, Mona Liza H.",,faculty,permanent,,monthly
-104,,"Soqueña, Arthur C.",,faculty,permanent,,monthly
-105,,"Sorongon, Maychelle P.",,faculty,permanent,,monthly
-106,,"Sumalde, Maribeth E.",,faculty,permanent,,monthly
-107,,"Tabale, Liezel A.",,faculty,permanent,,monthly
-108,,"Tagudin, John Israel G.",,faculty,permanent,,monthly
-109,,"Tamdang, Divon G.",,faculty,permanent,,monthly
-110,,"Tellermo, Efren S.",,faculty,permanent,,monthly
-111,,"Tumapang, Leopoldo Third R.",,faculty,permanent,,monthly
-112,,"Vergara, Julius T.",,faculty,permanent,,monthly
-113,,"Vilbar, Helen R.",,faculty,permanent,,monthly
-114,,"Villaflor, Rodante G.",,faculty,permanent,,monthly
-115,,"Yanguas, Ma. Xy J.",,faculty,permanent,,monthly
-116,,"Ymalay, Lea P.",,faculty,permanent,,monthly
-117,,"Aleman, Janet R.",Board Secretary V,staff,permanent,,monthly
-118,,"Baterzal, Jean G.",Nurse II,staff,permanent,,monthly
-119,,"Cinco, Rosalinda N.",Administrative Aide VI,staff,permanent,,monthly
-120,,"Depamallo, Vivie Ann G.",Administrative Aide IV,staff,permanent,,monthly
-121,,"Dulla, Ronel P.",Registrar III,staff,permanent,,monthly
-122,,"Ello, Grace D.",Administrative Aide VI,staff,permanent,,monthly
-123,,"Gabiota, Mirhjan N.",Administrative Aide I,staff,permanent,,monthly
-124,,"Gajo, Zosimo G.",Administrative Aide VI,staff,permanent,,monthly
-125,,"Galve, Randy G.",Administrative Aide VI,staff,permanent,,monthly
-126,,"Herrero, Cornelia S.",Administrative Aide VI,staff,permanent,,monthly
-127,,"Jarangue, Hazel D.",Administrative Officer V/ Cashier,staff,permanent,,monthly
-128,,"Lamera, Luna V.",Chief Administrative Officer/VPAF,staff,permanent,,monthly
-129,,"Parreño, Lilian Diana B.",SUC President III,staff,permanent,,monthly
-130,,"Pillora, Ken D.",Administrative Officer V/Supply Officer,staff,permanent,,monthly
-131,,"Pillora, Ma. Rechel A.",Administrative Officer V/HRMO,staff,permanent,,monthly
-132,,"Prologo, Philippe R.",Accountant III,staff,permanent,,monthly
-133,,"Tembrevilla, Rosebelle V.",Guidance Councelor III,staff,permanent,,monthly
-134,,"Traifalgar, Regina V.",Librarian III,staff,permanent,,monthly
-135,,"Tumapang, Ann Lyn S.",Administrative Officer V/Budget Officer,staff,permanent,,monthly
-136,,"Villa, Arnel P.",Security Guard I,staff,permanent,,monthly
-137,,"Yanguas, Roland ",Casual Plantilla(Supply),staff,permanent,,monthly
-138,,"Yucon, Johnny S.",Administrative Aide V,staff,permanent,,monthly
-139,,"Andrade, Eula Mae",CBM,faculty,cos,,daily
-140,,"Bermejo, Ralph Gerald",CBM,faculty,cos,,daily
-141,,"Brillantes, Kezia Joice B.",CAS,faculty,cos,,daily
-142,,"Ejar, Marin Dexter",CEIT,faculty,cos,,daily
-143,,"Estalogo, Christine Hazel",CAS,faculty,cos,,daily
-144,,"Gadot, John Michael",CST,faculty,cos,,daily
-145,,"Galuno, Ramjun",CST,faculty,cos,,daily
-146,,"Germina, Luis",CAS,faculty,cos,,daily
-147,,"Hervilla, Ralph",CEIT,faculty,cos,,daily
-148,,"Labra, Wenmar",CAS,faculty,cos,,daily
-149,,"Monton, Gejette Marei",CAS,faculty,cos,,daily
-150,,"Morada, Nenita",CAS,faculty,cos,,daily
-151,,"Occeña, Michael",CEIT,faculty,cos,,daily
-152,,"Perez, Dhareen",CST,faculty,cos,,daily
-153,,"Ysulan, Charlie",CAS,faculty,cos,,daily
-154,,"Aquillo, Grace",,faculty,part-time,,daily
-155,,"Baguio, Perla",CBM,faculty,part-time,,daily
-156,,"Bañez, Richard",CEIT,faculty,part-time,,daily
-157,,"Baron, Keseiah Jia",CBM,faculty,part-time,,daily
-158,,"Baylon, Neriza",CAS,faculty,part-time,,daily
-159,,"Bermejo, Edzel",CAS,faculty,part-time,,daily
-160,,"Cabagsican, Janet",CAS,faculty,part-time,,daily
-161,,"Cabaling, Jelle",CAGs,faculty,part-time,,daily
-162,,"Cadiz, Christian",CST,faculty,part-time,,daily
-163,,"Calauad, Rowel",,faculty,part-time,,daily
-164,,"Canto, Rogie",,faculty,part-time,,daily
-165,,"Cavan, Paulino H.",CCJE,faculty,part-time,,daily
-166,,"Chavez, Janice",CBM,faculty,part-time,,daily
-167,,"Claudio, Mark Joseph",CAS,faculty,part-time,,daily
-168,,"Cordero, Julie Ann",CAGs,faculty,part-time,,daily
-169,,"Dador, Elvir",CEIT,faculty,part-time,,daily
-170,,"Dagoon, Salvador Jr. E.",CCJE,faculty,part-time,,daily
-171,,"Dulaca, Janine",CAS,faculty,part-time,,daily
-172,,"Dumadaog, Jella Fe",CAS,faculty,part-time,,daily
-173,,"Dusaban, Criscelen Joy Augie M.",CCJE,faculty,part-time,,daily
-174,,"Edang, Rommel",CCJE,faculty,part-time,,daily
-175,,"Ellaga, Riza G.",CAS,faculty,part-time,,daily
-176,,"Elvas, Mark Joe",CCJE,faculty,part-time,,daily
-177,,"Estember, Ahlie",CCJE,faculty,part-time,,daily
-178,,"Estember, Rollin",CEIT,faculty,part-time,,daily
-179,,"Estrellanes, Jocelyn",CST,faculty,part-time,,daily
-180,,"Ferrer, Jefrey E.",CCJE,faculty,part-time,,daily
-181,,"Flora, May",CST,faculty,part-time,,daily
-182,,"Gabasa, Melajen",CAS,faculty,part-time,,daily
-183,,"Gabiota, Ella Danica",,faculty,part-time,,daily
-184,,"Gaborno, Lian Jean",CBM,faculty,part-time,,daily
-185,,"Gadian, Joshua Jed David",CAS,faculty,part-time,,daily
-186,,"Gahum, Decion Joe",,faculty,part-time,,daily
-187,,"Gaje, Michael",CAS,faculty,part-time,,daily
-188,,"Gallo, Alfred",CEIT,faculty,part-time,,daily
-189,,"Gamilong, Edward",CAGs,faculty,part-time,,daily
-190,,"Gencianeo, Salvador Jr.",CBM,faculty,part-time,,daily
-191,,"Gonzales, Jonas",CCJE,faculty,part-time,,daily
-192,,"Hilarion, Roga Jr.",CCJE,faculty,part-time,,daily
-193,,"Hortinela, Phoenix",CBM,faculty,part-time,,daily
-194,,"Ibieza, Phoebe G.",CTE,faculty,part-time,,daily
-195,,"Infante, Kim Adrian",CAS,faculty,part-time,,daily
-196,,"Jimenez, Carel",CAS,faculty,part-time,,daily
-197,,"Juderiasen, Ma. Annie",CAGs,faculty,part-time,,daily
-198,,"Junco, Marianne",CBM,faculty,part-time,,daily
-199,,"Junco, Tomas Jr.",CCJE,faculty,part-time,,daily
-200,,"Lachica, Anelyn",CBM,faculty,part-time,,daily
-201,,"Lagaña, Melvin G.",CCJE,faculty,part-time,,daily
-202,,"Lusaya, Angelino",CCJE,faculty,part-time,,daily
-203,,"Mediodia, Reymar",,faculty,part-time,,daily
-204,,"Mendez, Mario Antonio",CBM,faculty,part-time,,daily
-205,,"Natividad, Coline",CST,faculty,part-time,,daily
-206,,"Nava, Jeryl Mae C.",CAS,faculty,part-time,,daily
-207,,"Padilla, Jay",CCJE,faculty,part-time,,daily
-208,,"Palerit, Jenny",CAS,faculty,part-time,,daily
-209,,"Parreño, Mark Lawrence",CCJE,faculty,part-time,,daily
-210,,"Peremne, Rara Karat Patria ",CCJE,faculty,part-time,,daily
-211,,"Pillora, Christopher",CTE,faculty,part-time,,daily
-212,,"Pillora, Jovelle J.",CTE,faculty,part-time,,daily
-213,,"Pruebas, Darlyn Denise",CAGs,faculty,part-time,,daily
-214,,"Relano, Prudencio Jr.",CBM,faculty,part-time,,daily
-215,,"Ronco, Keince Kristle",CAS,faculty,part-time,,daily
-216,,"Satajo, Janet F.",CBM,faculty,part-time,,daily
-217,,"Segobre, Vivian",CAGs,faculty,part-time,,daily
-218,,"Simora, Noreen Mar",CAS,faculty,part-time,,daily
-219,,"Suarez, Jeffrey",CST,faculty,part-time,,daily
-220,,"Villasis, Jose A.",,faculty,part-time,,daily
-221,,"Abancio, Nilse J.",,staff,cos,,daily
-222,,"Abonado, Quirnel",,staff,cos,,daily
-223,,"Agarrado, Dan Bryan M.",,staff,cos,,daily
-224,,"Aguilar, John Rey",,staff,cos,,daily
-225,,"Alameda, Jesseca B.",,staff,cos,,daily
-226,,"Aleman, Ricyl Z.",,staff,cos,,daily
-227,,"Aliman-go, Ma. Siema E.",,staff,cos,,daily
-228,,"Almayda, Jedmark A.",,staff,cos,,daily
-229,,"Alminaza, Rhea Marie G.",,staff,cos,,daily
-230,,"Argonia, Apple A.",,staff,cos,,daily
-231,,"Armonio, Juvy Anne",,staff,cos,,daily
-232,,"Arnan, Jeffrey",,staff,cos,,daily
-233,,"Arroyo, Christian Dominic",,staff,cos,,daily
-234,,"Bacuyani, Bernaldo",,staff,cos,,daily
-235,,"Bacuyani, Donnah Mae R.",,staff,cos,,daily
-236,,"Balidiong, Madelyn T.",,staff,cos,,daily
-237,,"Balvidadez, Marlon",,staff,cos,,daily
-238,,"Bojeador, Renzelle F.",,staff,cos,,daily
-239,,"Borrero, Jenelyn",,staff,cos,,daily
-240,,"Borreros, Alfred John",,staff,cos,,daily
-241,,"Broces, Marjun J.",,staff,cos,,daily
-242,,"Bunda, Erwin",,staff,cos,,daily
-243,,"Cajilig, Benjie A.",,staff,cos,,daily
-244,,"Calama-an, April Joy",,staff,cos,,daily
-245,,"Calibjo, Marvin",,staff,cos,,daily
-246,,"Cañete, Roland",,staff,cos,,daily
-247,,"Carbon, Rafael I M.",,staff,cos,,daily
-248,,"Carpio, Neresa G.",,staff,cos,,daily
-249,,"Concepcion, Khaye M",,staff,cos,,daily
-250,,"Concepcion, Mary",,staff,cos,,daily
-251,,"Dayang, Hannah Antonette",,staff,cos,,daily
-252,,"De la Torre, Jessa Mae",,staff,cos,,daily
-253,,"De la Torre, Jury",,staff,cos,,daily
-254,,"De los Santos, Karen",,staff,cos,,daily
-255,,"Decomotan, Peres Jr.",,staff,cos,,daily
-256,,"Decomotan, Rosario",,staff,cos,,daily
-257,,"Defensor, Sandra Mae B.",,staff,cos,,daily
-258,,"Dela Cruz, Larry",,staff,cos,,daily
-259,,"Diolosa, Nelson",,staff,cos,,daily
-260,,"Epelipcia, Joydah B.",,staff,cos,,daily
-261,,"Escamillan, Fretch",,staff,cos,,daily
-262,,"Escaza, Louren Joy T.",,staff,cos,,daily
-263,,"Espanilla, Romnick G.",,staff,cos,,daily
-264,,"Esteban, Jefrry D.",,staff,cos,,daily
-265,,"Esteves, Genelyn G.",,staff,cos,,daily
-266,,"Fenequito, Shiela Mae ",,staff,cos,,daily
-267,,"Fernandez, Arnold",,staff,cos,,daily
-268,,"Fernandez, Karen Joyce",,staff,cos,,daily
-269,,"Fernandez, Kennette Joey Lyn",,staff,cos,,daily
-270,,"Ferrer, Analyn G.",,staff,cos,,daily
-271,,"Figueroa, Kenneth E.",,staff,cos,,daily
-272,,"Floro, Reciel Jay G.",,staff,cos,,daily
-273,,"Fulgencio, Princess S.",,staff,cos,,daily
-274,,"Ga, Bryan B.",,staff,cos,,daily
-275,,"Gabales, Jannah Rubbie",,staff,cos,,daily
-276,,"Gabales, Nicole Marie G.",,staff,cos,,daily
-277,,"Gabalonzo, Juline Hope",,staff,cos,,daily
-278,,"Gabayeron, Erwin G.",,staff,cos,,daily
-279,,"Gabayeron, Lovel T.",,staff,cos,,daily
-280,,"Gabion, Jo-em F.",,staff,cos,,daily
-281,,"Gabitanan, Mark D.",,staff,cos,,daily
-282,,"Gabito, Kristal Joy J.",,staff,cos,,daily
-283,,"Gabito, Unicorne",,staff,cos,,daily
-284,,"Gabo, Precious Joy F.",,staff,cos,,daily
-285,,"Gaitan, Denmark E.",,staff,cos,,daily
-286,,"Galapin, Eden Mae L.",,staff,cos,,daily
-287,,"Galapin, Lenio",,staff,cos,,daily
-288,,"Galfo, Beverly ",,staff,cos,,daily
-289,,"Galfo, Rosechelle G.",,staff,cos,,daily
-290,,"Gallarda, Desiree G.",,staff,cos,,daily
-291,,"Gallego, Danny",,staff,cos,,daily
-292,,"Gallego, Daverose S.",,staff,cos,,daily
-293,,"Gallego, Mary Grace D.",,staff,cos,,daily
-294,,"Galleto, Joel G.",,staff,cos,,daily
-295,,"Gallo, Richelle D.",,staff,cos,,daily
-296,,"Galve, Jerry May C.",,staff,cos,,daily
-297,,"Gamilong, Shammah",,staff,cos,,daily
-298,,"Gange, Angelica ",,staff,cos,,daily
-299,,"Garcia, John Paul",,staff,cos,,daily
-300,,"Gardoce, Iris M.",,staff,cos,,daily
-301,,"Garganera, Q.P. Gold",,staff,cos,,daily
-302,,"Gellada, Dan Christian G.",,staff,cos,,daily
-303,,"Germina, Nimrod P.",,staff,cos,,daily
-304,,"Ginete, Jee Neil",,staff,cos,,daily
-305,,"Gulaylay, Christopher",,staff,cos,,daily
-306,,"Habaña, Dan Paul E.",,staff,cos,,daily
-307,,"Habaña, John Dave",,staff,cos,,daily
-308,,"Habaña, Kitt Jerome",,staff,cos,,daily
-309,,"Herrera, Rodrigo",,staff,cos,,daily
-310,,"Huyan, Glenn",,staff,cos,,daily
-311,,"Ibieza, Zinnia B.",,staff,cos,,daily
-312,,"Iligan, Bernadil D.",,staff,cos,,daily
-313,,"Javellana, Amador Jr. D.",,staff,cos,,daily
-314,,"Javellana, Catherine Leslie D.",,staff,cos,,daily
-315,,"Javellana,Vincent",,staff,cos,,daily
-316,,"Lampitoc, Joey V.",,staff,cos,,daily
-317,,"Laquian, Juvi A.",,staff,cos,,daily
-318,,"Luceño, Niel A.",,staff,cos,,daily
-319,,"Magallanes, Garry",,staff,cos,,daily
-320,,"Magsipoc, Kimberly",,staff,cos,,daily
-321,,"Malay, Julie Ann M.",,staff,cos,,daily
-322,,"Malimit, Yhien",,staff,cos,,daily
-323,,"Marilla, Roan",,staff,cos,,daily
-324,,"Martisano, Mary Queen T.",,staff,cos,,daily
-325,,"Mendoza, Lawrence",,staff,cos,,daily
-326,,"Monton, Windee",,staff,cos,,daily
-327,,"Morada, Norton",,staff,cos,,daily
-328,,"Moreno, Christine Joy",,staff,cos,,daily
-329,,"Mucho, Chelmae Faith",,staff,cos,,daily
-330,,"Mucho, Willie",,staff,cos,,daily
-331,,"Muya, Joel M.",,staff,cos,,daily
-332,,"Muya, Lito",,staff,cos,,daily
-333,,"Namuag, Mylen",,staff,cos,,daily
-334,,"Natividad, Lyssa M.",,staff,cos,,daily
-335,,"Nolasco,Mark",,staff,cos,,daily
-336,,"Oja, Flosel",,staff,cos,,daily
-337,,"Padilla, Marian Joy",,staff,cos,,daily
-338,,"Paez, Nestor",,staff,cos,,daily
-339,,"Palencia, Rolando",,staff,cos,,daily
-340,,"Perlas, Joel",,staff,cos,,daily
-341,,"Perales, Antonia M.",,staff,cos,,daily
-342,,"Pillora, Clair D.",,staff,cos,,daily
-343,,"Piodena, Angelie L.",,staff,cos,,daily
-344,,"Platigue, John Carlo",,staff,cos,,daily
-345,,"Poñate, Donabelle",,staff,cos,,daily
-346,,"Poñate, Marilou R.",,staff,cos,,daily
-347,,"Poñate, Rhuel P.",,staff,cos,,daily
-348,,"Porras, Lady Carmel",,staff,cos,,daily
-349,,"Rafil, Arnold G.",,staff,cos,,daily
-350,,"Real, Joseph T.",,staff,cos,,daily
-351,,"Recto, Jeneefer P.",,staff,cos,,daily
-352,,"Ricablanca, June Rheo",,staff,cos,,daily
-353,,"Sallegue, Cristy Love",,staff,cos,,daily
-354,,"Sarabia, Cherry Ann G.",,staff,cos,,daily
-355,,"Sarme, Carlos",,staff,cos,,daily
-356,,"Sartorio, Janine ",,staff,cos,,daily
-357,,"Sartorio, Jofre",,staff,cos,,daily
-358,,"Sevilla,Pritzie Joy",,staff,cos,,daily
-359,,"Silva, Marie Cris G.",,staff,cos,,daily
-360,,"Sobremisana, Chyra Joy P.",,staff,cos,,daily
-361,,"Socamo, Joso Rheam",,staff,cos,,daily
-362,,"Sorongon, Leo",,staff,cos,,daily
-363,,"Tacadao, Mercy D.",,staff,cos,,daily
-364,,"Tacdoro, Jorilen",,staff,cos,,daily
-365,,"Tahum, Hernani",,staff,cos,,daily
-366,,"Tahum, Ian",,staff,cos,,daily
-367,,"Tamson, Glorioso G.",,staff,cos,,daily
-368,,"Tanaman, Jessa May",,staff,cos,,daily
-369,,"Tanaman, Maudy",,staff,cos,,daily
-370,,"Tapangan, Lybert",,staff,cos,,daily
-371,,"Tentativa, Rona Mae",,staff,cos,,daily
-372,,"Terrenal, Mark Gene B.",,staff,cos,,daily
-373,,"Toledano, Jaime Jr.",,staff,cos,,daily
-374,,"Tubongbanua, Jesa Mae",,staff,cos,,daily
-375,,"Tumapang, Lemuel Angelo",,staff,cos,,daily
-376,,"Uy, Wilmar L.",,staff,cos,,daily
-377,,"Valenzon, Mary Rose M",,staff,cos,,daily
-378,,"Varona, Gerillyn ",,staff,cos,,daily
-379,,"Villagoniza, Vera",,staff,cos,,daily
-380,,"Villarma, Janemar G.",,staff,cos,,daily
-381,,"Villegas, Mynie M",,staff,cos,,daily
-382,,"Ymalay, Julie Ann C.",,staff,cos,,daily
-383,,"Zaragoza, Kin R.",,staff,cos,,daily
+num,number,department,fundSource,name,position,group,employmentType,salary,salaryType,campus
+1,1,,,"Alminaza, Reiner Jun G.",,faculty,permanent,,monthly,
+2,2,,,"Alumbro, Adrian C.",,faculty,permanent,,monthly,
+3,3,,,"Anas, Anelyn P.",,faculty,permanent,,monthly,
+4,4,,,"Arboleda, Daniel John D.",,faculty,permanent,,monthly,
+5,5,,,"Arceña, Agustin N.",,faculty,permanent,,monthly,
+6,6,,,"Arensol, Joe Russel G.",,faculty,permanent,,monthly,
+7,7,,,"Arsenio, Jason S.",,faculty,permanent,,monthly,
+8,8,,,"Artajo, Sheila Mae V.",,faculty,permanent,,monthly,
+9,9,,,"Artajo, Tommy M.",,faculty,permanent,,monthly,
+10,10,,,"Arturo, Rey M.",,faculty,permanent,,monthly,
+11,11,,,"Arturo, Rosabeth M.",,faculty,permanent,,monthly,
+12,12,,,"Asprilla, Ivony S.",,faculty,permanent,,monthly,
+13,13,,,"Bales, Alvin Erick C.",,faculty,permanent,,monthly,
+14,14,,,"Basañes, Sol M.",,faculty,permanent,,monthly,
+15,15,,,"Berondo, Ronilo G.",,faculty,permanent,,monthly,
+16,16,,,"Borro, Rogelio M.",,faculty,permanent,,monthly,
+17,17,,,"Buelva, Raquel T.",,faculty,permanent,,monthly,
+18,18,,,"Bullo, Jean G.",,faculty,permanent,,monthly,
+19,19,,,"Caber, Jocyl C.",,faculty,permanent,,monthly,
+20,20,,,"Cablas, Joven C.",,faculty,permanent,,monthly,
+21,21,,,"Cadornigara, Jasmine L.",,faculty,permanent,,monthly,
+22,22,,,"Cainday, Simeon III J.",,faculty,permanent,,monthly,
+23,23,,,"Calumpita, Conrado S.",,faculty,permanent,,monthly,
+24,24,,,"Cang, Geraldo B.",,faculty,permanent,,monthly,
+25,25,,,"Cariaga, Kissy G.",,faculty,permanent,,monthly,
+26,26,,,"Catalan, Eric P.",,faculty,permanent,,monthly,
+27,27,,,"Catalan, Ruby D.",,faculty,permanent,,monthly,
+28,28,,,"David, Marie Cris",,faculty,permanent,,monthly,
+29,29,,,"De Asis, Josephine G.",,faculty,permanent,,monthly,
+30,30,,,"De la Cruz, Margie Y.",,faculty,permanent,,monthly,
+31,31,,,"De la Rama, Khristian T.",,faculty,permanent,,monthly,
+32,32,,,"Dilag, Criste F.",,faculty,permanent,,monthly,
+33,33,,,"Dumagpi, Erwin D.",,faculty,permanent,,monthly,
+34,34,,,"Efondo, Violeta C.",,faculty,permanent,,monthly,
+35,35,,,"Egael, Lovely Joy J.",,faculty,permanent,,monthly,
+36,36,,,"Encarquez, Ana P.",,faculty,permanent,,monthly,
+37,37,,,"Eres, Aizle F.",,faculty,permanent,,monthly,
+38,38,,,"Espin, Antonieta S.",,faculty,permanent,,monthly,
+39,39,,,"Estilo, Aziel Lyn Y.",,faculty,permanent,,monthly,
+40,40,,,"Fernandez, Jufel D.",,faculty,permanent,,monthly,
+41,41,,,"Flora, Rhea Joy D.",,faculty,permanent,,monthly,
+42,42,,,"Forca, Adrian J.",,faculty,permanent,,monthly,
+43,43,,,"Ga, James Ryan B.",,faculty,permanent,,monthly,
+44,44,,,"Gabayoyo, Adora B.",,faculty,permanent,,monthly,
+45,45,,,"Gabion, Jonathan G.",,faculty,permanent,,monthly,
+46,46,,,"Gabo, Jessierey Heart C.",,faculty,permanent,,monthly,
+47,47,,,"Gadian, Jasmin T.",,faculty,permanent,,monthly,
+48,48,,,"Gadian, Juliet J.",,faculty,permanent,,monthly,
+49,49,,,"Gaitano, Josie H.",,faculty,permanent,,monthly,
+50,50,,,"Gajo, Elizabeth G.",,faculty,permanent,,monthly,
+51,51,,,"Gal, Frenz Rial G.",,faculty,permanent,,monthly,
+52,52,,,"Galapin, Revenlie G.",,faculty,permanent,,monthly,
+53,53,,,"Galimba, Dioremark E.",,faculty,permanent,,monthly,
+54,54,,,"Gallos, Loveson C.",,faculty,permanent,,monthly,
+55,55,,,"Galve, Fermin B.",,faculty,permanent,,monthly,
+56,56,,,"Gamo, Gerald Sheo Thon D.",,faculty,permanent,,monthly,
+57,57,,,"Garbosa, Freddie Jr.G.",,faculty,permanent,,monthly,
+58,58,,,"Gardose, Rences G.",,faculty,permanent,,monthly,
+59,59,,,"Garmay, Beverly F.",,faculty,permanent,,monthly,
+60,60,,,"Gerada, Jo Ann T.",,faculty,permanent,,monthly,
+61,61,,,"Gonzales, Kristine S.",,faculty,permanent,,monthly,
+62,62,,,"Gonzales, Michael Victor A.",,faculty,permanent,,monthly,
+63,63,,,"Gonzales, Niel John M.",,faculty,permanent,,monthly,
+64,64,,,"Gumaling, Riza P.",,faculty,permanent,,monthly,
+65,65,,,"Habaña, Jesrelle Vhon G.",,faculty,permanent,,monthly,
+66,66,,,"Habaña, Ruben M.",,faculty,permanent,,monthly,
+67,67,,,"Herrera, Reynro T.",,faculty,permanent,,monthly,
+68,68,,,"Ibieza, Daisy B.",,faculty,permanent,,monthly,
+69,69,,,"Infante, Julieta G.",,faculty,permanent,,monthly,
+70,70,,,"Isogon, Ervin L.",,faculty,permanent,,monthly,
+71,71,,,"Jalando-on, Anthony P.",,faculty,permanent,,monthly,
+72,72,,,"Janaban, Anelyn A.",,faculty,permanent,,monthly,
+73,73,,,"Japitana, Joel V.",,faculty,permanent,,monthly,
+74,74,,,"Job, Aser M.",,faculty,permanent,,monthly,
+75,75,,,"Junco, Ethel P.",,faculty,permanent,,monthly,
+76,76,,,"Libutaque, Fernando Jr. J.",,faculty,permanent,,monthly,
+77,77,,,"Luzuriaga, Jimmy P.",,faculty,permanent,,monthly,
+78,78,,,"Magbanua, Jeffrey G.",,faculty,permanent,,monthly,
+79,79,,,"Maramento, Ellyn Ly O.",,faculty,permanent,,monthly,
+80,80,,,"Marquez, Nenen N.",,faculty,permanent,,monthly,
+81,81,,,"Martir, Erly M.",,faculty,permanent,,monthly,
+82,82,,,"Martires, Rodney N.",,faculty,permanent,,monthly,
+83,83,,,"Molate, Mary Joy T.",,faculty,permanent,,monthly,
+84,84,,,"Moralista, Rome B.",,faculty,permanent,,monthly,
+85,85,,,"Niego, Katherine L.",,faculty,permanent,,monthly,
+86,86,,,"Norilla, Agatha Rica B.",,faculty,permanent,,monthly,
+87,87,,,"Occeña, Crisanto G.",,faculty,permanent,,monthly,
+88,88,,,"Paglomutan, Rodrigo G.",,faculty,permanent,,monthly,
+89,89,,,"Paguntalan, Andrew D.",,faculty,permanent,,monthly,
+90,90,,,"Palma, Kyrl S.",,faculty,permanent,,monthly,
+91,91,,,"Palma, Norie H.",,faculty,permanent,,monthly,
+92,92,,,"Paltiguera, Shiela Mae G.",,faculty,permanent,,monthly,
+93,93,,,"Parreño, Mary Elizabeth B.",,faculty,permanent,,monthly,
+94,94,,,"Perrocha, Methusela C.",,faculty,permanent,,monthly,
+95,95,,,"Pillora, Kert D.",,faculty,permanent,,monthly,
+96,96,,,"Pineda, Aubrey D.",,faculty,permanent,,monthly,
+97,97,,,"Porras, Ferick Brenz P.",,faculty,permanent,,monthly,
+98,98,,,"Ramos, Joebert Diane",,faculty,permanent,,monthly,
+99,99,,,"Rodriguez, Nelson J.",,faculty,permanent,,monthly,
+100,100,,,"Rueda, Roger B.",,faculty,permanent,,monthly,
+101,101,,,"Salinas,  Jerry H.",,faculty,permanent,,monthly,
+102,102,,,"Siva, Enriqueta N.",,faculty,permanent,,monthly,
+103,103,,,"Sollano, Mona Liza H.",,faculty,permanent,,monthly,
+104,104,,,"Soqueña, Arthur C.",,faculty,permanent,,monthly,
+105,105,,,"Sorongon, Maychelle P.",,faculty,permanent,,monthly,
+106,106,,,"Sumalde, Maribeth E.",,faculty,permanent,,monthly,
+107,107,,,"Tabale, Liezel A.",,faculty,permanent,,monthly,
+108,108,,,"Tagudin, John Israel G.",,faculty,permanent,,monthly,
+109,109,,,"Tamdang, Divon G.",,faculty,permanent,,monthly,
+110,110,,,"Tellermo, Efren S.",,faculty,permanent,,monthly,
+111,111,,,"Tumapang, Leopoldo Third R.",,faculty,permanent,,monthly,
+112,112,,,"Vergara, Julius T.",,faculty,permanent,,monthly,
+113,113,,,"Vilbar, Helen R.",,faculty,permanent,,monthly,
+114,114,,,"Villaflor, Rodante G.",,faculty,permanent,,monthly,
+115,115,,,"Yanguas, Ma. Xy J.",,faculty,permanent,,monthly,
+116,116,,,"Ymalay, Lea P.",,faculty,permanent,,monthly,
+117,117,,,"Aleman, Janet R.",Board Secretary V,staff,permanent,,monthly,
+118,118,,,"Baterzal, Jean G.",Nurse II,staff,permanent,,monthly,
+119,119,,,"Cinco, Rosalinda N.",Administrative Aide VI,staff,permanent,,monthly,
+120,120,,,"Depamallo, Vivie Ann G.",Administrative Aide IV,staff,permanent,,monthly,
+121,121,,,"Dulla, Ronel P.",Registrar III,staff,permanent,,monthly,
+122,122,,,"Ello, Grace D.",Administrative Aide VI,staff,permanent,,monthly,
+123,123,,,"Gabiota, Mirhjan N.",Administrative Aide I,staff,permanent,,monthly,
+124,124,,,"Gajo, Zosimo G.",Administrative Aide VI,staff,permanent,,monthly,
+125,125,,,"Galve, Randy G.",Administrative Aide VI,staff,permanent,,monthly,
+126,126,,,"Herrero, Cornelia S.",Administrative Aide VI,staff,permanent,,monthly,
+127,127,,,"Jarangue, Hazel D.",Administrative Officer V/ Cashier,staff,permanent,,monthly,
+128,128,,,"Lamera, Luna V.",Chief Administrative Officer/VPAF,staff,permanent,,monthly,
+129,129,,,"Parreño, Lilian Diana B.",SUC President III,staff,permanent,,monthly,
+130,130,,,"Pillora, Ken D.",Administrative Officer V/Supply Officer,staff,permanent,,monthly,
+131,131,,,"Pillora, Ma. Rechel A.",Administrative Officer V/HRMO,staff,permanent,,monthly,
+132,132,,,"Prologo, Philippe R.",Accountant III,staff,permanent,,monthly,
+133,133,,,"Tembrevilla, Rosebelle V.",Guidance Councelor III,staff,permanent,,monthly,
+134,134,,,"Traifalgar, Regina V.",Librarian III,staff,permanent,,monthly,
+135,135,,,"Tumapang, Ann Lyn S.",Administrative Officer V/Budget Officer,staff,permanent,,monthly,
+136,136,,,"Villa, Arnel P.",Security Guard I,staff,permanent,,monthly,
+137,137,,,"Yanguas, Roland ",Casual Plantilla(Supply),staff,permanent,,monthly,
+138,138,,,"Yucon, Johnny S.",Administrative Aide V,staff,permanent,,monthly,
+139,139,,CBM,"Andrade, Eula Mae",CBM,faculty,cos,,daily,
+140,140,,CBM,"Bermejo, Ralph Gerald",CBM,faculty,cos,,daily,
+141,141,,CAS,"Brillantes, Kezia Joice B.",CAS,faculty,cos,,daily,
+142,142,,CAS,"Ejar, Marin Dexter",CEIT,faculty,cos,,daily,
+143,143,,CAS,"Estalogo, Christine Hazel",CAS,faculty,cos,,daily,
+144,144,,CAS,"Gadot, John Michael",CST,faculty,cos,,daily,
+145,145,,CAS,"Galuno, Ramjun",CST,faculty,cos,,daily,
+146,146,,CAS,"Germina, Luis",CAS,faculty,cos,,daily,
+147,147,,CAS,"Hervilla, Ralph",CEIT,faculty,cos,,daily,
+148,148,,CEIT,"Labra, Wenmar",CAS,faculty,cos,,daily,
+149,149,,CEIT,"Monton, Gejette Marei",CAS,faculty,cos,,daily,
+150,150,,CEIT,"Morada, Nenita",CAS,faculty,cos,,daily,
+151,151,,CAS,"Occeña, Michael",CEIT,faculty,cos,,daily,
+152,152,,CAS,"Perez, Dhareen",CST,faculty,cos,,daily,
+153,153,,CAS,"Ysulan, Charlie",CAS,faculty,cos,,daily,
+154,154,,CAS,"Aquillo, Grace",,faculty,part-time,,daily,
+155,155,,CAS,"Baguio, Perla",CBM,faculty,part-time,,daily,
+156,156,,CAS,"Bañez, Richard",CEIT,faculty,part-time,,daily,
+157,157,,CAS,"Baron, Keseiah Jia",CBM,faculty,part-time,,daily,
+158,158,,CAS,"Baylon, Neriza",CAS,faculty,part-time,,daily,
+159,159,,CAS,"Bermejo, Edzel",CAS,faculty,part-time,,daily,
+160,160,,CAS,"Cabagsican, Janet",CAS,faculty,part-time,,daily,
+161,161,,CAS,"Cabaling, Jelle",CAGs,faculty,part-time,,daily,
+162,162,,CAS,"Cadiz, Christian",CST,faculty,part-time,,daily,
+163,163,,CAS,"Calauad, Rowel",,faculty,part-time,,daily,
+164,164,,CAS,"Canto, Rogie",,faculty,part-time,,daily,
+165,165,,CAS,"Cavan, Paulino H.",CCJE,faculty,part-time,,daily,
+166,166,,CAS,"Chavez, Janice",CBM,faculty,part-time,,daily,
+167,167,,CBM,"Claudio, Mark Joseph",CAS,faculty,part-time,,daily,
+168,168,,CBM,"Cordero, Julie Ann",CAGs,faculty,part-time,,daily,
+169,169,,CBM,"Dador, Elvir",CEIT,faculty,part-time,,daily,
+170,170,,CBM,"Dagoon, Salvador Jr. E.",CCJE,faculty,part-time,,daily,
+171,171,,CBM,"Dulaca, Janine",CAS,faculty,part-time,,daily,
+172,172,,CBM,"Dumadaog, Jella Fe",CAS,faculty,part-time,,daily,
+173,173,,CBM,"Dusaban, Criscelen Joy Augie M.",CCJE,faculty,part-time,,daily,
+174,174,,CBM,"Edang, Rommel",CCJE,faculty,part-time,,daily,
+175,175,,CBM,"Ellaga, Riza G.",CAS,faculty,part-time,,daily,
+176,176,,CBM,"Elvas, Mark Joe",CCJE,faculty,part-time,,daily,
+177,177,,CBM,"Estember, Ahlie",CCJE,faculty,part-time,,daily,
+178,178,,CBM,"Estember, Rollin",CEIT,faculty,part-time,,daily,
+179,179,,CBM,"Estrellanes, Jocelyn",CST,faculty,part-time,,daily,
+180,180,,CBM,"Ferrer, Jefrey E.",CCJE,faculty,part-time,,daily,
+181,181,,CBM,"Flora, May",CST,faculty,part-time,,daily,
+182,182,,CCJE,"Gabasa, Melajen",CAS,faculty,part-time,,daily,
+183,183,,CCJE,"Gabiota, Ella Danica",,faculty,part-time,,daily,
+184,184,,CCJE,"Gaborno, Lian Jean",CBM,faculty,part-time,,daily,
+185,185,,CCJE,"Gadian, Joshua Jed David",CAS,faculty,part-time,,daily,
+186,186,,CCJE,"Gahum, Decion Joe",,faculty,part-time,,daily,
+187,187,,CCJE,"Gaje, Michael",CAS,faculty,part-time,,daily,
+188,188,,CCJE,"Gallo, Alfred",CEIT,faculty,part-time,,daily,
+189,189,,CCJE,"Gamilong, Edward",CAGs,faculty,part-time,,daily,
+190,190,,CCJE,"Gencianeo, Salvador Jr.",CBM,faculty,part-time,,daily,
+191,191,,CCJE,"Gonzales, Jonas",CCJE,faculty,part-time,,daily,
+192,192,,CCJE,"Hilarion, Roga Jr.",CCJE,faculty,part-time,,daily,
+193,193,,CCJE,"Hortinela, Phoenix",CBM,faculty,part-time,,daily,
+194,194,,CCJE,"Ibieza, Phoebe G.",CTE,faculty,part-time,,daily,
+195,195,,CCJE,"Infante, Kim Adrian",CAS,faculty,part-time,,daily,
+196,196,,CCJE,"Jimenez, Carel",CAS,faculty,part-time,,daily,
+197,197,,CCJE,"Juderiasen, Ma. Annie",CAGs,faculty,part-time,,daily,
+198,198,,CEIT,"Junco, Marianne",CBM,faculty,part-time,,daily,
+199,199,,CEIT,"Junco, Tomas Jr.",CCJE,faculty,part-time,,daily,
+200,200,,CEIT,"Lachica, Anelyn",CBM,faculty,part-time,,daily,
+201,201,,CEIT,"Lagaña, Melvin G.",CCJE,faculty,part-time,,daily,
+202,202,,ICT/QA,"Lusaya, Angelino",CCJE,faculty,part-time,,daily,
+203,203,,ITRDC,"Mediodia, Reymar",,faculty,part-time,,daily,
+204,204,,Planning,"Mendez, Mario Antonio",CBM,faculty,part-time,,daily,
+205,205,,GSU,"Natividad, Coline",CST,faculty,part-time,,daily,
+206,206,,Board Sec,"Nava, Jeryl Mae C.",CAS,faculty,part-time,,daily,
+207,207,,CAO,"Padilla, Jay",CCJE,faculty,part-time,,daily,
+208,208,,Planning,"Palerit, Jenny",CAS,faculty,part-time,,daily,
+209,209,,Supply,"Parreño, Mark Lawrence",CCJE,faculty,part-time,,daily,
+210,210,,Planning,"Peremne, Rara Karat Patria ",CCJE,faculty,part-time,,daily,
+211,211,,BAC,"Pillora, Christopher",CTE,faculty,part-time,,daily,
+212,212,,Budget,"Pillora, Jovelle J.",CTE,faculty,part-time,,daily,
+213,213,,HR,"Pruebas, Darlyn Denise",CAGs,faculty,part-time,,daily,
+214,214,,Procurement,"Relano, Prudencio Jr.",CBM,faculty,part-time,,daily,
+215,215,,Accounting,"Ronco, Keince Kristle",CAS,faculty,part-time,,daily,
+216,216,,Admin,"Satajo, Janet F.",CBM,faculty,part-time,,daily,
+217,217,,Accounting,"Segobre, Vivian",CAGs,faculty,part-time,,daily,
+218,218,,COA,"Simora, Noreen Mar",CAS,faculty,part-time,,daily,
+219,219,,BAC,"Suarez, Jeffrey",CST,faculty,part-time,,daily,
+220,220,,VPAA,"Villasis, Jose A.",,faculty,part-time,,daily,
+221,221,,Registrar,"Abancio, Nilse J.",,staff,cos,,daily,
+222,222,,Planning,"Abonado, Quirnel",,staff,cos,,daily,
+223,223,,Mosqueda,"Agarrado, Dan Bryan M.",,staff,cos,,daily,
+224,224,,GAD,"Aguilar, John Rey",,staff,cos,,daily,
+225,225,,CAS,"Alameda, Jesseca B.",,staff,cos,,daily,
+226,226,,CAS,"Aleman, Ricyl Z.",,staff,cos,,daily,
+227,227,,ICT,"Aliman-go, Ma. Siema E.",,staff,cos,,daily,
+228,228,,Mosqueda,"Almayda, Jedmark A.",,staff,cos,,daily,
+229,229,,EDC,"Alminaza, Rhea Marie G.",,staff,cos,,daily,
+230,230,,Library,"Argonia, Apple A.",,staff,cos,,daily,
+231,231,,EDC,"Armonio, Juvy Anne",,staff,cos,,daily,
+232,232,,EDC,"Arnan, Jeffrey",,staff,cos,,daily,
+233,233,,Sports,"Arroyo, Christian Dominic",,staff,cos,,daily,
+234,234,,Budget/VPAF,"Bacuyani, Bernaldo",,staff,cos,,daily,
+235,235,,Pres Office,"Bacuyani, Donnah Mae R.",,staff,cos,,daily,
+236,236,,HRMO,"Balidiong, Madelyn T.",,staff,cos,,daily,
+237,237,,CASHIER,"Balvidadez, Marlon",,staff,cos,,daily,
+238,238,,BAC,"Bojeador, Renzelle F.",,staff,cos,,daily,
+239,239,,Pres Office,"Borrero, Jenelyn",,staff,cos,,daily,
+240,240,,Transportation,"Borreros, Alfred John",,staff,cos,,daily,
+241,241,,Accounting,"Broces, Marjun J.",,staff,cos,,daily,
+242,242,,HRMO,"Bunda, Erwin",,staff,cos,,daily,
+243,243,,Transportation,"Cajilig, Benjie A.",,staff,cos,,daily,
+244,244,,COA,"Calama-an, April Joy",,staff,cos,,daily,
+245,245,,Procurement,"Calibjo, Marvin",,staff,cos,,daily,
+246,246,,Supply,"Cañete, Roland",,staff,cos,,daily,
+247,247,,CASHIER,"Carbon, Rafael I M.",,staff,cos,,daily,
+248,248,,Procurement,"Carpio, Neresa G.",,staff,cos,,daily,
+249,249,,DRMMC,"Concepcion, Khaye M",,staff,cos,,daily,
+250,250,,Records,"Concepcion, Mary",,staff,cos,,daily,
+251,251,,Planning,"Dayang, Hannah Antonette",,staff,cos,,daily,
+252,252,,Supply,"De la Torre, Jessa Mae",,staff,cos,,daily,
+253,253,,EDC,"De la Torre, Jury",,staff,cos,,daily,
+254,254,,Planning,"De los Santos, Karen",,staff,cos,,daily,
+255,255,,DRMMC,"Decomotan, Peres Jr.",,staff,cos,,daily,
+256,256,,CBM,"Decomotan, Rosario",,staff,cos,,daily,
+257,257,,CBM,"Defensor, Sandra Mae B.",,staff,cos,,daily,
+258,258,,CBM,"Dela Cruz, Larry",,staff,cos,,daily,
+259,259,,CBM,"Diolosa, Nelson",,staff,cos,,daily,
+260,260,,CBM,"Epelipcia, Joydah B.",,staff,cos,,daily,
+261,261,,CBM,"Escamillan, Fretch",,staff,cos,,daily,
+262,262,,CTE,"Escaza, Louren Joy T.",,staff,cos,,daily,
+263,263,,CTE,"Espanilla, Romnick G.",,staff,cos,,daily,
+264,264,,CTE,"Esteban, Jefrry D.",,staff,cos,,daily,
+265,265,,CRIM LAB,"Esteves, Genelyn G.",,staff,cos,,daily,
+266,266,,CCJE,"Fenequito, Shiela Mae ",,staff,cos,,daily,
+267,267,,CCJE,"Fernandez, Arnold",,staff,cos,,daily,
+268,268,,CEIT,"Fernandez, Karen Joyce",,staff,cos,,daily,
+269,269,,CEIT,"Fernandez, Kennette Joey Lyn",,staff,cos,,daily,
+270,270,,CEIT,"Ferrer, Analyn G.",,staff,cos,,daily,
+271,271,,Grad School,"Figueroa, Kenneth E.",,staff,cos,,daily,
+272,272,,Grad School,"Floro, Reciel Jay G.",,staff,cos,,daily,
+273,273,,Grad School,"Fulgencio, Princess S.",,staff,cos,,daily,
+274,274,,Grad School,"Ga, Bryan B.",,staff,cos,,daily,
+275,275,,Grad School,"Gabales, Jannah Rubbie",,staff,cos,,daily,
+276,276,,Grad School,"Gabales, Nicole Marie G.",,staff,cos,,daily,
+277,277,,Grad School,"Gabalonzo, Juline Hope",,staff,cos,,daily,
+278,278,,Grad School,"Gabayeron, Erwin G.",,staff,cos,,daily,
+279,279,,Grad School,"Gabayeron, Lovel T.",,staff,cos,,daily,
+280,280,,Grad School,"Gabion, Jo-em F.",,staff,cos,,daily,
+281,281,,Grad School,"Gabitanan, Mark D.",,staff,cos,,daily,
+282,282,,Grad School,"Gabito, Kristal Joy J.",,staff,cos,,daily,
+283,283,,Grad School,"Gabito, Unicorne",,staff,cos,,daily,
+284,284,,Grad School,"Gabo, Precious Joy F.",,staff,cos,,daily,
+285,285,,Grad School,"Gaitan, Denmark E.",,staff,cos,,daily,
+286,286,,Grad School,"Galapin, Eden Mae L.",,staff,cos,,daily,
+287,287,,Grad School,"Galapin, Lenio",,staff,cos,,daily,
+288,288,,Grad School,"Galfo, Beverly ",,staff,cos,,daily,
+289,289,,Grad School,"Galfo, Rosechelle G.",,staff,cos,,daily,
+290,290,,Grad School,"Gallarda, Desiree G.",,staff,cos,,daily,
+291,291,,Grad School,"Gallego, Danny",,staff,cos,,daily,
+292,292,,Grad School,"Gallego, Daverose S.",,staff,cos,,daily,
+293,293,,Grad School,"Gallego, Mary Grace D.",,staff,cos,,daily,
+294,294,,Grad School,"Galleto, Joel G.",,staff,cos,,daily,
+295,295,,Grad School,"Gallo, Richelle D.",,staff,cos,,daily,
+296,296,,OSDS,"Galve, Jerry May C.",,staff,cos,,daily,
+297,297,,OSDS GS,"Gamilong, Shammah",,staff,cos,,daily,
+298,298,,OSDS,"Gange, Angelica ",,staff,cos,,daily,
+299,299,,OSDS,"Garcia, John Paul",,staff,cos,,daily,
+300,300,,SR,"Gardoce, Iris M.",,staff,cos,,daily,
+301,301,,ICT,"Garganera, Q.P. Gold",,staff,cos,,daily,
+302,302,,ICT,"Gellada, Dan Christian G.",,staff,cos,,daily,
+303,303,,ICT,"Germina, Nimrod P.",,staff,cos,,daily,
+304,304,,Planning/QA,"Ginete, Jee Neil",,staff,cos,,daily,
+305,305,,MIS,"Gulaylay, Christopher",,staff,cos,,daily,
+306,306,,ICT/QA,"Habaña, Dan Paul E.",,staff,cos,,daily,
+307,307,,QA,"Habaña, John Dave",,staff,cos,,daily,
+308,308,,QA,"Habaña, Kitt Jerome",,staff,cos,,daily,
+309,309,,Multi-crop/QA,"Herrera, Rodrigo",,staff,cos,,daily,
+310,310,,ICT/QA,"Huyan, Glenn",,staff,cos,,daily,
+311,311,,Multi-crop/QA,"Ibieza, Zinnia B.",,staff,cos,,daily,
+312,312,,Planning/QA,"Iligan, Bernadil D.",,staff,cos,,daily,
+313,313,,QMC,"Javellana, Amador Jr. D.",,staff,cos,,daily,
+314,314,,ITRDC,"Javellana, Catherine Leslie D.",,staff,cos,,daily,
+315,315,,NSTP,"Javellana,Vincent",,staff,cos,,daily,
+316,316,,ITRDC,"Lampitoc, Joey V.",,staff,cos,,daily,
+317,317,,ITRDC,"Laquian, Juvi A.",,staff,cos,,daily,
+318,318,,External Affairs,"Luceño, Niel A.",,staff,cos,,daily,
+319,319,,Cultural,"Magallanes, Garry",,staff,cos,,daily,
+320,320,,Sports,"Magsipoc, Kimberly",,staff,cos,,daily,
+321,321,,Registrar,"Malay, Julie Ann M.",,staff,cos,,daily,
+322,322,,TES,"Malimit, Yhien",,staff,cos,,daily,
+323,323,,TES,"Marilla, Roan",,staff,cos,,daily,
+324,324,,TES,"Martisano, Mary Queen T.",,staff,cos,,daily,
+325,325,,TES,"Mendoza, Lawrence",,staff,cos,,daily,
+326,326,,TES,"Monton, Windee",,staff,cos,,daily,
+327,327,,TES,"Morada, Norton",,staff,cos,,daily,
+328,328,,Clinic,"Moreno, Christine Joy",,staff,cos,,daily,
+329,329,,Clinic,"Mucho, Chelmae Faith",,staff,cos,,daily,
+330,330,,Clinic,"Mucho, Willie",,staff,cos,,daily,
+331,331,,Clinic,"Muya, Joel M.",,staff,cos,,daily,
+332,332,,Guidance,"Muya, Lito",,staff,cos,,daily,
+333,333,,Guidance,"Namuag, Mylen",,staff,cos,,daily,
+334,334,,Guidance,"Natividad, Lyssa M.",,staff,cos,,daily,
+335,335,,Library,"Nolasco,Mark",,staff,cos,,daily,
+336,336,,Library,"Oja, Flosel",,staff,cos,,daily,
+337,337,,Library,"Padilla, Marian Joy",,staff,cos,,daily,
+338,338,,Research,"Paez, Nestor",,staff,cos,,daily,
+339,339,,Extension,"Palencia, Rolando",,staff,cos,,daily,
+340,340,,Research,"Perlas, Joel",,staff,cos,,daily,
+341,341,,Research/Ext,"Perales, Antonia M.",,staff,cos,,daily,
+342,342,,Research/Ext,"Pillora, Clair D.",,staff,cos,,daily,
+343,343,,Research/Ext,"Piodena, Angelie L.",,staff,cos,,daily,
+344,344,,Research/Ext,"Platigue, John Carlo",,staff,cos,,daily,
+345,345,,Research/Ext,"Poñate, Donabelle",,staff,cos,,daily,
+346,346,,Research/Ext,"Poñate, Marilou R.",,staff,cos,,daily,
+347,347,,Research/Ext,"Poñate, Rhuel P.",,staff,cos,,daily,
+348,348,,Extension,"Porras, Lady Carmel",,staff,cos,,daily,
+349,349,,GSC-STC,"Rafil, Arnold G.",,staff,cos,,daily,
+350,350,,IP-TBM,"Real, Joseph T.",,staff,cos,,daily,
+351,351,,Catering,"Recto, Jeneefer P.",,staff,cos,,daily,
+352,352,,Catering,"Ricablanca, June Rheo",,staff,cos,,daily,
+353,353,,Hotel,"Sallegue, Cristy Love",,staff,cos,,daily,
+354,354,,Catering,"Sarabia, Cherry Ann G.",,staff,cos,,daily,
+355,355,,Catering,"Sarme, Carlos",,staff,cos,,daily,
+356,356,,Catering,"Sartorio, Janine ",,staff,cos,,daily,
+357,357,,,"Sartorio, Jofre",,staff,cos,,daily,
+358,358,,,"Sevilla,Pritzie Joy",,staff,cos,,daily,
+359,359,,,"Silva, Marie Cris G.",,staff,cos,,daily,
+360,360,,,"Sobremisana, Chyra Joy P.",,staff,cos,,daily,
+361,361,,,"Socamo, Joso Rheam",,staff,cos,,daily,
+362,362,,,"Sorongon, Leo",,staff,cos,,daily,
+363,363,,,"Tacadao, Mercy D.",,staff,cos,,daily,
+364,364,,,"Tacdoro, Jorilen",,staff,cos,,daily,
+365,365,,,"Tahum, Hernani",,staff,cos,,daily,
+366,366,,,"Tahum, Ian",,staff,cos,,daily,
+367,367,,,"Tamson, Glorioso G.",,staff,cos,,daily,
+368,368,,,"Tanaman, Jessa May",,staff,cos,,daily,
+369,369,,,"Tanaman, Maudy",,staff,cos,,daily,
+370,370,,,"Tapangan, Lybert",,staff,cos,,daily,
+371,371,,,"Tentativa, Rona Mae",,staff,cos,,daily,
+372,372,,,"Terrenal, Mark Gene B.",,staff,cos,,daily,
+373,373,,,"Toledano, Jaime Jr.",,staff,cos,,daily,
+374,374,,,"Tubongbanua, Jesa Mae",,staff,cos,,daily,
+375,375,,,"Tumapang, Lemuel Angelo",,staff,cos,,daily,
+376,376,,,"Uy, Wilmar L.",,staff,cos,,daily,
+377,377,,,"Valenzon, Mary Rose M",,staff,cos,,daily,
+378,378,,,"Varona, Gerillyn ",,staff,cos,,daily,
+379,379,,,"Villagoniza, Vera",,staff,cos,,daily,
+380,380,,,"Villarma, Janemar G.",,staff,cos,,daily,
+381,381,,,"Villegas, Mynie M",,staff,cos,,daily,
+382,382,,,"Ymalay, Julie Ann C.",,staff,cos,,daily,
+383,383,,,"Zaragoza, Kin R.",,staff,cos,,daily,

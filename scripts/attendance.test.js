@@ -39,33 +39,44 @@ const db = require('../data/src/db-install');
 
 (async () => {
     try {
-        let employeeId = new db.mongoose.Types.ObjectId("60b22ee0e846b00efc16941a")
+        let employeeId = new db.mongoose.Types.ObjectId("60d1a3ae60ac21310400ffde")
+        let employmentId = new db.mongoose.Types.ObjectId("60d1a3b35500e606103ff9cd")
         let attendances = [
             {
 
                 "employeeId": employeeId,
+                "employmentId": employmentId,
                 "onTravel": false,
                 "logs": [
                     {
                         "scannerId": new db.mongoose.Types.ObjectId("60c02806cac3cc38e0ccccbf"),
-                        "dateTime": moment().hour(8).minutes(15).toDate(),
+                        "dateTime": moment().subtract(1,'day').hour(7).minutes(15).toDate(),
                         "mode": 1
                     },
                     {
                         "scannerId": new db.mongoose.Types.ObjectId("60c02806cac3cc38e0ccccbf"),
-                        "dateTime": moment().hour(14).minutes(0).toDate(),
+                        "dateTime": moment().subtract(1,'day').hour(13).minutes(0).toDate(),
                         "mode": 0
                     },
+                ],
+                createdAt: moment().subtract(1, 'days').toDate(),
+            },
+            {
+
+                "employeeId": employeeId,
+                "employmentId": employmentId,
+                "onTravel": false,
+                "logs": [
                     {
                         "scannerId": new db.mongoose.Types.ObjectId("60c02806cac3cc38e0ccccbf"),
-                        "dateTime": moment().hour(14).minutes(0).toDate(), 
+                        "dateTime": moment().hour(7).minutes(15).toDate(),
                         "mode": 1
                     },
                     {
                         "scannerId": new db.mongoose.Types.ObjectId("60c02806cac3cc38e0ccccbf"),
-                        "dateTime": moment().hour(17).minutes(0).toDate(),
+                        "dateTime": moment().hour(13).minutes(0).toDate(),
                         "mode": 0
-                    }
+                    },
                 ]
             },
             // {

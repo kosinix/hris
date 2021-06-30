@@ -1,6 +1,6 @@
 /**
  * Insert employees.
- * Usage: node scripts/install-employees.js
+ * Usage: node scripts/install-employees-employments-patch.js
  */
 //// Core modules
 const fs = require('fs');
@@ -46,7 +46,7 @@ const db = require('../data/src/db-install');
 (async () => {
     try {
         let results = []
-        fs.createReadStream(CONFIG.app.dir + '/scripts/install-data/employees-june2021.csv', {
+        fs.createReadStream(CONFIG.app.dir + '/scripts/install-data/employees.csv', {
             encoding: 'binary',
             mapValues: ({ header, index, value }) => value.trim()
         })
@@ -109,24 +109,59 @@ const db = require('../data/src/db-install');
                 // await db.main.Employee.deleteMany()
                 // await db.main.Employment.deleteMany()
 
-                let addedEmployees = []
-                let ignoreEmployees = []
+                // let addedEmployees = []
+                // let ignoreEmployees = []
+                // for (let i = 0; i < results.length; i++) {
+                //     let entry = results[i]
+                //     let e = await db.main.Employee.findOne({
+                //         lastName: new RegExp(entry.employee.lastName, "i"),
+                //         firstName: new RegExp(entry.employee.firstName, "i"),
+                //     })
+                //     if (!e) {
+                //         e = new db.main.Employee(entry.employee)
+                //         addedEmployees.push(entry.name)
+                //         await e.save()
+                //     } else {
+                //         ignoreEmployees.push(entry.name)
+                //     }
+
+                // }
+                // console.log(`${addedEmployees.length} employee(s) added.`)
+                // console.log(`${ignoreEmployees.length} employee(s) ignored as they already exist. ${ignoreEmployees.join(' | ')}`)
+
+                let notFound = 0
+                promises = []
                 for (let i = 0; i < results.length; i++) {
                     let entry = results[i]
                     let e = await db.main.Employee.findOne({
                         lastName: new RegExp(entry.employee.lastName, "i"),
                         firstName: new RegExp(entry.employee.firstName, "i"),
                     })
-                    if (!e) {
-                        e = new db.main.Employee(entry.employee)
-                        addedEmployees.push(entry.name)
-                        await e.save()
+                    if (e) {
+                        let emplymnt = await db.main.Employment.findOne({
+                            "employeeId": e._id,
+                        })
+                        // add only if no employment for employee
+                        if(!emplymnt){
+                            emplymnt = new db.main.Employment({
+                                "employeeId": e._id,
+                                "position": entry.position,
+                                "salary": entry.salary.replace(/,/g, ''),
+                                "salaryType": entry.salaryType,
+                                "campus": entry.campus,
+                                "group": entry.group,
+                                "employmentType": entry.employmentType,
+                                "department": entry.department,
+                                "fundSource": entry.fundSource,
+                            })
+                            promises.push(emplymnt.save())
+                        }
                     } else {
-                        ignoreEmployees.push(entry.name)
+                        console.log(`${++notFound} "${entry.lastName}, ${entry.firstName}" not found.`)
                     }
                 }
-                console.log(`${addedEmployees.length} employee(s) added.`)
-                console.log(`${ignoreEmployees.length} employee(s) ignored as they already exist. ${ignoreEmployees.join(' | ')}`)
+                await Promise.all(promises)
+                console.log(`${promises.length} employment(s) added.`)
 
                 db.main.close();
 

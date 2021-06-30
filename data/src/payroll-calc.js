@@ -137,20 +137,20 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
 
     let totalAmountPostIncentives = 0
     let totalAmountPostDeductions = 0
-    for (let x = 0; x < payroll.employees.length; x++) {
-        let employee = payroll.employees[x]
-        let details = await db.main.Employee.findById(employee._id)
+    for (let x = 0; x < payroll.employments.length; x++) {
+        let employment = payroll.employments[x]
+        let employee = employment.employee
 
-        let employment = lodash.get(details, 'employments.0', [])
-        employee.position = lodash.get(employment, 'position', '')
-        employee.department = lodash.get(employment, 'department', '')
-        employee.salary = lodash.toNumber(lodash.get(employment, 'salary', '0'))
-        employee.salaryType = lodash.get(employment, 'salaryType', '')
+        // employee.position = lodash.get(employment, 'position', '')
+        // employee.department = lodash.get(employment, 'department', '')
+        // employee.salary = lodash.toNumber(lodash.get(employment, 'salary', '0'))
+        // employee.salaryType = lodash.get(employment, 'salaryType', '')
 
         // Rendered work
         // Payroll period attendance
         let attendances = await db.main.Attendance.find({
             employeeId: employee._id,
+            employmentId: employment._id,
             createdAt: {
                 $gte: moment(payroll.dateStart).startOf('day').toDate(),
                 $lt: moment(payroll.dateEnd).endOf('day').toDate(),
@@ -162,25 +162,24 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
         let minutes = getTotalAttendanceMinutes(attendances)
         // minutes = 3840
         console.log(minutes)
-        employee.attendances = attendances
-        employee.timeRecord = calcRenderedTime(minutes, hoursPerDay)
+        employment.attendances = attendances
+        employment.timeRecord = calcRenderedTime(minutes, hoursPerDay)
 
 
-        if (employee.salaryType === 'monthly') {
-            let perDay = employee.salary / workDays
+        if (employment.salaryType === 'monthly') {
+            let perDay = employment.salary / workDays
             let perHour = perDay / 8
             let perMin = perHour / 60
-            employee.amountWorked = (perMin * employee.timeRecord.totalMinutes)
+            employment.amountWorked = (perMin * employment.timeRecord.totalMinutes)
         }
-        if (employee.salaryType === 'daily') {
-            let perHour = employee.salary / 8
+        if (employment.salaryType === 'daily') {
+            let perHour = employment.salary / 8
             let perMin = perHour / 60
-            employee.amountWorked = (perMin * employee.timeRecord.totalMinutes)
+            employment.amountWorked = (perMin * employment.timeRecord.totalMinutes)
         }
         // 
 
-        employee.incentives = []
-        details = details.toObject()
+        employment.incentives = []
         let totalIncentives = 0
         for (let i = 0; i < payroll.incentives.length; i++) {
             let incentive = lodash.cloneDeep(payroll.incentives[i])
@@ -188,17 +187,17 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
                 incentive.amount = (incentive.initialAmount)
 
             } else if (incentive.type === 'percentage') {
-                incentive.amount = (incentive.percentage / 100 * employee.salary)
+                incentive.amount = (incentive.percentage / 100 * employment.salary)
             }
             totalIncentives += parseFloat(incentive.amount)
-            employee.incentives.push(incentive)
+            employment.incentives.push(incentive)
 
         }
-        employee.totalIncentives = totalIncentives
-        employee.amountPostIncentives = employee.amountWorked + totalIncentives
-        totalAmountPostIncentives += employee.amountPostIncentives
+        employment.totalIncentives = totalIncentives
+        employment.amountPostIncentives = employment.amountWorked + totalIncentives
+        totalAmountPostIncentives += employment.amountPostIncentives
         // 
-        employee.deductions = []
+        employment.deductions = []
         let totalDeductions = 0
         for (let d = 0; d < payroll.deductions.length; d++) {
             let deduction = lodash.cloneDeep(payroll.deductions[d])
@@ -206,22 +205,22 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
                 deduction.amount = (deduction.initialAmount)
 
             } else if (deduction.deductionType === 'percentage') {
-                deduction.amount = (deduction.percentage / 100 * employee.salary)
+                deduction.amount = (deduction.percentage / 100 * employment.salary)
             }
             // vue
             deduction.vueReadOnly = true
             deduction.vueDisabled = false
             totalDeductions += parseFloat(deduction.amount)
-            employee.deductions.push(deduction)
+            employment.deductions.push(deduction)
 
         }
         //
 
-        employee.totalDeductions = totalDeductions
-        employee.amountPostDeductions = employee.amountWorked + totalIncentives - totalDeductions
-        totalAmountPostDeductions += employee.amountPostDeductions
+        employment.totalDeductions = totalDeductions
+        employment.amountPostDeductions = employment.amountWorked + totalIncentives - totalDeductions
+        totalAmountPostDeductions += employment.amountPostDeductions
 
-        payroll.employees[x] = lodash.merge(employee, details)
+        payroll.employments[x] = employment
 
     }
     payroll.totalAmountPostIncentives = totalAmountPostIncentives

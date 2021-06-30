@@ -8,70 +8,70 @@
     {% include 'parts/payroll-tabs.html' %}
 
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-2">
-        {% if payroll.employments.length > 0 %}
-            {% if payroll.template === 'cos_staff2' %}
-                {% include 'payroll/th-cos-staff.html' %}
-            {% else %}
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                               <th>Name</th>
-                                <th>Position</th>
-                                <th>Office Assigned</th>
-                                <th>Daily Wage</th>
-                                <th>No. of Days/Hrs/Mins <br>Rendered</th>
-                                <th>Amount</th>
-                                {% for deduction in payroll.deductions %}
-                                    <th>{{deduction.name}}</th>
-                                {% endfor %}
-                                <th>Total Deductions</th>
-                                <th>Net Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for employment in payroll.employments %}
-                            {% set employee = employment.employee %}
-                            <tr>
-                                <td><a href="/payroll/{{payroll._id}}"><u>{{employee.lastName}}</u>, <u>{{employee.firstName}}</u> <u>{{employee.middleName|first}}</u></a></td>
-                                <td><a href="/payroll/{{payroll._id}}">{{employment.position}}</a></td>
-                                <td><a href="/payroll/{{payroll._id}}">{{employment.department}}</a></td>
-                                <td><a href="/payroll/{{payroll._id}}">{{employment.salary|currency}}</a></td>
+        {% if payroll.employees.length > 0 %}
+            
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>
+                                Source
+                            </th>
+                            <th>Position</th>
+                            <th>Daily/Monthly <br>Wage</th>
+                            <th>Rendered</th>
+                            {% for incentive in payroll.incentives %}
+                                <th>{{incentive.name}}</th>
+                            {% endfor %}
+                            <th>Total w Incentives</th>
+                            <th>Total grant</th>
+                            
+                            {% for deduction in payroll.deductions %}
+                                <th>{{deduction.name}}</th>
+                            {% endfor %}
+                            <th>Total Deductions</th>
+                            <th>Net Amount</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for employee in payroll.employees %}
+                        <tr>
+                            <td><a href="/payroll/{{payroll._id}}"><u>{{employee.lastName}}</u>, <u>{{employee.firstName}}</u> <u>{{employee.middleName|first}}</u></a></td>
+                            <td><a href="/payroll/{{payroll._id}}">{{employee.position}}</a></td>
+                            <td><a href="/payroll/{{payroll._id}}">{{employee.salary|currency}}</a></td>
+                            <td>
+                            {{employee.timeRecord.renderedDays}} days
+                            {{employee.timeRecord.renderedHours}} hrs
+                            {{employee.timeRecord.renderedMinutes}} mins
+                            </td>
+                            {% for incentive in employee.incentives %}
+                                <td>{{incentive.amount|currency}}</td>
+                            {% endfor %}
+                            <td>{{employee.netAmountPostIncentives|currency}}</td>
+                            <td>{{employee.grantTotal|currency}}</td>
+
+                            {% for deduction in employee.deductions %}
                                 <td>
-                                    <div class="d-flex">
-                                        <div>{{employment.timeRecord.renderedDays}} days</div>
-                                        <div class="pl-2 pr-2">{{employment.timeRecord.renderedHours}} hrs</div>
-                                        <div>{{employment.timeRecord.renderedMinutes}} mins</div>
-                                    </div>
+                                    {{deduction.amount|currency}}
                                 </td>
-                                {% for incentive in employment.incentives %}
-                                    <td>{{incentive.amount|currency}}</td>
-                                {% endfor %}
-                                <td>{{employment.netAmountPostIncentives|currency}}</td>
-                                <td>{{employment.grantTotal|currency}}</td>
+                            {% endfor %}
+                            <td>{{employee.totalDeductions|currency}}</td>
+                            <td>{{employee.netAmountPostDeductions|currency}}</td>
 
-                                {% for deduction in employment.deductions %}
-                                    <td>
-                                        {{deduction.amount|currency}}
-                                    </td>
-                                {% endfor %}
-                                <td>{{employment.totalDeductions|currency}}</td>
-                                <td>{{employment.netAmountPostDeductions|currency}}</td>
-
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div> 
-            {% endif %}
-        {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div> 
+            
         <hr>
         <form ref="form" v-cloak v-on:submit.prevent="onSubmit" action="/payroll/employees/{{payroll._id}}" method="POST" class="form-default pt-2">
             <div class="form-group">
-                    <label for="employmentId">Add Employee <span class="text-danger">*</span></label>
+                    <label for="employeeId">Add Employee <span class="text-danger">*</span></label>
                     <div>
-                        <autocomplete v-model="employmentId"
-                            name="employmentId"
+                        <autocomplete v-model="employeeId"
+                            name="employeeId"
                             initial-value="{{''}}"
                             initial-display="{{''}}"
                             placeholder="Type employee name..."
@@ -81,7 +81,7 @@
                             v-on:selected="onSelect"
                             >
                         </autocomplete>
-                        <small class="invalid-feedback">${getError('employmentId')}</small>
+                        <small class="invalid-feedback">${getError('employeeId')}</small>
                     </div>
             </div>
             <div class="form-row pb-3">
@@ -113,11 +113,11 @@
             'autocomplete': window["vuejs-autocomplete"]
         },
         data: {
-            employmentId: '',
+            employeeId: '',
             payroll: {{payroll|stringify|safe}}
         },
         validations: {
-            employmentId: {
+            employeeId: {
                 required: window.validators.required
             },
         },
@@ -170,6 +170,14 @@
             },
             dataSource: function(input) {
                 return '/employee?s=' + input
+            },
+            showModal: function(field, label, value, employeeId){
+                vModalUpdate.field = field
+                vModalUpdate.label = label
+                vModalUpdate.value = value
+                vModalUpdate.employeeId = employeeId
+                vModalUpdate.formUrl = vModalUpdate.baseUrl
+                jQuery('#modal-update').modal('show');
             },
             onSubmit: function(){
                 var me = this;

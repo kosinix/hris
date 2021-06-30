@@ -104,6 +104,23 @@ router.get('/payroll/:payrollId', middlewares.guardRoute(['read_payroll']), midd
     }
 });
 
+router.get('/payroll/payrollin/:payrollId', middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
+    try {
+        let payroll = res.payroll.toObject()
+
+        payroll = await payrollCalc.getCosStaff(payroll, CONFIG.workTime.workDays, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
+
+        // return res.send(payroll)
+        res.render('payroll/payrollin.html', {
+            flash: flash.get(req, 'payroll'),
+            payroll: payroll,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+
 router.post('/payroll/:payrollId/ded', middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll.toObject()
@@ -117,6 +134,23 @@ router.post('/payroll/:payrollId/ded', middlewares.guardRoute(['read_payroll']),
 router.get('/payroll/employees/:payrollId', middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll.toObject()
+
+        // Expand from just _id and employmentId to full details
+        payroll.employments = payroll.employments.map((o) => {
+            return db.main.Employment.findById(o._id).lean()
+        })
+        payroll.employments = await Promise.all(payroll.employments)
+
+        // Add employee details to employment.employee property
+        let promises = []
+        payroll.employments.forEach((o) => {
+            promises.push(db.main.Employee.findById(o.employeeId).lean())
+        })
+        let employees = await Promise.all(promises)
+        payroll.employments = payroll.employments.map((o, i) => {
+            o.employee = employees[i]
+            return o
+        })
 
         payroll = await payrollCalc.getCosStaff(payroll, CONFIG.workTime.workDays, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 
@@ -134,19 +168,23 @@ router.post('/payroll/employees/:payrollId', middlewares.guardRoute(['update_pay
         let payroll = res.payroll
 
         let body = req.body
+        let employment = await db.main.Employment.findById(body.employmentId);
+        if (!employment) {
+            throw new Error("Sorry, employment not found.")
+        }
 
-        let employee = await db.main.Employee.findById(body.employeeId);
+        let employee = await db.main.Employee.findById(employment.employeeId);
         if (!employee) {
             throw new Error("Sorry, employee not found.")
         }
 
-        if (payroll.employees.find((e)=>{
-            return e._id.toString() === employee._id.toString()
+        if (payroll.employments.find((e) => {
+            return e._id.toString() === employment._id.toString()
         })) {
-            throw new Error("Sorry, employee already here.")
+            throw new Error("Sorry, employment already here.")
         }
 
-        payroll.employees.push(employee)
+        payroll.employments.push(employment)
         await payroll.save()
 
 

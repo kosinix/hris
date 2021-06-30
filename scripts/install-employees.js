@@ -114,8 +114,8 @@ const db = require('../data/src/db-install');
                 for (let i = 0; i < results.length; i++) {
                     let entry = results[i]
                     let e = await db.main.Employee.findOne({
-                        lastName: new RegExp(entry.employee.lastName, "i"),
-                        firstName: new RegExp(entry.employee.firstName, "i"),
+                        lastName: new RegExp(`^${entry.employee.lastName}$`, "i"),
+                        firstName: new RegExp(`^${entry.employee.firstName}$`, "i"),
                     })
                     if (!e) {
                         e = new db.main.Employee(entry.employee)

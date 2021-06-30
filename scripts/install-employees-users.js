@@ -55,20 +55,20 @@ const db = require('../data/src/db-install');
             if(firstName === 'ma.'){
                 firstName = lodash.toLower(firstNames.shift()) // second name
             }
-            let username = lodash.toLower(`${o.lastName}`)+'.'+lodash.toLower(`${firstName}`)
+            let lastName = o.lastName.replace(/ /g, '') // remove spaces for maam josephine "de asis"
+            let username = lodash.toLower(`${lastName}`)+'.'+lodash.toLower(`${firstName}`)
             let user = new db.main.User({
                 passwordHash: passwordHash,
                 salt: salt,
                 roles: ["employee"],
                 firstName: o.firstName,
                 middleName: o.middleName,
-                lastName: o.lastName,
+                lastName: lastName,
                 email: username,
                 active: true,
                 permissions: [],
             });
             csvRows.push(`"${username}", "${password}"`)
-            // console.log(`Inserting "${o.lastName}, ${o.firstName}" - "${username}" - "${password}"...`)
             await user.save()
             o.userId = user._id
             await o.save()

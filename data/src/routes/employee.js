@@ -267,7 +267,7 @@ router.post('/employee/employment/:employeeId/create', middlewares.guardRoute(['
 
         let employment = new db.main.Employment(patch)
         await employment.save()
-        
+
         flash.ok(req, 'employee', `Added to "${employee.firstName} ${employee.lastName}'s" employment.`)
         res.redirect(`/employee/employment/${employee._id}`)
 
@@ -309,7 +309,7 @@ router.post('/employee/employment/:employeeId/:employmentId', middlewares.guardR
 
         lodash.merge(employment, patch)
         await employment.save()
-        
+
         flash.ok(req, 'employee', `Updated "${employee.firstName} ${employee.lastName}'s" employment.`)
         res.redirect(`/employee/employment/${employee._id}`)
 
@@ -321,7 +321,7 @@ router.post('/employee/employment/:employeeId/:employmentId', middlewares.guardR
 router.get('/employee/employment/:employeeId/:employmentId/delete', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
         let employee = res.employee
-        let employment= res.employment
+        let employment = res.employment
 
         await employment.remove()
 
@@ -468,15 +468,15 @@ router.get('/employee/find', middlewares.guardRoute(['create_employee', 'update_
 router.get('/employee/user/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let employeeUser = await db.main.User.findById(employee.userId)
 
+        let username = passwordMan.genUsername(employee.firstName, employee.lastName)
         let password = passwordMan.randomString(8)
 
         res.render('employee/web-access.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
+            username: username,
             password: password,
-            employeeUser: employeeUser.toObject({ virtuals: true }),
         });
     } catch (err) {
         next(err);
@@ -485,32 +485,60 @@ router.get('/employee/user/:employeeId', middlewares.guardRoute(['create_employe
 router.post('/employee/user/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
-        let employeeUser = await db.main.User.findById(employee.userId)
 
         let body = req.body
         body.username = lodash.trim(lodash.get(body, 'username'))
         body.password = lodash.trim(lodash.get(body, 'password'))
 
-        let found = await db.main.User.findOne({
-            email: body.username,
-            _id: {
-                $ne: employeeUser._id
-            }
-        })
-        if(found){
-            flash.error(req, 'employee', `Username "${body.username}" already exists.`)
-            return res.redirect(`/employee/user/${employee._id}`)
-        }
-
         let salt = passwordMan.randomString(16)
         let passwordHash = passwordMan.hashPassword(body.password, salt)
 
-        employeeUser.username = body.username
-        employeeUser.salt = salt
-        employeeUser.passwordHash = passwordHash
+        let employeeUser = await db.main.User.findById(employee.userId)
+        if (employeeUser) { // Assoc user
+            // Check username avail
+            let found = await db.main.User.findOne({
+                email: body.username,
+                _id: {
+                    $ne: employeeUser._id
+                }
+            })
+            if (found) {
+                flash.error(req, 'employee', `Username "${body.username}" already exists. Please choose a different one.`)
+                return res.redirect(`/employee/user/${employee._id}`)
+            }
 
-        await employeeUser.save()
-        
+            employeeUser.username = body.username
+            employeeUser.salt = salt
+            employeeUser.passwordHash = passwordHash
+            await employeeUser.save()
+
+        } else { // No assoc user
+
+            // Check username avail
+            let found = await db.main.User.findOne({
+                email: body.username,
+            })
+            if (found) {
+                flash.error(req, 'employee', `Username "${body.username}" already exists. Please choose a different one.`)
+                return res.redirect(`/employee/user/${employee._id}`)
+            }
+
+            employeeUser = new db.main.User({
+                passwordHash: passwordHash,
+                salt: salt,
+                roles: ["employee"],
+                firstName: employee.firstName,
+                middleName: employee.middleName,
+                lastName: employee.lastName,
+                email: body.username,
+                active: true,
+                permissions: [],
+            });
+            await employeeUser.save()
+            employee.userId = employeeUser._id
+            await employee.save()
+        }
+
         flash.ok(req, 'employee', `Updated "${employee.firstName} ${employee.lastName}'s" web access.`)
         res.redirect(`/employee/user/${employee._id}`)
 

@@ -42,9 +42,10 @@ const db = require('../data/src/db-install');
     try {
         let csvRows = []
         csvRows.push('"username", "password"')
-        let results = []
         let employees = await db.main.Employee.find()
-        let promises = employees.map((o)=>{
+        for(let x = 0; x < employees.length; x++){
+
+            let o = employees[x]
             let password = passwordMan.randomString(8)
             let salt = passwordMan.randomString(16)
             let passwordHash = passwordMan.hashPassword(password, salt)
@@ -67,15 +68,11 @@ const db = require('../data/src/db-install');
             });
             csvRows.push(`"${username}", "${password}"`)
             // console.log(`Inserting "${o.lastName}, ${o.firstName}" - "${username}" - "${password}"...`)
-            return user.save()
-        })
-        let users = await Promise.all(promises)
-        promises = employees.map((employee, i)=>{
-            
-                employee.userId = users[i]._id
-                return employee.save()
-        })
-        await Promise.all(promises)
+            await user.save()
+            o.userId = user._id
+            await o.save()
+        }
+        
         console.log(`Inserted ${csvRows.length} users - See '/scripts/install-data/logins.csv'`)
 
         csvRows = csvRows.join("\n")

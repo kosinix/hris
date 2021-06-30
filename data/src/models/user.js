@@ -21,6 +21,7 @@ let schema = mongoose.Schema({
     email: {
         $type: String,
         trim: true,
+        alias: 'username'
     },
     passwordHash: {
         $type: String,

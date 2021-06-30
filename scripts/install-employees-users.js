@@ -43,6 +43,7 @@ const db = require('../data/src/db-install');
         let csvRows = []
         csvRows.push('"username", "password"')
         let employees = await db.main.Employee.find()
+        let total = 0;
         for(let x = 0; x < employees.length; x++){
 
             let o = employees[x]
@@ -71,9 +72,10 @@ const db = require('../data/src/db-install');
             await user.save()
             o.userId = user._id
             await o.save()
+            total++
         }
         
-        console.log(`Inserted ${csvRows.length} users - See '/scripts/install-data/logins.csv'`)
+        console.log(`Inserted ${total} users - See '/scripts/install-data/logins.csv'`)
 
         csvRows = csvRows.join("\n")
 

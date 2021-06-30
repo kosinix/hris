@@ -29,7 +29,7 @@
                     </div>
                 </div>
                 <h4 class="h5 mb-3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
-                <p class="text-left mb-4"><em class="mr-2">For the month of:</em> <strong>{{momentNow.format('MMMM')}}</strong></p>
+                <p class="text-left mb-4"><em class="mr-2">For the month of:</em> <strong>{{momentNow|format_date('MMMM')}}</strong></p>
             </div>
             <div class="table-responsive">
                 <table class="table table-dtr">

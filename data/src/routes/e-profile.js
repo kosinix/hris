@@ -210,7 +210,6 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
         })
         let qrCodeSvg = qr.imageSync(employee.uid, { size: 10, type: 'png' })
 
-        return res.send(attendances)
         res.render('e-profile/dtr.html', {
             momentNow: momentNow,
             days: days,

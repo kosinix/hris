@@ -20,7 +20,7 @@
                     <div class="form-group">
                         <label for="temperature">Temperature</label>
                         <div>
-                            <input name="temperature" id="temperature" v-model="temperature" type="number" class="form-control">
+                            <input name="temperature" id="temperature" v-model="temperature" step="0.1" type="number" class="form-control">
                             <small class="invalid-feedback">${getError('temperature')}</small>
                         </div>
                     </div>

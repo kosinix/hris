@@ -10,6 +10,7 @@ const qr = require('qr-image')
 //// Modules
 const db = require('../db');
 const middlewares = require('../middlewares');
+const passwordMan = require('../password-man');
 const payrollCalc = require('../payroll-calc');
 
 
@@ -233,6 +234,44 @@ router.get('/e-profile/payroll', middlewares.guardRoute(['use_employee_profile']
 router.get('/e-profile/pds', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         throw new Error('Page under development.')
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/e-profile/account/password', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        
+        res.render('e-profile/account.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            momentNow: moment(),
+        });
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e-profile/account/password', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let user = res.user
+        let body = lodash.get(req, 'body')
+
+        let password = lodash.get(body, 'oldPassword')
+
+        // Check password
+        let passwordHash = passwordMan.hashPassword(password, user.salt);
+        if (passwordHash !== user.passwordHash) {
+            flash.error(req, 'employee', `Current Password is incorrect.`)
+            return res.redirect(`/e-profile/account/password`)
+        }
+
+        user.passwordHash = passwordMan.hashPassword(lodash.get(body, 'newPassword'), user.salt);
+        await user.save()
+        
+        flash.ok(req, 'employee', `Password changed successfully.`)
+        return res.redirect(`/e-profile/account/password`)
     } catch (err) {
         next(err);
     }

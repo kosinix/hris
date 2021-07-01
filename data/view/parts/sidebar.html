@@ -1,9 +1,17 @@
 <div class="sidebar">
     <div class="d-flex p-3 align-items-center brand">
         <div class="mr-2">
+        {% if user.roles.includes('employee') %}
+            <a href="/e-profile/home">
+                <img height="28" width="28" src="/images/logo-sm.png" alt="logo">
+            </a>
+        {% else %}
             <a href="/">
                 <img height="28" width="28" src="/images/logo-sm.png" alt="logo">
             </a>
+        {% endif %}
+
+
         </div>
         <h1>HR Information System</h1>
         <div class="text-right col pr-0">
@@ -38,6 +46,11 @@
                 <li class="nav-item">
                     <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/pds/])}}" href="/e-profile/pds">
                         Personal Data Sheet
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/account/])}}" href="/e-profile/account">
+                        Account Settings
                     </a>
                 </li>
             </ul>

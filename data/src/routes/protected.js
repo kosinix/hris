@@ -17,7 +17,19 @@ let router = express.Router()
 
 router.get('/', middlewares.requireAuthUser, async (req, res, next) => {
     try {
-        console.log(req.session)
+        let user = res.user.toObject()
+        
+        if(user.roles.includes('employee')){
+            return res.redirect('/e-profile/home')
+        }
+        if(user.roles.includes('checker')){
+            let scanner = await db.main.Scanner.findOne({
+                userId: user._id
+            })
+            if(scanner){
+                return res.redirect(`${CONFIG.app.url}/scanner/${scanner.uid}/scan`)
+            }
+        }
 
         res.redirect('/employee/all');
     } catch (err) {

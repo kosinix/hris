@@ -11,7 +11,7 @@
         </div>
     </div>
     {% if user.roles.includes('employee') %}
-    <ul class="nav flex-column mb-2">
+    <ul class="nav flex-column mb-2 nav-employee">
         <li class="nav-item">
             <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/(.)+/])}}" href="/e-profile/home">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">

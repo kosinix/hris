@@ -1,6 +1,7 @@
 jQuery(document).ready(function ($) {
+    var $body = $('body');
+
     $('.toggler').on('click', function () {
-        var $body = $('body');
         $body.toggleClass('hide-menu');
         if ($body.hasClass("hide-menu")) {
             setCookie('hideNav', 'true');
@@ -8,6 +9,12 @@ jQuery(document).ready(function ($) {
             setCookie('hideNav', 'false');
         }
     })
+    $('.nav-employee a').on('click', function () {
+        $body.addClass('hide-menu');
+        setCookie('hideNav', 'true');
+
+    })
+
 });
 
 // Define a new component

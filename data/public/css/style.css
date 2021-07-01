@@ -131,6 +131,16 @@ h4, h5, h6 {
     border-bottom: 1px solid #ddd;
 }
 
+.nav-tabs .nav-link:focus, .nav-tabs .nav-link:hover {
+    border-color: #e9ecef #dee2e6;
+    background: #fff;
+}
+.nav-tabs .nav-link {
+    border: 1px solid #dee2e6;
+    transition: all 0.5s;
+}
+
+
 /*  Validation  */
 .form-set.is-invalid .invalid-feedback {
     display: block;

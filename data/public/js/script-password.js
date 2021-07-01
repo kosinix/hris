@@ -18,12 +18,12 @@ VuePassword.mixin = {
                 return "Very Strong";
             }
         },
-        weakPassword: function(){
-            return this.passwordUpper !== true || 
-            this.passwordLower !== true || 
-            this.passwordSpecial !== true  || 
-            this.passwordMoreThan8 !== true  || 
-            this.passwordStrong !== true;
+        weakPassword: function () {
+            return this.passwordUpper !== true ||
+                this.passwordLower !== true ||
+                this.passwordSpecial !== true ||
+                this.passwordMoreThan8 !== true ||
+                this.passwordStrong !== true;
         },
     },
     data: function () {
@@ -36,6 +36,7 @@ VuePassword.mixin = {
             passwordMoreThan8: false,
             passwordStrong: false,
             passwordScore: 0,
+            passSuggest: ''
         }
     },
     methods: {
@@ -51,36 +52,36 @@ VuePassword.mixin = {
             }
             this.passwordType2 = "password"
         },
-        
-        checkPassword: function (password) {
-            if(/([A-Z])+/.test(password)){
+
+        checkPassword: function (password, userInputs) {
+            if (/([A-Z])+/.test(password)) {
                 this.passwordUpper = true;
             } else {
                 this.passwordUpper = false;
             }
 
-            if(/([a-z])+/.test(password)){
+            if (/([a-z])+/.test(password)) {
                 this.passwordLower = true;
             } else {
                 this.passwordLower = false;
             }
 
-            if(/([^0-9a-zA-Z])+/.test(password)){
+            if (/([^0-9a-zA-Z])+/.test(password)) {
                 this.passwordSpecial = true;
             } else {
                 this.passwordSpecial = false;
             }
-            
-            if(password.length >= 8 ){
+
+            if (password.length >= 8) {
                 this.passwordMoreThan8 = true;
             } else {
                 this.passwordMoreThan8 = false;
             }
 
-            var result = zxcvbn(password);
+            var result = zxcvbn(password, userInputs);
             this.passwordScore = result.score;
-
-            if(result.score>=3){
+            this.passSuggest = result.feedback.warning + ' ' + result.feedback.suggestions.join('. ')
+            if (result.score >= 3) {
                 this.passwordStrong = true;
             } else {
                 this.passwordStrong = false;

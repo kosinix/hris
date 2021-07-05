@@ -41,7 +41,7 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         }
 
         if (['permanent-faculty'].includes(customFilter)) {
-            query[`employments.0.employmentType`] = 'permanent'
+            // query[`employments.0.employmentType`] = 'permanent'
             query[`employments.0.group`] = 'faculty'
         }
         if (['permanent-staff'].includes(customFilter)) {
@@ -70,7 +70,7 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         let options = { skip: (page - 1) * perPage, limit: perPage };
         let sort = {}
         sort = lodash.set(sort, sortBy, sortOrder)
-        if (['department', 'employmentType', 'group'].includes(sortBy)) {
+        if (['department', 'employmentType', 'group', 'position'].includes(sortBy)) {
             sort[`employments.0.${sortBy}`] = sortOrder
         }
 

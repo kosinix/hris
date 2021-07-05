@@ -1,11 +1,9 @@
 /**
  * Insert test attendance.
- * Usage: node scripts/attendance.test.js
+ * Usage: node scripts/payroll.test.js
  */
 //// Core modules
 const path = require('path');
-const fs = require('fs');
-const util = require('util');
 
 //// External modules
 const moment = require('moment');
@@ -15,7 +13,6 @@ const uuid = require('uuid');
 
 //// Modules
 const passwordMan = require('../data/src/password-man');
-const payrollCalc = require('../data/src/payroll-man');
 const uid = require('../data/src/uid');
 
 
@@ -45,7 +42,6 @@ const db = require('../data/src/db-install');
 
 ; (async () => {
     try {
-        let logs = []
         // Create employee
         let momentNow = moment().toDate()
         let employee = new db.main.Employee({
@@ -68,7 +64,6 @@ const db = require('../data/src/db-install');
         await employee.save()
         console.log(`Added employee.`)
         let employeeId = employee._id
-        logs.push(`db.getCollection('employees').deleteMany({_id:ObjectId("${employeeId}")})`)
         // Create employment
         let employment = new db.main.Employment({
             "employeeId": employeeId,
@@ -85,7 +80,6 @@ const db = require('../data/src/db-install');
         console.log(`Added employment.`)
 
         let employmentId = employment._id
-        logs.push(`db.getCollection('employments').deleteMany({_id:ObjectId("${employmentId}")})`)
 
         // Create user
         let password = 'admin'
@@ -106,9 +100,8 @@ const db = require('../data/src/db-install');
         console.log(`Added user.`)
 
         let userId = user._id
-        employee.userId = userId
+        employee.userId = userId 
         await employee.save()
-        logs.push(`db.getCollection('users').deleteMany({_id:ObjectId("${userId}")})`)
 
         let scanner = new db.main.Scanner({
             "name": 'Test Scanner',
@@ -119,13 +112,12 @@ const db = require('../data/src/db-install');
         console.log(`Added scanner.`)
 
         let scannerId = scanner._id
-        logs.push(`db.getCollection('scanners').deleteMany({_id:ObjectId("${scannerId}")})`)
 
         let attendances = []
         for (d = 1; d <= 15; d++) {
-            let dateTime = moment('2021-07-01').startOf('month').date(d)
+            let dateTime = moment().startOf('month').date(d)
             if (![0, 6].includes(dateTime.day())) {
-                // console.log(dateTime.toISOString(true))
+                console.log(dateTime.toISOString(true))
                 attendances.push({
                     "employeeId": employeeId,
                     "employmentId": employmentId,
@@ -146,43 +138,17 @@ const db = require('../data/src/db-install');
                 })
             }
         }
-
+        
         let r = await db.main.Attendance.deleteMany({
             "employeeId": employeeId,
         })
         console.log(`Deleted ${r.deletedCount} attendances...`)
-        logs.push(`db.getCollection('attendances').deleteMany({employeeId:ObjectId("${employeeId}")})`)
 
         let r2 = await db.main.Attendance.insertMany(attendances)
         console.log(`Inserted ${r2.length} attendances...`)
 
-        //
-        let payroll = await db.main.Payroll.create({
-            name: 'July',
-            dateStart: '2021-07-01',
-            dateEnd: '2021-07-15',
-            employments:[
-                employment.toObject()
-            ]
-        })
-        console.log(`Payrolls...`)
-        logs.push(`db.getCollection('payrolls').remove({_id:ObjectId("${payroll._id}")})`)
-        
-        attendances = await db.main.Attendance.find({
-            employeeId: employee._id,
-            employmentId: employment._id,
-            createdAt: {
-                $gte: moment(payroll.dateStart).startOf('day').toDate(),
-                $lt: moment(payroll.dateEnd).endOf('day').toDate(),
-            }
-        }).lean()
 
-        attendances = payrollCalc.attachDailyTime(attendances, hoursPerDay = 6)
-        // console.log(util.inspect(attendances, false, null, true /* enable colors */))
-        //
-        file = CONFIG.app.dir + '/scripts/install-data/attendance.test.log'
-        fs.writeFileSync(file, logs.join("\n"), { encoding: 'utf8' })
-
+        // Cleanup
         r = await db.main.Attendance.deleteMany({
             "employeeId": employeeId,
         })
@@ -192,7 +158,6 @@ const db = require('../data/src/db-install');
         await employment.remove()
         await user.remove()
         await scanner.remove()
-        await payroll.remove()
     } catch (err) {
         console.log(err)
     } finally {

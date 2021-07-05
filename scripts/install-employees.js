@@ -1,10 +1,18 @@
 /**
  * Insert employees.
- * Usage: node scripts/install-employees.js
+ * Usage: 
+ * 
+ * Install employees
+ *      node scripts/install-employees.js
+ * 
+ * Drop employees and employments and install employees
+ * 
+ *      node scripts/install-employees.js reset
  */
 //// Core modules
 const fs = require('fs');
 const path = require('path');
+const process = require('process');
 
 //// External modules
 const csvParser = require('csv-parser')
@@ -17,6 +25,7 @@ const uuid = require('uuid');
 //// Modules
 const passwordMan = require('../data/src/password-man');
 const uid = require('../data/src/uid');
+const utils = require('../data/src/utils');
 
 
 //// First things first
@@ -43,38 +52,26 @@ global.CRED = credLoader.getConfig()
 const db = require('../data/src/db-install');
 
 
-(async () => {
+; (async () => {
     try {
+        // param
+        let isReset = lodash.toString(process.argv[2]).trim()
+
         let results = []
-        fs.createReadStream(CONFIG.app.dir + '/scripts/install-data/employees-june2021.csv', {
+        fs.createReadStream(CONFIG.app.dir + '/scripts/install-data/employees-2021-06.csv', {
             encoding: 'binary',
             mapValues: ({ header, index, value }) => value.trim()
         })
             .pipe(csvParser())
             .on('data', (data) => {
                 if (data.name) {
-                    let names = data.name.split(',')
-                    let middle = ''
-                    let first = names[1]
-                    if (first) {
-                        first = first.trim()
-                        let index = first.search(/([A-Z]\.){1}$/) // If middle initial present
-                        if (index > -1) {
-                            middle = first.slice(index)
-                            first = first.slice(0, index)
-                            first = first.trim()
-                        }
-                    }
-                    let last = names[0]
-                    if (last) {
-                        last = last.trim()
-                    }
+                    let names = utils.splitName(data.name)
 
                     let momentNow = moment().toDate()
                     data.employee = {
-                        "firstName": first,
-                        "middleName": middle,
-                        "lastName": last,
+                        "firstName": names.first,
+                        "middleName": names.middle,
+                        "lastName": names.last,
                         "suffix": "",
                         "mobileNumber": "",
                         "emailVerified": false,
@@ -87,6 +84,12 @@ const db = require('../data/src/db-install');
                         "updatedAt": momentNow,
                         "uuid": uuid.v4(),
                         "uid": uid.gen(),
+                        "group": data.group,
+                        // custom: {
+                        //     officeAssignment: data.officeAssignment,
+                        //     college: data.college,
+                        //     homeDepartment: data.homeDepartment
+                        // }
                     }
                     results.push(data)
                 }
@@ -106,11 +109,25 @@ const db = require('../data/src/db-install');
                 });
 
                 // Reset
-                // await db.main.Employee.deleteMany()
-                // await db.main.Employment.deleteMany()
+                if (isReset) {
+                    let r = await db.main.Employee.deleteMany()
+                    console.log(`Deleted ${r.deletedCount} employees...`)
+                    r = await db.main.Employment.deleteMany()
+                    console.log(`Deleted ${r.deletedCount} employments...`)
+                    r = await db.main.User.deleteMany({
+                        email: {
+                            $nin: [
+                                'hrmo@gsc.edu.ph',
+                                'mis+checker@gsc.edu.ph'
+                            ]
+                        }
+                    })
+                    console.log(`Deleted ${r.deletedCount} users assoc with employees...`)
+                }
 
                 let addedEmployees = []
                 let ignoreEmployees = []
+                let positions = []
                 for (let i = 0; i < results.length; i++) {
                     let entry = results[i]
                     let e = await db.main.Employee.findOne({
@@ -118,19 +135,49 @@ const db = require('../data/src/db-install');
                         firstName: new RegExp(`^${entry.employee.firstName}$`, "i"),
                     })
                     if (!e) {
-                        e = new db.main.Employee(entry.employee)
+                        await db.main.Employee.create(entry.employee)
                         addedEmployees.push(entry.name)
-                        await e.save()
                     } else {
                         ignoreEmployees.push(entry.name)
                     }
+                    let position = entry.position.trim()
+                    position = utils.normalizePositions(position)
+                    if (position) {
+                        let found = positions.find((v) => {
+                            let regex = new RegExp(`^${position}$`, "i")
+                            return regex.test(v)
+                        })
+                        if (!found) {
+                            positions.push(position)
+                        }
+                    }
                 }
-                console.log(`${addedEmployees.length} employee(s) added.`)
-                console.log(`${ignoreEmployees.length} employee(s) ignored as they already exist. ${ignoreEmployees.join(' | ')}`)
+
+                positions.sort(function (a, b) {
+                    var nameA = a.toUpperCase(); // ignore upper and lowercase
+                    var nameB = b.toUpperCase(); // ignore upper and lowercase
+                    if (nameA < nameB) {
+                        return -1;
+                    }
+                    if (nameA > nameB) {
+                        return 1;
+                    }
+                    // names must be equal
+                    return 0;
+                });
+
+                addedFile = CONFIG.app.dir + '/scripts/install-data/employees-added.log'
+                ignoredFile = CONFIG.app.dir + '/scripts/install-data/employees-ignored.log'
+                positionFile = CONFIG.app.dir + '/scripts/install-data/employees-positions.log'
+                console.log(`${addedEmployees.length} employee(s) added. See "${addedFile}""`)
+                console.log(`${ignoreEmployees.length} employee(s) ignored as they already exist. See "${ignoredFile}""`)
+                // console.log(`${positions.length} position(s) added. See "${positionFile}""`)
 
                 db.main.close();
 
-                // fs.writeFileSync(CONFIG.app.dir + '/scripts/install-data/out.json', JSON.stringify(results), { encoding: 'utf8' })
+                fs.writeFileSync(addedFile, addedEmployees.join("\n"), { encoding: 'utf8' })
+                fs.writeFileSync(ignoredFile, ignoreEmployees.join("\n"), { encoding: 'utf8' })
+                fs.writeFileSync(positionFile, positions.join("\n"), { encoding: 'utf8' })
             });
 
     } catch (err) {

@@ -23,6 +23,9 @@ const schema = new Schema({
         $type: String,
         trim: true,
     },
+    positionId: {
+        $type: mongoose.Schema.Types.ObjectId,
+    },
     department: {
         $type: String,
         trim: true,
@@ -38,7 +41,7 @@ const schema = new Schema({
     salary: {
         $type: Number,
     },
-    salaryType: { // monthly, daily
+    salaryType: { // monthly, daily, hourly
         $type: String,
         trim: true,
     },

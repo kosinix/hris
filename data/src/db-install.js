@@ -25,8 +25,11 @@ main.App = main.model('App', require('./models/app'));
 main.Attendance = main.model('Attendance', require('./models/attendance'));
 main.Employee = main.model('Employee', require('./models/employee'));
 main.Employment = main.model('Employment', require('./models/employment'));
+main.Payroll = main.model('Payroll', require('./models/payroll'));
 main.Permission = main.model('Permission', require('./models/permission'));
+main.Position = main.model('Position', require('./models/position'));
 main.Role = main.model('Role', require('./models/role'));
+main.Scanner = main.model('Scanner', require('./models/scanner'));
 main.User = main.model('User', require('./models/user'));
 
 

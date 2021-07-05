@@ -103,7 +103,7 @@ const schema = new Schema({
             }
         }
     ],
-    employments: [],
+    employments: [], // @deprecated - Use employment model instead
     documents: [
         {
             type: {
@@ -115,6 +115,10 @@ const schema = new Schema({
     ],
     userId: {
         $type: mongoose.Schema.Types.ObjectId, // assoc. user account 
+    },
+    group: {
+        $type: String,
+        trim: true,
     },
     custom: {}
 }, {timestamps: true, typeKey: '$type'})

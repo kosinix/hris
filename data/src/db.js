@@ -34,6 +34,7 @@ main.Login = main.model('Login', require('./models/login'));
 main.Pass = main.model('Pass', require('./models/pass'));
 main.Payroll = main.model('Payroll', require('./models/payroll'));
 main.Permission = main.model('Permission', require('./models/permission'));
+main.Position = main.model('Position', require('./models/position'));
 main.Role = main.model('Role', require('./models/role'));
 main.Scanner = main.model('Scanner', require('./models/scanner'));
 main.User = main.model('User', require('./models/user'));

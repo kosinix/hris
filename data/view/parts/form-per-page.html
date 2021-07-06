@@ -1,4 +1,7 @@
 <form id="form" action="{{url}}">
+    {% for name,item in query %}
+        <input type="hidden" name="{{name}}" value="{{item}}">
+    {% endfor %}
     <select onchange="document.getElementById('form').submit()" name="perPage" id="perPage" class="form-control">
         <option value="">All</option>
         <option {% if pagination.perPage == 1 %}selected{% endif %} value="1">1</option>

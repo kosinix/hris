@@ -73,7 +73,9 @@ app.use(async (req, res, next) => {
 
         res.locals.acsrf = lodash.get(req, 'session.acsrf');
 
+        res.locals.url = req.url
         res.locals.urlPath = req.path
+        res.locals.query = req.query
 
         let bodyClass = 'page' + (req.baseUrl + req.path).replace(/\//g, '-');
         bodyClass = lodash.trim(bodyClass, '-');

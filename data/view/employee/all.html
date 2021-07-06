@@ -76,7 +76,7 @@
                     <tbody>
                     {% for employee in employees %}
                         <tr>
-                            <td>{{loop.index}}</td>
+                            <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
                             <td><a href="/employee/employment/{{employee._id}}">{{employee.lastName}}</a></td>
                             <td><a href="/employee/employment/{{employee._id}}">{{employee.firstName}}</a></td>
                             <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].position}}</a></td>

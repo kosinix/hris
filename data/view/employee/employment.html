@@ -33,8 +33,8 @@
                         <td>{{employment.employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</td>
                         <td>{{employment.campus|capitalize}}</td>
                         <td>
-                            <a href="/employee/employment/{{employee._id}}/{{employment._id}}">View</a>
-                            <a href="/employee/employment/{{employee._id}}/{{employment._id}}/delete" class="text-danger">Delete</a>
+                            <a href="/employee/employment/{{employee._id}}/{{employment._id}}">Edit</a>
+                            {# <a href="/employee/employment/{{employee._id}}/{{employment._id}}/delete" class="text-danger">Delete</a> #}
                         </td>
                     </tr>
                     {% endfor %}

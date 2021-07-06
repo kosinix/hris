@@ -20,71 +20,79 @@
         </div>
     </div>
     {% include 'parts/flash.html' %}
+
+    
     {% if employees.length <= 0 %}
         <p>None found.</p>
     {% else %}
-
-        <div class="d-flex justify-content-end">
-            <div class=" pb-3">
-                {% set url = '/employee/all' %}
-                {% include 'parts/form-per-page.html' %}
+        {% include 'employee/employee-tabs.html' %}
+        
+        <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+            <div class="d-flex justify-content-end">
+                <div class=" pb-3 align-self-center pr-3">
+                    Per page:
+                </div>
+                <div class=" pb-3">
+                    {% set url = '/employee/all' %}
+                    {% include 'parts/form-per-page.html' %}
+                </div>
             </div>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-sm table-striped">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>
-                            {% set thId = 'lastName' %}
-                            {% include 'parts/sorted-th.html' %}
-                        </th>
-                        <th>
-                            {% set thId = 'firstName' %}
-                            {% include 'parts/sorted-th.html' %}
-                        </th>
-                        <th>
-                            {% set thId = 'position' %}
-                            {% include 'parts/sorted-th.html' %}
-                        </th>
-                        <th>
-                            {% set thId = 'employmentType' %}
-                            {% include 'parts/sorted-th.html' %}
-                        </th>
-                        <th>
-                            {% set thId = 'group' %}
-                            {% include 'parts/sorted-th.html' %}
-                        </th>
-                        {# <th>
-                            {% set thId = 'campus' %}
-                            {% include 'parts/sorted-th.html' %}
-                        </th>
-                        <th>
-                            {% set thLabel = 'Address' %}
-                            {% set thId = 'address' %}
-                            {% include 'parts/sorted-th.html' %}
-                        </th> #}
-                    </tr>
-                </thead>
-                <tbody>
-                {% for employee in employees %}
-                    <tr>
-                        <td>{{loop.index}}</td>
-                        <td><a href="/employee/employment/{{employee._id}}">{{employee.lastName}}</a></td>
-                        <td><a href="/employee/employment/{{employee._id}}">{{employee.firstName}}</a></td>
-                        <td><a href="/employee/all?customFilter=position&customFilterValue={{employee.employments[0].position}}">{{employee.employments[0].position}}</a></td>
-                        <td><a href="/employee/all?customFilter=employmentType&customFilterValue={{employee.employments[0].employmentType}}">{{employee.employments[0].employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</a></td>
-                        <td><a href="/employee/all?customFilter=group&customFilterValue={{employee.employments[0].group}}">{{employee.employments[0].group|capitalize}}</a></td>
-                        {# <td><a href="/employee/all?customFilter=campus&customFilterValue={{employee.employments[0].campus}}">{{employee.employments[0].campus|capitalize}}</a></td>
-                        <td>{{employee.address}}</td> #}
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="row">
-            <div class="col-md-12 text-center text-md-left pt-3 pb-5">
-                {% include "parts/pagination.html" %}
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>
+                                {% set thId = 'lastName' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                {% set thId = 'firstName' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                {% set thId = 'position' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                {% set thId = 'employmentType' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                {% set thId = 'group' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            {# <th>
+                                {% set thId = 'campus' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                {% set thLabel = 'Address' %}
+                                {% set thId = 'address' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th> #}
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for employee in employees %}
+                        <tr>
+                            <td>{{loop.index}}</td>
+                            <td><a href="/employee/employment/{{employee._id}}">{{employee.lastName}}</a></td>
+                            <td><a href="/employee/employment/{{employee._id}}">{{employee.firstName}}</a></td>
+                            <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].position}}</a></td>
+                            <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</a></td>
+                            <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].group|capitalize}}</a></td>
+                            {# <td><a href="/employee/all?customFilter=campus&customFilterValue={{employee.employments[0].campus}}">{{employee.employments[0].campus|capitalize}}</a></td>
+                            <td>{{employee.address}}</td> #}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="row">
+                <div class="col-md-12 text-center text-md-left pt-3 pb-5">
+                    {% include "parts/pagination.html" %}
+                </div>
             </div>
         </div>
     {% endif %}

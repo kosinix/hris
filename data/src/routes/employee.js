@@ -1,5 +1,6 @@
 //// Core modules
 const fs = require('fs')
+const util = require('util')
 
 //// External modules
 const express = require('express')
@@ -41,31 +42,25 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         }
 
         if (['permanent-faculty'].includes(customFilter)) {
-            // query[`employments.0.employmentType`] = 'permanent'
+            query[`employments.0.employmentType`] = 'permanent'
             query[`employments.0.group`] = 'faculty'
         }
         if (['permanent-staff'].includes(customFilter)) {
             query[`employments.0.employmentType`] = 'permanent'
             query[`employments.0.group`] = 'staff'
         }
-        // if (['cos-faculty'].includes(customFilter)) {
-        //     query[`employments.0.employmentType`] = 'part-time'
-        //     query[`employments.0.group`] = 'faculty'
-        // }
+        if (['cos-teaching'].includes(customFilter)) {
+            query[`employments.0.employmentType`] = 'cos'
+            query[`employments.0.group`] = 'faculty'
+        }
         if (['cos-staff'].includes(customFilter)) {
             query[`employments.0.employmentType`] = 'cos'
             query[`employments.0.group`] = 'staff'
         }
-
-        // Pagination
-        let totalDocs = await db.main.Employee.countDocuments(query)
-        let pagination = paginator.paginate(
-            page,
-            totalDocs,
-            perPage,
-            '/employee/all',
-            req.query
-        )
+        if (['part-time'].includes(customFilter)) {
+            query[`employments.0.employmentType`] = 'part-time'
+            query[`employments.0.group`] = 'faculty'
+        }
 
         let options = { skip: (page - 1) * perPage, limit: perPage };
         let sort = {}
@@ -78,10 +73,7 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
 
         // let employees = await db.main.Employee.find(query, projection, options).sort(sort)
         let aggr = []
-        if (!isNaN(perPage)) {
-            aggr.push({ $skip: options.skip })
-            aggr.push({ $limit: options.limit })
-        }
+
         aggr.push({
             $lookup:
             {
@@ -94,8 +86,32 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         aggr.push({ $match: query })
         aggr.push({ $sort: sort })
 
+        // Pagination
+        let countDocuments = await db.main.Employee.aggregate(aggr)
+        let totalDocs = countDocuments.length
+        let pagination = paginator.paginate(
+            page,
+            totalDocs,
+            perPage,
+            '/employee/all',
+            req.query
+        )
+
+        if (!isNaN(perPage)) {
+            aggr.push({ $skip: options.skip })
+            aggr.push({ $limit: options.limit })
+        }
         let employees = await db.main.Employee.aggregate(aggr)
+
+        // console.log(util.inspect(aggr, false, null, true))
+
         // return res.send(employees)
+        if(req.query.csv==1){
+            let csv = employees.map((i)=>{
+                return `${i.lastName}, ${i.firstName}, ${i.middleName}, ${lodash.get(i, 'employments[0].position')}`
+            })
+            return res.send(csv.join("\n"))
+        }
         res.render('employee/all.html', {
             flash: flash.get(req, 'employee'),
             employees: employees,

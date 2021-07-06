@@ -1,0 +1,22 @@
+<div>
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link {{url|active_class([r/^(\/employee\/all)$|^(\/employee\/all)(.)((?!customFilter).)*$/])}}" href="/employee/all">All</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{url|active_class([r/^(\/employee\/all)(.)(customFilter=permanent-faculty)/])}}" href="/employee/all?customFilter=permanent-faculty">Permanent Faculty</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{url|active_class([r/^(\/employee\/all)(.)(customFilter=permanent-staff)/])}}" href="/employee/all?customFilter=permanent-staff">Permanent Staff</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{url|active_class([r/^(\/employee\/all)(.)(customFilter=cos-staff)/])}}" href="/employee/all?customFilter=cos-staff">COS Staff</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{url|active_class([r/^(\/employee\/all)(.)(customFilter=cos-teaching)/])}}" href="/employee/all?customFilter=cos-teaching">COS Teaching</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{url|active_class([r/^(\/employee\/all)(.)(customFilter=part-time)/])}}" href="/employee/all?customFilter=part-time">Part-time</a>
+        </li>
+    </ul>
+</div>

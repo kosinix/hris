@@ -10,6 +10,7 @@ const db = require('../db');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
 const payrollCalc = require('../payroll-calc');
+const excelGen = require('../excel-gen');
 
 // Router
 let router = express.Router()
@@ -195,6 +196,52 @@ router.post('/payroll/employees/:payrollId', middlewares.guardRoute(['update_pay
         //     flash: flash.get(req, 'payroll'),
         //     payroll: payroll,
         // });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.post('/payroll/employees/:payrollId/sort-employments', middlewares.guardRoute(['update_payroll']), middlewares.getPayroll, async (req, res, next) => {
+    try {
+        let payroll = res.payroll
+
+        let body = req.body
+        let employments = lodash.get(body, 'employments')
+        payroll.employments = employments;
+        await payroll.save()
+        
+        res.send(employments)
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/payroll/employees/:payrollId/payroll.xlsx', middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
+    try {
+        let payroll = res.payroll.toObject()
+
+        // Expand from just _id and employmentId to full details
+        payroll.employments = payroll.employments.map((o) => {
+            return db.main.Employment.findById(o._id).lean()
+        })
+        payroll.employments = await Promise.all(payroll.employments)
+
+        // Add employee details to employment.employee property
+        let promises = []
+        payroll.employments.forEach((o) => {
+            promises.push(db.main.Employee.findById(o.employeeId).lean())
+        })
+        let employees = await Promise.all(promises)
+        payroll.employments = payroll.employments.map((o, i) => {
+            o.employee = employees[i]
+            return o
+        })
+
+        payroll = await payrollCalc.getCosStaff(payroll, CONFIG.workTime.workDays, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
+
+        await excelGen.templateJocos(payroll)
+        return res.download('excel.xlsx')
+        
     } catch (err) {
         next(err);
     }

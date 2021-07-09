@@ -5,6 +5,7 @@
 !.gitignore
 
 !script.js
+!script-axios-extend.js
 !script-cookies.js
 !script-password.js
 !vuelidate-extend.js

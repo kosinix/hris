@@ -112,6 +112,10 @@ const files = [
         src: `${APP_DIR}/node_modules/bootstrap/dist/css/bootstrap.min.css.map`,
         dest: `${APP_DIR}/data/public/css/bootstrap.min.css.map`,
     },
+    {
+        src: `${APP_DIR}/node_modules/sortablejs/Sortable.min.js`,
+        dest: `${APP_DIR}/data/public/js/Sortable.min.js`,
+    },
 ]
 files.forEach((o)=>{
     fs.copyFile(o.src, o.dest, (err) => {

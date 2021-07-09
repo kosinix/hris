@@ -39,7 +39,7 @@
                 {% for payroll in payrolls %}
                     <tr>
                         <td><a href="/payroll/{{payroll._id}}">{{payroll.name}}</a></td>
-                        <td><a href="/payroll/{{payroll._id}}">{{payroll.employees.length}}</a></td>
+                        <td><a href="/payroll/{{payroll._id}}">{{payroll.employments.length}}</a></td>
                     </tr>
                 {% endfor %}
                 </tbody>

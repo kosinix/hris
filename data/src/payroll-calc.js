@@ -21,38 +21,33 @@ let getPerMinuteRate = (monthlyRate, workDays = 22, hoursPerDay = 8) => {
 }
 
 let calcRenderedTime = (minutes, hoursPerDay) => {
-    let momentWorkDuration = moment.duration(minutes, 'minutes')
-    let momentWorkHours = moment.duration(hoursPerDay, 'hours')
-
     let renderedDays = minutes / 60 / hoursPerDay
     let renderedHours = (renderedDays - Math.floor(renderedDays)) * hoursPerDay
     let renderedMinutes = (renderedHours - Math.floor(renderedHours)) * 60
-    console.log('renderedDays', renderedHours / hoursPerDay)
-    console.log('renderedHours', renderedHours)
-    console.log('renderedMinutes', renderedMinutes)
-    renderedHours = renderedDays >= 1 ? (renderedHours % hoursPerDay) : renderedHours
 
+    let gracePeriodMinutes = 30 // 15 mins AM, 15 mins PM
     let undertime = false
+    let underTimeTotalMinutes = hoursPerDay * 60 - gracePeriodMinutes - minutes
     let underDays = 0
     let underHours = 0
     let underMinutes = 0
 
-
-    if (renderedDays <= 0) {
+    if (underTimeTotalMinutes > 0) {
         undertime = true
-        underDays = momentWorkHours.clone().subtract(momentWorkDuration).days()
-        underHours = momentWorkHours.clone().subtract(momentWorkDuration).hours()
-        underMinutes = momentWorkHours.clone().subtract(momentWorkDuration).minutes()
+        underDays = underTimeTotalMinutes / 60 / hoursPerDay
+        underHours = (underDays - Math.floor(underDays)) * hoursPerDay
+        underMinutes = (underHours - Math.floor(underHours)) * 60
     }
 
     return {
         totalMinutes: minutes,
         renderedDays: Math.floor(renderedDays),
-        renderedHours: renderedHours,
-        renderedMinutes: renderedMinutes,
-        underDays: underDays,
-        underHours: underHours,
-        underMinutes: underMinutes,
+        renderedHours: Math.floor(renderedHours),
+        renderedMinutes: Math.floor(renderedMinutes),
+        underTimeTotalMinutes: underTimeTotalMinutes,
+        underDays: Math.floor(underDays),
+        underHours: Math.floor(underHours),
+        underMinutes: Math.floor(underMinutes),
         undertime: undertime
     }
 }

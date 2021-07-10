@@ -177,13 +177,17 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
         if (!found) {
             throw new Error('Employment not found.')
         }
+
+        // let momentNow = moment()
+        let momentNow = moment().month(6-1) // set to x month of current year
+
         // Today attendance
         let attendances = await db.main.Attendance.find({
             employeeId: employee._id,
             employmentId: employmentId,
             createdAt: {
-                $gte: moment().startOf('month').toDate(),
-                $lt: moment().endOf('month').toDate(),
+                $gte: momentNow.startOf('month').toDate(),
+                $lt: momentNow.endOf('month').toDate(),
             }
         })
 
@@ -191,8 +195,6 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
             return moment(a.createdAt).format('YYYY-MM-DD')
         })
 
-        console.log(moment())
-        let momentNow = moment()
         let days = new Array(momentNow.daysInMonth())
         let year = momentNow.format('YYYY')
         let month = momentNow.format('MM')

@@ -30,6 +30,7 @@
     "guess-file-type": "^1.0.1",
     "jquery": "^3.6.0",
     "jsqr": "^1.4.0",
+    "kalendaryo": "github:kosinix/kalendaryo",
     "kisapmata": "^1.2.1",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",

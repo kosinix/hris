@@ -21,6 +21,7 @@
                         <th>Employment Type</th>
                         <th>Campus</th>
                         <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -35,6 +36,9 @@
                         <td>
                             <a href="/employee/employment/{{employee._id}}/{{employment._id}}">Edit</a>
                             {# <a href="/employee/employment/{{employee._id}}/{{employment._id}}/delete" class="text-danger">Delete</a> #}
+                        </td>
+                        <td>
+                            <a href="/attendance/employee/employment/{{employee._id}}/{{employment._id}}">Att.</a>
                         </td>
                     </tr>
                     {% endfor %}

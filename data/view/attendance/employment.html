@@ -1,0 +1,143 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'parts/employee-header.html' %}
+    {# {% include 'parts/employee-profile-photo.html' %} #}
+    {% include 'attendance/tabs-calendar.html' %}
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3">
+        <h1 class="mt-2 mb-4">{{momentNow|format_date('MMM YYYY')}}</h1>
+
+        <div class="table-responsive">
+            <table class="table table-dtr">
+                <tr>
+                    <th class="text-center" rowspan="2">Day</th>
+                    <th class="text-center" colspan="2">AM</th>
+                    <th class="text-center" colspan="2">PM</th>
+                    <th class="text-center" colspan="2">Undertime</th>
+                </tr>
+                <tr>
+                    <th>Arrival</th>
+                    <th>Departure</th>
+                    
+                    <th>Arrival</th>
+                    <th>Departure</th>
+
+                    <th>Hours</th>
+                    <th>Minutes</th>
+                </tr>
+                {% for day in days %}
+                {% set attendance = day.attendance %}
+                <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
+                    <td class="text-center">{{day.day}}</td>
+                    {% if attendance.onTravel %}
+                        <td colspan="6">On Travel</td>
+                    {% else %}
+                        <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>
+                            {% if day.dtr.underMinutes %}
+                                {{day.dtr.underHours}}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if day.dtr.underMinutes %}
+                                {{day.dtr.underMinutes}}
+                            {% endif %}
+                            {# {{day.dtr|stringify|safe}} #}
+                        </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    {% for row in matrix %}
+                        {% if loop.index0 === 0 %}
+                        <tr>
+                            {% for col in row %}
+                                <th>
+                                    <div class="d-flex align-items-start justify-content-center" style="min-width:100px;">
+                                        <div>{{col}}</div>
+                                    </div>
+                                </th>
+                            {% endfor %}
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </thead>
+                <tbody>
+                    {% for row in matrix %}
+                        {% if loop.index0 > 0 %}
+                        <tr>
+                            {% for col in row %}
+                                <td>
+                                    <div class="d-flex align-items-start justify-content-center flex-wrap" style="min-width:100px; min-height: 100px">
+                                        <div>
+                                            <a href="#" class="h5">{{col|format_date('D')}}</a>
+                                        </div>
+                                        <ul style="width: 100%">
+                                        {% for log in attendances[col|format_date('YYYY-MM-DD')].logs %}
+                                            {% if log.mode === 1 %}
+                                                <li class="text-success">{{log.dateTime|format_date('hh:mm A')}}</li>
+                                            {% elif log.mode === 0 %}
+                                                <li class="text-info">{{log.dateTime|format_date('hh:mm A')}}</li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        </ul>
+                                    </div>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="form-row pt-3 pb-3">
+            <div class="col-md-12">
+                <a href="/employee/employment/{{employee._id}}" class="btn btn-primary">Back to Employee</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            
+        },
+        validations: {
+            
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

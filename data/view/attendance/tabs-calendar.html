@@ -1,0 +1,9 @@
+<div>
+    <ul class="nav nav-tabs">
+        {% for month in months %}
+        <li class="nav-item">
+            <a class="nav-link {% if selectedMonth == month|format_date('MM') %} active {% endif%}" href="?month={{month|format_date('MM')}}&year={{month|format_date('YYYY')}}">{{month|format_date('MMM')}}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>

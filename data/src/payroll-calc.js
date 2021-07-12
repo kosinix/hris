@@ -7,6 +7,7 @@ const moment = momentRange.extendMoment(require("moment"));
 
 //// Modules
 const db = require('./db');
+const dtrHelper = require('./dtr-helper');
 
 let getDailyRate = (monthlyRate, workDays = 22) => {
     return monthlyRate / workDays
@@ -25,7 +26,7 @@ let calcRenderedTime = (minutes, hoursPerDay) => {
     let renderedHours = (renderedDays - Math.floor(renderedDays)) * hoursPerDay
     let renderedMinutes = (renderedHours - Math.floor(renderedHours)) * 60
 
-    let gracePeriodMinutes = 30 // 15 mins AM, 15 mins PM
+    let gracePeriodMinutes = 0 // 15 mins AM, 15 mins PM
     let undertime = false
     let underTimeTotalMinutes = hoursPerDay * 60 - gracePeriodMinutes - minutes
     let underDays = 0
@@ -54,19 +55,12 @@ let calcRenderedTime = (minutes, hoursPerDay) => {
 
 let calcDailyAttendance = (attendance, hoursPerDay, travelPoints, gracePeriods) => {
 
-    // let gracePeriods = [
-    //     {
-    //         mode: 1, // 1 log-in, 0 log-out
-    //         start: {
-    //             hour: 7,
-    //             minute: 0
-    //         },
-    //         end: {
-    //             hour: 7,
-    //             minute: 15
-    //         }
-    //     },
-    // ]
+    // Default govt shift
+    let shifts = []
+    shifts.push(dtrHelper.createShift({ hour: 8, minute: 0 }, { hour: 12, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4 }))
+    shifts.push(dtrHelper.createShift({ hour: 13, minute: 0 }, { hour: 17, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4 }))
+
+
     // travelPoints 480 minutes = 8 hours 
     if (null === attendance) return null
 
@@ -77,29 +71,36 @@ let calcDailyAttendance = (attendance, hoursPerDay, travelPoints, gracePeriods) 
     } else {
         // roll logs 
         let momentIn = null
+        let startMinutes = null
+        let shiftCurrent = null
+        let logoutMinutes = null
+
         for (let l = 0; l < attendance.logs.length; l++) {
             let log = attendance.logs[l]
-            if (log.mode === 1) {
+            if (log.mode === 1) { // in
                 momentIn = moment(log.dateTime)
+                startMinutes = dtrHelper.momentToMinutes(momentIn)
+                shiftCurrent = dtrHelper.getNextShift(startMinutes, shifts)
 
-                for (let g = 0; g < gracePeriods.length; g++) {
-                    let grace = gracePeriods[g]
-                    if (grace.mode === log.mode) {
-                        if (momentIn.hours() >= grace.start.hour &&
-                            momentIn.hours() <= grace.end.hour &&
-                            momentIn.minutes() >= grace.start.minute &&
-                            momentIn.minutes() <= grace.end.minute) {
-                            momentIn = momentIn.hour(grace.start.hour).minute(grace.start.minute)
-                        }
-                    }
+                if (startMinutes <= shiftCurrent.start + shiftCurrent.grace) { // late but graced
+                    startMinutes = shiftCurrent.start // set to shift start
                 }
 
-            } else if (log.mode === 0) {
-                let momentOut = moment(log.dateTime)
-                
-                let momentWorkShift = moment.range(momentIn, momentOut)
-                minutes += momentWorkShift.diff('minutes')
-                console.log(log.mode, momentIn.format('HH:mm A'), momentOut.format('HH:mm A'), momentWorkShift.diff('minutes'), minutes)
+            } else if (log.mode === 0) { // out
+                logoutMinutes = dtrHelper.momentToMinutes(moment(log.dateTime))
+                if (logoutMinutes < shiftCurrent.start) {
+                    throw new Error('Logging out before shift')
+                }
+                if (logoutMinutes > shiftCurrent.end) {
+                    logoutMinutes = shiftCurrent.end // Not counted outshide shift
+                }
+
+                let shiftMinutes = logoutMinutes - startMinutes
+                if (shiftMinutes > shiftCurrent.maxMinutes) {
+                    shiftMinutes = shiftCurrent.maxMinutes
+                }
+
+                minutes += (logoutMinutes - startMinutes)
             }
         }
     }
@@ -323,7 +324,7 @@ let computePayroll = async (payroll, workDays = 22, hoursPerDay = 8, travelPoint
     return payroll
 }
 
-let attachDailyTime = async (attendances) =>{
+let attachDailyTime = async (attendances) => {
     return attendances
 }
 

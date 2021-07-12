@@ -38,6 +38,7 @@ main.Position = main.model('Position', require('./models/position'));
 main.Role = main.model('Role', require('./models/role'));
 main.Scanner = main.model('Scanner', require('./models/scanner'));
 main.User = main.model('User', require('./models/user'));
+main.WorkingHour = main.model('User', require('./models/user'));
 
 
 module.exports = {

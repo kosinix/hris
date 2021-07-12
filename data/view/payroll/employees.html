@@ -45,11 +45,11 @@
                                 {# <td>{{employment.department}}</td> #}
                                 <td>{{employment.salary|currency}}</td>
                                 <td>
-                                    <div class="d-flex">
+                                    <a href="http://localhost:9094/attendance/employee/employment/{{employee._id}}/{{employment._id}}?month={{payroll.dateStart|format_date('MMM')}}&amp;year={{payroll.dateStart|format_date('YYYY')}}&amp;undertime=1" class="d-flex">
                                         <div>{{employment.timeRecord.renderedDays}} days</div>
                                         <div class="pl-2 pr-2">{{employment.timeRecord.renderedHours}} hrs</div>
                                         <div>{{employment.timeRecord.renderedMinutes}} mins</div>
-                                    </div>
+                                    </a>
                                 </td>
                                 {# {% for incentive in employment.incentives %}
                                     <td>{{incentive.amount|currency}}</td>

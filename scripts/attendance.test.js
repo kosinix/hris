@@ -68,7 +68,7 @@ const db = require('../data/src/db-install');
         await employee.save()
         console.log(`Added employee.`)
         let employeeId = employee._id
-        logs.push(`db.getCollection('employees').deleteMany({_id:ObjectId("${employeeId}")})`)
+        logs.push(`db.getCollection('employees').remove({_id:ObjectId("${employeeId}")})`)
         // Create employment
         let employment = new db.main.Employment({
             "employeeId": employeeId,
@@ -85,7 +85,7 @@ const db = require('../data/src/db-install');
         console.log(`Added employment.`)
 
         let employmentId = employment._id
-        logs.push(`db.getCollection('employments').deleteMany({_id:ObjectId("${employmentId}")})`)
+        logs.push(`db.getCollection('employments').remove({_id:ObjectId("${employmentId}")})`)
 
         // Create user
         let password = 'admin'
@@ -108,7 +108,7 @@ const db = require('../data/src/db-install');
         let userId = user._id
         employee.userId = userId
         await employee.save()
-        logs.push(`db.getCollection('users').deleteMany({_id:ObjectId("${userId}")})`)
+        logs.push(`db.getCollection('users').remove({_id:ObjectId("${userId}")})`)
 
         let scanner = new db.main.Scanner({
             "name": 'Test Scanner',
@@ -119,7 +119,7 @@ const db = require('../data/src/db-install');
         console.log(`Added scanner.`)
 
         let scannerId = scanner._id
-        logs.push(`db.getCollection('scanners').deleteMany({_id:ObjectId("${scannerId}")})`)
+        logs.push(`db.getCollection('scanners').remove({_id:ObjectId("${scannerId}")})`)
 
         let attendances = []
         for (d = 1; d <= 15; d++) {
@@ -151,7 +151,7 @@ const db = require('../data/src/db-install');
             "employeeId": employeeId,
         })
         console.log(`Deleted ${r.deletedCount} attendances...`)
-        logs.push(`db.getCollection('attendances').deleteMany({employeeId:ObjectId("${employeeId}")})`)
+        logs.push(`db.getCollection('attendances').remove({employeeId:ObjectId("${employeeId}")})`)
 
         let r2 = await db.main.Attendance.insertMany(attendances)
         console.log(`Inserted ${r2.length} attendances...`)
@@ -181,18 +181,18 @@ const db = require('../data/src/db-install');
         // console.log(util.inspect(attendances, false, null, true /* enable colors */))
         //
         file = CONFIG.app.dir + '/scripts/install-data/attendance.test.log'
-        fs.writeFileSync(file, logs.join("\n"), { encoding: 'utf8' })
+        fs.writeFileSync(file, logs.join(";\n"), { encoding: 'utf8' })
 
-        r = await db.main.Attendance.deleteMany({
-            "employeeId": employeeId,
-        })
-        console.log(`Deleted ${r.deletedCount} attendances...`)
+        // r = await db.main.Attendance.deleteMany({
+        //     "employeeId": employeeId,
+        // })
+        // console.log(`Deleted ${r.deletedCount} attendances...`)
 
-        await employee.remove()
-        await employment.remove()
-        await user.remove()
-        await scanner.remove()
-        await payroll.remove()
+        // await employee.remove()
+        // await employment.remove()
+        // await user.remove()
+        // await scanner.remove()
+        // await payroll.remove()
     } catch (err) {
         console.log(err)
     } finally {

@@ -15,7 +15,13 @@
                     <th class="text-center" rowspan="2">Day</th>
                     <th class="text-center" colspan="2">AM</th>
                     <th class="text-center" colspan="2">PM</th>
-                    <th class="text-center" colspan="2">Undertime</th>
+                    <th class="text-center" colspan="2">
+                        {% if undertimeView %}
+                            <a href="?{{query|query_string({undertime: 0})}}">Undertime</a>
+                        {% else %}
+                            <a href="?{{query|query_string({undertime: 1})}}">Time</a>
+                        {% endif %}
+                    </th>
                 </tr>
                 <tr>
                     <th>Arrival</th>
@@ -39,15 +45,14 @@
                         <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                         <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                         <td>
-                            {% if day.dtr.underMinutes %}
-                                {{day.dtr.underHours}}
+                            {% if day.dtr.hours %}
+                                {{day.dtr.hours}}
                             {% endif %}
                         </td>
                         <td>
-                            {% if day.dtr.underMinutes %}
-                                {{day.dtr.underMinutes}}
+                            {% if day.dtr.minutes %}
+                                {{day.dtr.minutes}}
                             {% endif %}
-                            {# {{day.dtr|stringify|safe}} #}
                         </td>
                     {% endif %}
                 </tr>
@@ -55,7 +60,7 @@
             </table>
         </div>
 
-        <div class="table-responsive">
+        {# <div class="table-responsive">
             <table class="table">
                 <thead>
                     {% for row in matrix %}
@@ -99,7 +104,7 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
+        </div> #}
         <div class="form-row pt-3 pb-3">
             <div class="col-md-12">
                 <a href="/employee/employment/{{employee._id}}" class="btn btn-primary">Back to Employee</a>

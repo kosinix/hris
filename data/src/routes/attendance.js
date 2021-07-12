@@ -32,8 +32,8 @@ router.get('/attendance/employee/employment/:employeeId/:employmentId', middlewa
         let employment = res.employment
 
         let year = lodash.get(req, 'query.year', moment().format('YYYY'))
-        let month = lodash.get(req, 'query.month', moment().format('MM'))
-        let momentNow = moment(`${year}-${month}-01`)
+        let month = lodash.get(req, 'query.month', moment().format('MMM'))
+        let momentNow = moment().year(year).month(month)
 
         let attendances = await db.main.Attendance.find({
             employeeId: employee._id,
@@ -42,18 +42,30 @@ router.get('/attendance/employee/employment/:employeeId/:employmentId', middlewa
         attendances = lodash.mapKeys(attendances, (a) => {
             return moment(a.createdAt).format('YYYY-MM-DD')
         })
+        let undertimeView = lodash.get(req, 'query.undertime') == 1 ? true : false
         let days = new Array(momentNow.daysInMonth())
         days = days.fill(1).map((v, i) => {
-            let attendance = attendances[`${year}-${month}-${String(v + i).padStart(2, '0')}`] || null
+            let attendance = attendances[`${momentNow.format('YYYY')}-${momentNow.format('MM')}-${String(v + i).padStart(2, '0')}`] || null
             let dtr = payrollCalc.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, CONFIG.workTime.gracePeriods)
 
+            if (dtr) {
+                dtr.hours = 0
+                dtr.minutes = 0
+                if (undertimeView) {
+                    dtr.hours = dtr.underDays * CONFIG.workTime.hoursPerDay + dtr.underHours
+                    dtr.minutes = dtr.underMinutes
+                } else {
+                    dtr.hours = dtr.renderedDays * CONFIG.workTime.hoursPerDay + dtr.renderedHours
+                    dtr.minutes = dtr.renderedMinutes
+                }
+            }
             return {
                 date: `${year}-${month}-${String(v + i).padStart(2, '0')}`,
                 year: year,
                 month: month,
                 day: v + i,
                 dtr: dtr,
-                attendance: attendance
+                attendance: attendance,
             }
         })
 
@@ -71,6 +83,7 @@ router.get('/attendance/employee/employment/:employeeId/:employmentId', middlewa
             months: months,
             days: days,
             selectedMonth: month,
+            undertimeView: undertimeView,
             matrix: kalendaryo.getMatrix(momentNow, 0)
         });
     } catch (err) {

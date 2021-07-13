@@ -91,7 +91,7 @@ router.post('/e-profile/hdf', middlewares.guardRoute(['use_employee_profile']), 
         let employee = res.employee.toObject()
         // return res.send(req.body)
         let body = lodash.get(req, 'body')
-        let def = {"temperature":"","lastName":"","firstName":"","middleName":"","age":"","sex":"","civilStatus":"","address":"","contactNumber":"","department":"","symptoms":[],"visitedMedicalFacility":"","visitedMedicalFacilityPurposes":[],"suspectedCovidPatient":"","suspectedCovidPatientDetails":"","sickFamilyMembers":"","sickFamilyMembersDetails":""}
+        let def = { "temperature": "", "lastName": "", "firstName": "", "middleName": "", "age": "", "sex": "", "civilStatus": "", "address": "", "contactNumber": "", "department": "", "symptoms": [], "visitedMedicalFacility": "", "visitedMedicalFacilityPurposes": [], "suspectedCovidPatient": "", "suspectedCovidPatientDetails": "", "sickFamilyMembers": "", "sickFamilyMembersDetails": "" }
         body = lodash.merge(def, body)
         body = lodash.mapKeys(body, (v, key) => {
             if (key === 'temperature') {
@@ -171,7 +171,7 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
     try {
         let employee = res.employee.toObject()
         let employmentId = req.params.employmentId
-        let found = employee.employments.find((e)=>{
+        let found = employee.employments.find((e) => {
             return e._id.toString() === employmentId
         })
         if (!found) {
@@ -179,7 +179,7 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
         }
 
         // let momentNow = moment()
-        let momentNow = moment().month(6-1) // set to x month of current year
+        let momentNow = moment().month(6 - 1) // set to x month of current year
 
         // Today attendance
         let attendances = await db.main.Attendance.find({
@@ -235,16 +235,95 @@ router.get('/e-profile/payroll', middlewares.guardRoute(['use_employee_profile']
 
 router.get('/e-profile/pds', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
-        throw new Error('Page under development.')
+        let employee = res.employee.toObject()
+
+        res.render('e-profile/pds.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            momentNow: moment(),
+        });
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e-profile/pds', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let patch = res.employee.toObject()
+        let body = lodash.get(req, 'body')
+        // return res.send(body)
+
+        lodash.set(patch, 'lastName', lodash.get(body, 'lastName'))
+        lodash.set(patch, 'firstName', lodash.get(body, 'firstName'))
+        lodash.set(patch, 'middleName', lodash.get(body, 'middleName'))
+        lodash.set(patch, 'suffix', lodash.get(body, 'suffix'))
+        lodash.set(patch, 'birthDate', lodash.get(body, 'birthDate'))
+        lodash.set(patch, 'gender', lodash.get(body, 'gender'))
+        lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
+        lodash.set(patch, 'mobileNumber', lodash.get(body, 'mobileNumber'))
+        lodash.set(patch, 'phoneNumber', lodash.get(body, 'phoneNumber'))
+        lodash.set(patch, 'email', lodash.get(body, 'email'))
+
+        // TODO: Should generate new id every save??
+        lodash.set(patch, 'addresses.0._id', db.mongoose.Types.ObjectId())
+        lodash.set(patch, 'addresses.0.unit', lodash.get(body, 'unit0'))
+        lodash.set(patch, 'addresses.0.street', lodash.get(body, 'street0'))
+        lodash.set(patch, 'addresses.0.village', lodash.get(body, 'village0'))
+        lodash.set(patch, 'addresses.0.psgc', lodash.get(body, 'psgc0'))
+        lodash.set(patch, 'addresses.0.zipCode', lodash.get(body, 'zipCode0'))
+        lodash.set(patch, 'addressPermanent', lodash.get(patch, 'addresses.0._id'))
+        let address0 = await db.main.Address.findOne({
+            code: lodash.get(body, 'psgc0', '')
+        })
+        if (address0) {
+            lodash.set(patch, 'addresses.0.full', lodash.get(address0, 'full'))
+            lodash.set(patch, 'address', lodash.get(address0, 'full'))
+        }
+
+        // TODO: Should generate new id every save??
+        lodash.set(patch, 'addresses.1._id', db.mongoose.Types.ObjectId())
+        lodash.set(patch, 'addresses.1.unit', lodash.get(body, 'unit1'))
+        lodash.set(patch, 'addresses.1.street', lodash.get(body, 'street1'))
+        lodash.set(patch, 'addresses.1.village', lodash.get(body, 'village1'))
+        lodash.set(patch, 'addresses.1.psgc', lodash.get(body, 'psgc1'))
+        lodash.set(patch, 'addresses.1.zipCode', lodash.get(body, 'zipCode1'))
+        lodash.set(patch, 'addressPresent', lodash.get(patch, 'addresses.1._id'))
+        let address1 = await db.main.Address.findOne({
+            code: lodash.get(body, 'psgc1', '')
+        })
+        if (address1) {
+            lodash.set(patch, 'addresses.1.full', lodash.get(address1, 'full'))
+        }
+
+        lodash.set(patch, 'personal.birthPlace', lodash.get(body, 'birthPlace'))
+        lodash.set(patch, 'personal.height', lodash.get(body, 'height'))
+        lodash.set(patch, 'personal.weight', lodash.get(body, 'weight'))
+        lodash.set(patch, 'personal.bloodType', lodash.get(body, 'bloodType'))
+        lodash.set(patch, 'personal.gsis', lodash.get(body, 'gsis'))
+        lodash.set(patch, 'personal.sss', lodash.get(body, 'sss'))
+        lodash.set(patch, 'personal.philHealth', lodash.get(body, 'philHealth'))
+        lodash.set(patch, 'personal.tin', lodash.get(body, 'tin'))
+        lodash.set(patch, 'personal.pagibig', lodash.get(body, 'pagibig'))
+        lodash.set(patch, 'personal.agencyEmployeeNumber', lodash.get(body, 'agencyEmployeeNumber'))
+        lodash.set(patch, 'personal.citizenship', lodash.get(body, 'citizenship'))
+        lodash.set(patch, 'personal.citizenshipCountry', lodash.get(body, 'citizenshipCountry'))
+        lodash.set(patch, 'personal.citizenshipSource', lodash.get(body, 'citizenshipSource'))
+
+        await db.main.Employee.updateOne({ _id: employee._id }, patch)
+        
+        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} PDS.`)
+        res.redirect(`/e-profile/pds`)
     } catch (err) {
         next(err);
     }
 });
 
+
 router.get('/e-profile/account/password', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        
+
         res.render('e-profile/account.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
@@ -271,7 +350,7 @@ router.post('/e-profile/account/password', middlewares.guardRoute(['use_employee
 
         user.passwordHash = passwordMan.hashPassword(lodash.get(body, 'newPassword'), user.salt);
         await user.save()
-        
+
         flash.ok(req, 'employee', `Password changed successfully.`)
         return res.redirect(`/e-profile/account/password`)
     } catch (err) {

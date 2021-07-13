@@ -26,5 +26,23 @@ env.addFilter('s3_url', function (value, sizePrefix = "") {
     return `/file-getter/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/${sizePrefix}${value}`
 })
 
+// Convert 1d array to array of object for use by html <select> <options> 
+env.addFilter('to_options', function (values, blank=true) {
+    let options = []
+    if(blank){
+        options.push({
+            value: '',
+            text: ''
+        })
+    }
+    values.forEach((v)=>{
+        options.push({
+            value: v,
+            text: v
+        })
+    })
+    return options
+})
+
 //// Export
 module.exports = env;

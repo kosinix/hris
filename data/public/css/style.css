@@ -157,6 +157,16 @@ h4, h5, h6 {
 .wait.cover{
     display: block;
 }
+
+div.focusable {
+    padding: 15px;
+    transition: all 0.5s;
+    border-radius: 5px;
+}
+div.focusable:focus-within  {
+    background: rgba(255, 236, 178, 0.9);
+    box-shadow: 0 0 5px #ccc;
+}
 /*  Validation  */
 .form-set.is-invalid .invalid-feedback {
     display: block;

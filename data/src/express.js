@@ -7,12 +7,14 @@ const cookieParser = require('cookie-parser');
 const lodash = require('lodash');
 
 //// Modules
+const countries = require('./countries');
 const db = require('./db');
 const errors = require('./errors');
 const logger = require('./logger');
 const nunjucksEnv = require('./nunjucks-env');
 const routes = require('./routes');
 const session = require('./session');
+const suffixes = require('./suffixes');
 
 
 //// Create app
@@ -33,6 +35,8 @@ app.use(function (req, res, next) {
     app.locals.app.title = CONFIG.app.title;
     app.locals.app.description = CONFIG.description;
     app.locals.CONFIG = lodash.cloneDeep(CONFIG) // Config
+    app.locals.countries = countries
+    app.locals.suffixes = suffixes
     next();
 });
 

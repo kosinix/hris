@@ -1,0 +1,6 @@
+
+<select name="{{name}}" id="{{name}}" v-model="{{name}}" class="form-control">
+    {% for option in options %}
+        <option value="{{option.value}}">{{option.text}}</option>
+    {% endfor %}
+</select>

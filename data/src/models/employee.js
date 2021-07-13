@@ -60,13 +60,10 @@ const schema = new Schema({
         trim: true,
         default: ""
     },
-    emailVerified: {
-        $type: Boolean,
-        default: false
-    },
-    mobileNumberVerified: {
-        $type: Boolean,
-        default: false
+    phoneNumber: {
+        $type: String,
+        trim: true,
+        default: ""
     },
     addressPresent: {
         $type: mongoose.Schema.Types.ObjectId,
@@ -80,7 +77,15 @@ const schema = new Schema({
     },
     addresses: [
         {
-            unit: {
+            unit: { // house, block, lot, or unit no.
+                $type: String,
+                trim: true,
+            },
+            street: {
+                $type: String,
+                trim: true,
+            },
+            village: { // or subdivision
                 $type: String,
                 trim: true,
             },
@@ -120,7 +125,61 @@ const schema = new Schema({
         $type: String,
         trim: true,
     },
-    custom: {}
+    custom: {},
+    personal: {
+        birthPlace: {
+            $type: String,
+            trim: true,
+        },
+        height: {
+            $type: String,
+            trim: true,
+        },
+        weight: {
+            $type: String,
+            trim: true,
+        },
+        bloodType: {
+            $type: String,
+            trim: true,
+        },
+        gsis: {
+            $type: String,
+            trim: true,
+        },
+        sss: {
+            $type: String,
+            trim: true,
+        },
+        philHealth: {
+            $type: String,
+            trim: true,
+        },
+        tin: {
+            $type: String,
+            trim: true,
+        },
+        pagibig: {
+            $type: String,
+            trim: true,
+        },
+        agencyEmployeeNumber: {
+            $type: String,
+            trim: true,
+        },
+        citizenship: [{
+            $type: String,
+            trim: true,
+        }],
+        citizenshipCountry: {
+            $type: String,
+            trim: true,
+        },
+        citizenshipSource: [{
+            $type: String,
+            trim: true,
+        }],
+    },
 }, {timestamps: true, typeKey: '$type'})
 
 //// Virtuals

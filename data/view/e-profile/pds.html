@@ -64,11 +64,11 @@
                     {% include 'parts/form-group-select.html' %}
                 </div>
             </div>
-            <div class="form-row">
+            <div class="form-group form-row">
                 <div class="col-md-4">
                     <label for="heightFeet">Height</label>
                     <div class="form-row">
-                        <div class="col-md-6">
+                        <div class="col-md-6 form-group">
                             {% set name = 'heightFeet' %}
                             {% set options = [{value:3, text:'3 ft'}, {value:4, text:'4 ft'}, {value:5, text:'5 ft'}, {value:6, text:'6 ft'}, {value:7, text:'7 ft'}] %}
                             <div>
@@ -76,7 +76,7 @@
                                 <small class="invalid-feedback">${getError('{{name}}')}</small>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 form-group">
                             {% set name = 'heightInches' %}
                             {% set options = [{value:0, text:''}, {value:1, text:'1 inch'}, {value:2, text:'2 inches'}, {value:3, text:'3 inches'}, {value:4, text:'4 inches'}, {value:'5', text:'5 inches'}, {value:'6', text:'6 inches'}, {value:'7', text:'7 inches'}, {value:'8', text:'8 inches'}, {value:'9', text:'9 inches'}, {value:10, text:'10 inches'}, {value:11, text:'11 inches'}] %}
                             <div>
@@ -196,7 +196,7 @@
                 <h2 class="h5">Permanent Address</h2>
                 <p class="mb-4"><em>(The one found in your primary IDs)</em></p>
                 <div class="form-group form-row">
-                    <div class="col-md-4">
+                    <div class="col-md-4 form-group">
                         <label for="unit0">House/Block/Lot No.</label>
                         <div>
                             {% set name = 'unit0' %}
@@ -204,7 +204,7 @@
                             <small class="invalid-feedback">${getError('unit0')}</small>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4 form-group">
                         <label for="street0">Street</label>
                         <div>
                             {% set name = 'street0' %}
@@ -212,7 +212,7 @@
                             <small class="invalid-feedback">${getError('street0')}</small>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4 form-group">
                         <label for="village0">Subdivision/Village</label>
                         <div>
                             {% set name = 'village0' %}
@@ -222,7 +222,7 @@
                     </div>
                 </div>
                 <div class="form-group form-row">
-                    <div class="col-md-8">
+                    <div class="col-md-8 form-group">
                         <label for="psgc0">Barangay, Municipality, Province</span></label>
                         <div>
                             <autocomplete v-model="psgc0"
@@ -239,7 +239,7 @@
                             <small class="invalid-feedback">${getError('psgc0')}</small>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4 form-group">
                         <label for="zipCode0">Zip Code</label>
                         <div>
                             {% set name = 'zipCode0' %}
@@ -255,7 +255,7 @@
                 <h2 class="h5">Present Address</h2>
                 <p class="mb-4"><em>(The one where you currently reside. Ignore if the same as Permanent Address.)</em></p>
                 <div class="form-group form-row">
-                    <div class="col-md-4">
+                    <div class="col-md-4 form-group">
                         <label for="unit1">House/Block/Lot No.</label>
                         <div>
                             {% set name = 'unit1' %}
@@ -263,7 +263,7 @@
                             <small class="invalid-feedback">${getError('unit1')}</small>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4 form-group">
                         <label for="street1">Street</label>
                         <div>
                             {% set name = 'street1' %}
@@ -271,7 +271,7 @@
                             <small class="invalid-feedback">${getError('street1')}</small>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4 form-group">
                         <label for="village1">Subdivision/Village</label>
                         <div>
                             {% set name = 'village1' %}
@@ -281,7 +281,7 @@
                     </div>
                 </div>
                 <div class="form-group form-row">
-                    <div class="col-md-8">
+                    <div class="col-md-8 form-group">
                         <label for="psgc1">Barangay, Municipality, Province</span></label>
                         <div>
                             <autocomplete v-model="psgc1"
@@ -298,7 +298,7 @@
                             <small class="invalid-feedback">${getError('psgc1')}</small>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4 form-group">
                         <label for="zipCode1">Zip Code</label>
                         <div>
                             {% set name = 'zipCode1' %}

@@ -34,7 +34,7 @@
                 <div class="col-md-2">
                     {% set name = 'suffix' %}
                     {% set label = 'Extension (Jr.)' %}
-                    {% set options = suffixes|to_options %}
+                    {% set options = suffixes|to_options|safe %}
                     {% include 'parts/form-group-select.html' %}
                     {% set label = '' %}
                 </div>

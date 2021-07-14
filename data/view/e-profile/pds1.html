@@ -223,7 +223,7 @@
                 </div>
                 <div class="form-group form-row">
                     <div class="col-md-8 form-group">
-                        <label for="psgc0">Barangay, Municipality, Province</span></label>
+                        <label for="psgc0">Barangay, Municipality, Province <a data-toggle="modal" data-target="#modal-help" href="#" class="btn btn-info btn-help">?</a></label>
                         <div>
                             <autocomplete v-model="psgc0"
                                 name="psgc0"
@@ -282,7 +282,7 @@
                 </div>
                 <div class="form-group form-row">
                     <div class="col-md-8 form-group">
-                        <label for="psgc1">Barangay, Municipality, Province</span></label>
+                        <label for="psgc1">Barangay, Municipality, Province <a data-toggle="modal" data-target="#modal-help" href="#" class="btn btn-info btn-help">?</a></label>
                         <div>
                             <autocomplete v-model="psgc1"
                                 name="psgc1"
@@ -341,6 +341,7 @@
         </form>
     </div>
 </div>
+{% include 'parts/modal-help.html' %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}

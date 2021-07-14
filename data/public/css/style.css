@@ -167,6 +167,23 @@ div.focusable:focus-within  {
     background: rgba(255, 236, 178, 0.9);
     box-shadow: 0 0 5px #ccc;
 }
+
+.autocomplete__icon img {
+    display: block;
+}
+
+.btn-help {
+    display: inline-block;
+    font-size: 10px;
+    border-radius: 100%;
+    width: 16px;
+    height: 16px;
+    box-shadow: 0 0 5px #f8f9fa;
+    padding: 0;
+    background: #4190e6;
+    color: #fff;
+}
+
 /*  Validation  */
 .form-set.is-invalid .invalid-feedback {
     display: block;

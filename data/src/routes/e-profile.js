@@ -305,8 +305,13 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
             code: lodash.get(body, 'psgc0', '')
         })
         if (address0) {
+            let addresses = []
             lodash.set(patch, 'addresses.0.full', lodash.get(address0, 'full'))
-            lodash.set(patch, 'address', lodash.get(address0, 'full'))
+            if(lodash.get(patch, 'addresses.0.unit')) addresses.push(lodash.get(patch, 'addresses.0.unit'))
+            if(lodash.get(patch, 'addresses.0.street')) addresses.push(lodash.get(patch, 'addresses.0.street'))
+            if(lodash.get(patch, 'addresses.0.village')) addresses.push(lodash.get(patch, 'addresses.0.village'))
+            if(lodash.get(address0, 'full')) addresses.push(lodash.get(address0, 'full'))
+            lodash.set(patch, 'address', addresses.join(', '))
         }
 
         // TODO: Should generate new id every save??
@@ -321,7 +326,13 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
             code: lodash.get(body, 'psgc1', '')
         })
         if (address1) {
+            let addresses = []
             lodash.set(patch, 'addresses.1.full', lodash.get(address1, 'full'))
+            if(lodash.get(patch, 'addresses.1.unit')) addresses.push(lodash.get(patch, 'addresses.1.unit'))
+            if(lodash.get(patch, 'addresses.1.street')) addresses.push(lodash.get(patch, 'addresses.1.street'))
+            if(lodash.get(patch, 'addresses.1.village')) addresses.push(lodash.get(patch, 'addresses.1.village'))
+            if(lodash.get(address1, 'full')) addresses.push(lodash.get(address1, 'full'))
+            lodash.set(patch, 'address', addresses.join(', '))
         }
 
         lodash.set(patch, 'personal.birthPlace', lodash.get(body, 'birthPlace'))

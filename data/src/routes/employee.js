@@ -345,16 +345,25 @@ router.post('/employee/address/:employeeId', middlewares.guardRoute(['create_emp
         }
 
 
+        // TODO: Should generate new id every save??
         lodash.set(patch, 'addresses.0._id', db.mongoose.Types.ObjectId())
         lodash.set(patch, 'addresses.0.unit', lodash.get(body, 'unit'))
+        lodash.set(patch, 'addresses.0.street', lodash.get(body, 'street'))
+        lodash.set(patch, 'addresses.0.village', lodash.get(body, 'village'))
         lodash.set(patch, 'addresses.0.psgc', lodash.get(body, 'psgc'))
+        lodash.set(patch, 'addresses.0.zipCode', lodash.get(body, 'zipCode'))
         lodash.set(patch, 'addressPermanent', lodash.get(patch, 'addresses.0._id'))
-        let address = await db.main.Address.findOne({
+        let address0 = await db.main.Address.findOne({
             code: lodash.get(body, 'psgc', '')
         })
-        if (address) {
-            lodash.set(patch, 'addresses.0.full', lodash.get(address, 'full'))
-            lodash.set(patch, 'address', lodash.get(address, 'full'))
+        if (address0) {
+            let addresses = []
+            lodash.set(patch, 'addresses.0.full', lodash.get(address0, 'full'))
+            if(lodash.get(patch, 'addresses.0.unit')) addresses.push(lodash.get(patch, 'addresses.0.unit'))
+            if(lodash.get(patch, 'addresses.0.street')) addresses.push(lodash.get(patch, 'addresses.0.street'))
+            if(lodash.get(patch, 'addresses.0.village')) addresses.push(lodash.get(patch, 'addresses.0.village'))
+            if(lodash.get(address0, 'full')) addresses.push(lodash.get(address0, 'full'))
+            lodash.set(patch, 'address', addresses.join(', '))
         }
 
         await db.main.Employee.updateOne({ _id: employee._id }, patch)

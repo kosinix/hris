@@ -222,6 +222,352 @@ let templateJocos = async (payroll) => {
     await workbook.xlsx.writeFile('excel.xlsx');
 }
 
+let templatePds = async (employee) => {
+    const workbook = new ExcelJS.Workbook();
+    let sheet = workbook.addWorksheet('C1');
+    let row = null
+    let cell = null
+    let black = { argb: '00000000' }
+    sheet.views = [
+        { zoomScale: 100 }
+    ];
+
+    sheet.pageSetup.printArea = 'A1:N61';
+    sheet.pageSetup.fitToPage = true
+    sheet.pageSetup.paperSize = 9 // A4
+    sheet.pageSetup.margins = {
+        left: 0.15, right: 0,
+        top: 0.25, bottom: 0.12,
+        header: 0.24, footer: 0.12
+    };
+
+    // A1
+    sheet.mergeCells('A1:N1');
+    cell = sheet.getCell('A1')
+    cell.value = 'CS Form No. 212';
+    cell.alignment = {
+        vertical: 'top',
+        horizontal: 'left'
+    };
+    cell.font = {
+        name: 'Calibri',
+        size: 11,
+        bold: true,
+        italic: true,
+    };
+
+    // A2
+    sheet.mergeCells('A2:N2');
+    cell = sheet.getCell('A2')
+    cell.value = 'Revised 2017';
+    cell.alignment = {
+        vertical: 'top',
+        horizontal: 'left'
+    };
+    cell.font = {
+        name: 'Calibri',
+        size: 9,
+        bold: true,
+        italic: true,
+    };
+
+    sheet.mergeCells('A3:N3');
+    cell = sheet.getCell('A3')
+    cell.value = 'PERSONAL DATA SHEET';
+    cell.alignment = {
+        vertical: 'top',
+        horizontal: 'center'
+    };
+    cell.font = {
+        name: 'Arial Black',
+        size: 22,
+        bold: true,
+    };
+
+
+    // A4
+    sheet.mergeCells('A4:N4');
+    cell = sheet.getCell('A4')
+    cell.value = 'WARNING: Any misrepresentation made in the Personal Data Sheet and the Work Experience Sheet shall cause the filing of administrative/criminal case/s against the person concerned.';
+    cell.alignment = {
+        vertical: 'top',
+        horizontal: 'left',
+        wrapText: true
+    };
+    cell.font = {
+        name: 'Arial',
+        size: 8,
+        bold: true,
+        italic: true,
+    };
+
+    sheet.mergeCells('A5:N5');
+    cell = sheet.getCell('A5')
+    cell.value = 'READ THE ATTACHED GUIDE TO FILLING OUT THE PERSONAL DATA SHEET (PDS) BEFORE ACCOMPLISHING THE PDS FORM.';
+    cell.alignment = {
+        vertical: 'top',
+        horizontal: 'left'
+    };
+    cell.font = {
+        name: 'Arial',
+        size: 8,
+        bold: true,
+        italic: true,
+    };
+
+
+
+    sheet.mergeCells('A7:J7');
+    cell = sheet.getCell('A7')
+    cell.value = {
+        'richText': [
+            { 'font': { 'size': 9, 'color': black, 'name': 'Arial Narrow', 'family': 2, 'scheme': 'none' }, 'text': 'Print legibly. Tick appropriate boxes [    ] and use separate sheet if necessary. Indicate N/A if not applicable.  ' },
+            { 'font': { 'bold': true, 'size': 9, 'color': black, 'name': 'Arial Narrow', 'scheme': 'none' }, 'text': 'DO NOT ABBREVIATE' },
+        ]
+    };
+    cell.font = {
+        name: 'Arial Narrow',
+        size: 9,
+    };
+
+    cell = sheet.getCell('K7')
+    cell.value = `1. CS ID No.`;
+    cell.alignment = {
+        vertical: 'middle',
+        horizontal: 'left'
+    };
+    cell.font = {
+        name: 'Arial Narrow',
+        size: 8,
+    };
+    cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+    };
+    cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '00969696' }
+    };
+
+    sheet.mergeCells('L7:N7');
+    cell = sheet.getCell('L7')
+    cell.value = `(Do not fill up. For CSC use only)`;
+    cell.alignment = {
+        vertical: 'middle',
+        horizontal: 'right'
+    };
+    cell.font = {
+        name: 'Arial Narrow',
+        size: 8,
+    };
+    cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+    };
+
+    sheet.mergeCells('A9:N9');
+    cell = sheet.getCell('A9')
+    cell.value = `I. PERSONAL INFORMATION`;
+    cell.alignment = {
+        vertical: 'top',
+        horizontal: 'left'
+    };
+    cell.font = {
+        name: 'Arial Narrow',
+        size: 11,
+        bold: true,
+        italic: true,
+        color: { argb: 'FFFFFFFF' },
+    };
+    cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+    };
+    cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '00969696' }
+    };
+
+    sheet.mergeCells('A10:A12');
+    cell = sheet.getCell('A10')
+    cell.value = `2.`;
+    cell.alignment = {
+        vertical: 'top',
+        horizontal: 'left'
+    };
+    cell.font = {
+        name: 'Arial Narrow',
+        size: 8,
+    };
+    column = sheet.getColumn('A')
+    column.width = cell.value.toString().length
+    cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '00C0C0C0' }
+    };
+
+    // surname
+    sheet.mergeCells('B10:C10');
+    cell = sheet.getCell('B10')
+    cell.value = `SURNAME`;
+    cell.alignment = {
+        vertical: 'top',
+        horizontal: 'left'
+    };
+    cell.font = {
+        name: 'Arial Narrow',
+        size: 8,
+    };
+    cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '00C0C0C0' }
+    };
+
+
+    sheet.mergeCells('D10:N10');
+    cell = sheet.getCell('D10')
+    cell.value = `${employee.lastName}`;
+    cell.alignment = {
+        vertical: 'middle',
+        horizontal: 'left'
+    };
+    cell.font = {
+        name: 'Arial',
+        size: 12,
+        bold: true
+    };
+    cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+    };
+
+    //fname
+    sheet.mergeCells('B11:C11');
+    cell = sheet.getCell('B11')
+    cell.value = `FIRST NAME`;
+    cell.alignment = {
+        vertical: 'top',
+        horizontal: 'left'
+    };
+    cell.font = {
+        name: 'Arial Narrow',
+        size: 8,
+    };
+    cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '00C0C0C0' }
+    };
+
+    sheet.mergeCells('D11:K11');
+    cell = sheet.getCell('D11')
+    cell.value = `${employee.firstName}`;
+    cell.alignment = {
+        vertical: 'middle',
+        horizontal: 'left'
+    };
+    cell.font = {
+        name: 'Arial',
+        size: 12,
+        bold: true
+    };
+    cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+    };
+
+    // suffix
+    sheet.mergeCells('L11:N11');
+    cell = sheet.getCell('N11')
+    cell.value = {
+        'richText': [
+            { 'font': { 'size': 7, 'color': black, 'name': 'Arial Narrow', 'family': 2, 'scheme': 'none' }, 'text': 'NAME EXTENSION (JR., SR)' },
+            { 'font': { 'bold': true, 'size': 11, 'color': black, 'name': 'Arial', 'scheme': 'none' }, 'text': ` ${employee.suffix}` },
+        ]
+    };
+    cell.alignment = {
+        vertical: 'top',
+        horizontal: 'left',
+        wrapText: true
+    };
+    cell.font = {
+        name: 'Arial Narrow',
+        size: 7,
+    };
+    cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '00C0C0C0' }
+    };
+    cell.border = {
+        right: { style: 'thin' }
+    };
+
+    // middle
+    sheet.mergeCells('B12:C12');
+    cell = sheet.getCell('B12')
+    cell.value = `MIDDLE NAME`;
+    cell.alignment = {
+        vertical: 'top',
+        horizontal: 'left'
+    };
+    cell.font = {
+        name: 'Arial Narrow',
+        size: 8,
+    };
+    cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '00C0C0C0' }
+    };
+
+
+    sheet.mergeCells('D12:N12');
+    cell = sheet.getCell('D12')
+    cell.value = `${employee.middleName}`;
+    cell.alignment = {
+        vertical: 'middle',
+        horizontal: 'left'
+    };
+    cell.font = {
+        name: 'Arial',
+        size: 12,
+        bold: true
+    };
+    cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+    };
+
+
+    sheet.getRow(4).height = 21.75
+    sheet.getRow(6).height = 1
+    sheet.getRow(8).height = 1
+    sheet.getRow(10).height = 22.5
+    sheet.getRow(11).height = 22.5
+    sheet.getRow(12).height = 22.5
+
+
+    return workbook
+}
+
 module.exports = {
-    templateJocos: templateJocos
+    templateJocos: templateJocos,
+    templatePds: templatePds,
 }

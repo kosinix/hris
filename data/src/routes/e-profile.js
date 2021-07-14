@@ -12,7 +12,7 @@ const db = require('../db');
 const middlewares = require('../middlewares');
 const passwordMan = require('../password-man');
 const payrollCalc = require('../payroll-calc');
-
+const excelGen = require('../excel-gen');
 
 // Router
 let router = express.Router()
@@ -247,7 +247,35 @@ router.get('/e-profile/pds', middlewares.guardRoute(['use_employee_profile']), m
         next(err);
     }
 });
-router.post('/e-profile/pds', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.get('/e-profile/pds.xlsx', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        let workbook = await excelGen.templatePds(employee)
+        let buffer = await workbook.xlsx.writeBuffer();
+        res.set('Content-Disposition', `attachment; filename="${employee.lastName}-PDS.xlsx"`)
+        res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        res.send(buffer)
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        res.render('e-profile/pds1.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            momentNow: moment(),
+        });
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let patch = res.employee.toObject()
@@ -311,13 +339,14 @@ router.post('/e-profile/pds', middlewares.guardRoute(['use_employee_profile']), 
         lodash.set(patch, 'personal.citizenshipSource', lodash.get(body, 'citizenshipSource'))
 
         await db.main.Employee.updateOne({ _id: employee._id }, patch)
-        
+
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} PDS.`)
         res.redirect(`/e-profile/pds`)
     } catch (err) {
         next(err);
     }
 });
+
 
 
 router.get('/e-profile/account/password', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {

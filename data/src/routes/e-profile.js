@@ -8,11 +8,13 @@ const moment = require('moment')
 const qr = require('qr-image')
 
 //// Modules
+const countries = require('../countries');
 const db = require('../db');
+const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
 const passwordMan = require('../password-man');
 const payrollCalc = require('../payroll-calc');
-const excelGen = require('../excel-gen');
+const suffixes = require('../suffixes');
 
 // Router
 let router = express.Router()
@@ -265,10 +267,14 @@ router.get('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']), 
     try {
         let employee = res.employee.toObject()
 
+        
+
         res.render('e-profile/pds1.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
             momentNow: moment(),
+            countries: countries.options,
+            suffixes: suffixes.options,
         });
 
     } catch (err) {

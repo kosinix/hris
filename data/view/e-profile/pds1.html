@@ -34,7 +34,7 @@
                 <div class="col-md-2">
                     {% set name = 'suffix' %}
                     {% set label = 'Extension (Jr.)' %}
-                    {% set options = suffixes|to_options|safe %}
+                    {% set options = suffixes %}
                     {% include 'parts/form-group-select.html' %}
                     {% set label = '' %}
                 </div>
@@ -166,8 +166,8 @@
                     <div class="col-md-3" v-if="citizenship.includes('dual')">
                         {% set name = 'citizenshipCountry' %}
                         {% set label = 'Country' %}
-                        {# {% set options = countries|to_options %} #}
-                        {% include 'parts/form-group-text.html' %}
+                        {% set options = countries %}
+                        {% include 'parts/form-group-select.html' %}
                         {% set label = '' %}
                     </div>
                 </div>

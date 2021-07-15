@@ -2,10 +2,89 @@
 
 //// External modules
 const ExcelJS = require('exceljs');
+const lodash = require('lodash')
 const moment = require('moment')
 
 //// Modules
 
+
+class Slex {
+    workbook
+    sheet
+    cell
+    constructor(workbook) {
+        this.workbook = workbook;
+    }
+    setSheet(sheet) {
+        this.sheet = sheet
+        return this
+    }
+    setCell(cell) {
+        this.cell = cell
+        return this
+    }
+    value(s) {
+        this.cell.value = s
+        return this
+    }
+    align(pos) {
+        if (['top', 'middle', 'bottom'].includes(pos)) {
+            lodash.set(this, 'cell.alignment.vertical', pos)
+        }
+        if (['left', 'center', 'right'].includes(pos)) {
+            lodash.set(this, 'cell.alignment.horizontal', pos)
+        }
+        return this
+    }
+    wrapText(s) {
+        lodash.set(this, 'cell.alignment.wrapText', s)
+        return this
+    }
+    font(s) {
+        lodash.set(this, 'cell.font.name', s)
+        return this
+    }
+    fontSize(s) {
+        lodash.set(this, 'cell.font.size', s)
+        return this
+    }
+    fontColor(s) {
+        lodash.set(this, 'cell.font.color.argb', s)
+        return this
+    }
+    bold(s) {
+        lodash.set(this, 'cell.font.bold', s)
+        return this
+    }
+    italic(s) {
+        lodash.set(this, 'cell.font.italic', s)
+        return this
+    }
+    bgFill(s) {
+        lodash.set(this, 'cell.fill', {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: s }
+        })
+
+        return this
+    }
+    border(t, r, b, l) {
+        if (t) {
+            lodash.set(this, 'cell.border.top.style', t)
+        }
+        if (r) {
+            lodash.set(this, 'cell.border.right.style', r)
+        }
+        if (b) {
+            lodash.set(this, 'cell.border.bottom.style', b)
+        }
+        if (l) {
+            lodash.set(this, 'cell.border.left.style', l)
+        }
+        return this
+    }
+}
 
 let templateJocos = async (payroll) => {
     const workbook = new ExcelJS.Workbook();
@@ -223,14 +302,23 @@ let templateJocos = async (payroll) => {
 }
 
 let templatePds = async (employee) => {
-    const workbook = new ExcelJS.Workbook();
-    let sheet = workbook.addWorksheet('C1');
+    
     let row = null
     let cell = null
-    let black = { argb: '00000000' }
+    let chk = null
+    let chk2 = null
+    let value = null
+    let colors = {
+        black: { argb: '00000000' }
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    let sheet = workbook.addWorksheet('C1');
     sheet.views = [
         { zoomScale: 100 }
     ];
+
+    let slex = new Slex(workbook)
 
     sheet.pageSetup.printArea = 'A1:N61';
     sheet.pageSetup.fitToPage = true
@@ -244,317 +332,174 @@ let templatePds = async (employee) => {
     // A1
     sheet.mergeCells('A1:N1');
     cell = sheet.getCell('A1')
-    cell.value = 'CS Form No. 212';
-    cell.alignment = {
-        vertical: 'top',
-        horizontal: 'left'
-    };
-    cell.font = {
-        name: 'Calibri',
-        size: 11,
-        bold: true,
-        italic: true,
-    };
+    slex.setCell(cell).value(`CS Form No. 212`).align('top').align('left').font('Calibri').fontSize(11).bold(true).italic(true).border('thin', 'thin', '', 'thin')
+
 
     // A2
     sheet.mergeCells('A2:N2');
     cell = sheet.getCell('A2')
-    cell.value = 'Revised 2017';
-    cell.alignment = {
-        vertical: 'top',
-        horizontal: 'left'
-    };
-    cell.font = {
-        name: 'Calibri',
-        size: 9,
-        bold: true,
-        italic: true,
-    };
+    slex.setCell(cell).value(`Revised 2017`).align('top').align('left').font('Calibri').fontSize(9).bold(true).italic(true).border('', 'thin', '', 'thin')
+
 
     sheet.mergeCells('A3:N3');
     cell = sheet.getCell('A3')
-    cell.value = 'PERSONAL DATA SHEET';
-    cell.alignment = {
-        vertical: 'top',
-        horizontal: 'center'
-    };
-    cell.font = {
-        name: 'Arial Black',
-        size: 22,
-        bold: true,
-    };
+    slex.setCell(cell).value(`PERSONAL DATA SHEET`).align('top').align('center').font('Arial Black').fontSize(22).bold(true).border('', 'thin', '', 'thin')
+
 
 
     // A4
     sheet.mergeCells('A4:N4');
     cell = sheet.getCell('A4')
-    cell.value = 'WARNING: Any misrepresentation made in the Personal Data Sheet and the Work Experience Sheet shall cause the filing of administrative/criminal case/s against the person concerned.';
-    cell.alignment = {
-        vertical: 'top',
-        horizontal: 'left',
-        wrapText: true
-    };
-    cell.font = {
-        name: 'Arial',
-        size: 8,
-        bold: true,
-        italic: true,
-    };
+    slex.setCell(cell).value(`WARNING: Any misrepresentation made in the Personal Data Sheet and the Work Experience Sheet shall cause the filing of administrative/criminal case/s against the person concerned.`).align('top').align('left').wrapText(true).font('Arial').fontSize(8).bold(true).italic(true).border('', 'thin', '', 'thin')
+
 
     sheet.mergeCells('A5:N5');
     cell = sheet.getCell('A5')
-    cell.value = 'READ THE ATTACHED GUIDE TO FILLING OUT THE PERSONAL DATA SHEET (PDS) BEFORE ACCOMPLISHING THE PDS FORM.';
-    cell.alignment = {
-        vertical: 'top',
-        horizontal: 'left'
-    };
-    cell.font = {
-        name: 'Arial',
-        size: 8,
-        bold: true,
-        italic: true,
-    };
-
+    slex.setCell(cell).value(`READ THE ATTACHED GUIDE TO FILLING OUT THE PERSONAL DATA SHEET (PDS) BEFORE ACCOMPLISHING THE PDS FORM.`).align('top').align('left').wrapText(true).font('Arial').fontSize(8).bold(true).italic(true).border('', 'thin', '', 'thin')
 
 
     sheet.mergeCells('A7:J7');
     cell = sheet.getCell('A7')
     cell.value = {
         'richText': [
-            { 'font': { 'size': 9, 'color': black, 'name': 'Arial Narrow', 'family': 2, 'scheme': 'none' }, 'text': 'Print legibly. Tick appropriate boxes [    ] and use separate sheet if necessary. Indicate N/A if not applicable.  ' },
-            { 'font': { 'bold': true, 'size': 9, 'color': black, 'name': 'Arial Narrow', 'scheme': 'none' }, 'text': 'DO NOT ABBREVIATE' },
+            { 'font': { 'size': 9, 'color': colors.black, 'name': 'Arial Narrow', 'family': 2, 'scheme': 'none' }, 'text': 'Print legibly. Tick appropriate boxes [    ] and use separate sheet if necessary. Indicate N/A if not applicable.  ' },
+            { 'font': { 'bold': true, 'size': 9, 'color': colors.black, 'name': 'Arial Narrow', 'scheme': 'none' }, 'text': 'DO NOT ABBREVIATE' },
         ]
     };
-    cell.font = {
-        name: 'Arial Narrow',
-        size: 9,
-    };
+    slex.setCell(cell).border('', '', '', 'thin')
+
+
 
     cell = sheet.getCell('K7')
-    cell.value = `1. CS ID No.`;
-    cell.alignment = {
-        vertical: 'middle',
-        horizontal: 'left'
-    };
-    cell.font = {
-        name: 'Arial Narrow',
-        size: 8,
-    };
-    cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-    };
-    cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: '00969696' }
-    };
+    slex.setCell(cell).value(`1. CS ID No.`).align('middle').align('left').font('Arial Narrow').fontSize(8).border('thin', 'thin', 'thin', 'thin').bgFill('00969696')
 
     sheet.mergeCells('L7:N7');
     cell = sheet.getCell('L7')
-    cell.value = `(Do not fill up. For CSC use only)`;
-    cell.alignment = {
-        vertical: 'middle',
-        horizontal: 'right'
-    };
-    cell.font = {
-        name: 'Arial Narrow',
-        size: 8,
-    };
-    cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-    };
+    slex.setCell(cell).value(`(Do not fill up. For CSC use only)`).align('middle').align('right').font('Arial Narrow').fontSize(8).border('thin', 'thin', 'thin', 'thin')
 
     sheet.mergeCells('A9:N9');
     cell = sheet.getCell('A9')
-    cell.value = `I. PERSONAL INFORMATION`;
-    cell.alignment = {
-        vertical: 'top',
-        horizontal: 'left'
-    };
-    cell.font = {
-        name: 'Arial Narrow',
-        size: 11,
-        bold: true,
-        italic: true,
-        color: { argb: 'FFFFFFFF' },
-    };
-    cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-    };
-    cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: '00969696' }
-    };
+    slex.setCell(cell).value(`I. PERSONAL INFORMATION`).align('top').align('left').font('Arial Narrow').fontSize(11).bold(true).italic(true).fontColor('FFFFFFFF').border('thin', 'thin', 'thin', 'thin').bgFill('00969696')
+
 
     sheet.mergeCells('A10:A12');
     cell = sheet.getCell('A10')
-    cell.value = `2.`;
-    cell.alignment = {
-        vertical: 'top',
-        horizontal: 'left'
-    };
-    cell.font = {
-        name: 'Arial Narrow',
-        size: 8,
-    };
+    slex.setCell(cell).value(`2.`).align('top').align('left').font('Arial Narrow').fontSize(8).border('', '', '', 'thin').bgFill('00C0C0C0')
+
     column = sheet.getColumn('A')
     column.width = cell.value.toString().length
-    cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: '00C0C0C0' }
-    };
 
     // surname
     sheet.mergeCells('B10:C10');
     cell = sheet.getCell('B10')
-    cell.value = `SURNAME`;
-    cell.alignment = {
-        vertical: 'top',
-        horizontal: 'left'
-    };
-    cell.font = {
-        name: 'Arial Narrow',
-        size: 8,
-    };
-    cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: '00C0C0C0' }
-    };
-
+    slex.setCell(cell).value(`SURNAME`).align('top').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0')
 
     sheet.mergeCells('D10:N10');
     cell = sheet.getCell('D10')
-    cell.value = `${employee.lastName}`;
-    cell.alignment = {
-        vertical: 'middle',
-        horizontal: 'left'
-    };
-    cell.font = {
-        name: 'Arial',
-        size: 12,
-        bold: true
-    };
-    cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-    };
+    slex.setCell(cell).value(`${employee.lastName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
 
     //fname
     sheet.mergeCells('B11:C11');
     cell = sheet.getCell('B11')
-    cell.value = `FIRST NAME`;
-    cell.alignment = {
-        vertical: 'top',
-        horizontal: 'left'
-    };
-    cell.font = {
-        name: 'Arial Narrow',
-        size: 8,
-    };
-    cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: '00C0C0C0' }
-    };
+    slex.setCell(cell).value(`FIRST NAME`).align('top').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0')
+
 
     sheet.mergeCells('D11:K11');
     cell = sheet.getCell('D11')
-    cell.value = `${employee.firstName}`;
-    cell.alignment = {
-        vertical: 'middle',
-        horizontal: 'left'
-    };
-    cell.font = {
-        name: 'Arial',
-        size: 12,
-        bold: true
-    };
-    cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-    };
+    slex.setCell(cell).value(`${employee.firstName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
 
     // suffix
     sheet.mergeCells('L11:N11');
     cell = sheet.getCell('N11')
     cell.value = {
         'richText': [
-            { 'font': { 'size': 7, 'color': black, 'name': 'Arial Narrow', 'family': 2, 'scheme': 'none' }, 'text': 'NAME EXTENSION (JR., SR)' },
-            { 'font': { 'bold': true, 'size': 11, 'color': black, 'name': 'Arial', 'scheme': 'none' }, 'text': ` ${employee.suffix}` },
+            { 'font': { 'size': 7, 'color': colors.black, 'name': 'Arial Narrow', 'family': 2, 'scheme': 'none' }, 'text': 'NAME EXTENSION (JR., SR)' },
+            { 'font': { 'bold': true, 'size': 11, 'color': colors.black, 'name': 'Arial', 'scheme': 'none' }, 'text': ` ${employee.suffix}` },
         ]
     };
-    cell.alignment = {
-        vertical: 'top',
-        horizontal: 'left',
-        wrapText: true
-    };
-    cell.font = {
-        name: 'Arial Narrow',
-        size: 7,
-    };
-    cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: '00C0C0C0' }
-    };
-    cell.border = {
-        right: { style: 'thin' }
-    };
+    slex.setCell(cell).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(7).bgFill('00C0C0C0').border('', 'thin', '', '')
+
 
     // middle
     sheet.mergeCells('B12:C12');
     cell = sheet.getCell('B12')
-    cell.value = `MIDDLE NAME`;
-    cell.alignment = {
-        vertical: 'top',
-        horizontal: 'left'
-    };
-    cell.font = {
-        name: 'Arial Narrow',
-        size: 8,
-    };
-    cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: '00C0C0C0' }
-    };
+    slex.setCell(cell).value(`MIDDLE NAME`).align('top').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0')
 
 
     sheet.mergeCells('D12:N12');
     cell = sheet.getCell('D12')
     cell.value = `${employee.middleName}`;
-    cell.alignment = {
-        vertical: 'middle',
-        horizontal: 'left'
-    };
-    cell.font = {
-        name: 'Arial',
-        size: 12,
-        bold: true
-    };
-    cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-    };
+    slex.setCell(cell).value(`${employee.middleName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
+    // bday
+    sheet.mergeCells('A13:A14');
+    cell = sheet.getCell('A13')
+    cell.value = `3.`;
+    slex.setCell(cell).value(`3.`).align('top').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', '', 'thin')
+
+    // bday
+    sheet.mergeCells('B13:C14');
+    cell = sheet.getCell('B13')
+    slex.setCell(cell).value(`DATE OF BIRTH\n(mm/dd/yyyy)`).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0')
+
+    sheet.mergeCells('D13:F14');
+    cell = sheet.getCell('D13')
+    slex.setCell(cell).value(`${moment(employee.birthDate).format('MM/DD/YYYY')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+
+    // CITIZENSHIP
+    sheet.mergeCells('G13:I14');
+    cell = sheet.getCell('G13')
+    slex.setCell(cell).value(`16. CITIZENSHIP`).align('top').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', '', '')
+
+    sheet.mergeCells('J13:K14');
+    cell = sheet.getCell('J13')
+    chk = (employee.personal.citizenship.includes('filipino')) ? `✓` : '     '
+    slex.setCell(cell).value(`[${chk}] Filipino`).align('top').align('center').font('Arial Narrow').fontSize(10)
+
+    sheet.mergeCells('L13:N13');
+    cell = sheet.getCell('L13')
+    chk = (employee.personal.citizenship.includes('dual')) ? `✓` : '     '
+    slex.setCell(cell).value(`[${chk}] Dual Citizenship`).align('top').align('left').font('Arial Narrow').fontSize(10).border('', 'thin', '', '')
+
+    sheet.mergeCells('L14:N14');
+    cell = sheet.getCell('L14')
+    chk = (employee.personal.citizenshipSource.includes('birth')) ? `✓` : '     '
+    chk2 = (employee.personal.citizenshipSource.includes('naturalization')) ? `✓` : '     '
+    value = `[${chk}] by Birth      [${chk2}] by Naturalization`
+    slex.setCell(cell).value(value).align('top').align('center').font('Arial Narrow').fontSize(10).border('', 'thin', '', '')
+
+    sheet.mergeCells('G15:I15');
+    cell = sheet.getCell('G15')
+    slex.setCell(cell).value(`If holder of dual citizenship,`).align('top').align('center').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', '', '')
+
+    sheet.mergeCells('G16:I16');
+    cell = sheet.getCell('G16')
+    slex.setCell(cell).value(`please indicate the details.`).align('top').align('center').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', '', '')
+
+    sheet.mergeCells('L15:N15');
+    cell = sheet.getCell('L15')
+    slex.setCell(cell).value(`Pls. indicate country:`).align('top').align('left').font('Arial Narrow').fontSize(10).border('', 'thin', '', '')
+
+    sheet.mergeCells('J16:N16');
+    cell = sheet.getCell('J16')
+    value = (employee.personal.citizenship.includes('dual')) ? employee.personal.citizenshipCountry : '     '
+    slex.setCell(cell).value(value).align('top').align('center').font('Arial').fontSize(12).bold(true).border('', 'thin', '', '')
+
+    // bplace
+    cell = sheet.getCell('A15')
+    cell.value = `4.`;
+    slex.setCell(cell).value(`4.`).align('top').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', '', 'thin')
+
+    sheet.mergeCells('B15:C15');
+    cell = sheet.getCell('B15')
+    slex.setCell(cell).value(`PLACE OF BIRTH`).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0')
+
+    sheet.mergeCells('D15:F15');
+    cell = sheet.getCell('D15')
+    slex.setCell(cell).value(`${employee.personal.birthPlace}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     sheet.getRow(4).height = 21.75
     sheet.getRow(6).height = 1
@@ -562,6 +507,20 @@ let templatePds = async (employee) => {
     sheet.getRow(10).height = 22.5
     sheet.getRow(11).height = 22.5
     sheet.getRow(12).height = 22.5
+
+    // sex
+    cell = sheet.getCell('A16')
+    slex.setCell(cell).value(`5.`).align('top').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', '', 'thin')
+
+    sheet.mergeCells('B16:C16');
+    cell = sheet.getCell('B16')
+    slex.setCell(cell).value(`SEX`).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0')
+
+    sheet.mergeCells('D16:F16');
+    cell = sheet.getCell('D16')
+    chk = (employee.gender == 'M') ? `✓` : '     '
+    chk2 = (employee.gender == 'F') ? `✓` : '     '
+    slex.setCell(cell).value(`[${chk}] Male          [${chk2}] Female`).align('middle').align('left').font('Arial Narrow').fontSize(10).border('thin', 'thin', 'thin', 'thin')
 
 
     return workbook

@@ -21,14 +21,42 @@ let getPerMinuteRate = (monthlyRate, workDays = 22, hoursPerDay = 8) => {
     return monthlyRate / workDays / hoursPerDay / 60
 }
 
+let calcTimeRecord = (minutes, totalMinutesUnderTime, hoursPerDay) => {
+    let renderedDays = minutes / 60 / hoursPerDay
+    let renderedHours = (renderedDays - Math.floor(renderedDays)) * hoursPerDay
+    let renderedMinutes = (renderedHours - Math.floor(renderedHours)) * 60
+
+    let undertime = false
+    let underDays = 0
+    let underHours = 0
+    let underMinutes = 0
+
+    if (totalMinutesUnderTime > 0) {
+        undertime = true
+        underDays = totalMinutesUnderTime / 60 / hoursPerDay
+        underHours = (underDays - Math.floor(underDays)) * hoursPerDay
+        underMinutes = (underHours - Math.floor(underHours)) * 60
+    }
+
+    return {
+        totalMinutes: minutes,
+        renderedDays: Math.floor(renderedDays),
+        renderedHours: Math.floor(renderedHours),
+        renderedMinutes: Math.floor(renderedMinutes),
+        underTimeTotalMinutes: totalMinutesUnderTime,
+        underDays: Math.floor(underDays),
+        underHours: Math.floor(underHours),
+        underMinutes: Math.floor(underMinutes),
+        undertime: undertime
+    }
+}
 let calcRenderedTime = (minutes, hoursPerDay) => {
     let renderedDays = minutes / 60 / hoursPerDay
     let renderedHours = (renderedDays - Math.floor(renderedDays)) * hoursPerDay
     let renderedMinutes = (renderedHours - Math.floor(renderedHours)) * 60
 
-    let gracePeriodMinutes = 0 // 15 mins AM, 15 mins PM
     let undertime = false
-    let underTimeTotalMinutes = hoursPerDay * 60 - gracePeriodMinutes - minutes
+    let underTimeTotalMinutes = hoursPerDay * 60 - minutes
     let underDays = 0
     let underHours = 0
     let underMinutes = 0
@@ -51,65 +79,6 @@ let calcRenderedTime = (minutes, hoursPerDay) => {
         underMinutes: Math.floor(underMinutes),
         undertime: undertime
     }
-}
-
-let calcDailyAttendance = (attendance, hoursPerDay, travelPoints, gracePeriods) => {
-
-    // Default govt shift
-    let shifts = []
-    shifts.push(dtrHelper.createShift({ hour: 8, minute: 0 }, { hour: 12, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4 }))
-    shifts.push(dtrHelper.createShift({ hour: 13, minute: 0 }, { hour: 17, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4 }))
-
-
-    // travelPoints 480 minutes = 8 hours 
-    if (null === attendance) return null
-
-    // Daily minutes
-    let minutes = 0
-    if (attendance.onTravel) {
-        minutes += travelPoints
-    } else {
-        // roll logs 
-        let momentIn = null
-        let startMinutes = null
-        let shiftCurrent = null
-        let logoutMinutes = null
-
-        for (let l = 0; l < attendance.logs.length; l++) {
-            let log = attendance.logs[l]
-            if (log.mode === 1) { // in
-                momentIn = moment(log.dateTime)
-                startMinutes = dtrHelper.momentToMinutes(momentIn)
-                shiftCurrent = dtrHelper.getNextShift(startMinutes, shifts)
-
-                if (startMinutes <= shiftCurrent.start + shiftCurrent.grace) { // late but graced
-                    startMinutes = shiftCurrent.start // set to shift start
-                }
-
-            } else if (log.mode === 0) { // out
-                logoutMinutes = dtrHelper.momentToMinutes(moment(log.dateTime))
-                if (logoutMinutes < shiftCurrent.start) {
-                    throw new Error('Logging out before shift')
-                }
-                if (logoutMinutes > shiftCurrent.end) {
-                    logoutMinutes = shiftCurrent.end // Not counted outshide shift
-                }
-
-                let shiftMinutes = logoutMinutes - startMinutes
-                if (shiftMinutes > shiftCurrent.maxMinutes) {
-                    shiftMinutes = shiftCurrent.maxMinutes
-                }
-
-                minutes += (logoutMinutes - startMinutes)
-            }
-        }
-    }
-
-    // Upper limit
-    if (minutes > 60 * hoursPerDay) {
-        minutes = 60 * hoursPerDay
-    }
-    return calcRenderedTime(minutes, hoursPerDay)
 }
 
 let getTotalAttendanceMinutes = (attendances) => {
@@ -138,32 +107,28 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
     for (let x = 0; x < payroll.employments.length; x++) {
         let employment = payroll.employments[x]
         let employee = employment.employee
-
-        // employee.position = lodash.get(employment, 'position', '')
-        // employee.department = lodash.get(employment, 'department', '')
-        // employee.salary = lodash.toNumber(lodash.get(employment, 'salary', '0'))
-        // employee.salaryType = lodash.get(employment, 'salaryType', '')
+        let empType = employment.employmentType
 
         // Rendered work
         // Payroll period attendance
-        let attendances = await db.main.Attendance.find({
-            employeeId: employee._id,
-            employmentId: employment._id,
-            createdAt: {
-                $gte: moment(payroll.dateStart).startOf('day').toDate(),
-                $lt: moment(payroll.dateEnd).endOf('day').toDate(),
-            }
-        }).lean()
-        // console.log(attendances.length)
+        let attendances = employment.attendances
+
         // add computed values
-        attendances = addDtr(attendances, hoursPerDay, travelPoints, CONFIG.workTime.gracePeriods)
+        let totalMinutes = 0
+        let totalMinutesUnderTime = 0
+        for (let a = 0; a < attendances.length; a++) {
+            let attendance = attendances[a] // daily
+            let dtr = dtrHelper.calcDailyAttendance(attendance, hoursPerDay, travelPoints)
+            totalMinutes += dtr.totalMinutes
+            totalMinutesUnderTime += dtr.underTimeTotalMinutes
+            attendances[a].dtr = dtr
+        }
 
-        let minutes = getTotalAttendanceMinutes(attendances)
         // minutes = 3840
-        console.log(employee.lastName, minutes, hoursPerDay)
+        // console.log(employee.lastName, totalMinutes, totalMinutesUnderTime, hoursPerDay)
         employment.attendances = attendances
-        employment.timeRecord = calcRenderedTime(minutes, hoursPerDay)
-
+        employment.timeRecord = dtrHelper.calcTimeRecord(totalMinutes, totalMinutesUnderTime, hoursPerDay)
+        console.log(employee.lastName, employment.timeRecord)
 
         if (employment.salaryType === 'monthly') {
             let perDay = employment.salary / workDays
@@ -176,6 +141,21 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
             let perMin = perHour / 60
             employment.amountWorked = (perMin * employment.timeRecord.totalMinutes)
         }
+
+        if (empType === 'permanent') {
+            employment.amountWorked = employment.salary
+            // Undertime
+            let perDay = employment.salary / workDays
+            let perHour = perDay / 8
+            let perMin = perHour / 60
+
+            if (employment.timeRecord.underTimeTotalMinutes > 0) {
+                let tardiness = perMin * employment.timeRecord.underTimeTotalMinutes
+                employment.tardiness = tardiness
+                employment.amountWorked -= tardiness
+            }
+        }
+
         // 
 
         employment.incentives = []
@@ -331,7 +311,6 @@ let attachDailyTime = async (attendances) => {
 
 
 module.exports = {
-    calcDailyAttendance: calcDailyAttendance,
     getCosStaff: getCosStaff,
     computePayroll: computePayroll,
     getDailyRate: getDailyRate,

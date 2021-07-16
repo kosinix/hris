@@ -2,6 +2,7 @@
 
 //// External modules
 const lodash = require('lodash')
+const moment = require('moment')
 
 //// Modules
 
@@ -80,7 +81,7 @@ const getNearestShift = (needle, shifts) => {
 /**
  * Find next shift from needle
  * @param {number} needle - Minutes from midnight
- * @param {array} shifts - Array of shift objects created by createShift. Must be sorted low to high.
+ * @param {array|null} shifts - Array of shift objects created by createShift. Must be sorted low to high. Null on error.
  */
 const getNextShift = (needle, shifts) => {
     let index = null
@@ -93,7 +94,7 @@ const getNextShift = (needle, shifts) => {
     }
 
     if (index === null) {
-        throw new Error('No more shifts after needle.')
+        return new Error('No more next shifts.')
     }
     return shifts[index]
 }
@@ -107,7 +108,120 @@ const momentToMinutes = (momentObject) => {
     return momentObject.hour() * 60 + momentObject.minute()
 }
 
+/**
+ * Breakdown total minutes into: minutes, hours, days
+ * @param {number} minutes Total minutes worked
+ * @param {number} totalMinutesUnderTime Total undertime minutes
+ * @param {number} hoursPerDay Work hours per day
+ * @returns {object} See return
+ */
+const calcTimeRecord = (minutes, totalMinutesUnderTime, hoursPerDay) => {
+    let renderedDays = minutes / 60 / hoursPerDay
+    let renderedHours = (renderedDays - Math.floor(renderedDays)) * hoursPerDay
+    let renderedMinutes = (renderedHours - Math.floor(renderedHours)) * 60
+
+    let undertime = false
+    let underDays = 0
+    let underHours = 0
+    let underMinutes = 0
+
+    if (totalMinutesUnderTime > 0) {
+        undertime = true
+        underDays = totalMinutesUnderTime / 60 / hoursPerDay
+        underHours = (underDays - Math.floor(underDays)) * hoursPerDay
+        underMinutes = (underHours - Math.floor(underHours)) * 60
+    }
+
+    return {
+        totalMinutes: minutes,
+        renderedDays: Math.floor(renderedDays),
+        renderedHours: Math.floor(renderedHours),
+        renderedMinutes: Math.floor(renderedMinutes),
+        underTimeTotalMinutes: totalMinutesUnderTime,
+        underDays: Math.floor(underDays),
+        underHours: Math.floor(underHours),
+        underMinutes: Math.floor(underMinutes),
+        undertime: undertime
+    }
+}
+
+const calcDailyAttendance = (attendance, hoursPerDay, travelPoints) => {
+
+    // Default govt shift
+    let shifts = []
+    shifts.push(createShift({ hour: 8, minute: 0 }, { hour: 12, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4 }))
+    shifts.push(createShift({ hour: 13, minute: 0 }, { hour: 17, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4 }))
+
+
+    // travelPoints 480 minutes = 8 hours 
+    if (null === attendance) return null
+
+    // Daily minutes
+    let minutes = 0
+    let underMinutes = 0
+    if (attendance.onTravel) {
+        minutes += travelPoints
+    } else {
+        // roll logs 
+        let momentIn = null
+        let startMinutes = null
+        let endMinutes = null
+        let shiftCurrent = null
+
+        for (let l = 0; l < attendance.logs.length; l++) {
+            let log = attendance.logs[l]
+            if (log.mode === 1) { // in
+                momentIn = moment(log.dateTime)
+                startMinutes = momentToMinutes(momentIn)
+                shiftCurrent = getNextShift(startMinutes, shifts)
+
+                if (shiftCurrent instanceof Error) break
+
+                if (startMinutes <= shiftCurrent.start + shiftCurrent.grace) { // late but graced
+                    startMinutes = shiftCurrent.start // set to shift start
+                }
+
+            } else if (log.mode === 0) { // out
+
+                if (startMinutes === null) break
+                if (shiftCurrent === null) break
+                if (shiftCurrent instanceof Error) break
+
+                endMinutes = momentToMinutes(moment(log.dateTime))
+                if (endMinutes < shiftCurrent.start) break // Logging out before shift starts!
+
+                if (endMinutes > shiftCurrent.end) {
+                    endMinutes = shiftCurrent.end // Not counted outshide shift
+                }
+
+                let minutesWorked = endMinutes - startMinutes
+                if (minutesWorked > shiftCurrent.maxMinutes) {
+                    minutesWorked = shiftCurrent.maxMinutes
+                }
+                
+                // Attach
+                log.minutesWorked = minutesWorked
+                log.underMinutes = shiftCurrent.maxMinutes - minutesWorked
+
+                minutes += minutesWorked
+                underMinutes += shiftCurrent.maxMinutes - minutesWorked
+                
+            }
+        }
+
+    }
+
+    // Upper limit
+    if (minutes > 60 * hoursPerDay) {
+        minutes = 60 * hoursPerDay
+    }
+    return calcTimeRecord(minutes, underMinutes, hoursPerDay)
+    
+}
+
 module.exports = {
+    calcDailyAttendance: calcDailyAttendance,
+    calcTimeRecord: calcTimeRecord,
     createShift: createShift,
     getNearestShift: getNearestShift,
     getNextShift: getNextShift,

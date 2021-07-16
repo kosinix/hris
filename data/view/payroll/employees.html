@@ -9,8 +9,8 @@
 
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-2">
         {% if payroll.employments.length > 0 %}
-            {% if payroll.template === 'cos_staff2' %}
-                {% include 'payroll/th-cos-staff.html' %}
+            {% if payroll.template === 'permanent' %}
+                {% include 'payroll/table-permanent.html' %}
             {% else %}
                 <div class="table-responsive table-payroll">
                     <div class="cover"></div>

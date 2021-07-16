@@ -9,6 +9,7 @@ const moment = require('moment')
 
 //// Modules
 const db = require('../db');
+const dtrHelper = require('../dtr-helper');
 const middlewares = require('../middlewares');
 const payrollCalc = require('../payroll-calc');
 
@@ -46,7 +47,7 @@ router.get('/attendance/employee/employment/:employeeId/:employmentId', middlewa
         let days = new Array(momentNow.daysInMonth())
         days = days.fill(1).map((v, i) => {
             let attendance = attendances[`${momentNow.format('YYYY')}-${momentNow.format('MM')}-${String(v + i).padStart(2, '0')}`] || null
-            let dtr = payrollCalc.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, CONFIG.workTime.gracePeriods)
+            let dtr = dtrHelper.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 
             if (dtr) {
                 dtr.hours = 0

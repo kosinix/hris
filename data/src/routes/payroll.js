@@ -4,6 +4,7 @@
 const express = require('express')
 const flash = require('kisapmata')
 const lodash = require('lodash')
+const moment = require('moment')
 
 //// Modules
 const db = require('../db');
@@ -142,7 +143,7 @@ router.get('/payroll/employees/:payrollId', middlewares.guardRoute(['read_payrol
         })
         payroll.employments = await Promise.all(payroll.employments)
 
-        // Add employee details to employment.employee property
+        // Add employee details to employments[x].employee property
         let promises = []
         payroll.employments.forEach((o) => {
             promises.push(db.main.Employee.findById(o.employeeId).lean())
@@ -150,6 +151,23 @@ router.get('/payroll/employees/:payrollId', middlewares.guardRoute(['read_payrol
         let employees = await Promise.all(promises)
         payroll.employments = payroll.employments.map((o, i) => {
             o.employee = employees[i]
+            return o
+        })
+
+        // attendance
+        promises = []
+        payroll.employments.forEach((employment) => {
+            promises.push(db.main.Attendance.find({
+                employmentId: employment._id,
+                createdAt: {
+                    $gte: moment(payroll.dateStart).startOf('day').toDate(),
+                    $lt: moment(payroll.dateEnd).endOf('day').toDate(),
+                }
+            }).lean())
+        })
+        let attendances = await Promise.all(promises)
+        payroll.employments = payroll.employments.map((o, i) => {
+            o.attendances = attendances[i]
             return o
         })
 

@@ -355,4 +355,25 @@ module.exports = {
             next(err)
         }
     },
+    getEmployeeEmployment: async (req, res, next) => {
+        try {
+            if(!res.employee){
+                throw new Error('Employee needed.')
+            }
+            let employee = res.employee.toObject()
+            let employmentId = lodash.get(req, 'params.employmentId', '')
+            let employment = employee.employments.find((e) => {
+                return e._id.toString() === employmentId
+            })
+            if (!employment) {
+                throw new Error('Employment not found.')
+            }
+            res.employmentId = employmentId
+            res.employment = employment
+
+            next();
+        } catch (err) {
+            next(err)
+        }
+    },
 }

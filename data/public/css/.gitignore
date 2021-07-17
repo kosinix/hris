@@ -4,4 +4,5 @@
 # Except this file
 !.gitignore
 
+!print.css
 !style.css

@@ -1,0 +1,258 @@
+{% extends "document-print.html" %}
+
+{% block body %}
+<div class="col-md-12" >
+    <div class="d-print-none d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">DTR <em>({{momentNow|format_date('MMMM, YYYY')}})</em></h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/e-profile/dtr/{{employment._id}}?{{query|query_string}}" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="csc-form-dtr mb-5">
+        <p class="template">Civil Service Form No. 48</p>
+        
+        {# <div class="table-responsive"> #}
+        <div class="row">
+            <div class="col-6">
+                <div class="pr-3">
+                    <div class="text-center mb-3">
+                        <h1 class="mb-0">Daily Time Record</h1>
+                        <div class="separator mb-3">-----o0o-----</div>
+                        <div class="name underline">
+                            {{employee.firstName}} {{employee.middleName}} {{employee.lastName}}
+                        </div>
+                        <div class="name-under mb-3">(Name)</div>
+
+                        <table class="table-sched font-italic fz-8">
+                            <tr>
+                                <td style="width:20%">For the month of</td>
+                                <td colspan="3">
+                                    <div class="underline text-left pl-3 font-weight-bold">
+                                    {{momentNow|format_date('MMMM')}}
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width:25%" colspan="2" rowspan="2" class="align-middle">Official hours for <br>arrival and departure</td>
+                                <td style="width:20%" class="text-right pr-2">Regular days</td>
+                                <td class="text-left">
+                                    <div class="underline pl-5 pt-1">
+                                        <div>8:00-12:00 A.M.</div>
+                                        <div>1:00-5:00 P.M.</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width:20%" class="text-right pr-2">Saturdays</td>
+                                <td class="text-left">
+                                    <div class="underline pl-5">
+                                        <div>&nbsp;</div>
+                                        <div>&nbsp;</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <table style="width:100%" class="table table-bordered table-dtr table-sm">
+                        <tr>
+                            <th class="text-center" rowspan="2">Day</th>
+                            <th class="text-center" colspan="2"><div class="am-pm">A.M.</div></th>
+                            <th class="text-center am-pm" colspan="2"><div class="am-pm">P.M.</div></th>
+                            <th class="text-center" colspan="2">
+                                <div class="undertime">Undertime</div>
+                            </th>
+                        </tr>
+                        <tr class="subcols">
+                            <th>Arrival</th>
+                            <th>Departure</th>
+                            
+                            <th>Arrival</th>
+                            <th>Departure</th>
+
+                            <th>Hours</th>
+                            <th>Minutes</th>
+                        </tr>
+                        {% for day in days %}
+                        {% set attendance = day.attendance %}
+                        <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
+                            <td class="text-center">{{day.day}}</td>
+                            {% if attendance.onTravel %}
+                                <td colspan="6">On Travel</td>
+                            {% else %}
+                                <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                                <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                                <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                                <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                                <td>
+                                    {% if day.dtr.underMinutes %}
+                                        {{day.dtr.underHours}}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if day.dtr.underMinutes %}
+                                        {{day.dtr.underMinutes}}
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td class="text-right total" colspan="5">Total</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </table>
+
+                    <div class="certify p-4">
+                    I certify on my honor that the above is a true and correct report of the hours of work performed, record of which was made daily at the time of arrival and departure from office.
+                    </div>
+                    <div class="underline mb-2"></div>
+                    <div class="font-italic fz-7 pl-4 mb-4">VERIFIED as to the prescribed office hours:</div>
+                    <div class="underline mb-2"></div>
+                    <div class="text-center font-italic fz-7 mb-3">In Charge</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="pl-3">
+                    <div class="text-center mb-3">
+                        <h1 class="mb-0">Daily Time Record</h1>
+                        <div class="separator mb-3">-----o0o-----</div>
+                        <div class="name underline">
+                            {{employee.firstName}} {{employee.middleName}} {{employee.lastName}}
+                        </div>
+                        <div class="name-under mb-3">(Name)</div>
+
+                        <table class="table-sched font-italic fz-8">
+                            <tr>
+                                <td style="width:20%">For the month of</td>
+                                <td colspan="3">
+                                    <div class="underline text-left pl-3 font-weight-bold">
+                                    {{momentNow|format_date('MMMM')}}
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width:25%" colspan="2" rowspan="2" class="align-middle">Official hours for <br>arrival and departure</td>
+                                <td style="width:20%" class="text-right pr-2">Regular days</td>
+                                <td class="text-left">
+                                    <div class="underline pl-5 pt-1">
+                                        <div>8:00-12:00 A.M.</div>
+                                        <div>1:00-5:00 P.M.</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width:20%" class="text-right pr-2">Saturdays</td>
+                                <td class="text-left">
+                                    <div class="underline pl-5">
+                                        <div>&nbsp;</div>
+                                        <div>&nbsp;</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <table style="width:100%" class="table table-bordered table-dtr table-sm">
+                        <tr>
+                            <th class="text-center" rowspan="2">Day</th>
+                            <th class="text-center" colspan="2"><div class="am-pm">A.M.</div></th>
+                            <th class="text-center am-pm" colspan="2"><div class="am-pm">P.M.</div></th>
+                            <th class="text-center" colspan="2">
+                                <div class="undertime">Undertime</div>
+                            </th>
+                        </tr>
+                        <tr class="subcols">
+                            <th>Arrival</th>
+                            <th>Departure</th>
+                            
+                            <th>Arrival</th>
+                            <th>Departure</th>
+
+                            <th>Hours</th>
+                            <th>Minutes</th>
+                        </tr>
+                        {% for day in days %}
+                        {% set attendance = day.attendance %}
+                        <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
+                            <td class="text-center">{{day.day}}</td>
+                            {% if attendance.onTravel %}
+                                <td colspan="6">On Travel</td>
+                            {% else %}
+                                <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                                <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                                <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                                <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                                <td>
+                                    {% if day.dtr.underMinutes %}
+                                        {{day.dtr.underHours}}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if day.dtr.underMinutes %}
+                                        {{day.dtr.underMinutes}}
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td class="text-right total" colspan="5">Total</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </table>
+
+                    <div class="certify p-4">
+                    I certify on my honor that the above is a true and correct report of the hours of work performed, record of which was made daily at the time of arrival and departure from office.
+                    </div>
+                    <div class="underline mb-2"></div>
+                    <div class="font-italic fz-7 pl-4 mb-4">VERIFIED as to the prescribed office hours:</div>
+                    <div class="underline mb-2"></div>
+                    <div class="text-center font-italic fz-7 mb-3">In Charge</div>
+                </div>
+            </div>
+        </div>
+        {# </div> #}
+        <div class="text-center">
+            {# <a href="/e-profile/dtr-qr" class="mt-3 btn btn-primary">Scan QR Code To Log Attendance</a> #}
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            name: '',
+            type: 1,
+        },
+        validations: {
+            
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

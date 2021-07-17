@@ -9,6 +9,7 @@
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
                 <a href="/e-profile/home" class="btn btn-sm btn-outline-primary">Back</a>
+                <a href="/e-profile/dtr/print/{{employment._id}}?{{query|query_string}}" class="btn btn-sm btn-outline-primary">Print DTR</a>
             </div>
         </div>
     </div>
@@ -17,10 +18,10 @@
         <div style="max-width:500px" class=" ml-auto mr-auto" >
             <div class="text-center">
                 <h3 class="h4">Daily Time Record</h3>
-                <div class="">-----o0o-----</div>
+                {# <div class="">-----o0o-----</div> #}
 
                 <div class="text-center pt-3 pb-3">
-                    <div class="photo ml-auto mr-auto " style="overflow:hidden;max-width: 200px; border-radius:2px">
+                    <div class="profile-photo ml-auto mr-auto">
                         {% if employee.profilePhoto %}
                             <img src="{{employee.profilePhoto|s3_url('medium')}}" alt="{{employee.firstName|first}}. {{employee.lastName|first}}.">
                         {% else %}

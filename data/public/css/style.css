@@ -197,7 +197,7 @@ div.focusable:focus-within  {
 
 .profile-photo {
     border: 1px solid #ccc;
-    border-radius: 2%;
+    border-radius: 100%;
     width: 200px;
     height: 200px;
     margin: 0 auto;

@@ -1,0 +1,124 @@
+/* See https://stackoverflow.com/questions/49785039/printing-bootstrap-4-html-page-in-chrome-cuts-off-chrome-header-footers */
+@page {
+    size: auto;
+}
+
+body {
+    padding: 25px 0;
+    background: none;
+}
+
+body, pre {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+img {
+    max-width: 100%;
+}
+
+
+.paper h1 {
+    font-size: 26px;
+}
+
+.paper h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+.paper p {
+    margin-bottom: 10px;
+}
+
+.paper > .row {
+    margin-bottom: 25px;
+}
+.paper .row .row {
+    margin-bottom: 10px;
+}
+
+.col-1 > p:first-child,
+.col-2 > p:first-child,
+.col-3 > p:first-child,
+.col-4 > p:first-child,
+.col-5 > p:first-child,
+.col-6 > p:first-child,
+.col-7 > p:first-child,
+.col-8 > p:first-child,
+.col-9 > p:first-child,
+.col-10 > p:first-child,
+.col-11 > p:first-child,
+.col-12 > p:first-child {
+    font-size: 14px;
+}
+
+.pagebreak { page-break-before: always; } /* page-break-after works, as well */
+
+
+.fz-7 {
+    font-size: 7px;
+}
+.fz-8 {
+    font-size: 8px;
+}
+.csc-form-dtr {
+    font-family: Arial;
+    font-size: 9px;
+}
+.csc-form-dtr p.template {
+    font-size: 8px;
+    font-style: italic;
+}
+.csc-form-dtr h1 {
+    font-size: 12px;
+    font-weight: bold;
+}
+.csc-form-dtr .separator {
+    font-size: 8px;
+}
+.csc-form-dtr .name {
+    font-size: 10px;
+    font-weight: bold;
+}
+.csc-form-dtr .underline {
+    border-bottom: 1px solid #000;
+    padding-bottom: 3px;
+}
+.csc-form-dtr .name-under {
+    font-size: 8px;
+}
+
+.csc-form-dtr .certify {
+    font-size: 7px;
+    font-style: italic;
+}
+
+.table-dtr th {
+    font-size: 7px;
+    text-align: center;
+}
+.table-dtr th,
+.table-dtr td {
+    border-color: #000 !important;
+}
+.table-dtr .am-pm{
+    font-size: 9px;
+    font-weight: bold;
+}
+.table-dtr .undertime{
+    font-size: 8px;
+    font-weight: bold;
+}
+.table-dtr .subcols th{
+    font-size: 7px;
+    font-weight: bold;
+}
+.table-dtr .total{
+    font-size: 9px;
+}
+.table-sched {
+    width: 100%;
+}
+.table-sched td{
+    border: 0;
+}
+

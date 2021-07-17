@@ -6,7 +6,13 @@
 
 
 module.exports = {
-    splitName: (name) => { // Format: Amarilla, Nico G., Jr.
+    /**
+     * 
+     * @param {string} name 
+     * @param {boolean} firstWord Get only first word from first name
+     * @returns {object}
+     */
+    splitName: (name, firstWord = false) => { // Format: Amarilla, Nico G., Jr.
         if (!name) return name
 
         name = name.replace(/\s\s+/g, ' ') // Replace multi space with 1 space
@@ -20,6 +26,13 @@ module.exports = {
                 middle = first.slice(index)
                 first = first.slice(0, index)
                 first = first.trim()
+            }
+            if (firstWord) {
+                index = first.search(' ') // If space present
+                if (index > -1) {
+                    first = first.slice(0, index) // Get only first word of first name 
+                    first = first.trim()
+                }
             }
         }
         let last = names[0]

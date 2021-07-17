@@ -10,6 +10,7 @@ const qr = require('qr-image')
 //// Modules
 const countries = require('../countries');
 const db = require('../db');
+const dtrHelper = require('../dtr-helper');
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
 const passwordMan = require('../password-man');
@@ -169,19 +170,14 @@ router.post('/e-profile/hdf', middlewares.guardRoute(['use_employee_profile']), 
     }
 });
 
-router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let employmentId = req.params.employmentId
-        let found = employee.employments.find((e) => {
-            return e._id.toString() === employmentId
-        })
-        if (!found) {
-            throw new Error('Employment not found.')
-        }
-
-        // let momentNow = moment()
-        let momentNow = moment().month(6 - 1) // set to x month of current year
+        let employmentId = res.employmentId
+        let employment = res.employment
+        let month = lodash.get(req, 'query.month', moment().format('MMM'))
+        let year = lodash.get(req, 'query.year', moment().format('YYYY'))
+        let momentNow = moment().year(year).month(month)
 
         // Today attendance
         let attendances = await db.main.Attendance.find({
@@ -198,11 +194,9 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
         })
 
         let days = new Array(momentNow.daysInMonth())
-        let year = momentNow.format('YYYY')
-        let month = momentNow.format('MM')
         days = days.fill(1).map((v, i) => {
             let attendance = attendances[`${year}-${month}-${String(v + i).padStart(2, '0')}`] || null
-            let dtr = payrollCalc.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, CONFIG.workTime.gracePeriods)
+            let dtr = dtrHelper.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 
             return {
                 date: `${year}-${month}-${String(v + i).padStart(2, '0')}`,
@@ -220,6 +214,58 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
             days: days,
             attendances: attendances,
             employee: employee,
+            employment: employment,
+            qrCodeSvg: qrCodeSvg.toString('base64'),
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/e-profile/dtr/print/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employmentId = res.employmentId
+        let employment = res.employment
+        let month = lodash.get(req, 'query.month', moment().format('MMM'))
+        let year = lodash.get(req, 'query.year', moment().format('YYYY'))
+        let momentNow = moment().year(year).month(month)
+
+        // Today attendance
+        let attendances = await db.main.Attendance.find({
+            employeeId: employee._id,
+            employmentId: employmentId,
+            createdAt: {
+                $gte: momentNow.startOf('month').toDate(),
+                $lt: momentNow.endOf('month').toDate(),
+            }
+        })
+
+        attendances = lodash.mapKeys(attendances, (a) => {
+            return moment(a.createdAt).format('YYYY-MM-DD')
+        })
+
+        let days = new Array(31)
+        days = days.fill(1).map((v, i) => {
+            let attendance = attendances[`${year}-${month}-${String(v + i).padStart(2, '0')}`] || null
+            let dtr = dtrHelper.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
+
+            return {
+                date: `${year}-${month}-${String(v + i).padStart(2, '0')}`,
+                year: year,
+                month: month,
+                day: v + i,
+                dtr: dtr,
+                attendance: attendance
+            }
+        })
+        let qrCodeSvg = qr.imageSync(employee.uid, { size: 10, type: 'png' })
+
+        res.render('e-profile/dtr-print.html', {
+            momentNow: momentNow,
+            days: days,
+            attendances: attendances,
+            employee: employee,
+            employment: employment,
             qrCodeSvg: qrCodeSvg.toString('base64'),
         });
     } catch (err) {
@@ -363,8 +409,6 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         next(err);
     }
 });
-
-
 
 router.get('/e-profile/account/password', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {

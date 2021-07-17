@@ -261,12 +261,135 @@ router.get('/e-profile/dtr/print/:employmentId', middlewares.guardRoute(['use_em
         let qrCodeSvg = qr.imageSync(employee.uid, { size: 10, type: 'png' })
 
         res.render('e-profile/dtr-print.html', {
+            shared: false,
             momentNow: momentNow,
             days: days,
             attendances: attendances,
             employee: employee,
             employment: employment,
             qrCodeSvg: qrCodeSvg.toString('base64'),
+            title: `DTR-${momentNow.format('YYYY-MM')}-${employee.lastName}`
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/e-profile/dtr/share/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employmentId = res.employmentId
+        let employment = res.employment
+        let month = lodash.get(req, 'query.month', moment().format('MMM'))
+        let year = lodash.get(req, 'query.year', moment().format('YYYY'))
+        let momentNow = moment().year(year).month(month)
+
+        let prevShares = await db.main.Share.deleteMany({
+            createdBy: res.user._id,
+        })
+
+        // console.log(prevShares)
+        // let forDeletion = await db.main.Share.remove({
+        //     createdBy: res.user._id,
+        //     expiredAt: {
+        //         $gte: moment().add(1, 'minute').toISOString(),
+        //     }
+        // }).lean()
+        // console.log(forDeletion)
+        // return res.send('forDeletion')
+
+
+        let secureKey = await passwordMan.randomStringAsync(64)
+        let share = await db.main.Share.create({
+            secureKey: secureKey,
+            expiredAt: moment().add(1, 'hour').toDate(),
+            createdBy: res.user._id,
+            payload: {
+                url: `${CONFIG.app.url}/shared/dtr/print/${secureKey}`,
+                employeeId: employee._id,
+                employmentId: employmentId,
+                month: month,
+                year: year,
+            }
+        })
+        // return res.send(share)
+        
+        res.render('e-profile/dtr-share.html', {
+            prevShares: prevShares,
+            share: share,
+            employmentId: employmentId,
+            employment: employment,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, async (req, res, next) => {
+    try {
+        let payload = res.payload
+        let employeeId = payload.employeeId
+        let employmentId = payload.employmentId
+        let month = payload.month
+        let year = payload.year
+        let momentNow = moment().year(year).month(month)
+
+        // employee
+        let employee = await db.main.Employee.findOne({
+            _id: employeeId
+        })
+        if(!employee){
+            throw new Error('Employee not found.')
+        }
+        employee.employments = await db.main.Employment.find({
+            employeeId: employee._id
+        }).lean()
+
+        //employment
+        let employment = employee.employments.find((e) => {
+            return e._id.toString() === employmentId
+        })
+        if (!employment) {
+            throw new Error('Employment not found.')
+        }
+
+        // Today attendance
+        let attendances = await db.main.Attendance.find({
+            employeeId: employee._id,
+            employmentId: employmentId,
+            createdAt: {
+                $gte: momentNow.startOf('month').toDate(),
+                $lt: momentNow.endOf('month').toDate(),
+            }
+        })
+
+        attendances = lodash.mapKeys(attendances, (a) => {
+            return moment(a.createdAt).format('YYYY-MM-DD')
+        })
+
+        let days = new Array(31)
+        days = days.fill(1).map((v, i) => {
+            let attendance = attendances[`${year}-${month}-${String(v + i).padStart(2, '0')}`] || null
+            let dtr = dtrHelper.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
+
+            return {
+                date: `${year}-${month}-${String(v + i).padStart(2, '0')}`,
+                year: year,
+                month: month,
+                day: v + i,
+                dtr: dtr,
+                attendance: attendance
+            }
+        })
+        let qrCodeSvg = qr.imageSync(employee.uid, { size: 10, type: 'png' })
+
+        res.render('e-profile/dtr-print.html', {
+            shared: true,
+            momentNow: momentNow,
+            days: days,
+            attendances: attendances,
+            employee: employee,
+            employment: employment,
+            qrCodeSvg: qrCodeSvg.toString('base64'),
+            title: `DTR-${momentNow.format('YYYY-MM')}-${employee.lastName}`
         });
     } catch (err) {
         next(err);

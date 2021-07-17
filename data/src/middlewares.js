@@ -4,6 +4,7 @@
 //// External modules
 const access = require('acrb');
 const lodash = require('lodash');
+const moment = require('moment');
 
 //// Modules
 const db = require('./db');
@@ -370,6 +371,30 @@ module.exports = {
             }
             res.employmentId = employmentId
             res.employment = employment
+
+            next();
+        } catch (err) {
+            next(err)
+        }
+    },
+    decodeSharedResource: async (req, res, next) => {
+        try {
+            let secureKey = lodash.get(req, 'params.secureKey', '')
+            if (!secureKey) {
+                throw new Error('Invalid link.')
+            }
+            let share = await db.main.Share.findOne({
+                secureKey: secureKey
+            })
+            if (!share) {
+                throw new Error('Cannot find shared resource.')
+            }
+
+            if (moment().isSameOrAfter(moment(share.expiredAt))) {
+                await share.remove()
+                throw new Error('Link has expired.')
+            }
+            res.payload = share.toObject().payload
 
             next();
         } catch (err) {

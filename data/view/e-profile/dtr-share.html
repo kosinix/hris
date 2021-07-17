@@ -1,0 +1,66 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12" >
+    <div class="d-print-none d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="">
+            <h1 class="h3">Share DTR</h1>
+            <p><em>Use this if you are going to print on another computer.</em></p>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/e-profile/dtr/{{employment._id}}?{{query|query_string}}" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    
+    <div>
+        <h2 class="h6">How to Open DTR on Another Computer</h2>
+        <ul>
+            <li>Copy the link below: <br>
+                <input class="form-control" value="{{share.payload.url}}" type="text">
+            </li>
+            <li>Open Messenger or any messenging app.</li>
+            <li>Paste the link and send to your recipient.</li>
+        </ul>
+        {# {% for share in prevShares %}
+        <div>{{share.expiredAt}}</div>
+        {% endfor %} #}
+        
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            name: '',
+            type: 1,
+        },
+        validations: {
+            
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

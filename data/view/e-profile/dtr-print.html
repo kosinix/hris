@@ -3,14 +3,17 @@
 {% block body %}
 <div class="col-md-12" >
     <div class="d-print-none d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <div class="d-flex align-items-start">
+        <div class="">
             <h1 class="h3">DTR <em>({{momentNow|format_date('MMMM, YYYY')}})</em></h1>
+            <p><em>Press CTRL + P to open printer options. You must be on a laptop or desktop computer.</em></p>
         </div>
+        {% if shared == false %}
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
                 <a href="/e-profile/dtr/{{employment._id}}?{{query|query_string}}" class="btn btn-sm btn-outline-primary">Back</a>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <div class="csc-form-dtr mb-5">

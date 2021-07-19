@@ -48,13 +48,145 @@ const db = require('../data/src/db-install');
     try {
         let logs = []
         // 1. List of employees to use that are in db
-        let list = [
-            ['Alminaza', 'Reiner'],
-            ['Alumbro', 'Adrian'],
-        ]
-        // let testAttendances = [
-        //     ['2021-06-01 08:00:00.000Z', '2021-06-01 08:00:00.000Z', '2021-06-01 08:00:00.000Z']
-        // ]
+        let list = [['Alminaza', 'Reiner'],
+        ['Alumbro', 'Adrian'],
+        ['Anas', 'Anelyn'],
+        ['Arboleda', 'Daniel'],
+        ['Arceña', 'Agustin'],
+        ['Arensol', 'Joe'],
+        ['Arsenio', 'Jason'],
+        ['Artajo', 'Sheila'],
+        ['Artajo', 'Tommy'],
+        ['Arturo', 'Rey'],
+        ['Arturo', 'Rosabeth'],
+        ['Asprilla', 'Ivony'],
+        ['Bales', 'Alvin'],
+        ['Basañes', 'Sol'],
+        ['Berondo', 'Ronilo'],
+        ['Borro', 'Rogelio'],
+        ['Buelva', 'Raquel'],
+        ['Bullo', 'Jean'],
+        ['Caber', 'Jocyl'],
+        ['Cablas', 'Joven'],
+        ['Cadornigara', 'Jasmine'],
+        ['Cainday', 'Simeon'],
+        ['Calumpita', 'Conrado'],
+        ['Cang', 'Geraldo'],
+        ['Cariaga', 'Kissy'],
+        ['Catalan', 'Eric'],
+        ['Catalan', 'Ruby'],
+        ['David', 'Marie'],
+        ['De Asis', 'Josephine'],
+        ['De la Cruz', 'Margie'],
+        ['de la Rama', 'khristian'],
+        ['Dilag', 'Criste'],
+        ['Dumagpi', 'Erwin'],
+        ['Efondo', 'Violeta'],
+        ['Egael', 'Lovely'],
+        ['Encarquez', 'Ana'],
+        ['Eres', 'Aizle'],
+        ['Espin', 'Antonieta'],
+        ['Estilo', 'Aziel'],
+        ['Fernandez', 'Jufel'],
+        ['Flora', 'Rhea'],
+        ['Forca', 'Adrian'],
+        ['Ga', 'James'],
+        ['Gabayoyo', 'Adora'],
+        ['Gabion', 'Jonathan'],
+        ['Gabo', 'Jessierey'],
+        ['Gadian', 'Jasmin'],
+        ['Gadian', 'Juliet'],
+        ['Gaitano', 'Josie'],
+        ['Gajo', 'Elizabeth'],
+        ['Gal', 'Frenz'],
+        ['Galapin', 'Revenlie'],
+        ['Galimba', 'Dioremark'],
+        ['Gallos', 'Loveson'],
+        ['Galve', 'Fermin'],
+        ['Gamo', 'Gerald'],
+        ['Garbosa', 'Freddie'],
+        ['Gardose', 'Rences'],
+        ['Garmay', 'Beverly'],
+        ['Gerada', 'Jo'],
+        ['Gonzales', 'Kristine'],
+        ['Gonzales', 'Michael'],
+        ['Gonzales', 'Niel'],
+        ['Gumaling', 'Riza'],
+        ['Habaña', 'Jesrelle'],
+        ['Habaña', 'Ruben'],
+        ['Herrera', 'Reynro'],
+        ['Ibieza', 'Daisy'],
+        ['Infante', 'Julieta'],
+        ['Isogon', 'Ervin'],
+        ['Jalando-on', 'Anthony'],
+        ['Janaban', 'Anelyn'],
+        ['Japitana', 'Joel'],
+        ['Job', 'Aser'],
+        ['Junco', 'Ethel'],
+        ['Lausing', 'Aubrey'],
+        ['Libutaque', 'Fernando'],
+        ['Luzuriaga', 'Jimmy'],
+        ['Magbanua', 'Jeffrey'],
+        ['Maramento', 'Ellyn'],
+        ['Marquez', 'Nenen'],
+        ['Martir', 'Erly'],
+        ['Martirez', 'Rodney'],
+        ['Molate', 'Mary'],
+        ['Moralista', 'Rome'],
+        ['Niego', 'Katherine'],
+        ['Norilla', 'Agatha'],
+        ['Occeña', 'Crisanto'],
+        ['Paglomutan', 'Rodrigo'],
+        ['Paguntalan', 'Andrew'],
+        ['Palma', 'Kyrl'],
+        ['Palma', 'Norie'],
+        ['Paltiguera', 'Shiela'],
+        ['Parreño', 'Mary'],
+        ['Perrocha', 'Methusela'],
+        ['Pillora', 'Kert'],
+        ['Porras', 'Ferick'],
+        ['Ramos', 'Joebert'],
+        ['Rodriguez', 'Nelson'],
+        ['Rueda', 'Roger'],
+        ['Salinas', 'Jerry'],
+        ['Siva', 'Enriqueta'],
+        ['Sollano', 'Mona'],
+        ['Soqueña', 'Arthur'],
+        ['Sorongon', 'Maychelle'],
+        ['Sumalde', 'Maribeth'],
+        ['Tabale', 'Liezel'],
+        ['Tagudin', 'John'],
+        ['Tamdang', 'Divon'],
+        ['Tellermo', 'Efren'],
+        ['Tumapang', 'Leopoldo'],
+        ['Vergara', 'Julius'],
+        ['Vilbar', 'Helen'],
+        ['Villaflor', 'Rodante'],
+        ['Yanguas', 'Ma.'],
+        ['Ymalay', 'Lea'],
+        ['Parreño', 'Lilian'],
+        ['Aleman', 'Janet'],
+        ['Baterzal', 'Jean'],
+        ['Cinco', 'Rosalinda'],
+        ['Depamallo', 'Vivie'],
+        ['Dulla', 'Ronel'],
+        ['Ello', 'Grace'],
+        ['Gabiota', 'Mirhjan'],
+        ['Gajo', 'Zosimo'],
+        ['Galve', 'Randy'],
+        ['Herrero', 'Cornelia'],
+        ['Jarangue', 'Hazel'],
+        ['Lamera', 'Luna'],
+        ['Pillora', 'Ken'],
+        ['Pillora', 'Ma.'],
+        ['Prologo', 'Philippe'],
+        ['Tembrevilla', 'Rosebelle'],
+        ['Traifalgar', 'Regina'],
+        ['Tumapang', 'Ann'],
+        ['Villa', 'Arnel'],
+        ['Yucon', 'Johnny'],
+        ['Yanguas', 'Roland']]
+        
         let lastNames = []
         let firstNames = []
         list.forEach((el) => {
@@ -107,37 +239,38 @@ const db = require('../data/src/db-install');
             if (![0, 6].includes(dateTime.day())) { // Workdays only
                 // console.log(dateTime.toISOString(true))
                 employees.forEach((employee) => {
-                    attendances.push({
-                        "employeeId": employee._id,
-                        "employmentId": employee.employments[0]._id,
-                        "onTravel": false,
-                        "logs": [
-                            {
-                                "scannerId": scannerId,
-                                "dateTime": dateTime.clone().hour(8).minutes(16).toISOString(true),
-                                "mode": 1
-                            },
-                            {
-                                "scannerId": scannerId,
-                                "dateTime": dateTime.clone().hour(12).minutes(0).toISOString(true),
-                                "mode": 0
-                            },
-                            {
-                                "scannerId": scannerId,
-                                "dateTime": dateTime.clone().hour(13).minutes(0).toISOString(true),
-                                "mode": 1
-                            },
-                            {
-                                "scannerId": scannerId,
-                                "dateTime": dateTime.clone().hour(17).minutes(0).toISOString(true),
-                                "mode": 0
-                            },
-                        ],
-                        createdAt: dateTime.clone().hour(8).minutes(0).toISOString(true),
-                    })
-                    
-                    logs.push(`db.getCollection('attendances').remove({employeeId:ObjectId("${employee._id}")})`)
+                    if (lodash.has(employee, 'employments.0')) {
+                        attendances.push({
+                            "employeeId": employee._id,
+                            "employmentId": employee.employments[0]._id,
+                            "onTravel": false,
+                            "logs": [
+                                {
+                                    "scannerId": scannerId,
+                                    "dateTime": dateTime.clone().hour(8).minutes(15).toISOString(true),
+                                    "mode": 1
+                                },
+                                {
+                                    "scannerId": scannerId,
+                                    "dateTime": dateTime.clone().hour(12).minutes(0).toISOString(true),
+                                    "mode": 0
+                                },
+                                {
+                                    "scannerId": scannerId,
+                                    "dateTime": dateTime.clone().hour(13).minutes(0).toISOString(true),
+                                    "mode": 1
+                                },
+                                {
+                                    "scannerId": scannerId,
+                                    "dateTime": dateTime.clone().hour(17).minutes(0).toISOString(true),
+                                    "mode": 0
+                                },
+                            ],
+                            createdAt: dateTime.clone().hour(8).minutes(0).toISOString(true),
+                        })
 
+                        logs.push(`db.getCollection('attendances').remove({employeeId:ObjectId("${employee._id}")})`)
+                    }
                 })
             }
         }
@@ -146,10 +279,12 @@ const db = require('../data/src/db-install');
 
         let employments = []
         employees.forEach((employee) => {
-            employments.push({
-                _id: employee.employments[0]._id,
-                employeeId: employee.employments[0].employeeId,
-            })
+            if (lodash.has(employee, 'employments.0')) {
+                employments.push({
+                    _id: employee.employments[0]._id,
+                    employeeId: employee.employments[0].employeeId,
+                })
+            }
         })
 
         let payroll = await db.main.Payroll.create({
@@ -157,12 +292,19 @@ const db = require('../data/src/db-install');
             dateStart: '2021-06-01',
             dateEnd: '2021-06-15',
             employments: employments,
+            incentives: [{
+                "name": "Allowance PERA/ACA",
+                "type": "normal",
+                "initialAmount": 2000,
+                "_id": db.mongoose.Types.ObjectId(),
+                "uid": "allowancePeraAca"
+            }],
             template: 'permanent',
         })
         console.log(`Payrolls...`)
         logs.push(`db.getCollection('payrolls').remove({_id:ObjectId("${payroll._id}")})`)
 
-        
+
         file = CONFIG.app.dir + '/scripts/logs/attendance.perma.test.log'
         fs.writeFileSync(file, logs.join(";\n"), { encoding: 'utf8' })
         console.log(`Log file "${file}""`)

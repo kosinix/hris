@@ -179,6 +179,11 @@ const schema = new Schema({
             $type: String,
             trim: true,
         }],
+        spouse: {},
+        father: {},
+        mother: {},
+        children: [],
+        schools: [],
     },
 }, {timestamps: true, typeKey: '$type'})
 

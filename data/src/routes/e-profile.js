@@ -312,7 +312,7 @@ router.get('/e-profile/dtr/share/:employmentId', middlewares.guardRoute(['use_em
             }
         })
         // return res.send(share)
-        
+
         res.render('e-profile/dtr-share.html', {
             prevShares: prevShares,
             share: share,
@@ -336,7 +336,7 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
         let employee = await db.main.Employee.findOne({
             _id: employeeId
         })
-        if(!employee){
+        if (!employee) {
             throw new Error('Employee not found.')
         }
         employee.employments = await db.main.Employment.find({
@@ -436,7 +436,7 @@ router.get('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']), 
     try {
         let employee = res.employee.toObject()
 
-        
+
 
         res.render('e-profile/pds1.html', {
             flash: flash.get(req, 'employee'),
@@ -482,10 +482,10 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         if (address0) {
             let addresses = []
             lodash.set(patch, 'addresses.0.full', lodash.get(address0, 'full'))
-            if(lodash.get(patch, 'addresses.0.unit')) addresses.push(lodash.get(patch, 'addresses.0.unit'))
-            if(lodash.get(patch, 'addresses.0.street')) addresses.push(lodash.get(patch, 'addresses.0.street'))
-            if(lodash.get(patch, 'addresses.0.village')) addresses.push(lodash.get(patch, 'addresses.0.village'))
-            if(lodash.get(address0, 'full')) addresses.push(lodash.get(address0, 'full'))
+            if (lodash.get(patch, 'addresses.0.unit')) addresses.push(lodash.get(patch, 'addresses.0.unit'))
+            if (lodash.get(patch, 'addresses.0.street')) addresses.push(lodash.get(patch, 'addresses.0.street'))
+            if (lodash.get(patch, 'addresses.0.village')) addresses.push(lodash.get(patch, 'addresses.0.village'))
+            if (lodash.get(address0, 'full')) addresses.push(lodash.get(address0, 'full'))
             lodash.set(patch, 'address', addresses.join(', '))
         }
 
@@ -503,10 +503,10 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         if (address1) {
             let addresses = []
             lodash.set(patch, 'addresses.1.full', lodash.get(address1, 'full'))
-            if(lodash.get(patch, 'addresses.1.unit')) addresses.push(lodash.get(patch, 'addresses.1.unit'))
-            if(lodash.get(patch, 'addresses.1.street')) addresses.push(lodash.get(patch, 'addresses.1.street'))
-            if(lodash.get(patch, 'addresses.1.village')) addresses.push(lodash.get(patch, 'addresses.1.village'))
-            if(lodash.get(address1, 'full')) addresses.push(lodash.get(address1, 'full'))
+            if (lodash.get(patch, 'addresses.1.unit')) addresses.push(lodash.get(patch, 'addresses.1.unit'))
+            if (lodash.get(patch, 'addresses.1.street')) addresses.push(lodash.get(patch, 'addresses.1.street'))
+            if (lodash.get(patch, 'addresses.1.village')) addresses.push(lodash.get(patch, 'addresses.1.village'))
+            if (lodash.get(address1, 'full')) addresses.push(lodash.get(address1, 'full'))
             lodash.set(patch, 'address', addresses.join(', '))
         }
 
@@ -524,9 +524,36 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'personal.citizenshipCountry', lodash.get(body, 'citizenshipCountry'))
         lodash.set(patch, 'personal.citizenshipSource', lodash.get(body, 'citizenshipSource'))
 
+        lodash.set(patch, 'personal.spouse.lastName', lodash.get(body, 'spouse.lastName'))
+        lodash.set(patch, 'personal.spouse.firstName', lodash.get(body, 'spouse.firstName'))
+        lodash.set(patch, 'personal.spouse.middleName', lodash.get(body, 'spouse.middleName'))
+        lodash.set(patch, 'personal.spouse.suffix', lodash.get(body, 'spouse.suffix'))
+        lodash.set(patch, 'personal.spouse.birthDate', lodash.get(body, 'spouse.birthDate'))
+        lodash.set(patch, 'personal.spouse.occupation', lodash.get(body, 'spouse.occupation'))
+        lodash.set(patch, 'personal.spouse.employerOrBusinessName', lodash.get(body, 'spouse.employerOrBusinessName'))
+        lodash.set(patch, 'personal.spouse.businessAddress', lodash.get(body, 'spouse.businessAddress'))
+        lodash.set(patch, 'personal.spouse.phone', lodash.get(body, 'spouse.phone'))
+
+        lodash.set(patch, 'personal.children', lodash.get(body, 'children'))
+        lodash.set(patch, 'personal.schools', lodash.get(body, 'schools'))
+
+        lodash.set(patch, 'personal.father.lastName', lodash.get(body, 'father.lastName'))
+        lodash.set(patch, 'personal.father.firstName', lodash.get(body, 'father.firstName'))
+        lodash.set(patch, 'personal.father.middleName', lodash.get(body, 'father.middleName'))
+        lodash.set(patch, 'personal.father.suffix', lodash.get(body, 'father.suffix'))
+        lodash.set(patch, 'personal.father.birthDate', lodash.get(body, 'father.birthDate'))
+        lodash.set(patch, 'personal.mother.lastName', lodash.get(body, 'mother.lastName'))
+        lodash.set(patch, 'personal.mother.firstName', lodash.get(body, 'mother.firstName'))
+        lodash.set(patch, 'personal.mother.middleName', lodash.get(body, 'mother.middleName'))
+        lodash.set(patch, 'personal.mother.birthDate', lodash.get(body, 'mother.birthDate'))
+
+        // return res.send(patch)
         await db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} PDS.`)
+        if(lodash.get(body, 'actionType') === 'saveNext'){
+            return res.redirect(`/e-profile/pds2`)
+        }
         res.redirect(`/e-profile/pds`)
     } catch (err) {
         next(err);

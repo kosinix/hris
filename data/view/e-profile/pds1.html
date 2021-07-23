@@ -330,14 +330,244 @@
                 </div>
             </div>
 
-            <div class="form-row pt-3 pb-3">
-                <div class="col-md-12">
-                    <button class="btn btn-primary">Save Data</button>
+            {#  #}
+
+            <h2 class="h5 mb-4">II. Family Background</h2>
+            <div class="form-row">
+                <div class="col-md-3">
+                    {% set name = 'spouse.lastName' %}
+                    {% set label = 'Spouse Last Name' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-3">
+                    {% set name = 'spouse.firstName' %}
+                    {% set label = 'Spouse First Name' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-2">
+                    {% set name = 'spouse.middleName' %}
+                    {% set label = 'Spouse Middle Name' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-2">
+                    {% set name = 'spouse.suffix' %}
+                    {% set label = 'Spouse Extension (Jr.)' %}
+                    {% set options = suffixes %}
+                    {% include 'parts/form-group-select.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-2">
+                    {% set name = 'spouse.birthDate' %}
+                    {% set label = 'Spouse Birth Date' %}
+                    {% include 'parts/form-group-date.html' %}
+                    {% set label = '' %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-4">
+                    {% set name = 'spouse.occupation' %}
+                    {% set label = 'Spouse Occupation' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-4">
+                    {% set name = 'spouse.employerOrBusinessName' %}
+                    {% set label = 'Spouse Employer/Business Name' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-2">
+                    {% set name = 'spouse.businessAddress' %}
+                    {% set label = 'Spouse Business Address' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-2">
+                    {% set name = 'spouse.phone' %}
+                    {% set label = 'Spouse Telephone Number' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-3">
+                    {% set name = 'father.lastName' %}
+                    {% set label = 'Father Last Name' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-3">
+                    {% set name = 'father.firstName' %}
+                    {% set label = 'Father First Name' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-2">
+                    {% set name = 'father.middleName' %}
+                    {% set label = 'Father Middle Name' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-2">
+                    {% set name = 'father.suffix' %}
+                    {% set label = 'Father Extension (Jr.)' %}
+                    {% set options = suffixes %}
+                    {% include 'parts/form-group-select.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-2">
+                    {% set name = 'father.birthDate' %}
+                    {% set label = 'Father Birth Date' %}
+                    {% include 'parts/form-group-date.html' %}
+                    {% set label = '' %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-3">
+                    {% set name = 'mother.lastName' %}
+                    {% set label = 'Mother Maiden Last Name' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-3">
+                    {% set name = 'mother.firstName' %}
+                    {% set label = 'Mother First Name' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-4">
+                    {% set name = 'mother.middleName' %}
+                    {% set label = 'Mother Middle Name' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-2">
+                    {% set name = 'mother.birthDate' %}
+                    {% set label = 'Mother Birth Date' %}
+                    {% include 'parts/form-group-date.html' %}
+                    {% set label = '' %}
                 </div>
             </div>
 
-           
 
+            {# Children #}
+            <div class="form-group focusable" tabindex="0">
+                <h2 class="h5">Children</h2>
+                <p class="mb-4"><em>(Write full name and list all)</em></p>
+                <div v-for="(child, index) in children" class="form-row">
+                    <div class="col-md-9">
+                        {% set name = "'children[' + index + '][name]'"|safe %}
+                        {% set vModel = 'child.name' %}
+                        {% set label = 'Full Name of Child' %}
+                        {% include 'parts/form-group-text-vue.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-2">
+                        {% set name = "'children[' + index + '][birthDate]'"|safe %}
+                        {% set vModel = 'child.birthDate' %}
+                        {% set label = 'Child Birth Date' %}
+                        {% include 'parts/form-group-date-vue.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div v-if="index > 0" class="col-md-1">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <div>
+                                <button v-on:click.prevent="deleteChild(index)" type="button" class="btn btn-sm btn-danger">X</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center" v-if="children.length < 12">
+                    <button type="button" v-on:click.prevent="addChild" class="btn btn-sm btn-primary">Add More Children</button>
+                </div> 
+            </div>
+
+            {# Educational #}
+            <div class="form-group focusable" tabindex="0">
+                <h2 class="h5 mb-4">III. Educational Background</h2>
+                <div v-for="(school, index) in schools">
+                    <hr v-if="index > 0">
+                    <div v-if="index > 0" class="text-right">
+                        <button v-on:click="deleteSchool(index)" type="button" class="btn btn-danger btn-sm">X - Delete</button>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-2">
+                            {% set name = "'schools[' + index + '][level]'"|safe %}
+                            {% set vModel = 'school.level' %}
+                            {% set label = 'School <br> Level'|safe %}
+                            {% set options = [{text:'', value:''}, {text:'Elementary', value:'Elementary'},{text:'Secondary', value:'Secondary'}, {text:'Vocational/Trade Course', value:'Vocational'}, {text:'College', value:'College'}, {text:'Graduate Studies', value:'Graduate Studies'}] %}
+                            {% include 'parts/form-group-select-vue.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div class="col-md-3">
+                            {% set name = "'schools[' + index + '][name]'"|safe %}
+                            {% set vModel = 'school.name' %}
+                            {% set label = 'Name of <br> School'|safe %}
+                            {% include 'parts/form-group-text-vue.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div class="col-md-3">
+                            {% set name = "'schools[' + index + '][course]'"|safe %}
+                            {% set vModel = 'school.course' %}
+                            {% set label = 'Basic <br>Education/Degree/Course'|safe %}
+                            {% include 'parts/form-group-text-vue.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div class="col-md-2">
+                            {% set name = "'schools[' + index + '][periodFrom]'"|safe %}
+                            {% set vModel = 'school.periodFrom' %}
+                            {% set label = 'Attended <br>From'|safe %}
+                            {% include 'parts/form-group-date-vue.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div class="col-md-2">
+                            {% set name = "'schools[' + index + '][periodTo]'"|safe %}
+                            {% set vModel = 'school.periodTo' %}
+                            {% set label = 'Attended <br>To'|safe %}
+                            {% include 'parts/form-group-date-vue.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-4">
+                            {% set name = "'schools[' + index + '][unitsEarned]'"|safe %}
+                            {% set vModel = 'school.unitsEarned' %}
+                            {% set label = 'Highest Level/Units Earned <br> (If not graduated)'|safe %}
+                            {% include 'parts/form-group-text-vue.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div class="col-md-4">
+                            {% set name = "'schools[' + index + '][yearGraduated]'"|safe %}
+                            {% set vModel = 'school.yearGraduated' %}
+                            {% set label = 'Year <br> Graduated'|safe %}
+                            {% include 'parts/form-group-text-vue.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div class="col-md-4">
+                            {% set name = "'schools[' + index + '][honors]'"|safe %}
+                            {% set vModel = 'school.honors' %}
+                            {% set label = 'Scholarship/Academic<br> Honors Received'|safe %}
+                            {% include 'parts/form-group-text-vue.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button type="button" v-on:click.prevent="addSchool" class="btn btn-sm btn-primary">Add School</button>
+                </div> 
+            </div> 
+            <hr>
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <input name="actionType" type="hidden" v-model="actionType">
+                    <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save Form</button>
+                    <button v-on:click="setAction('saveNext')" type="submit" name="save" value="saveNext" class="btn btn-primary">Save and Go to Next</button>
+                </div>
+            </div>
         </form>
     </div>
 </div>
@@ -371,6 +601,7 @@
             }
         },
         data: {
+            actionType: 'save',
             firstName: '{{employee.firstName}}',
             middleName: '{{employee.middleName}}',
             lastName: '{{employee.lastName}}',
@@ -410,6 +641,32 @@
             village1: '{{employee.addresses[1].village}}',
             zipCode1: '{{employee.addresses[1].zipCode}}',
 
+            spouse:{
+                lastName:'{{employee.personal.spouse.lastName}}',
+                firstName:'{{employee.personal.spouse.firstName}}',
+                middleName:'{{employee.personal.spouse.middleName}}',
+                suffix:'{{employee.personal.spouse.suffix}}',
+                birthDate:'{{employee.personal.spouse.birthDate}}',
+                occupation:'{{employee.personal.spouse.occupation}}',
+                employerOrBusinessName:'{{employee.personal.spouse.employerOrBusinessName}}',
+                businessAddress:'{{employee.personal.spouse.businessAddress}}',
+                phone:'{{employee.personal.spouse.phone}}',
+            },
+            father:{
+                lastName:'{{employee.personal.father.lastName}}',
+                firstName:'{{employee.personal.father.firstName}}',
+                middleName:'{{employee.personal.father.middleName}}',
+                suffix:'{{employee.personal.father.suffix}}',
+                birthDate:'{{employee.personal.father.birthDate}}',
+            },
+            mother:{
+                lastName:'{{employee.personal.mother.lastName}}',
+                firstName:'{{employee.personal.mother.firstName}}',
+                middleName:'{{employee.personal.mother.middleName}}',
+                birthDate:'{{employee.personal.mother.birthDate}}',
+            },
+            children:{{employee.personal.children|stringify|safe}},
+            schools:{{employee.personal.schools|stringify|safe}},
         },
         mounted: function(){
             var inches = Math.round(parseFloat({{employee.personal.height|default(0, true)}}) *  39.37)
@@ -438,6 +695,33 @@
             
         },
         methods: {
+            addChild: function(){
+                this.children.push({
+                    name:'',
+                    birthDate: null
+                })
+            },
+            deleteChild: function(start){
+                this.children.splice(start, 1)
+            },
+            addSchool: function(){
+                this.schools.push({
+                    level:'',
+                    name:'',
+                    course:'',
+                    periodFrom:'',
+                    periodTo:'',
+                    unitsEarned:'',
+                    yearGraduated:'',
+                    honors:'',
+                })
+            },
+            deleteSchool: function(start){
+                this.$delete(this.schools, start)
+            },
+            setAction: function(action){
+                this.actionType = action
+            },
             onSubmit: function(){
                 var me = this;
                 me.$v.$touch()

@@ -1,0 +1,11 @@
+<div class="form-group">
+    <label v-bind:for="{{name}}">
+        {% if label %}
+            {{label}}
+        {% endif %}
+    </label>
+    <div>
+        <input v-bind:name="{{name}}" v-bind:id="{{name}}" v-model="{% if vModel %}{{vModel}}{% else %}{{name}}{% endif %}" type="text" class="form-control">
+        <small class="invalid-feedback">${getError({{name}})}</small>
+    </div>
+</div>

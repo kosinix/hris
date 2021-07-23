@@ -1,1 +1,1 @@
-<input name="{{name}}" id="{{name}}" v-model="{{name}}" type="text" class="form-control">
+<input name="{{name}}" id="{{name}}" v-model="{% if vModel %}{{vModel}}{% else %}{{name}}{% endif %}" type="text" class="form-control">

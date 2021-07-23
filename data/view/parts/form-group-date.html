@@ -1,7 +1,13 @@
 <div class="form-group">
-    <label for="{{name}}">{{name|start_case}}</label>
+    <label for="{{name}}">
+        {% if label %}
+            {{label}}
+        {% else %}
+            {{name|start_case}}
+        {% endif %}
+    </label>
     <div>
-        <input name="{{name}}" id="{{name}}" v-model="{{name}}" type="date" class="form-control">
+        <input name="{{name}}" id="{{name}}" v-model="{% if vModel %}{{vModel}}{% else %}{{name}}{% endif %}" type="date" class="form-control">
         <small class="invalid-feedback">${getError('{{name}}')}</small>
     </div>
 </div>

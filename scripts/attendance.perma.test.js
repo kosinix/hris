@@ -186,40 +186,41 @@ const db = require('../data/src/db-install');
         ['Villa', 'Arnel'],
         ['Yucon', 'Johnny'],
         ['Yanguas', 'Roland']]
-        
+
         let lastNames = []
         let firstNames = []
         list.forEach((el) => {
             lastNames.push(new RegExp(`^${el[0]}`, "i"))
             firstNames.push(new RegExp(`^${el[1]}`, "i"))
         })
-        let employees = await db.main.Employee.aggregate([
-            {
-                $match: {
-                    $and: [
-                        {
-                            "lastName": {
-                                $in: lastNames
-                            },
-                        },
-                        {
-                            "firstName": {
-                                $in: firstNames
-                            }
-                        }
-                    ]
-                }
-            },
-            {
-                $lookup: {
-                    from: "employments",
-                    localField: "_id",
-                    foreignField: "employeeId",
-                    as: "employments"
-                }
-            }
-        ])
-        // console.log(util.inspect(employees, false, null, true))
+
+        let promises = []
+        list.forEach((el) => {
+            promises.push(db.main.Employee.findOne({
+                lastName: new RegExp(`^${el[0]}`, "i"),
+                firstName: new RegExp(`^${el[1]}`, "i"),
+            }).lean())
+        })
+        let employees = await Promise.all(promises)
+
+        employees = employees.filter((el) => {
+            return el !== null
+        })
+
+        promises = []
+        employees.forEach((el, i) => {
+            promises.push(db.main.Employment.find({
+                employeeId: el._id
+            }).lean())
+        })
+
+        let employments = await Promise.all(promises)
+        employees = employees.map((el, i) => {
+            el.employments = employments[i]
+            return el
+        })
+       
+        console.log(util.inspect(employments, false, null, true))
 
         if (employees.length <= 0) {
             throw new Error('No employees found.')
@@ -277,7 +278,7 @@ const db = require('../data/src/db-install');
         let r2 = await db.main.Attendance.insertMany(attendances)
         console.log(`Inserted ${r2.length} attendances into ${employees.length} employees...`)
 
-        let employments = []
+        employments = []
         employees.forEach((employee) => {
             if (lodash.has(employee, 'employments.0')) {
                 employments.push({
@@ -287,6 +288,7 @@ const db = require('../data/src/db-install');
             }
         })
 
+        // 4. Insert Payroll
         let payroll = await db.main.Payroll.create({
             name: 'June 1st Quincena Perma',
             dateStart: '2021-06-01',
@@ -305,9 +307,9 @@ const db = require('../data/src/db-install');
         logs.push(`db.getCollection('payrolls').remove({_id:ObjectId("${payroll._id}")})`)
 
 
-        file = CONFIG.app.dir + '/scripts/logs/attendance.perma.test.log'
-        fs.writeFileSync(file, logs.join(";\n"), { encoding: 'utf8' })
-        console.log(`Log file "${file}""`)
+        // file = CONFIG.app.dir + '/scripts/logs/attendance.perma.test.log'
+        // fs.writeFileSync(file, logs.join(";\n"), { encoding: 'utf8' })
+        // console.log(`Log file "${file}""`)
     } catch (err) {
         console.log(err)
     } finally {

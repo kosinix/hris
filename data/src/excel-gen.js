@@ -207,7 +207,7 @@ let templateJocos = async (payroll) => {
         };
 
         cellRef = `B${10 + i}`
-        sheet.getCell(cellRef).value = `Catering`
+        sheet.getCell(cellRef).value = `${employment.fundSource}`
         sheet.getCell(cellRef).font = {
             name: 'Arial Narrow',
             size: 14,

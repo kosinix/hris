@@ -1,0 +1,61 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'e-profile/pds-header.html' %}
+    {% include 'e-profile/pds-tabs.html' %}
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <div class=" mb-5">
+            {% include 'parts/flash.html' %}
+            <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/pds1" method="POST" class="form-default">
+               
+            </form>
+        </div>
+    </div>
+</div>
+{% include 'parts/modal-help.html' %}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vue-ph-address.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            VuePhAddress.mixin
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        computed: {
+        },
+        data: {
+            actionType: 'save',
+        },
+        mounted: function(){
+        },
+        validations: {
+        },
+        methods: {
+            setAction: function(action){
+                this.actionType = action
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

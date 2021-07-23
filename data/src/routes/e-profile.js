@@ -560,6 +560,99 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
     }
 });
 
+router.get('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        res.render('e-profile/pds2.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            momentNow: moment(),
+            countries: countries.options,
+            suffixes: suffixes.options,
+        });
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let patch = res.employee.toObject()
+        let body = lodash.get(req, 'body')
+        // return res.send(body)
+
+        if(lodash.get(body, 'actionType') === 'saveNext'){
+            return res.redirect(`/e-profile/pds3`)
+        }
+        res.redirect(`/e-profile/pds`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        res.render('e-profile/pds3.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            momentNow: moment(),
+            countries: countries.options,
+            suffixes: suffixes.options,
+        });
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let patch = res.employee.toObject()
+        let body = lodash.get(req, 'body')
+        // return res.send(body)
+
+        if(lodash.get(body, 'actionType') === 'saveNext'){
+            return res.redirect(`/e-profile/pds4`)
+        }
+        res.redirect(`/e-profile/pds`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        res.render('e-profile/pds4.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            momentNow: moment(),
+            countries: countries.options,
+            suffixes: suffixes.options,
+        });
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let patch = res.employee.toObject()
+        let body = lodash.get(req, 'body')
+        // return res.send(body)
+
+        res.redirect(`/e-profile/pds`)
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/e-profile/account/password', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()

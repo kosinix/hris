@@ -7,17 +7,158 @@
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
         <div class=" mb-5">
             {% include 'parts/flash.html' %}
-            <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/pds1" method="POST" class="form-default">
-               
+            <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/pds2" method="POST" class="form-default">
+                {# Civil Service #}
+                <div class="form-group focusable" tabindex="0">
+                    <h2 class="h5">IV. Civil Service Eligibility</h2>
+                    <div v-for="(eligibility, index) in eligibilities">
+                        <hr v-if="index > 0">
+                        <div v-if="index > 0" class="text-right mb-2">
+                            <button v-on:click="deleteEligibility(index)" type="button" class="btn btn-danger btn-sm">X - Delete Eligibility</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-12">
+                                {% set name = "'eligibilities[' + index + '][name]'"|safe %}
+                                {% set vModel = 'eligibility.name' %}
+                                {% set label = "CAREER SERVICE / RA 1080 (BOARD/BAR) UNDER SPECIAL LAWS/ CES/ CSEE BARANGAY ELIGIBILITY / DRIVER'S LICENSE" %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                {% set name = "'eligibilities[' + index + '][rating]'"|safe %}
+                                {% set vModel = 'eligibility.rating' %}
+                                {% set label = 'RATING (If Applicable)' %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-4">
+                                {% set name = "'eligibilities[' + index + '][examDate]'"|safe %}
+                                {% set vModel = 'eligibility.examDate' %}
+                                {% set label = 'Exam Date / Conferment' %}
+                                {% include 'parts/form-group-date-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-4">
+                                {% set name = "'eligibilities[' + index + '][examPlace]'"|safe %}
+                                {% set vModel = 'eligibility.examPlace' %}
+                                {% set label = 'Place of Exam / Conferment' %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                {% set name = "'eligibilities[' + index + '][licenseNumber]'"|safe %}
+                                {% set vModel = 'eligibility.licenseNumber' %}
+                                {% set label = 'License Number (If applicable)' %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-4">
+                                {% set name = "'eligibilities[' + index + '][licenseValidity]'"|safe %}
+                                {% set vModel = 'eligibility.licenseValidity' %}
+                                {% set label = 'Date of Validity (If applicable)' %}
+                                {% include 'parts/form-group-date-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center" v-if="eligibilities.length < 12">
+                        <button type="button" v-on:click.prevent="addEligibility" class="btn btn-sm btn-primary">Add Eligibility</button>
+                    </div> 
+                </div>
+                {# Work Exp #}
+                <div class="form-group focusable" tabindex="0">
+                    <h2 class="h5">V. Work Experience</h2>
+                    <p class="mb-4"><em>(Include private employment. Start from your recent work) Description of duties should be indicated in the attached Work Experience sheet.</em></p>
+                    <div v-for="(experience, index) in workExperiences">
+                        <hr v-if="index > 0">
+                        <div v-if="index > 0" class="text-right mb-2">
+                            <button v-on:click="deleteExperience(index)" type="button" class="btn btn-danger btn-sm">X - Delete Experience</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-2">
+                                {% set name = "'workExperiences[' + index + '][fromDate]'"|safe %}
+                                {% set vModel = 'experience.fromDate' %}
+                                {% set label = "Work From" %}
+                                {% include 'parts/form-group-date-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-2">
+                                {% set name = "'workExperiences[' + index + '][toDate]'"|safe %}
+                                {% set vModel = 'experience.toDate' %}
+                                {% set label = "Work To" %}
+                                {% include 'parts/form-group-date-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-4">
+                                {% set name = "'workExperiences[' + index + '][positionTitle]'"|safe %}
+                                {% set vModel = 'experience.positionTitle' %}
+                                {% set label = "Position Title" %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>                                                                                          		
+                            <div class="col-md-4">
+                                {% set name = "'workExperiences[' + index + '][department]'"|safe %}
+                                {% set vModel = 'experience.department' %}
+                                {% set label = "Department/Agency/Office/Company" %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-3">
+                                {% set name = "'workExperiences[' + index + '][salary]'"|safe %}
+                                {% set vModel = 'experience.salary' %}
+                                {% set label = "Monthly Salary" %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-3">
+                                {% set name = "'workExperiences[' + index + '][payGrade]'"|safe %}
+                                {% set vModel = 'experience.payGrade' %}
+                                {% set label = 'Pay Grade Step (Format "00-0")' %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-3">
+                                {% set name = "'workExperiences[' + index + '][appointmentStatus]'"|safe %}
+                                {% set vModel = 'experience.appointmentStatus' %}
+                                {% set label = "Status of Appointment" %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-3">
+                                {% set name = "'workExperiences[' + index + '][isGov]'"|safe %}
+                                {% set vModel = 'experience.isGov' %}
+                                {% set label = "Gov't Service?" %}
+                                {% set options = [{text:'', value:''}, {text:'No', value:'No'},{text:'Yes', value:'Yes'}] %}
+                                {% include 'parts/form-group-select-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center" v-if="workExperiences.length < 12">
+                        <button type="button" v-on:click.prevent="addExperience" class="btn btn-sm btn-primary">Add Experience</button>
+                    </div> 
+                </div>
+                <hr>
+                <div class="form-row pt-3 pb-3">
+                    <div class="col-md-12">
+                        <input name="actionType" type="hidden" v-model="actionType">
+                        <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save PDS</button>
+                        <button v-on:click="setAction('saveNext')" type="submit" name="save" value="saveNext" class="btn btn-primary">Save and Go to C3</button>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
 </div>
-{% include 'parts/modal-help.html' %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-<script src="{{app.url}}/js/vue-ph-address.js"></script>
 <script>
     var vApp = new Vue({
         el: '#vApp',
@@ -25,21 +166,49 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
-            VuePhAddress.mixin
         ],
         components: {
-            'autocomplete': window["vuejs-autocomplete"]
         },
         computed: {
         },
         data: {
             actionType: 'save',
+            eligibilities:{{employee.personal.eligibilities|default([], true)|stringify|safe}},
+            workExperiences:{{employee.personal.workExperiences|default([], true)|stringify|safe}},
         },
         mounted: function(){
         },
         validations: {
         },
         methods: {
+            addEligibility: function(){
+                this.eligibilities.push({
+                    name:'',
+                    rating:'',
+                    examDate:'',
+                    examPlace:'',
+                    licenseNumber:'',
+                    licenseValidity:'',
+                })
+            },
+            deleteEligibility: function(start){
+                this.$delete(this.eligibilities, start)
+            },
+            addExperience: function(){
+                this.workExperiences.push({
+                    fromDate:'',
+                    toDate:'',
+                    positionTitle:'',
+                    department:'',
+                    salary:'',
+                    payGrade:'',
+                    appointmentStatus:'',
+                    isGov:'',
+                })
+            },
+            deleteExperience: function(start){
+                this.$delete(this.workExperiences, start)
+            },
             setAction: function(action){
                 this.actionType = action
             },

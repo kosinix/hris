@@ -554,7 +554,7 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         if(lodash.get(body, 'actionType') === 'saveNext'){
             return res.redirect(`/e-profile/pds2`)
         }
-        res.redirect(`/e-profile/pds`)
+        res.redirect(`/e-profile/pds1`)
     } catch (err) {
         next(err);
     }
@@ -583,10 +583,17 @@ router.post('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']),
         let body = lodash.get(req, 'body')
         // return res.send(body)
 
+        lodash.set(patch, 'personal.eligibilities', lodash.get(body, 'eligibilities'))
+        lodash.set(patch, 'personal.workExperiences', lodash.get(body, 'workExperiences'))
+
+        await db.main.Employee.updateOne({ _id: employee._id }, patch)
+
+        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} PDS.`)
+
         if(lodash.get(body, 'actionType') === 'saveNext'){
             return res.redirect(`/e-profile/pds3`)
         }
-        res.redirect(`/e-profile/pds`)
+        res.redirect(`/e-profile/pds2`)
     } catch (err) {
         next(err);
     }
@@ -615,10 +622,18 @@ router.post('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']),
         let body = lodash.get(req, 'body')
         // return res.send(body)
 
+        lodash.set(patch, 'personal.voluntaryWorks', lodash.get(body, 'voluntaryWorks'))
+        lodash.set(patch, 'personal.trainings', lodash.get(body, 'trainings'))
+        lodash.set(patch, 'personal.extraCurriculars', lodash.get(body, 'extraCurriculars'))
+
+        await db.main.Employee.updateOne({ _id: employee._id }, patch)
+
+        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} PDS.`)
+
         if(lodash.get(body, 'actionType') === 'saveNext'){
             return res.redirect(`/e-profile/pds4`)
         }
-        res.redirect(`/e-profile/pds`)
+        res.redirect(`/e-profile/pds3`)
     } catch (err) {
         next(err);
     }
@@ -646,8 +661,37 @@ router.post('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']),
         let patch = res.employee.toObject()
         let body = lodash.get(req, 'body')
         // return res.send(body)
+        
+        lodash.set(patch, 'personal.relatedThirdDegree', lodash.get(body, 'relatedThirdDegree'))
+        lodash.set(patch, 'personal.relatedFourthDegree', lodash.get(body, 'relatedFourthDegree'))
+        lodash.set(patch, 'personal.relatedFourthDegreeDetails', lodash.get(body, 'relatedFourthDegreeDetails'))
+        lodash.set(patch, 'personal.guiltyAdmin', lodash.get(body, 'guiltyAdmin'))
+        lodash.set(patch, 'personal.guiltyAdminDetails', lodash.get(body, 'guiltyAdminDetails'))
+        lodash.set(patch, 'personal.criminalCharge', lodash.get(body, 'criminalCharge'))
+        lodash.set(patch, 'personal.criminalChargeDetails', lodash.get(body, 'criminalChargeDetails'))
+        lodash.set(patch, 'personal.convicted', lodash.get(body, 'convicted'))
+        lodash.set(patch, 'personal.convictedDetails', lodash.get(body, 'convictedDetails'))
+        lodash.set(patch, 'personal.problematicHistory', lodash.get(body, 'problematicHistory'))
+        lodash.set(patch, 'personal.problematicHistoryDetails', lodash.get(body, 'problematicHistoryDetails'))
+        lodash.set(patch, 'personal.electionCandidate', lodash.get(body, 'electionCandidate'))
+        lodash.set(patch, 'personal.electionCandidateDetails', lodash.get(body, 'electionCandidateDetails'))
+        lodash.set(patch, 'personal.electionResigned', lodash.get(body, 'electionResigned'))
+        lodash.set(patch, 'personal.electionResignedDetails', lodash.get(body, 'electionResignedDetails'))
+        lodash.set(patch, 'personal.dualCitizen', lodash.get(body, 'dualCitizen'))
+        lodash.set(patch, 'personal.dualCitizenDetails', lodash.get(body, 'dualCitizenDetails'))
+        lodash.set(patch, 'personal.indigenousGroup', lodash.get(body, 'indigenousGroup'))
+        lodash.set(patch, 'personal.indigenousGroupDetails', lodash.get(body, 'indigenousGroupDetails'))
+        lodash.set(patch, 'personal.pwd', lodash.get(body, 'pwd'))
+        lodash.set(patch, 'personal.pwdDetails', lodash.get(body, 'pwdDetails'))
+        lodash.set(patch, 'personal.soloParent', lodash.get(body, 'soloParent'))
+        lodash.set(patch, 'personal.soloParentDetails', lodash.get(body, 'soloParentDetails'))
+        lodash.set(patch, 'personal.references', lodash.get(body, 'references'))
 
-        res.redirect(`/e-profile/pds`)
+        await db.main.Employee.updateOne({ _id: employee._id }, patch)
+
+        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} PDS.`)
+
+        res.redirect(`/e-profile/pds4`)
     } catch (err) {
         next(err);
     }

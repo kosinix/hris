@@ -7,17 +7,162 @@
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
         <div class=" mb-5">
             {% include 'parts/flash.html' %}
-            <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/pds1" method="POST" class="form-default">
-               
+            <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/pds3" method="POST" class="form-default">
+                {# Civil Service #}
+                <div class="form-group focusable" tabindex="0">
+                    <h2 class="h5">VI. Voluntary Work Or Involvement In Civic / Non-Government / People / Voluntary Organizations</h2>
+                    <div v-for="(voluntaryWork, index) in voluntaryWorks">
+                        <hr v-if="index > 0">
+                        <div v-if="index > 0" class="text-right mb-2">
+                            <button v-on:click="deleteVoluntaryWork(index)" type="button" class="btn btn-danger btn-sm">X - Delete Voluntary Work</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-3">
+                                {% set name = "'voluntaryWorks[' + index + '][name]'"|safe %}
+                                {% set vModel = 'voluntaryWork.name' %}
+                                {% set label = "Name and Address of Organization" %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-2">
+                                {% set name = "'voluntaryWorks[' + index + '][fromDate]'"|safe %}
+                                {% set vModel = 'voluntaryWork.fromDate' %}
+                                {% set label = 'From' %}
+                                {% include 'parts/form-group-date-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-2">
+                                {% set name = "'voluntaryWorks[' + index + '][toDate]'"|safe %}
+                                {% set vModel = 'voluntaryWork.toDate' %}
+                                {% set label = 'To' %}
+                                {% include 'parts/form-group-date-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-2">
+                                {% set name = "'voluntaryWorks[' + index + '][hours]'"|safe %}
+                                {% set vModel = 'voluntaryWork.hours' %}
+                                {% set label = 'Number of Hours' %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-3">
+                                {% set name = "'voluntaryWorks[' + index + '][position]'"|safe %}
+                                {% set vModel = 'voluntaryWork.position' %}
+                                {% set label = 'Position / Nature of Work' %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center" v-if="voluntaryWorks.length < 7">
+                        <button type="button" v-on:click.prevent="addVoluntaryWork" class="btn btn-sm btn-primary">Add Voluntary Work</button>
+                    </div> 
+                </div>
+                {# Work Exp #}
+                <div class="form-group focusable" tabindex="0">
+                    <h2 class="h5">VII.  Learning and Development (L&amp;D) Interventions/Training Programs Attended</h2>
+                    <p class="mb-4"><em>(Include private employment. Start from your recent work) Description of duties should be indicated in the attached Work Experience sheet.</em></p>
+                    <div v-for="(training, index) in trainings">
+                        <hr v-if="index > 0">
+                        <div v-if="index > 0" class="text-right mb-2">
+                            <button v-on:click="deleteTraining(index)" type="button" class="btn btn-danger btn-sm">X - Delete Training</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-5">
+                                {% set name = "'trainings[' + index + '][title]'"|safe %}
+                                {% set vModel = 'training.title' %}
+                                {% set label = "Title of L&amp;D/Training" %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-2">
+                                {% set name = "'trainings[' + index + '][fromDate]'"|safe %}
+                                {% set vModel = 'training.fromDate' %}
+                                {% set label = 'From' %}
+                                {% include 'parts/form-group-date-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-2">
+                                {% set name = "'trainings[' + index + '][toDate]'"|safe %}
+                                {% set vModel = 'training.toDate' %}
+                                {% set label = 'To' %}
+                                {% include 'parts/form-group-date-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-3">
+                                {% set name = "'trainings[' + index + '][hours]'"|safe %}
+                                {% set vModel = 'training.hours' %}
+                                {% set label = "Number of Hours" %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>                                                                                      		
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                {% set name = "'trainings[' + index + '][type]'"|safe %}
+                                {% set vModel = 'training.type' %}
+                                {% set label = "Type of LD ( Managerial/ Supervisory/Technical/etc)" %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-6">
+                                {% set name = "'trainings[' + index + '][sponsor]'"|safe %}
+                                {% set vModel = 'training.sponsor' %}
+                                {% set label = "Conducted / Sponsored by" %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center" v-if="trainings.length < 12">
+                        <button type="button" v-on:click.prevent="addTraining" class="btn btn-sm btn-primary">Add Training</button>
+                    </div> 
+                </div>
+                {# Extra #}
+                <div class="form-group focusable" tabindex="0">
+                    <h2 class="h5">VIII. Other Information</h2>
+                    <div v-for="(extraCurricular, index) in extraCurriculars">
+                        <hr v-if="index > 0">
+                        <div v-if="index > 0" class="text-right mb-2">
+                            <button v-on:click="deleteExtraCurricular(index)" type="button" class="btn btn-danger btn-sm">X - Delete</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                {% set name = "'extraCurriculars[' + index + '][type]'"|safe %}
+                                {% set vModel = 'extraCurricular.type' %}
+                                {% set label = "Type" %}
+                                {% set options = [{text:'', value:''}, {text:'Special Skills and Hobbies', value:'skillHobbies'}, {text:'Non-Academic Distinctions / Recognition', value:'nonAcademic'}, {text:'Membership in Association/Organization', value:'organization'}] %}
+                                {% include 'parts/form-group-select-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-6">
+                                {% set name = "'extraCurriculars[' + index + '][detail]'"|safe %}
+                                {% set vModel = 'extraCurricular.detail' %}
+                                {% set label = 'Details' %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center" v-if="extraCurriculars.length < 21">
+                        <button type="button" v-on:click.prevent="addExtraCurricular" class="btn btn-sm btn-primary">Add Info</button>
+                    </div> 
+                </div>
+                <hr>
+                <div class="form-row pt-3 pb-3">
+                    <div class="col-md-12">
+                        <input name="actionType" type="hidden" v-model="actionType">
+                        <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save PDS</button>
+                        <button v-on:click="setAction('saveNext')" type="submit" name="save" value="saveNext" class="btn btn-primary">Save and Go to C4</button>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
 </div>
-{% include 'parts/modal-help.html' %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-<script src="{{app.url}}/js/vue-ph-address.js"></script>
 <script>
     var vApp = new Vue({
         el: '#vApp',
@@ -25,21 +170,61 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
-            VuePhAddress.mixin
         ],
         components: {
-            'autocomplete': window["vuejs-autocomplete"]
         },
         computed: {
         },
         data: {
             actionType: 'save',
+            voluntaryWorks:{{employee.personal.voluntaryWorks|default([], true)|stringify|safe}},
+            trainings:{{employee.personal.trainings|default([], true)|stringify|safe}},
+            extraCurriculars:{{employee.personal.extraCurriculars|default([], true)|stringify|safe}},
         },
         mounted: function(){
         },
         validations: {
         },
         methods: {
+            addVoluntaryWork: function(){
+                this.voluntaryWorks.push({
+                    name:'',
+                    rating:'',
+                    examDate:'',
+                    examPlace:'',
+                    licenseNumber:'',
+                    licenseValidity:'',
+                })
+            },
+            deleteVoluntaryWork: function(start){
+                this.$delete(this.voluntaryWorks, start)
+            },
+            addTraining: function(){
+                this.trainings.push({
+                    title:'',
+                    fromDate:'',
+                    toDate:'',
+                    hours:'',
+                    type:'',
+                    sponsor:'',
+                })
+            },
+            deleteTraining: function(start){
+                this.$delete(this.trainings, start)
+            },
+            addExtraCurricular: function(){
+                this.extraCurriculars.push({
+                    title:'',
+                    fromDate:'',
+                    toDate:'',
+                    hours:'',
+                    type:'',
+                    sponsor:'',
+                })
+            },
+            deleteExtraCurricular: function(start){
+                this.$delete(this.extraCurriculars, start)
+            },
             setAction: function(action){
                 this.actionType = action
             },

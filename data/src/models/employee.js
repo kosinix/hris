@@ -184,28 +184,126 @@ const schema = new Schema({
         mother: {},
         children: [],
         schools: [],
+        eligibilities: [],
+        workExperiences: [],
+        voluntaryWorks: [],
+        trainings: [],
+        extraCurriculars: [],
+        relatedThirdDegree: {
+            $type: String,
+            trim: true,
+        },
+        relatedFourthDegree: {
+            $type: String,
+            trim: true,
+        },
+        relatedFourthDegreeDetails: {
+            $type: String,
+            trim: true,
+        },
+        guiltyAdmin: {
+            $type: String,
+            trim: true,
+        },
+        guiltyAdminDetails: {
+            $type: String,
+            trim: true,
+        },
+        criminalCharge: {
+            $type: String,
+            trim: true,
+        },
+        criminalChargeDetails: {
+            $type: String,
+            trim: true,
+        },
+        convicted: {
+            $type: String,
+            trim: true,
+        },
+        convictedDetails: {
+            $type: String,
+            trim: true,
+        },
+        problematicHistory: {
+            $type: String,
+            trim: true,
+        },
+        problematicHistoryDetails: {
+            $type: String,
+            trim: true,
+        },
+        electionCandidate: {
+            $type: String,
+            trim: true,
+        },
+        electionCandidateDetails: {
+            $type: String,
+            trim: true,
+        },
+        electionResigned: {
+            $type: String,
+            trim: true,
+        },
+        electionResignedDetails: {
+            $type: String,
+            trim: true,
+        },
+        dualCitizen: {
+            $type: String,
+            trim: true,
+        },
+        dualCitizenDetails: {
+            $type: String,
+            trim: true,
+        },
+        indigenousGroup: {
+            $type: String,
+            trim: true,
+        },
+        indigenousGroupDetails: {
+            $type: String,
+            trim: true,
+        },
+        pwd: {
+            $type: String,
+            trim: true,
+        },
+        pwdDetails: {
+            $type: String,
+            trim: true,
+        },
+        soloParent: {
+            $type: String,
+            trim: true,
+        },
+        soloParentDetails: {
+            $type: String,
+            trim: true,
+        },
+        references: []
     },
-}, {timestamps: true, typeKey: '$type'})
+}, { timestamps: true, typeKey: '$type' })
 
 //// Virtuals
-schema.virtual('addressPsgc').get(function() {
+schema.virtual('addressPsgc').get(function () {
     let me = this
     let permanentAddress = lodash.find(this.addresses, (o) => {
         return o._id.toString() === me.addressPermanent.toString()
     })
-    if(!permanentAddress) {
+    if (!permanentAddress) {
         return ''
     }
 
     return permanentAddress.psgc
 });
 
-schema.virtual('addressUnit').get(function() {
+schema.virtual('addressUnit').get(function () {
     let me = this
     let permanentAddress = lodash.find(this.addresses, (o) => {
         return o._id.toString() === me.addressPermanent.toString()
     })
-    if(!permanentAddress) {
+    if (!permanentAddress) {
         return ''
     }
 
@@ -219,10 +317,10 @@ schema.virtual('addressUnit').get(function() {
 
 //// Middlewares
 schema.pre('save', function (next) {
-    if(!this.uuid){
+    if (!this.uuid) {
         this.uuid = uuid.v4()
     }
-    if(!this.uid){
+    if (!this.uid) {
         this.uid = uid.gen()
     }
     next();

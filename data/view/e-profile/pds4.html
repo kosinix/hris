@@ -7,17 +7,250 @@
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
         <div class=" mb-5">
             {% include 'parts/flash.html' %}
-            <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/pds1" method="POST" class="form-default">
-               
+            <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/pds4" method="POST" class="form-default">
+                <div class="form-group focusable" tabindex="0">
+                    <p>Are you related by consanguinity or affinity to the appointing or recommending authority, or to the chief of bureau or office or to the person who has immediate supervision over you in the Office, Bureau or Department where you will be apppointed, </p>
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "relatedThirdDegree" %}
+                            {% set label = "a. within the third degree?" %}
+                            {% set options = [{text:'', value:''}, {text:'No', value: 'No'}, {text:'Yes', value: 'Yes'}] %}
+                            {% include 'parts/form-group-select.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div class="col-md-12">
+                            {% set name = "relatedFourthDegree" %}
+                            {% set label = "b. within the fourth degree (for Local Government Unit - Career Employees)?" %}
+                            {% set options = [{text:'', value:''}, {text:'No', value: 'No'}, {text:'Yes', value: 'Yes'}] %}
+                            {% include 'parts/form-group-select.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div v-if="relatedFourthDegree==='Yes'" class="col-md-12">
+                            {% set name = "relatedFourthDegreeDetails" %}
+                            {% set label = "If Yes, give details" %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group focusable" tabindex="0">
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "guiltyAdmin" %}
+                            {% set label = "Have you ever been found guilty of any administrative offense?" %}
+                            {% set options = [{text:'', value:''}, {text:'No', value: 'No'}, {text:'Yes', value: 'Yes'}] %}
+                            {% include 'parts/form-group-select.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div v-if="guiltyAdmin==='Yes'" class="col-md-12">
+                            {% set name = "guiltyAdminDetails" %}
+                            {% set label = "If Yes, give details" %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div class="col-md-12">
+                            {% set name = "criminalCharge" %}
+                            {% set label = "Have you been criminally charged before any court?" %}
+                            {% set options = [{text:'', value:''}, {text:'No', value: 'No'}, {text:'Yes', value: 'Yes'}] %}
+                            {% include 'parts/form-group-select.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div v-if="criminalCharge==='Yes'" class="col-md-12">
+                            {% set name = "criminalChargeDetails" %}
+                            {% set label = "If Yes, give details" %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group focusable" tabindex="0">
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "convicted" %}
+                            {% set label = "Have you ever been convicted of any crime or violation of any law, decree, ordinance or regulation by any court or tribunal?" %}
+                            {% set options = [{text:'', value:''}, {text:'No', value: 'No'}, {text:'Yes', value: 'Yes'}] %}
+                            {% include 'parts/form-group-select.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div v-if="convicted==='Yes'" class="col-md-12">
+                            {% set name = "convictedDetails" %}
+                            {% set label = "If Yes, give details" %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group focusable" tabindex="0">
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "problematicHistory" %}
+                            {% set label = "Have you ever been separated from the service in any of the following modes: resignation, retirement, dropped from the rolls, dismissal, termination, end of term, finished contract or phased out (abolition) in the public or private sector?" %}
+                            {% set options = [{text:'', value:''}, {text:'No', value: 'No'}, {text:'Yes', value: 'Yes'}] %}
+                            {% include 'parts/form-group-select.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div v-if="problematicHistory==='Yes'" class="col-md-12">
+                            {% set name = "problematicHistoryDetails" %}
+                            {% set label = "If Yes, give details" %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group focusable" tabindex="0">
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "electionCandidate" %}
+                            {% set label = "Have you ever been a candidate in a national or local election held within the last year (except Barangay election)?" %}
+                            {% set options = [{text:'', value:''}, {text:'No', value: 'No'}, {text:'Yes', value: 'Yes'}] %}
+                            {% include 'parts/form-group-select.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div v-if="electionCandidate==='Yes'" class="col-md-12">
+                            {% set name = "electionCandidateDetails" %}
+                            {% set label = "If Yes, give details" %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "electionResigned" %}
+                            {% set label = "Have you resigned from the government service during the three (3)-month period before the last election to promote/actively campaign for a national or local candidate?" %}
+                            {% set options = [{text:'', value:''}, {text:'No', value: 'No'}, {text:'Yes', value: 'Yes'}] %}
+                            {% include 'parts/form-group-select.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div v-if="electionResigned==='Yes'" class="col-md-12">
+                            {% set name = "electionResignedDetails" %}
+                            {% set label = "If Yes, give details" %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group focusable" tabindex="0">
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "dualCitizen" %}
+                            {% set label = "Have you acquired the status of an immigrant or permanent resident of another country?" %}
+                            {% set options = [{text:'', value:''}, {text:'No', value: 'No'}, {text:'Yes', value: 'Yes'}] %}
+                            {% include 'parts/form-group-select.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div v-if="dualCitizen==='Yes'" class="col-md-12">
+                            {% set name = "dualCitizenDetails" %}
+                            {% set label = "If Yes, give details" %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group focusable" tabindex="0">
+                    <p>Pursuant to: (a) Indigenous People's Act (RA 8371); (b) Magna Carta for Disabled Persons (RA 7277); and (c) Solo Parents Welfare Act of 2000 (RA 8972), please answer the following items:</p>
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "indigenousGroup" %}
+                            {% set label = "Are you a member of any indigenous group?" %}
+                            {% set options = [{text:'', value:''}, {text:'No', value: 'No'}, {text:'Yes', value: 'Yes'}] %}
+                            {% include 'parts/form-group-select.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div v-if="indigenousGroup==='Yes'" class="col-md-12">
+                            {% set name = "indigenousGroupDetails" %}
+                            {% set label = "If Yes, give details" %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "pwd" %}
+                            {% set label = "Are you a person with disability?" %}
+                            {% set options = [{text:'', value:''}, {text:'No', value: 'No'}, {text:'Yes', value: 'Yes'}] %}
+                            {% include 'parts/form-group-select.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div v-if="pwd==='Yes'" class="col-md-12">
+                            {% set name = "pwdDetails" %}
+                            {% set label = "If Yes, please specify ID No." %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "soloParent" %}
+                            {% set label = "Are you a solo parent?" %}
+                            {% set options = [{text:'', value:''}, {text:'No', value: 'No'}, {text:'Yes', value: 'Yes'}] %}
+                            {% include 'parts/form-group-select.html' %}
+                            {% set label = '' %}
+                        </div>
+                        <div v-if="soloParent==='Yes'" class="col-md-12">
+                            {% set name = "soloParentDetails" %}
+                            {% set label = "If Yes, please specify ID No." %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                </div>
+                {# Extra #}
+                <div class="form-group focusable" tabindex="0">
+                    <h2 class="h5">References <em>(${references.length} of 3)</em> </h2>
+                    <p><em>(Person not related by consanguinity or affinity to applicant /appointee)</em></p>
+                    <div v-for="(reference, index) in references">
+                        <hr v-if="index > 0">
+                        <div v-if="index > 0" class="text-right mb-2">
+                            <button v-on:click="deleteReference(index)" type="button" class="btn btn-danger btn-sm">X - Delete</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                {% set name = "'references[' + index + '][name]'"|safe %}
+                                {% set vModel = 'reference.name' %}
+                                {% set label = "Name" %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-4">
+                                {% set name = "'references[' + index + '][address]'"|safe %}
+                                {% set vModel = 'reference.address' %}
+                                {% set label = "Address" %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-4">
+                                {% set name = "'references[' + index + '][phoneNumber]'"|safe %}
+                                {% set vModel = 'reference.phoneNumber' %}
+                                {% set label = "Phone No." %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center" v-if="references.length < 3">
+                        <button type="button" v-on:click.prevent="addReference" class="btn btn-sm btn-primary">Add Reference</button>
+                    </div> 
+                </div>
+                <hr>
+                <div class="form-row pt-3 pb-3">
+                    <div class="col-md-12">
+                        <input name="actionType" type="hidden" v-model="actionType">
+                        <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save PDS</button>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
 </div>
-{% include 'parts/modal-help.html' %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-<script src="{{app.url}}/js/vue-ph-address.js"></script>
 <script>
     var vApp = new Vue({
         el: '#vApp',
@@ -25,21 +258,108 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
-            VuePhAddress.mixin
         ],
         components: {
-            'autocomplete': window["vuejs-autocomplete"]
         },
         computed: {
         },
         data: {
             actionType: 'save',
+            relatedThirdDegree: '{{employee.personal.relatedThirdDegree}}',
+            relatedFourthDegree: '{{employee.personal.relatedFourthDegree}}',
+            relatedFourthDegreeDetails: '{{employee.personal.relatedFourthDegreeDetails}}',
+            guiltyAdmin: '{{employee.personal.guiltyAdmin}}',
+            guiltyAdminDetails: '{{employee.personal.guiltyAdminDetails}}',
+            criminalCharge: '{{employee.personal.criminalCharge}}',
+            criminalChargeDetails: '{{employee.personal.criminalChargeDetails}}',
+            convicted: '{{employee.personal.convicted}}',
+            convictedDetails: '{{employee.personal.convictedDetails}}',
+            problematicHistory: '{{employee.personal.problematicHistory}}',
+            problematicHistoryDetails: '{{employee.personal.problematicHistoryDetails}}',
+            electionCandidate: '{{employee.personal.electionCandidate}}',
+            electionCandidateDetails: '{{employee.personal.electionCandidateDetails}}',
+            electionResigned:'{{employee.personal.electionResigned}}',
+            electionResignedDetails: '{{employee.personal.electionResignedDetails}}',
+            dualCitizen: '{{employee.personal.dualCitizen}}',
+            dualCitizenDetails: '{{employee.personal.dualCitizenDetails}}',
+            indigenousGroup: '{{employee.personal.indigenousGroup}}',
+            indigenousGroupDetails: '{{employee.personal.indigenousGroupDetails}}',
+            pwd: '{{employee.personal.pwd}}',
+            pwdDetails: '{{employee.personal.pwdDetails}}',
+            soloParent: '{{employee.personal.soloParent}}',
+            soloParentDetails: '{{employee.personal.soloParentDetails}}',
+            references:{{employee.personal.references|default([], true)|stringify|safe}},
         },
         mounted: function(){
         },
         validations: {
+            relatedFourthDegreeDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.relatedFourthDegree === 'Yes';
+                })
+            },
+            guiltyAdminDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.guiltyAdmin === 'Yes';
+                })
+            },
+            criminalChargeDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.criminalCharge === 'Yes';
+                })
+            },
+            convictedDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.convicted === 'Yes';
+                })
+            },
+            problematicHistoryDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.problematicHistory === 'Yes';
+                })
+            },
+            electionCandidateDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.electionCandidate === 'Yes';
+                })
+            },
+            electionResignedDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.electionResigned === 'Yes';
+                })
+            },
+            dualCitizenDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.dualCitizen === 'Yes';
+                })
+            },
+            indigenousGroupDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.indigenousGroup === 'Yes';
+                })
+            },
+            pwdDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.pwd === 'Yes';
+                })
+            },
+            soloParentDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.soloParent === 'Yes';
+                })
+            },
         },
         methods: {
+            addReference: function(){
+                this.references.push({
+                    name:'',
+                    address:'',
+                    phoneNumber:'',
+                })
+            },
+            deleteReference: function(start){
+                this.$delete(this.references, start)
+            },
             setAction: function(action){
                 this.actionType = action
             },

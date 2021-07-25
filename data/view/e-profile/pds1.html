@@ -449,27 +449,25 @@
                 <div class="form-group focusable" tabindex="0">
                     <h2 class="h5">Children</h2>
                     <p class="mb-4"><em>(Write full name and list all)</em></p>
-                    <div v-for="(child, index) in children" class="form-row">
-                        <div class="col-md-9">
-                            {% set name = "'children[' + index + '][name]'"|safe %}
-                            {% set vModel = 'child.name' %}
-                            {% set label = 'Full Name of Child' %}
-                            {% include 'parts/form-group-text-vue.html' %}
-                            {% set label = '' %}
+                    <div v-for="(child, index) in children">
+                        <hr v-if="index > 0">
+                        <div v-if="index > 0" class="text-right mb-2">
+                            <button v-on:click="deleteChild(index)" type="button" class="btn btn-danger btn-sm">X - Delete Child</button>
                         </div>
-                        <div class="col-md-2">
-                            {% set name = "'children[' + index + '][birthDate]'"|safe %}
-                            {% set vModel = 'child.birthDate' %}
-                            {% set label = 'Child Birth Date' %}
-                            {% include 'parts/form-group-date-vue.html' %}
-                            {% set label = '' %}
-                        </div>
-                        <div v-if="index > 0" class="col-md-1">
-                            <div class="form-group">
-                                <label>&nbsp;</label>
-                                <div>
-                                    <button v-on:click.prevent="deleteChild(index)" type="button" class="btn btn-sm btn-danger">X</button>
-                                </div>
+                        <div class="form-row">
+                            <div class="col-md-9">
+                                {% set name = "'children[' + index + '][name]'"|safe %}
+                                {% set vModel = 'child.name' %}
+                                {% set label = 'Full Name of Child' %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-3">
+                                {% set name = "'children[' + index + '][birthDate]'"|safe %}
+                                {% set vModel = 'child.birthDate' %}
+                                {% set label = 'Child Birth Date' %}
+                                {% include 'parts/form-group-date-vue.html' %}
+                                {% set label = '' %}
                             </div>
                         </div>
                     </div>
@@ -483,8 +481,8 @@
                     <h2 class="h5 mb-4">III. Educational Background</h2>
                     <div v-for="(school, index) in schools">
                         <hr v-if="index > 0">
-                        <div v-if="index > 0" class="text-right">
-                            <button v-on:click="deleteSchool(index)" type="button" class="btn btn-danger btn-sm">X - Delete</button>
+                        <div v-if="index > 0" class="text-right mb-2">
+                            <button v-on:click="deleteSchool(index)" type="button" class="btn btn-danger btn-sm">X - Delete School</button>
                         </div>
                         <div class="form-row">
                             <div class="col-md-2">
@@ -696,7 +694,7 @@
                 })
             },
             deleteChild: function(start){
-                this.children.splice(start, 1)
+                this.$delete(this.children, start)
             },
             addSchool: function(){
                 this.schools.push({

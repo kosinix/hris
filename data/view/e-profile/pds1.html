@@ -657,8 +657,8 @@
                 middleName:'{{employee.personal.mother.middleName}}',
                 birthDate:'{{employee.personal.mother.birthDate}}',
             },
-            children:{{employee.personal.children|stringify|safe}},
-            schools:{{employee.personal.schools|stringify|safe}},
+            children:{{employee.personal.children|default([], true)|stringify|safe}},
+            schools:{{employee.personal.schools|default([], true)|stringify|safe}},
         },
         mounted: function(){
             var inches = Math.round(parseFloat({{employee.personal.height|default(0, true)}}) *  39.37)

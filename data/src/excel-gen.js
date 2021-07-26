@@ -507,6 +507,8 @@ let templatePds = async (employee) => {
         sheet.getRow(10).height = 22.5
         sheet.getRow(11).height = 22.5
         sheet.getRow(12).height = 22.5
+        sheet.getRow(37).height = 26
+        sheet.getRow(36).height = 24
 
         // sex
         cell = sheet.getCell('A16')
@@ -841,6 +843,258 @@ let templatePds = async (employee) => {
         sheet.mergeCells('A35:N35');
         cell = sheet.getCell('A35')
         slex.setCell(cell).value(`II.  FAMILY BACKGROUND`).align('top').align('left').font('Arial Narrow').fontSize(11).bold(true).italic(true).fontColor('FFFFFFFF').border('thin', 'thin', 'thin', 'thin').bgFill('00969696')
+
+        // II. FAMILY
+        
+        cell = sheet.getCell('A36')
+        slex.setCell(cell).value(`22.`).align('left').align('middle').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', '', 'thin')
+        sheet.mergeCells('A37:A38');
+        cell = sheet.getCell('A37')
+        slex.setCell(cell).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+        
+
+        sheet.mergeCells('B36:C36');
+        cell = sheet.getCell('B36')
+        slex.setCell(cell).value(`SPOUSE'S SURNAME`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0')
+
+        sheet.mergeCells('D36:H36');
+        cell = sheet.getCell('D36')
+        slex.setCell(cell).value(`${employee.personal.spouse.lastName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        sheet.mergeCells('B37:C37');
+        cell = sheet.getCell('B37')
+        slex.setCell(cell).value(`FIRST NAME`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0')
+
+        sheet.mergeCells('D37:F37');
+        cell = sheet.getCell('D37')
+        slex.setCell(cell).value(`${employee.personal.spouse.firstName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        //
+        sheet.mergeCells('G37:H37');
+        cell = sheet.getCell('G37')
+        cell.value = {
+            'richText': [
+                { 'font': { 'size': 7, 'color': colors.black, 'name': 'Arial Narrow', 'family': 2, 'scheme': 'none' }, 'text': 'NAME EXTENSION (JR., SR)' },
+                { 'font': { 'bold': true, 'size': 9, 'color': colors.black, 'name': 'Arial', 'scheme': 'none' }, 'text': `\n${employee.personal.spouse.suffix}` },
+            ]
+        };
+        slex.setCell(cell).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(7).bgFill('00C0C0C0').border('', 'thin', '', '')
+
+        sheet.mergeCells('B38:C38');
+        cell = sheet.getCell('B38')
+        slex.setCell(cell).value(`MIDDLE NAME`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', '')
+
+        sheet.mergeCells('D38:H38');
+        cell = sheet.getCell('D38')
+        slex.setCell(cell).value(`${employee.personal.spouse.middleName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        sheet.mergeCells('I36:L36');
+        cell = sheet.getCell('I36')
+        slex.setCell(cell).value(`23. NAME of CHILDREN  (Write full name and list all)`).align('middle').align('left').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('thin', 'thin', 'thin', '')
+
+        sheet.mergeCells('M36:N36');
+        cell = sheet.getCell('M36')
+        slex.setCell(cell).value(`DATE OF BIRTH\n(mm/dd/yyyy) `).align('top').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('thin', 'thin', 'thin', '')
+
+        let offset = 37
+        for (x = 0; x < 12; x++) {
+            let name = lodash.get(employee, `personal.children[${x}].name`, '')
+            let birthDate = lodash.get(employee, `personal.children[${x}].birthDate`, '')
+            
+            if(birthDate){
+                birthDate = moment(birthDate).format('MM/DD/YYYY')
+            }
+            row = offset + x
+            sheet.mergeCells(`I${row}:L${row}`);
+            cell = sheet.getCell(`I${row}`)
+            slex.setCell(cell).value(`${name}`).align('middle').align('left').font('Arial').fontSize(11).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            sheet.mergeCells(`M${row}:N${row}`);
+            cell = sheet.getCell(`M${row}`)
+            slex.setCell(cell).value(`${birthDate}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+        }
+
+        sheet.mergeCells('I49:N49');
+        cell = sheet.getCell('I49')
+        slex.setCell(cell).value(`(Continue on separate sheet if necessary)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).fontColor('00FF0000').bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', '')
+
+        // end children
+
+        cell = sheet.getCell('A39')
+        slex.setCell(cell).value(``).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+
+        sheet.mergeCells('B39:C39');
+        cell = sheet.getCell('B39')
+        slex.setCell(cell).value(`OCCUPATION`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', '')
+
+        sheet.mergeCells('D39:H39');
+        cell = sheet.getCell('D39')
+        slex.setCell(cell).value(`${employee.personal.spouse.occupation}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        //
+        cell = sheet.getCell('A40')
+        slex.setCell(cell).value(``).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+
+        sheet.mergeCells('B40:C40');
+        cell = sheet.getCell('B40')
+        slex.setCell(cell).value(`EMPLOYER/BUSINESS NAME`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', '')
+
+        sheet.mergeCells('D40:H40');
+        cell = sheet.getCell('D40')
+        slex.setCell(cell).value(`${employee.personal.spouse.employerOrBusinessName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+        //
+        cell = sheet.getCell('A41')
+        slex.setCell(cell).value(``).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+
+        sheet.mergeCells('B41:C41');
+        cell = sheet.getCell('B41')
+        slex.setCell(cell).value(`BUSINESS ADDRESS`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', '')
+
+        sheet.mergeCells('D41:H41');
+        cell = sheet.getCell('D41')
+        slex.setCell(cell).value(`${employee.personal.spouse.businessAddress}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        //
+        cell = sheet.getCell('A42')
+        slex.setCell(cell).value(``).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+
+        sheet.mergeCells('B42:C42');
+        cell = sheet.getCell('B42')
+        slex.setCell(cell).value(`TELEPHONE NO.`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', '')
+
+        sheet.mergeCells('D42:H42');
+        cell = sheet.getCell('D42')
+        slex.setCell(cell).value(`${employee.personal.spouse.phone}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+
+        // 
+        cell = sheet.getCell('A43')
+        slex.setCell(cell).value(`24.`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', '', 'thin')
+        sheet.mergeCells('A44:A45');
+        cell = sheet.getCell('A44')
+        slex.setCell(cell).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+
+        sheet.mergeCells('B43:C43');
+        cell = sheet.getCell('B43')
+        slex.setCell(cell).value(`FATHER'S SURNAME`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0')
+
+        sheet.mergeCells('D43:H43');
+        cell = sheet.getCell('D43')
+        slex.setCell(cell).value(`${employee.personal.father.lastName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        sheet.mergeCells('B44:C44');
+        cell = sheet.getCell('B44')
+        slex.setCell(cell).value(`FIRST NAME`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0')
+
+        sheet.mergeCells('D44:F44');
+        cell = sheet.getCell('D44')
+        slex.setCell(cell).value(`${employee.personal.father.firstName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        sheet.mergeCells('G44:H44');
+        cell = sheet.getCell('G44')
+        cell.value = {
+            'richText': [
+                { 'font': { 'size': 7, 'color': colors.black, 'name': 'Arial Narrow', 'family': 2, 'scheme': 'none' }, 'text': 'NAME EXTENSION (JR., SR)' },
+                { 'font': { 'bold': true, 'size': 9, 'color': colors.black, 'name': 'Arial', 'scheme': 'none' }, 'text': `\n${employee.personal.father.suffix}` },
+            ]
+        };
+        slex.setCell(cell).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(7).bgFill('00C0C0C0').border('', 'thin', '', '')
+
+        sheet.mergeCells('B45:C45');
+        cell = sheet.getCell('B45')
+        slex.setCell(cell).value(`MIDDLE NAME`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', '')
+
+        sheet.mergeCells('D45:H45');
+        cell = sheet.getCell('D45')
+        slex.setCell(cell).value(`${employee.personal.father.middleName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        // 
+        cell = sheet.getCell('A46')
+        slex.setCell(cell).value(`25.`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', '', 'thin')
+        sheet.mergeCells('A47:A49');
+        cell = sheet.getCell('A47')
+        slex.setCell(cell).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+
+        sheet.mergeCells('B46:H46');
+        cell = sheet.getCell('B46')
+        slex.setCell(cell).value(`MOTHER'S MAIDEN NAME`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0')
+
+        sheet.mergeCells('B47:C47');
+        cell = sheet.getCell('B47')
+        slex.setCell(cell).value(`LAST NAME`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0')
+
+        sheet.mergeCells('D47:H47');
+        cell = sheet.getCell('D47')
+        slex.setCell(cell).value(`${employee.personal.mother.lastName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        sheet.mergeCells('B48:C48');
+        cell = sheet.getCell('B48')
+        slex.setCell(cell).value(`FIRST NAME`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0')
+
+        sheet.mergeCells('D48:H48');
+        cell = sheet.getCell('D48')
+        slex.setCell(cell).value(`${employee.personal.mother.firstName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        sheet.mergeCells('B49:C49');
+        cell = sheet.getCell('B49')
+        slex.setCell(cell).value(`MIDDLE NAME`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', '')
+
+        sheet.mergeCells('D49:H49');
+        cell = sheet.getCell('D49')
+        slex.setCell(cell).value(`${employee.personal.mother.middleName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        // III. EDUCATION
+        sheet.mergeCells('A50:N50');
+        cell = sheet.getCell('A50')
+        slex.setCell(cell).value(`III.  EDUCATIONAL BACKGROUND`).align('top').align('left').font('Arial Narrow').fontSize(11).bold(true).italic(true).fontColor('FFFFFFFF').border('thin', 'thin', 'thin', 'thin').bgFill('00969696')
+
+        sheet.mergeCells('A51:A53');
+        cell = sheet.getCell('A51')
+        slex.setCell(cell).value(`26.`).align('middle').align('left').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+        
+        sheet.mergeCells('B51:C53');
+        cell = sheet.getCell('B51')
+        slex.setCell(cell).value(`LEVEL`).align('middle').align('center').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        sheet.mergeCells('D51:F53');
+        cell = sheet.getCell('D51')
+        slex.setCell(cell).value(`NAME OF SCHOOL\n(Write in full)`).align('middle').align('center').font('Arial Narrow').fontSize(8).wrapText(true).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        sheet.mergeCells('G51:I53');
+        cell = sheet.getCell('G51')
+        slex.setCell(cell).value(`BASIC EDUCATION/DEGREE/COURSE\n(Write in full)`).align('middle').align('center').font('Arial Narrow').fontSize(8).wrapText(true).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        sheet.mergeCells('J51:K52');
+        cell = sheet.getCell('J51')
+        slex.setCell(cell).value(`PERIOD OF ATTENDANCE`).align('middle').align('center').font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        // 
+        sheet.mergeCells('A60:C60');
+        cell = sheet.getCell('A60')
+        slex.setCell(cell).value(`SIGNATURE`).align('middle').align('center').font('Arial Narrow').fontSize(11).bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', 'thin')
+
+        // 
+
+        sheet.mergeCells('D60:I60');
+        cell = sheet.getCell('D60')
+        slex.setCell(cell).value(``).align('middle').align('center').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        //
+        sheet.mergeCells('J60:K60');
+        cell = sheet.getCell('J60')
+        slex.setCell(cell).value(`DATE`).align('middle').align('center').font('Arial Narrow').fontSize(11).bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', 'thin')
+        // 
+
+        sheet.mergeCells('L60:N60');
+        cell = sheet.getCell('L60')
+        slex.setCell(cell).value(``).align('middle').align('center').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        //
+
+        sheet.mergeCells('A61:N61');
+        cell = sheet.getCell('A61')
+        slex.setCell(cell).value(`CS FORM 212 (Revised 2017), Page 1 of 4`).align('middle').align('right').font('Arial Narrow').fontSize(7).italic(true).border('thin', 'thin', 'thin', 'thin')
 
         return workbook
     } catch (error) {

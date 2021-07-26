@@ -206,7 +206,7 @@
                     <p><em>(Person not related by consanguinity or affinity to applicant /appointee)</em></p>
                     <div v-for="(reference, index) in references">
                         <hr v-if="index > 0">
-                        <div v-if="index > 0" class="text-right mb-2">
+                        <div class="text-right mb-2">
                             <button v-on:click="deleteReference(index)" type="button" class="btn btn-danger btn-sm">X - Delete</button>
                         </div>
                         <div class="form-row">

@@ -13,7 +13,7 @@
                     <h2 class="h5">IV. Civil Service Eligibility</h2>
                     <div v-for="(eligibility, index) in eligibilities">
                         <hr v-if="index > 0">
-                        <div v-if="index > 0" class="text-right mb-2">
+                        <div class="text-right mb-2">
                             <button v-on:click="deleteEligibility(index)" type="button" class="btn btn-danger btn-sm">X - Delete Eligibility</button>
                         </div>
                         <div class="form-row">
@@ -75,7 +75,7 @@
                     <p class="mb-4"><em>(Include private employment. Start from your recent work) Description of duties should be indicated in the attached Work Experience sheet.</em></p>
                     <div v-for="(experience, index) in workExperiences">
                         <hr v-if="index > 0">
-                        <div v-if="index > 0" class="text-right mb-2">
+                        <div class="text-right mb-2">
                             <button v-on:click="deleteExperience(index)" type="button" class="btn btn-danger btn-sm">X - Delete Experience</button>
                         </div>
                         <div class="form-row">

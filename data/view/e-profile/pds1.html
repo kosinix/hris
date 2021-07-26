@@ -451,7 +451,7 @@
                     <p class="mb-4"><em>(Write full name and list all)</em></p>
                     <div v-for="(child, index) in children">
                         <hr v-if="index > 0">
-                        <div v-if="index > 0" class="text-right mb-2">
+                        <div class="text-right mb-2">
                             <button v-on:click="deleteChild(index)" type="button" class="btn btn-danger btn-sm">X - Delete Child</button>
                         </div>
                         <div class="form-row">
@@ -481,7 +481,7 @@
                     <h2 class="h5 mb-4">III. Educational Background</h2>
                     <div v-for="(school, index) in schools">
                         <hr v-if="index > 0">
-                        <div v-if="index > 0" class="text-right mb-2">
+                        <div class="text-right mb-2">
                             <button v-on:click="deleteSchool(index)" type="button" class="btn btn-danger btn-sm">X - Delete School</button>
                         </div>
                         <div class="form-row">

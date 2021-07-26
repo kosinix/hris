@@ -89,6 +89,18 @@ const schema = new Schema({
                 $type: String,
                 trim: true,
             },
+            brgy: {
+                $type: String,
+                trim: true,
+            },
+            cityMun: {
+                $type: String,
+                trim: true,
+            },
+            province: {
+                $type: String,
+                trim: true,
+            },
             psgc: {
                 $type: String,
                 trim: true,
@@ -313,7 +325,23 @@ schema.virtual('addressUnit').get(function () {
 
 
 //// Schema methods
+schema.methods.buildAddress = function (unit, street, village, full, zipCode) {
+    let addresses = []
+    if(unit){
+        addresses.push(unit)
+    }
+    if(street){
+        addresses.push(street)
+    }
+    if(village){
+        addresses.push(village)
+    }
+    if(full){
+        addresses.push(full)
+    }
 
+    return addresses.join(', ')
+};
 
 //// Middlewares
 schema.pre('save', function (next) {

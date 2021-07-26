@@ -356,14 +356,19 @@ router.post('/employee/address/:employeeId', middlewares.guardRoute(['create_emp
         let address0 = await db.main.Address.findOne({
             code: lodash.get(body, 'psgc', '')
         })
+
         if (address0) {
-            let addresses = []
-            lodash.set(patch, 'addresses.0.full', lodash.get(address0, 'full'))
-            if(lodash.get(patch, 'addresses.0.unit')) addresses.push(lodash.get(patch, 'addresses.0.unit'))
-            if(lodash.get(patch, 'addresses.0.street')) addresses.push(lodash.get(patch, 'addresses.0.street'))
-            if(lodash.get(patch, 'addresses.0.village')) addresses.push(lodash.get(patch, 'addresses.0.village'))
-            if(lodash.get(address0, 'full')) addresses.push(lodash.get(address0, 'full'))
-            lodash.set(patch, 'address', addresses.join(', '))
+            let full = res.employee.buildAddress(
+                lodash.get(patch, 'addresses.0.unit'),
+                lodash.get(patch, 'addresses.0.street'),
+                lodash.get(patch, 'addresses.0.village'),
+                lodash.get(address0, 'full'),
+            )
+            lodash.set(patch, 'address', full)
+            lodash.set(patch, 'addresses.0.full', full)
+            lodash.set(patch, 'addresses.0.brgy', address0.name)
+            lodash.set(patch, 'addresses.0.cityMun', address0.cityMunName)
+            lodash.set(patch, 'addresses.0.province', address0.provName)
         }
 
         await db.main.Employee.updateOne({ _id: employee._id }, patch)

@@ -480,13 +480,17 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
             code: lodash.get(body, 'psgc0', '')
         })
         if (address0) {
-            let addresses = []
-            lodash.set(patch, 'addresses.0.full', lodash.get(address0, 'full'))
-            if (lodash.get(patch, 'addresses.0.unit')) addresses.push(lodash.get(patch, 'addresses.0.unit'))
-            if (lodash.get(patch, 'addresses.0.street')) addresses.push(lodash.get(patch, 'addresses.0.street'))
-            if (lodash.get(patch, 'addresses.0.village')) addresses.push(lodash.get(patch, 'addresses.0.village'))
-            if (lodash.get(address0, 'full')) addresses.push(lodash.get(address0, 'full'))
-            lodash.set(patch, 'address', addresses.join(', '))
+            let full = res.employee.buildAddress(
+                lodash.get(patch, 'addresses.0.unit'),
+                lodash.get(patch, 'addresses.0.street'),
+                lodash.get(patch, 'addresses.0.village'),
+                lodash.get(address0, 'full'),
+            )
+            lodash.set(patch, 'address', full)
+            lodash.set(patch, 'addresses.0.full', full)
+            lodash.set(patch, 'addresses.0.brgy', address0.name)
+            lodash.set(patch, 'addresses.0.cityMun', address0.cityMunName)
+            lodash.set(patch, 'addresses.0.province', address0.provName)
         }
 
         // TODO: Should generate new id every save??
@@ -501,13 +505,17 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
             code: lodash.get(body, 'psgc1', '')
         })
         if (address1) {
-            let addresses = []
-            lodash.set(patch, 'addresses.1.full', lodash.get(address1, 'full'))
-            if (lodash.get(patch, 'addresses.1.unit')) addresses.push(lodash.get(patch, 'addresses.1.unit'))
-            if (lodash.get(patch, 'addresses.1.street')) addresses.push(lodash.get(patch, 'addresses.1.street'))
-            if (lodash.get(patch, 'addresses.1.village')) addresses.push(lodash.get(patch, 'addresses.1.village'))
-            if (lodash.get(address1, 'full')) addresses.push(lodash.get(address1, 'full'))
-            lodash.set(patch, 'address', addresses.join(', '))
+            let full = res.employee.buildAddress(
+                lodash.get(patch, 'addresses.1.unit'),
+                lodash.get(patch, 'addresses.1.street'),
+                lodash.get(patch, 'addresses.1.village'),
+                lodash.get(address1, 'full'),
+            )
+            lodash.set(patch, 'address', full)
+            lodash.set(patch, 'addresses.1.full', full)
+            lodash.set(patch, 'addresses.1.brgy', address1.name)
+            lodash.set(patch, 'addresses.1.cityMun', address1.cityMunName)
+            lodash.set(patch, 'addresses.1.province', address1.provName)
         }
 
         lodash.set(patch, 'personal.birthPlace', lodash.get(body, 'birthPlace'))
@@ -551,7 +559,7 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         await db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} PDS.`)
-        if(lodash.get(body, 'actionType') === 'saveNext'){
+        if (lodash.get(body, 'actionType') === 'saveNext') {
             return res.redirect(`/e-profile/pds2`)
         }
         res.redirect(`/e-profile/pds1`)
@@ -590,7 +598,7 @@ router.post('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']),
 
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} PDS.`)
 
-        if(lodash.get(body, 'actionType') === 'saveNext'){
+        if (lodash.get(body, 'actionType') === 'saveNext') {
             return res.redirect(`/e-profile/pds3`)
         }
         res.redirect(`/e-profile/pds2`)
@@ -630,7 +638,7 @@ router.post('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']),
 
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} PDS.`)
 
-        if(lodash.get(body, 'actionType') === 'saveNext'){
+        if (lodash.get(body, 'actionType') === 'saveNext') {
             return res.redirect(`/e-profile/pds4`)
         }
         res.redirect(`/e-profile/pds3`)
@@ -661,7 +669,7 @@ router.post('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']),
         let patch = res.employee.toObject()
         let body = lodash.get(req, 'body')
         // return res.send(body)
-        
+
         lodash.set(patch, 'personal.relatedThirdDegree', lodash.get(body, 'relatedThirdDegree'))
         lodash.set(patch, 'personal.relatedFourthDegree', lodash.get(body, 'relatedFourthDegree'))
         lodash.set(patch, 'personal.relatedFourthDegreeDetails', lodash.get(body, 'relatedFourthDegreeDetails'))

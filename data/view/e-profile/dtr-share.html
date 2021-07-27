@@ -15,10 +15,15 @@
     </div>
     
     <div>
-        <h2 class="h6">How to Open DTR on Another Computer</h2>
+        <h2 class="h6 mb-3">How to Open DTR on Another Computer</h2>
         <ul>
             <li>Copy the link below: <br>
-                <input class="form-control" value="{{share.payload.url}}" type="text">
+                <div class="input-group mb-3 mt-3">
+                    <input id="sharedUrl" type="text" readonly class="form-control" value="{{share.payload.url}}" />
+                    <div class="input-group-append">
+                        <button id="copy" class="btn btn-light">Copy</button>
+                    </div>
+                </div>
             </li>
             <li>Open Messenger or any messenging app.</li>
             <li>Paste the link and send to your recipient.</li>
@@ -33,34 +38,17 @@
 {% block scripts %}
 {{ super() }}
 <script>
-    var vApp = new Vue({
-        el: '#vApp',
-        delimiters: ["${", "}"],
-        mixins: [
-            window.vuelidate.validationMixin,
-            window.vuelidateExtendMixin,
-        ],
-        data: {
-            name: '',
-            type: 1,
-        },
-        validations: {
-            
-        },
-        methods: {
-            onSubmit: function(){
-                var me = this;
-                me.$v.$touch()
-                if (me.$v.$error) {
-                    alert('Please correct the errors to continue.')
-                } else {
-                    me.$nextTick(function() {
-                        me.$refs.form.submit();
-                    });
-                }
-            }
-        }
-    });
+    jQuery(document).ready(function ($) {
+        $('#sharedUrl').select()
+        $('#sharedUrl').on('focus', function(){
+            this.select()
+        })
+        $('#copy').on('click', function () {
+            $('#sharedUrl').select()
+            document.execCommand('copy');
+            alert('Link copied to clipboard.')
+        });
+    })
 </script>
 {% endblock %}
 

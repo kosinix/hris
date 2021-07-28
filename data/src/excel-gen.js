@@ -298,7 +298,8 @@ let templateJocos = async (payroll) => {
     //     }
     // });
 
-    await workbook.xlsx.writeFile('excel.xlsx');
+    return workbook
+
 }
 
 let templatePds = async (employee) => {

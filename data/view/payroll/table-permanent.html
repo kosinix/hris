@@ -15,11 +15,11 @@
                 <th>
                     Less: <br> Late
                 </th>
-                <th>Amount</th>
-                {# {% for deduction in payroll.deductions %}
+                <th>Grant Total</th>
+                {% for deduction in payroll.deductions %}
                     <th>{{deduction.name}}</th>
                 {% endfor %}
-                <th>Total Deductions</th>
+                {# <th>Total Deductions</th>
                 <th>Net Amount</th> #}
             </tr>
         </thead>
@@ -47,17 +47,13 @@
                     </a>
                 </td>
                 <td>{{employment.tardiness|default(0,true)|currency}}</td>
-                {# {% for incentive in employment.incentives %}
-                    <td>{{incentive.amount|currency}}</td>
-                {% endfor %} #}
-                <td>{{employment.amountPostDeductions|currency}}</td>
-                {# <td>{{employment.grantTotal|currency}}</td>
+                <td>{{employment.grantTotal|currency}}</td>
                 {% for deduction in employment.deductions %}
                     <td>
                         {{deduction.amount|currency}}
                     </td>
                 {% endfor %}
-                <td>{{employment.totalDeductions|currency}}</td>
+                {# <td>{{employment.totalDeductions|currency}}</td>
                 <td>{{employment.netAmountPostDeductions|currency}}</td> #}
             </tr>
         {% endfor %}

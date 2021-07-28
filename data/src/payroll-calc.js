@@ -4,6 +4,7 @@
 const lodash = require('lodash')
 const momentRange = require("moment-range")
 const moment = momentRange.extendMoment(require("moment"));
+const money = require('money-math')
 
 //// Modules
 const db = require('./db');
@@ -128,7 +129,7 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
         // console.log(employee.lastName, totalMinutes, totalMinutesUnderTime, hoursPerDay)
         employment.attendances = attendances
         employment.timeRecord = dtrHelper.calcTimeRecord(totalMinutes, totalMinutesUnderTime, hoursPerDay)
-        console.log(employee.lastName, employment.timeRecord)
+        // console.log(employee.lastName, employment.timeRecord)
 
         if (employment.salaryType === 'monthly') {
             let perDay = employment.salary / workDays
@@ -142,6 +143,7 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
             employment.amountWorked = (perMin * employment.timeRecord.totalMinutes)
         }
 
+        employment.tardiness = 0
         if (empType === 'permanent') {
             employment.amountWorked = employment.salary
             // Undertime
@@ -150,7 +152,14 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
             let perMin = perHour / 60
 
             if (employment.timeRecord.underTimeTotalMinutes > 0) {
+                /*
+                Swap with code below if need more accuracy
                 let tardiness = perMin * employment.timeRecord.underTimeTotalMinutes
+                */
+                // Based on HR excel formula
+                let tardiness = money.mul(money.floatToAmount(perHour), money.floatToAmount(employment.timeRecord.underTimeTotalMinutes / 60))
+                tardiness = parseFloat(tardiness)
+
                 employment.tardiness = tardiness
                 employment.amountWorked -= tardiness
             }
@@ -169,11 +178,12 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
                 incentive.amount = (incentive.percentage / 100 * employment.salary)
             }
             totalIncentives += parseFloat(incentive.amount)
-            employment.incentives.push(incentive)
+            employment.incentives.push(incentive)// TODO: check what it does
 
         }
         employment.totalIncentives = totalIncentives
-        employment.amountPostIncentives = employment.amountWorked + totalIncentives
+        employment.amountPostIncentives = employment.salary + totalIncentives
+        employment.grantTotal = employment.amountPostIncentives - employment.tardiness
         totalAmountPostIncentives += employment.amountPostIncentives
         // 
         employment.deductions = []

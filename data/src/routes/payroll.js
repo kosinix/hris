@@ -175,8 +175,11 @@ router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payr
 
         // return res.send(payroll)
         if(req.originalUrl.includes('.xlsx')){
-            await excelGen.templateJocos(payroll)
-            return res.download('excel.xlsx')
+            let workbook = await excelGen.templateJocos(payroll)
+            let buffer = await workbook.xlsx.writeBuffer();
+            res.set('Content-Disposition', `attachment; filename="payroll.xlsx"`)
+            res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            return res.send(buffer)
         }
         res.render('payroll/employees.html', {
             flash: flash.get(req, 'payroll'),

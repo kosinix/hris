@@ -10,7 +10,7 @@
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-2">
         {% if payroll.employments.length > 0 %}
             {% if payroll.template === 'permanent' %}
-                {% include 'payroll/table-permanent.html' %}
+                {% include 'payroll/table-permanent-vue.html' %}
             {% else %}
                 <div class="table-responsive table-payroll">
                     <div class="cover"></div>
@@ -129,7 +129,7 @@
         data: {
             employmentId: '',
             pending: false,
-            payroll: {{payroll|stringify|safe}},
+            payroll: {{payroll|default({}, true)|stringify|safe}},
         },
         validations: {
             employmentId: {
@@ -138,33 +138,39 @@
         },
         mounted: function() {
             var me = this;
-            var sortable = Sortable.create(sortMe, {
-                handle: '.dragMe',
-                onEnd: function (evt) {
-                    if(evt.newIndex === evt.oldIndex) return;
+            me.$nextTick(function () {
+                if(!document.getElementById('sortMe')) return
+                var sortable = Sortable.create(document.getElementById('sortMe'), {
+                    handle: '.dragMe',
+                    onEnd: function (evt) {
+                        if(evt.newIndex === evt.oldIndex) return;
 
-                    jQuery('.cover').addClass('wait')
-                    var employments = []
-                    jQuery('.drag-employment').each(function(i, e){
-                        employments.push({
-                            _id: jQuery(e).data('id'),
-                            employeeId: jQuery(e).data('employee-id')
+                        jQuery('.cover').addClass('wait')
+                        var employments = []
+                        jQuery('.drag-employment').each(function(i, e){
+                            employments.push({
+                                _id: jQuery(e).data('id'),
+                                employeeId: jQuery(e).data('employee-id')
+                            })
                         })
-                    })
-                    me.pending = true;
-                    window.axios.post('/payroll/employees/{{payroll._id}}/sort-employments', {employments: employments}).then(function(response){
-                        var data = response.data;
-                        console.log('Changes saved.');
-                    }).catch(function(error){
-                        handleAxiosError(error);
-                    }).then(function(){
-                        me.pending = false;
-                        jQuery('.cover').removeClass('wait');
-                    });
-                },
-            });
+                        me.pending = true;
+                        window.axios.post('/payroll/employees/{{payroll._id}}/sort-employments', {employments: employments}).then(function(response){
+                            var data = response.data;
+                            console.log('Changes saved.');
+                        }).catch(function(error){
+                            handleAxiosError(error);
+                        }).then(function(){
+                            me.pending = false;
+                            jQuery('.cover').removeClass('wait');
+                        });
+                    },
+                });
+            })
         },
         methods: {
+            moment: function (date) {
+                return moment(date);
+            },
             saveNow: function(value, d, employeeIndex, deductionIndex) {
                 var me = this;
 

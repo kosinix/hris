@@ -1,0 +1,56 @@
+<div class="table-responsive table-payroll">
+    <div class="cover"></div>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+            <th></th>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Basic</th>
+                {% for incentive in payroll.incentives %}
+                    <th>{{incentive.name}}</th>
+                {% endfor %}
+                <th>Total</th>
+                <th>Undertime</th>
+                <th>
+                    Less: <br> Late
+                </th>
+                <th>Grant Total</th>
+                {% for deduction in payroll.deductions %}
+                    <th>{{deduction.name}}</th>
+                {% endfor %}
+              
+            </tr>
+        </thead>
+        <tbody id="sortMe">
+            <tr v-for="employment in payroll.employments" class="drag-employment" v-bind:data-id="employment._id" v-bind:data-employee-id="employment.employee._id">
+                <td style="padding:0; text-align:center; vertical-align: middle;">
+                    <svg class="dragMe" style="cursor: move; width:24px;height:24px; opacity: 0.4" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
+                    </svg>
+                </td>
+                <td>${employment.employee.lastName}, ${employment.employee.firstName} <u>${_.first(employment.employee.middleName)}</u></td>
+                <td>${employment.position}</td>
+                <td>${currency(employment.salary)}</td>
+                <td v-for="incentive in employment.incentives">${currency(incentive.amount)}</td>
+                <td>${currency(employment.amountPostIncentives)}</td>
+                <td>
+                    <a v-bind:href="`http://localhost:9094/attendance/employee/employment/${employment.employee._id}/${employment._id}?month=${moment(payroll.dateStart).format('MMM')}&amp;year=${moment(payroll.dateStart).format('YYYY')}&amp;undertime=1`" class="d-flex">
+                        <div>${employment.timeRecord.underDays} days</div>
+                        <div class="pl-2 pr-2">${employment.timeRecord.underHours} hrs</div>
+                        <div>${employment.timeRecord.underMinutes} mins</div>
+                    </a>
+                </td>
+                <td>${currency((employment.tardiness) ? employment.tardiness : 0)}</td>
+                <td>${currency(employment.grantTotal)}</td>
+                <td v-for="deduction in employment.deductions">
+                    ${currency(deduction.amount)}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</div> 
+<div class="d-flex ">
+    <a href="/payroll/employees/{{payroll._id}}/payroll.xlsx" class="btn btn-light">Download</a>
+</div>

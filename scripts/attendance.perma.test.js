@@ -241,6 +241,10 @@ const db = require('../data/src/db-install');
                 // console.log(dateTime.toISOString(true))
                 employees.forEach((employee) => {
                     if (lodash.has(employee, 'employments.0')) {
+                        let inAM = dateTime.clone().hour(8).minutes(15).toISOString(true)
+                        if(employee.firstName === 'Sol' && d === 15){
+                            inAM = dateTime.clone().hour(8).minutes(16).toISOString(true)//16 min late
+                        }
                         attendances.push({
                             "employeeId": employee._id,
                             "employmentId": employee.employments[0]._id,
@@ -248,7 +252,7 @@ const db = require('../data/src/db-install');
                             "logs": [
                                 {
                                     "scannerId": scannerId,
-                                    "dateTime": dateTime.clone().hour(8).minutes(15).toISOString(true),
+                                    "dateTime": inAM,
                                     "mode": 1
                                 },
                                 {
@@ -294,13 +298,32 @@ const db = require('../data/src/db-install');
             dateStart: '2021-06-01',
             dateEnd: '2021-06-15',
             employments: employments,
-            incentives: [{
-                "name": "Allowance PERA/ACA",
-                "type": "normal",
-                "initialAmount": 2000,
-                "_id": db.mongoose.Types.ObjectId(),
-                "uid": "allowancePeraAca"
-            }],
+            incentives: [
+                {
+                    "name": "Allowance PERA/ACA",
+                    "type": "normal",
+                    "initialAmount": 2000,
+                    "_id": db.mongoose.Types.ObjectId(),
+                    "uid": "allowancePeraAca"
+                }
+            ],
+            deductions: [
+                {
+                    "name" : "RLIP PS 9%",
+                    "deductionType" : "percentage",
+                    "percentage" : 9,
+                    "_id" : db.mongoose.Types.ObjectId(),
+                    "uid" : "rlipPs9",
+                    "initialAmount" : 0
+                },
+                {
+                    "name" : "Emergency Loan",
+                    "deductionType" : "normal",
+                    "initialAmount" : 0,
+                    "_id" : db.mongoose.Types.ObjectId(),
+                    "uid" : "emergencyLoan"
+                }
+            ],
             template: 'permanent',
         })
         console.log(`Payrolls...`)

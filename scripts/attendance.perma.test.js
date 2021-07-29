@@ -293,6 +293,120 @@ const db = require('../data/src/db-install');
         })
 
         // 4. Insert Payroll
+        let deductions = [
+            {
+                "name" : "RLIP PS 9%",
+                "deductionType" : "percentage",
+                "percentage" : 9,
+                "mandatory": true,
+            },
+            {
+                "name" : "Emergency Loan",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "EAL",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "Conso Loan",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "Ouili Premium",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "Policy Ouli Loan",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "Regular Policy Loan",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "GFAL",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "MPL",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "CPL",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "HELP",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "Medicare",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "Contribution",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "MPL Loan",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "Calamity Loan",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "Withholding Tax",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": true,
+            },
+            {
+                "name" : "Teacher's Scholars",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": false,
+            },
+            {
+                "name" : "City Savings Bank",
+                "deductionType" : "normal",
+                "initialAmount" : 0,
+                "mandatory": false,
+            },
+        ].map((o)=>{
+            o._id = db.mongoose.Types.ObjectId()
+            o.uid = lodash.camelCase(o.name)
+            return o
+        })
         let payroll = await db.main.Payroll.create({
             name: 'June 1st Quincena Perma',
             dateStart: '2021-06-01',
@@ -307,23 +421,7 @@ const db = require('../data/src/db-install');
                     "uid": "allowancePeraAca"
                 }
             ],
-            deductions: [
-                {
-                    "name" : "RLIP PS 9%",
-                    "deductionType" : "percentage",
-                    "percentage" : 9,
-                    "_id" : db.mongoose.Types.ObjectId(),
-                    "uid" : "rlipPs9",
-                    "initialAmount" : 0
-                },
-                {
-                    "name" : "Emergency Loan",
-                    "deductionType" : "normal",
-                    "initialAmount" : 0,
-                    "_id" : db.mongoose.Types.ObjectId(),
-                    "uid" : "emergencyLoan"
-                }
-            ],
+            deductions: deductions,
             template: 'permanent',
         })
         console.log(`Payrolls...`)

@@ -123,9 +123,17 @@ router.get('/payroll/payrollin/:payrollId', middlewares.guardRoute(['read_payrol
 });
 
 
-router.post('/payroll/:payrollId/ded', middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
+router.post('/payroll/:payrollId/save', middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll.toObject()
+        let body = lodash.get(req, 'body')
+        let patch = {
+            employments: lodash.get(body, 'employments')
+        }
+
+        let r = await db.main.Payroll.updateOne({ _id: payroll._id }, patch)
+
+        console.log(r)
 
         res.send(`ok ok`)
     } catch (err) {
@@ -136,6 +144,7 @@ router.post('/payroll/:payrollId/ded', middlewares.guardRoute(['read_payroll']),
 router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payroll.xlsx`], middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll.toObject()
+        // payroll.employments = payroll.employments.slice(0, 2)
 
         // Expand from just _id and employmentId to full details
         payroll.employments = payroll.employments.map((o) => {

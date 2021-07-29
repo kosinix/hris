@@ -143,6 +143,26 @@ h4, h5, h6 {
 .table-payroll {
     position: relative;
 }
+.table-payroll td {
+    position: relative;
+}
+.table-payroll td input {
+    visibility: hidden;
+    position: absolute;
+    width: 90%;
+}
+.table-payroll td span {
+    display: inline-block;
+}
+.table-payroll td.editable input {
+    visibility: visible;
+    z-index: 1;
+}
+.table-payroll td.editable span {
+    display: none;
+}
+
+
 .cover {
     position: absolute;
     left: 0;
@@ -158,6 +178,8 @@ h4, h5, h6 {
     display: block;
 }
 
+
+/* Focusable field sets */
 div.focusable {
     padding: 15px;
     transition: all 0.5s;
@@ -421,6 +443,7 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     background-color: #000;
     z-index: 99;
 }
+
 
 /* Nav */
 

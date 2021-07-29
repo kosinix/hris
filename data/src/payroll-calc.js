@@ -187,25 +187,38 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
         totalAmountPostIncentives += employment.amountPostIncentives
         // 
         employment.deductions = []
+        employment.deductionsMandatory = []
+        employment.deductionsNonMandatory = []
         let totalDeductions = 0
+        let totalDeductionsMandatory = 0
+        let totalDeductionsNonMandatory = 0
         for (let d = 0; d < payroll.deductions.length; d++) {
             let deduction = lodash.cloneDeep(payroll.deductions[d])
             if (deduction.deductionType === 'normal') {
                 deduction.amount = (deduction.initialAmount)
-
             } else if (deduction.deductionType === 'percentage') {
                 deduction.amount = (deduction.percentage / 100 * employment.salary)
             }
+
             // vue
             deduction.vueReadOnly = true
             deduction.vueDisabled = false
             totalDeductions += parseFloat(deduction.amount)
             employment.deductions.push(deduction)
 
+            if (deduction.mandatory) {
+                employment.deductionsMandatory.push(deduction)
+                totalDeductionsMandatory += parseFloat(deduction.amount)
+            } else {
+                employment.deductionsNonMandatory.push(deduction)
+                totalDeductionsNonMandatory += parseFloat(deduction.amount)
+            }
         }
         //
 
         employment.totalDeductions = totalDeductions
+        employment.totalDeductionsMandatory = totalDeductionsMandatory
+        employment.totalDeductionsNonMandatory = totalDeductionsNonMandatory
         employment.amountPostDeductions = employment.amountWorked + totalIncentives - totalDeductions
         totalAmountPostDeductions += employment.amountPostDeductions
 

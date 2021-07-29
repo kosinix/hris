@@ -27,14 +27,14 @@ let schema = mongoose.Schema({
         {
             _id: {
                 $type: mongoose.Schema.Types.ObjectId,
-            }, 
+            },
             uid: {
                 $type: String
             },
             name: {
                 $type: String
             },
-            "type":{
+            "type": {
                 $type: String
             },
             "percentage": Number,
@@ -45,39 +45,36 @@ let schema = mongoose.Schema({
         {
             _id: {
                 $type: mongoose.Schema.Types.ObjectId,
-            }, 
+            },
             uid: {
                 $type: String
             },
             name: {
                 $type: String
             },
-            "deductionType":{
-                $type: String
+            mandatory: {
+                $type: Boolean
             },
-            "percentage": Number,
-            "initialAmount": Number,
+            deductionType: {
+                $type: String, // percentage, normal
+            },
+            percentage: Number,
+            initialAmount: Number, // only for deductionType normal
         }
     ],
     employees: [
         {
             _id: {
                 $type: mongoose.Schema.Types.ObjectId,
-            }, 
+            },
             basic: Number,
             minutesWorked: Number,
         }
     ],
     employments: [
-        {
-            _id: {
-                $type: mongoose.Schema.Types.ObjectId,
-            }, 
-            employeeId: {
-                $type: mongoose.Schema.Types.ObjectId,
-            }, 
-        }
+       
     ],
+    status: Number
 }, { timestamps: true, typeKey: '$type' })
 
 //// Instance methods

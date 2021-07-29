@@ -43,8 +43,9 @@ app.use(session);
 app.use(express.static(CONFIG.app.dirs.public));
 
 // Parse http body
-app.use(bodyParser.json());       // to support JSON-encoded bodies
+app.use(bodyParser.json({limit: '50mb'}));       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+    limit: '50mb',
     extended: true
 }));
 

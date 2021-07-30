@@ -185,7 +185,8 @@
                 }, 0)
             },
             
-            editInput: function(e, rowIndex, deductionIndex) {
+            editInput: function(e, rowIndex, deductionIndex, deductionType) {
+                if(deductionType=='percentage') return
                 var el = jQuery(e.target)
                 var elInput = el.siblings('input')
                 elInput.data('orig', elInput.val())

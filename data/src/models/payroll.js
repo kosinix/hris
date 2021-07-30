@@ -74,6 +74,7 @@ let schema = mongoose.Schema({
     employments: [
        
     ],
+    rows: [],// row.employee, row.incentives, row.deductions, attendances, timeRecord,
     status: Number
 }, { timestamps: true, typeKey: '$type' })
 

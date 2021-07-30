@@ -131,6 +131,13 @@
             pending: false,
             payroll: {{payroll|default({}, true)|stringify|safe}},
         },
+        computed: {
+            deductionsMandatory: function () {
+                return this.users.filter(function (user) {
+                    return user.isActive
+                })
+            }
+        },
         validations: {
             employmentId: {
                 required: window.validators.required
@@ -148,10 +155,7 @@
                         jQuery('.cover').addClass('wait')
                         var employments = []
                         jQuery('.drag-employment').each(function(i, e){
-                            employments.push({
-                                _id: jQuery(e).data('id'),
-                                employeeId: jQuery(e).data('employee-id')
-                            })
+                            employments.push(jQuery(e).data('id'))
                         })
                         me.pending = true;
                         window.axios.post('/payroll/employees/{{payroll._id}}/sort-employments', {employments: employments}).then(function(response){
@@ -168,29 +172,19 @@
             })
         },
         methods: {
-            stringToMoney: function(amount) {
-                return parseFloat(_.trim(amount).replace(/,/ig, ''))
+            filterDeductions: function(employmentIndex, mandatory) {
+                return this.payroll.employments[employmentIndex].deductions.filter((o) => {
+                    return o.mandatory === mandatory
+                })
             },
-            getTotalMandatoryDeductions: function(employmentIndex){
-                let total = 0;
-                let deductions = this.payroll.employments[employmentIndex].deductionsMandatory
-                for(x = 0; x < deductions.length; x++){
-                    var amount = deductions[x].amount
-                    deductions[x].amount = amount
-                    total += deductions[x].amount
-                }
-                this.payroll.employments[employmentIndex].totalDeductionsMandatory = total
+            getTotalDeductions: function(employmentIndex, mandatory){
+                var deductions = this.filterDeductions(employmentIndex, mandatory)
+                deductions = deductions.map(o => o.amount)
+                return deductions.reduce( (accum, current) => {
+                    return accum + current;
+                }, 0)
             },
-            getTotalNonMandatoryDeductions: function(employmentIndex){
-                let total = 0;
-                let deductions = this.payroll.employments[employmentIndex].deductionsNonMandatory
-                for(x = 0; x < deductions.length; x++){
-                    var amount = deductions[x].amount
-                    deductions[x].amount = amount
-                    total += deductions[x].amount
-                }
-                this.payroll.employments[employmentIndex].totalDeductionsNonMandatory = total
-            },
+            
             editInput: function(e, rowIndex, deductionIndex) {
                 var el = jQuery(e.target)
                 var elInput = el.siblings('input')

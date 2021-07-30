@@ -144,6 +144,7 @@ router.post('/payroll/:payrollId/save', middlewares.guardRoute(['read_payroll'])
 router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payroll.xlsx`], middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll.toObject()
+        let payroll2 = res.payroll.toObject()
         // payroll.employments = payroll.employments.slice(0, 2)
 
         // Expand from just _id and employmentId to full details
@@ -151,6 +152,7 @@ router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payr
             return db.main.Employment.findById(o._id).lean()
         })
         payroll.employments = await Promise.all(payroll.employments)
+        payroll.employments = lodash.merge(payroll.employments, payroll2.employments)
 
         // Add employee details to employments[x].employee property
         let promises = []
@@ -183,7 +185,7 @@ router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payr
         payroll = await payrollCalc.getCosStaff(payroll, CONFIG.workTime.workDays, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 
         // return res.send(payroll)
-        if(req.originalUrl.includes('.xlsx')){
+        if (req.originalUrl.includes('.xlsx')) {
             let workbook = await excelGen.templateJocos(payroll)
             let buffer = await workbook.xlsx.writeBuffer();
             res.set('Content-Disposition', `attachment; filename="payroll.xlsx"`)
@@ -238,13 +240,18 @@ router.post('/payroll/employees/:payrollId', middlewares.guardRoute(['update_pay
 router.post('/payroll/employees/:payrollId/sort-employments', middlewares.guardRoute(['update_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll
+        let payrollPlain = res.payroll.toObject()
 
         let body = req.body
-        let employments = lodash.get(body, 'employments')
+        let employmentsIdsArray = lodash.get(body, 'employments')
+
+        let employments = lodash.sortBy(payrollPlain.employments, (o) => {
+            return employmentsIdsArray.indexOf(o._id)
+        });
         payroll.employments = employments;
         await payroll.save()
-        
-        res.send(employments)
+
+        res.send('Sorting saved.')
     } catch (err) {
         next(err);
     }

@@ -51,18 +51,18 @@
                 </td>
                 <td>${((employment.tardiness) ? employment.tardiness : 0) | currency}</td>
                 <td>${employment.grantTotal|currency}</td>
-                <td v-for="(deduction, deductionIndex) in employment.deductionsMandatory">
-                    <input v-on:blur="lockInput($event, rowIndex, deductionIndex); getTotalMandatoryDeductions(rowIndex)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
+                <td v-for="(deduction, deductionIndex) in filterDeductions(rowIndex, true)">
+                    <input v-on:blur="lockInput($event, rowIndex, deductionIndex)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
                     <span class="text-danger" v-on:dblclick="editInput($event, rowIndex, deductionIndex)">${deduction.amount | currency}</span>
                 </td>
-                <td>${employment.totalDeductionsMandatory | currency}</td>
-                <td v-for="(deduction, deductionIndex) in employment.deductionsNonMandatory">
-                    <input v-on:blur="lockInput($event, rowIndex, deductionIndex); getTotalNonMandatoryDeductions(rowIndex)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
+                <td>${getTotalDeductions(rowIndex, true) | currency}</td>
+                <td v-for="(deduction, deductionIndex) in filterDeductions(rowIndex, false)">
+                    <input v-on:blur="lockInput($event, rowIndex, deductionIndex)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
                     <span class="text-danger" v-on:dblclick="editInput($event, rowIndex, deductionIndex)">${deduction.amount | currency}</span>
                 </td>
-                <td>${employment.totalDeductionsNonMandatory | currency}</td>
-
+                <td>${getTotalDeductions(rowIndex, false) | currency}</td>
             </tr>
+            
         </tbody>
     </table>
 

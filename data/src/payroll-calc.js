@@ -105,6 +105,8 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
 
     let totalAmountPostIncentives = 0
     let totalAmountPostDeductions = 0
+
+    // Compute row of employments
     for (let x = 0; x < payroll.employments.length; x++) {
         let employment = payroll.employments[x]
         let employee = employment.employee
@@ -186,40 +188,38 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
         employment.grantTotal = employment.amountPostIncentives - employment.tardiness
         totalAmountPostIncentives += employment.amountPostIncentives
         // 
-        employment.deductions = []
-        employment.deductionsMandatory = []
-        employment.deductionsNonMandatory = []
-        let totalDeductions = 0
-        let totalDeductionsMandatory = 0
-        let totalDeductionsNonMandatory = 0
+        // Attach deductions
+        if(employee.lastName=='Alminaza') console.log(employment)
+
+        employment.deductions = lodash.get(employment, 'deductions', [])
+        employment.totalDeductions = 0
         for (let d = 0; d < payroll.deductions.length; d++) {
             let deduction = lodash.cloneDeep(payroll.deductions[d])
-            if (deduction.deductionType === 'normal') {
-                deduction.amount = (deduction.initialAmount)
-            } else if (deduction.deductionType === 'percentage') {
-                deduction.amount = (deduction.percentage / 100 * employment.salary)
-            }
 
-            // vue
-            deduction.vueReadOnly = true
-            deduction.vueDisabled = false
-            totalDeductions += parseFloat(deduction.amount)
-            employment.deductions.push(deduction)
+            let found = employment.deductions.find((o) => {
+                
+                return o.uid === deduction.uid
+            })
+            if (!found) { // payroll d is not yet in employment
+                if(employee.lastName=='Alminaza') console.log(`${employee.lastName} - not ${found} inserting ${deduction.uid}`)
+                if (deduction.deductionType === 'normal') {
+                    deduction.amount = deduction.initialAmount
+                } else if (deduction.deductionType === 'percentage') {
+                    deduction.amount = (deduction.percentage / 100 * employment.salary)
+                }
+                employment.deductions.push(deduction)
+                employment.totalDeductions += parseFloat(deduction.amount)
 
-            if (deduction.mandatory) {
-                employment.deductionsMandatory.push(deduction)
-                totalDeductionsMandatory += parseFloat(deduction.amount)
             } else {
-                employment.deductionsNonMandatory.push(deduction)
-                totalDeductionsNonMandatory += parseFloat(deduction.amount)
+                if(employee.lastName=='Alminaza') console.log(`${employee.lastName} - not ${found}`)
+
+                employment.totalDeductions += parseFloat(found.amount)
             }
         }
-        //
 
-        employment.totalDeductions = totalDeductions
-        employment.totalDeductionsMandatory = totalDeductionsMandatory
-        employment.totalDeductionsNonMandatory = totalDeductionsNonMandatory
-        employment.amountPostDeductions = employment.amountWorked + totalIncentives - totalDeductions
+       
+
+        employment.amountPostDeductions = employment.amountWorked + totalIncentives - employment.totalDeductions
         totalAmountPostDeductions += employment.amountPostDeductions
 
         payroll.employments[x] = employment
@@ -305,9 +305,9 @@ let computePayroll = async (payroll, workDays = 22, hoursPerDay = 8, travelPoint
             } else if (deduction.deductionType === 'percentage') {
                 deduction.amount = (deduction.percentage / 100 * employment.salary)
             }
-            // vue
-            deduction.vueReadOnly = true
-            deduction.vueDisabled = false
+            // // vue
+            // deduction.vueReadOnly = true
+            // deduction.vueDisabled = false
             totalDeductions += parseFloat(deduction.amount)
             employment.deductions.push(deduction)
 

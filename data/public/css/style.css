@@ -143,6 +143,9 @@ h4, h5, h6 {
 .table-payroll {
     position: relative;
 }
+.table-payroll tr:focus-within td{
+    background: rgba(110, 178, 230, 0.31);
+}
 .table-payroll td {
     position: relative;
 }
@@ -194,6 +197,11 @@ div.focusable:focus-within  {
     display: block;
 }
 
+/* Buttons */
+.btn-primary {
+    background: #125196;
+    border-color: #2573b5;
+}
 .btn-help {
     display: inline-block;
     font-size: 10px;
@@ -302,8 +310,8 @@ div.focusable:focus-within  {
     margin-bottom: 0;
 }
 .sidebar {
-    background-image: linear-gradient(270deg,rgba(51,211,225,.18),transparent);
-    background-color: #800000;
+    background-image: linear-gradient(180deg,#2799a3,transparent);
+    background-color: #2573b5;
     height: 100%;
     position: fixed;
     left: 0;
@@ -313,23 +321,26 @@ div.focusable:focus-within  {
     overflow-y: auto;
 }
 .sidebar a{
-    color: #fefefe;
+    color: #fff;
 }
 .sidebar .nav-link.active {
-    background: #df4b4b;
+    background: #4bb29d;
     color: #fff;
 }
 .sidebar .nav-item ul {
-    padding-top: 10px;
-    padding-bottom: 10px;
     background: rgba(0,0,0,.1);
 }
 .sidebar .nav-item .nav-item .nav-link {
-    padding-left: 36px;
+    padding-left: 38px;
     background: none;
 }
+.sidebar .nav-item .nav-item .nav-link.active {
+    background: rgba(255, 255, 255, 0.2);
+    border-left: 3px solid #b0d892;
+    padding-left: 35px;
+}
 .sidebar .nav-item .nav-item .nav-link:not(.active) {
-    color: #ffa3a3;
+    color: #fff;
 }
 
 
@@ -362,8 +373,8 @@ div.focusable:focus-within  {
 .main .toggler {
     display: none;
     height: 20px;
-    border: 1px solid #800000;
-    background: #800000
+    border: 1px solid #125196;
+    background: #125196
 }
 .main .toggler span {
     background: #fff;

@@ -19,8 +19,18 @@ class Slex {
         this.sheet = sheet
         return this
     }
+    mergeCells(range) {
+        this.sheet.mergeCells(range)
+        let cells = range.split(':')
+        this.getCell(cells[0])
+        return this
+    }
     setCell(cell) {
         this.cell = cell
+        return this
+    }
+    getCell(cell) {
+        this.cell = this.sheet.getCell(cell)
         return this
     }
     value(s) {
@@ -1161,6 +1171,152 @@ let templatePds = async (employee) => {
     sheet.mergeCells('A61:N61');
     cell = sheet.getCell('A61')
     slex.setCell(cell).value(`CS FORM 212 (Revised 2017), Page 1 of 4`).align('middle').align('right').font('Arial Narrow').fontSize(7).italic(true).border('thin', 'thin', 'thin', 'thin')
+
+
+    /////////// C2
+    sheet = workbook.addWorksheet('C2');
+    slex.setSheet(sheet)
+
+    sheet.views = [
+        { zoomScale: 100 }
+    ];
+
+    column = sheet.getColumn('A')
+    column.width = 3
+
+    sheet.getRow(1).height = 1
+    sheet.getRow(3).height = 24
+
+
+    slex.mergeCells('A2:M2')
+    .getCell('A2').value(`IV.  CIVIL SERVICE ELIGIBILITY`).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(11).bold(true).italic(true).fontColor('FFFFFFFF').border('thin', 'thin', 'thin', 'thin').bgFill('00969696')
+
+    slex.mergeCells('A3:A4')
+    .getCell('A4').value(`27.`).align('middle').align('left').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+
+    slex.mergeCells('B3:E4')
+    .getCell('B3').value(`CAREER SERVICE/ RA 1080 (BOARD/ BAR) UNDER SPECIAL LAWS/ CES/ CSEE\nBARANGAY ELIGIBILITY / DRIVER'S LICENSE`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+    
+    slex.mergeCells('F3:F4')
+    .getCell('F3').value(`RATING\n(If Applicable)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+    
+    slex.mergeCells('G3:H4')
+    .getCell('G3').value(`DATE OF EXAMINATION / CONFERMENT`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+    
+    slex.mergeCells('I3:K4')
+    .getCell('I3').value(`PLACE OF EXAMINATION / CONFERMENT`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+    
+    slex.mergeCells('L3:M4')
+    .getCell('L3').value(`LICENSE (if applicable)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+    
+    slex.getCell('L4').value(`NUMBER`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+    slex.getCell('M4').value(`Date of\nValidity`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+    offset = 5
+    for (x = 0; x < 7; x++) {
+        let name = lodash.get(employee, `personal.eligibilities[${x}].name`, '')
+        let rating = lodash.get(employee, `personal.eligibilities[${x}].rating`, '')
+        let examDate = lodash.get(employee, `personal.eligibilities[${x}].examDate`, '')
+        let examPlace = lodash.get(employee, `personal.eligibilities[${x}].examPlace`, '')
+        let licenseNumber = lodash.get(employee, `personal.eligibilities[${x}].licenseNumber`, '')
+        let licenseValidity = lodash.get(employee, `personal.eligibilities[${x}].licenseValidity`, '')
+
+        if (examDate) {
+            examDate = moment(examDate).format('MM/DD/YYYY')
+        }
+        if (licenseValidity) {
+            licenseValidity = moment(licenseValidity).format('MM/DD/YYYY')
+        }
+        row = offset + x
+        slex.mergeCells(`A${row}:E${row}`)
+        .getCell(`A${row}`).value(`${name}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+        .getCell(`F${row}`).value(`${rating}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+        slex.mergeCells(`G${row}:H${row}`)
+        .getCell(`G${row}`).value(`${examDate}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+        slex.mergeCells(`I${row}:K${row}`)
+        .getCell(`I${row}`).value(`${examPlace}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+        .getCell(`L${row}`).value(`${licenseNumber}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+        .getCell(`M${row}`).value(`${licenseValidity}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+    }
+
+    slex.mergeCells('A12:M12').value(`(Continue on separate sheet if necessary)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).fontColor('00FF0000').bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', '')
+    
+    slex.mergeCells('A13:M13').value(`V. WORK EXPERIENCE`).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(11).bold(true).italic(true).fontColor('FFFFFFFF').border('thin', 'thin', '', 'thin').bgFill('00969696')
+    slex.mergeCells('A14:M14').value(`(Include private employment. Start from your recent work) Description of duties should be indicated in the attached Work Experience sheet.`).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(10).bold(true).italic(true).fontColor('FFFFFFFF').border('', 'thin', 'thin', 'thin').bgFill('00969696')
+
+    slex.mergeCells('A15:A16').value(`28.`).align('middle').align('left').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('thin', '', '', 'thin')
+    slex.mergeCells('B15:C16').value(`INCLUSIVE DATES\n(mm/dd/yyyy)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', '')
+    slex.mergeCells('A17:B17').value(`From`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('thin', 'thin', 'thin', 'thin')
+    slex.getCell('C17').value(`To`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('thin', 'thin', 'thin', 'thin')
+
+    slex.mergeCells('D15:F17').value(`POSITION TITLE\n(Write in full/Do not abbreviate)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+    slex.mergeCells('G15:I17').value(`DEPARTMENT / AGENCY / OFFICE / COMPANY\n(Write in full/Do not abbreviate)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+    slex.mergeCells('J15:J17').value(`MONTHLY SALARY`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(7).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+    slex.mergeCells('K15:K17').value(`SALARY/ JOB/ PAY GRADE (if applicable)& STEP  (Format "00-0")/ INCREMENT`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(6).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+    slex.mergeCells('L15:L17').value(`STATUS OF APPOINTMENT`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(7).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+    slex.mergeCells('M15:M17').value(`GOV'T SERVICE\n(Y/ N)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(7).bgFill('00C0C0C0').border('', 'thin', 'thin', 'thin')
+    
+    offset = 18
+    for (x = 0; x < 28; x++) {
+        let fromDate = lodash.get(employee, `personal.workExperiences[${x}].fromDate`, '')
+        let toDate = lodash.get(employee, `personal.workExperiences[${x}].toDate`, '')
+        let positionTitle = lodash.get(employee, `personal.workExperiences[${x}].positionTitle`, '')
+        let department = lodash.get(employee, `personal.workExperiences[${x}].department`, '')
+        let salary = lodash.get(employee, `personal.workExperiences[${x}].salary`, '')
+        let payGrade = lodash.get(employee, `personal.workExperiences[${x}].payGrade`, '')
+        let appointmentStatus = lodash.get(employee, `personal.workExperiences[${x}].appointmentStatus`, '')
+        let isGov = lodash.get(employee, `personal.workExperiences[${x}].isGov`, '')
+        if (fromDate) {
+            fromDate = moment(fromDate).format('MM/DD/YYYY')
+        }
+        if (toDate) {
+            toDate = moment(toDate).format('MM/DD/YYYY')
+        }
+        
+        row = offset + x
+        slex.mergeCells(`A${row}:B${row}`)
+        .value(`${fromDate}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+        .getCell(`C${row}`)
+        .value(`${toDate}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+        slex.mergeCells(`D${row}:F${row}`)
+        .value(`${positionTitle}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+        slex.mergeCells(`G${row}:I${row}`)
+        .value(`${department}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+        .getCell(`J${row}`)
+        .value(`${salary}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+        .getCell(`K${row}`)
+        .value(`${payGrade}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+        .getCell(`L${row}`)
+        .value(`${appointmentStatus}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+        .getCell(`M${row}`)
+        .value(`${isGov}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+        
+    }
+
+    slex.mergeCells('A46:M46').value(`(Continue on separate sheet if necessary)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).fontColor('00FF0000').bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', '')
+    
+    slex.mergeCells('A47:C47').value(`SIGNATURE`).align('middle').align('center').font('Arial Narrow').fontSize(11).bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', 'thin')
+
+    slex.mergeCells('D47:H47').value(``).align('middle').align('center').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+    slex.getCell('I47').value(`DATE`).align('middle').align('center').font('Arial Narrow').fontSize(11).bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', 'thin')
+
+    slex.mergeCells('J47:M47').value(``).align('middle').align('center').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+    slex.mergeCells('A48:M48').value(`CS FORM 212 (Revised 2017), Page 2 of 4`).align('middle').align('right').font('Arial Narrow').fontSize(7).italic(true).border('thin', 'thin', 'thin', 'thin')
 
     return workbook
 

@@ -111,6 +111,34 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
                 return `${i.lastName}, ${i.firstName}, ${i.middleName}, ${lodash.get(i, 'employments[0].position')}`
             })
             return res.send(csv.join("\n"))
+        } else if (req.query.qr==1){
+            let count = 0
+            employees.forEach((employee, a) => {
+                employee.employments.forEach((employment, b) => {
+                    let qrData = {
+                        type: 2,
+                        employeeId: employee._id,
+                        employmentId: employment._id
+                    }
+                    qrData = Buffer.from(JSON.stringify(qrData)).toString('base64')
+                    // console.log(qrData)
+    
+                    qrData = qr.imageSync(qrData, { size: 4, type: 'png' }).toString('base64')
+    
+                    employees[a].employments[b].qrCode = {
+                        count: ++count,
+                        data: qrData,
+                        employment: employment,
+                        title: employment.position || 'Employment',
+                    }
+                })
+            })
+            return res.render('employee/qr-codes.html', {
+                flash: flash.get(req, 'employee'),
+                employees: employees,
+                pagination: pagination,
+                query: req.query,
+            });
         }
         res.render('employee/all.html', {
             flash: flash.get(req, 'employee'),

@@ -91,6 +91,11 @@
             </div>
             <div class="row">
                 <div class="col-md-12 text-center text-md-left pt-3 pb-5">
+                    <a href="{{pagination.urlBase}}?{{pagination.query|query_string({qr: 1})}}" class="btn btn-sm btn-primary">Generate QR</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 text-center text-md-left pt-3 pb-5">
                     {% include "parts/pagination.html" %}
                 </div>
             </div>

@@ -26,7 +26,7 @@ router.get('/e-profile/home', middlewares.guardRoute(['use_employee_profile']), 
     try {
         let employee = res.employee.toObject()
 
-        let qrCodes = []
+        let carouselItems = []
         employee.employments.forEach((e) => {
             let qrData = {
                 type: 2,
@@ -37,17 +37,26 @@ router.get('/e-profile/home', middlewares.guardRoute(['use_employee_profile']), 
             // console.log(qrData)
 
             qrData = qr.imageSync(qrData, { size: 5, type: 'png' }).toString('base64')
-            qrCodes.push({
+            carouselItems.push({
+                type: 'qr',
+                data: qrData,
+                employment: e,
+                title: e.position || 'Employment',
+            })
+            carouselItems.push({
+                type: 'qr',
                 data: qrData,
                 employment: e,
                 title: e.position || 'Employment',
             })
         })
 
+
+
         res.render('e-profile/home.html', {
             employee: employee,
             momentNow: moment(),
-            qrCodes: qrCodes,
+            carouselItems: carouselItems,
         });
 
     } catch (err) {

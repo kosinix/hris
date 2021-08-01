@@ -1318,6 +1318,217 @@ let templatePds = async (employee) => {
 
     slex.mergeCells('A48:M48').value(`CS FORM 212 (Revised 2017), Page 2 of 4`).align('middle').align('right').font('Arial Narrow').fontSize(7).italic(true).border('thin', 'thin', 'thin', 'thin')
 
+
+    /////////// C3
+    sheet = workbook.addWorksheet('C3');
+    slex.setSheet(sheet)
+
+    sheet.views = [
+        { zoomScale: 100 }
+    ];
+
+    column = sheet.getColumn('A')
+    column.width = 3
+
+    sheet.getRow(1).height = 1
+    sheet.getRow(3).height = 24
+
+    slex.mergeCells('A2:K2')
+        .value(`VI. VOLUNTARY WORK OR INVOLVEMENT IN CIVIC / NON-GOVERNMENT / PEOPLE / VOLUNTARY ORGANIZATION/S`).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(11).bold(true).italic(true).fontColor('FFFFFFFF').border('thin', 'thin', 'thin', 'thin').bgFill('00969696')
+
+        .mergeCells('A3:A5')
+        .value(`29.`).align('middle').align('left').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+
+        .mergeCells('B3:D5')
+        .value(`NAME & ADDRESS OF ORGANIZATION\n(Write in full)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        .mergeCells('E3:F4')
+        .value(`INCLUSIVE DATES\n(mm/dd/yyyy)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        .getCell('E5')
+        .value(`From`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        .getCell('F5')
+        .value(`To`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        .mergeCells('G3:G5')
+        .value(`NUMBER OF HOURS`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        .mergeCells('H3:K5')
+        .value(`POSITION / NATURE OF WORK`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+    offset = 6
+    for (x = 0; x < 7; x++) {
+        let o = lodash.get(employee, `personal.voluntaryWorks[${x}]`)
+        row = offset + x
+
+        slex.mergeCells(`A${row}:D${row}`)
+            .value(`${lodash.get(o, 'name', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`E${row}`)
+            .value(`${lodash.get(o, 'fromDate', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`F${row}`)
+            .value(`${lodash.get(o, 'toDate', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`G${row}`)
+            .value(`${lodash.get(o, 'hours', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .mergeCells(`H${row}:K${row}`)
+            .value(`${lodash.get(o, 'position', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+    }
+
+    slex.mergeCells('A13:K13')
+        .value(`(Continue on separate sheet if necessary)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).fontColor('00FF0000').bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', '')
+
+        .mergeCells('A14:K14')
+        .value(`VII.  LEARNING AND DEVELOPMENT (L&D) INTERVENTIONS/TRAINING PROGRAMS ATTENDED`).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(11).bold(true).italic(true).fontColor('FFFFFFFF').border('thin', 'thin', 'thin', 'thin').bgFill('00969696')
+
+        .mergeCells('A15:A17')
+        .value(`30.`).align('middle').align('left').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+
+        .mergeCells('B15:D17')
+        .value(`TITLE OF LEARNING AND DEVELOPMENT INTERVENTIONS/TRAINING PROGRAMS\n(Write in full)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        .mergeCells('E15:F16')
+        .value(`INCLUSIVE DATES OF ATTENDANCE\n(mm/dd/yyyy)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        .getCell('E17')
+        .value(`From`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        .getCell('F17')
+        .value(`To`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        .mergeCells('G15:G17')
+        .value(`NUMBER OF HOURS`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        .mergeCells('H15:H17')
+        .value(`Type of LD\n( Managerial/ Supervisory/\nTechnical/etc)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        .mergeCells('I15:K17')
+        .value(` CONDUCTED/ SPONSORED BY\n(Write in full)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+    offset = 18
+    for (x = 0; x < 21; x++) {
+        let o = lodash.get(employee, `personal.trainings[${x}]`)
+        row = offset + x
+
+        slex.mergeCells(`A${row}:D${row}`)
+            .value(`${lodash.get(o, 'name', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`E${row}`)
+            .value(`${lodash.get(o, 'fromDate', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`F${row}`)
+            .value(`${lodash.get(o, 'toDate', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`G${row}`)
+            .value(`${lodash.get(o, 'hours', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`H${row}`)
+            .value(`${lodash.get(o, 'type', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .mergeCells(`I${row}:K${row}`)
+            .value(`${lodash.get(o, 'sponsor', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+    }
+
+    slex.mergeCells('A39:K39')
+        .value(`(Continue on separate sheet if necessary)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).fontColor('00FF0000').bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', '')
+
+        // 
+        .mergeCells('A40:K40')
+        .value(`VIII.  OTHER INFORMATION`).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(11).bold(true).italic(true).fontColor('FFFFFFFF').border('thin', 'thin', 'thin', 'thin').bgFill('00969696')
+
+        .getCell('A41')
+        .value(`31.`).align('middle').align('left').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+
+        .getCell('B41')
+        .value(`SPECIAL SKILLS and HOBBIES`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        .getCell('C41')
+        .value(`32.`).align('middle').align('left').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+
+        .mergeCells('D41:H41')
+        .value(`NON-ACADEMIC DISTINCTIONS / RECOGNITION\n(Write in full)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+        .getCell('I41')
+        .value(`33.`).align('middle').align('left').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+
+        .mergeCells('J41:K41')
+        .value(`MEMBERSHIP IN ASSOCIATION/ORGANIZATION\n(Write in full)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
+
+    offset = 42
+    for (x = 0; x < 7; x++) {
+        let o = lodash.get(employee, `personal.extraCurriculars[${x}]`)
+        row = offset + x
+
+        if (lodash.get(o, 'type') == 'skillHobbies') {
+
+            slex.mergeCells(`A${row}:B${row}`)
+                .value(`${lodash.get(o, 'detail', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        } else {
+
+            slex.mergeCells(`A${row}:B${row}`)
+                .value(``).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        }
+    }
+    for (x = 0; x < 7; x++) {
+        let o = lodash.get(employee, `personal.extraCurriculars[${x}]`)
+        row = offset + x
+
+        if (lodash.get(o, 'type') == 'nonAcademic') {
+
+            slex.mergeCells(`C${row}:H${row}`)
+                .value(`${lodash.get(o, 'detail', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        } else {
+
+            slex.mergeCells(`C${row}:H${row}`)
+                .value(``).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        }
+    }
+    for (x = 0; x < 7; x++) {
+        let o = lodash.get(employee, `personal.extraCurriculars[${x}]`)
+        row = offset + x
+
+        if (lodash.get(o, 'type') == 'organization') {
+
+            slex.mergeCells(`I${row}:K${row}`)
+                .value(`${lodash.get(o, 'detail', '')}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        } else {
+
+            slex.mergeCells(`I${row}:K${row}`)
+                .value(``).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        }
+    }
+
+    slex.mergeCells('A49:K49')
+        .value(`(Continue on separate sheet if necessary)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).fontColor('00FF0000').bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', '')
+
+        .mergeCells('A50:B50')
+        .value(`SIGNATURE`).align('middle').align('center').font('Arial Narrow').fontSize(11).bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', 'thin')
+
+        .mergeCells('C50:F50')
+        .value(``).align('middle').align('center').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        .mergeCells('G50:H50')
+        .value(`DATE`).align('middle').align('center').font('Arial Narrow').fontSize(11).bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', 'thin')
+
+        .mergeCells('I50:K50')
+        .value(``).align('middle').align('center').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+        .mergeCells('A51:K51')
+        .value(`CS FORM 212 (Revised 2017), Page 3 of 4`).align('middle').align('right').font('Arial Narrow').fontSize(7).italic(true).border('thin', 'thin', 'thin', 'thin')
+
+
     return workbook
 
 }

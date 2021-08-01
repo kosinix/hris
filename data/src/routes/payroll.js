@@ -133,9 +133,7 @@ router.post('/payroll/:payrollId/save', middlewares.guardRoute(['read_payroll'])
 
         let r = await db.main.Payroll.updateOne({ _id: payroll._id }, patch)
 
-        console.log(r)
-
-        res.send(`ok ok`)
+        res.send(`Payroll saved.`)
     } catch (err) {
         next(err);
     }

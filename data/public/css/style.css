@@ -131,6 +131,12 @@ h4, h5, h6 {
     border-bottom: 1px solid #ddd;
 }
 
+.carousel-item {
+    transition: -webkit-transform .2s ease-in-out;
+    transition: transform .2s ease-in-out;
+    transition: transform .2s ease-in-out,-webkit-transform .2s ease-in-out;
+}
+
 .nav-tabs .nav-link:focus, .nav-tabs .nav-link:hover {
     border-color: #e9ecef #dee2e6;
     background: #fff;

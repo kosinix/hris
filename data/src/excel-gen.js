@@ -1189,26 +1189,26 @@ let templatePds = async (employee) => {
 
 
     slex.mergeCells('A2:M2')
-    .getCell('A2').value(`IV.  CIVIL SERVICE ELIGIBILITY`).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(11).bold(true).italic(true).fontColor('FFFFFFFF').border('thin', 'thin', 'thin', 'thin').bgFill('00969696')
+        .getCell('A2').value(`IV.  CIVIL SERVICE ELIGIBILITY`).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(11).bold(true).italic(true).fontColor('FFFFFFFF').border('thin', 'thin', 'thin', 'thin').bgFill('00969696')
 
     slex.mergeCells('A3:A4')
-    .getCell('A4').value(`27.`).align('middle').align('left').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
+        .getCell('A4').value(`27.`).align('middle').align('left').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
 
     slex.mergeCells('B3:E4')
-    .getCell('B3').value(`CAREER SERVICE/ RA 1080 (BOARD/ BAR) UNDER SPECIAL LAWS/ CES/ CSEE\nBARANGAY ELIGIBILITY / DRIVER'S LICENSE`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
-    
+        .getCell('B3').value(`CAREER SERVICE/ RA 1080 (BOARD/ BAR) UNDER SPECIAL LAWS/ CES/ CSEE\nBARANGAY ELIGIBILITY / DRIVER'S LICENSE`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
     slex.mergeCells('F3:F4')
-    .getCell('F3').value(`RATING\n(If Applicable)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
-    
+        .getCell('F3').value(`RATING\n(If Applicable)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
     slex.mergeCells('G3:H4')
-    .getCell('G3').value(`DATE OF EXAMINATION / CONFERMENT`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
-    
+        .getCell('G3').value(`DATE OF EXAMINATION / CONFERMENT`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
     slex.mergeCells('I3:K4')
-    .getCell('I3').value(`PLACE OF EXAMINATION / CONFERMENT`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
-    
+        .getCell('I3').value(`PLACE OF EXAMINATION / CONFERMENT`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
     slex.mergeCells('L3:M4')
-    .getCell('L3').value(`LICENSE (if applicable)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
-    
+        .getCell('L3').value(`LICENSE (if applicable)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
+
     slex.getCell('L4').value(`NUMBER`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
     slex.getCell('M4').value(`Date of\nValidity`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).bgFill('00C0C0C0').border('', 'thin', 'thin', '')
 
@@ -1229,24 +1229,24 @@ let templatePds = async (employee) => {
         }
         row = offset + x
         slex.mergeCells(`A${row}:E${row}`)
-        .getCell(`A${row}`).value(`${name}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
-        .getCell(`F${row}`).value(`${rating}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
+            .getCell(`A${row}`).value(`${name}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`F${row}`).value(`${rating}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
         slex.mergeCells(`G${row}:H${row}`)
-        .getCell(`G${row}`).value(`${examDate}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
+            .getCell(`G${row}`).value(`${examDate}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
         slex.mergeCells(`I${row}:K${row}`)
-        .getCell(`I${row}`).value(`${examPlace}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
-        .getCell(`L${row}`).value(`${licenseNumber}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
-        .getCell(`M${row}`).value(`${licenseValidity}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
+            .getCell(`I${row}`).value(`${examPlace}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`L${row}`).value(`${licenseNumber}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`M${row}`).value(`${licenseValidity}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
     }
 
     slex.mergeCells('A12:M12').value(`(Continue on separate sheet if necessary)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).fontColor('00FF0000').bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', '')
-    
+
     slex.mergeCells('A13:M13').value(`V. WORK EXPERIENCE`).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(11).bold(true).italic(true).fontColor('FFFFFFFF').border('thin', 'thin', '', 'thin').bgFill('00969696')
     slex.mergeCells('A14:M14').value(`(Include private employment. Start from your recent work) Description of duties should be indicated in the attached Work Experience sheet.`).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(10).bold(true).italic(true).fontColor('FFFFFFFF').border('', 'thin', 'thin', 'thin').bgFill('00969696')
 
@@ -1261,7 +1261,7 @@ let templatePds = async (employee) => {
     slex.mergeCells('K15:K17').value(`SALARY/ JOB/ PAY GRADE (if applicable)& STEP  (Format "00-0")/ INCREMENT`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(6).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
     slex.mergeCells('L15:L17').value(`STATUS OF APPOINTMENT`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(7).bgFill('00C0C0C0').border('', '', 'thin', 'thin')
     slex.mergeCells('M15:M17').value(`GOV'T SERVICE\n(Y/ N)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(7).bgFill('00C0C0C0').border('', 'thin', 'thin', 'thin')
-    
+
     offset = 18
     for (x = 0; x < 28; x++) {
         let fromDate = lodash.get(employee, `personal.workExperiences[${x}].fromDate`, '')
@@ -1278,36 +1278,36 @@ let templatePds = async (employee) => {
         if (toDate) {
             toDate = moment(toDate).format('MM/DD/YYYY')
         }
-        
+
         row = offset + x
         slex.mergeCells(`A${row}:B${row}`)
-        .value(`${fromDate}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
-        .getCell(`C${row}`)
-        .value(`${toDate}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
+            .value(`${fromDate}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`C${row}`)
+            .value(`${toDate}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
         slex.mergeCells(`D${row}:F${row}`)
-        .value(`${positionTitle}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
+            .value(`${positionTitle}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
         slex.mergeCells(`G${row}:I${row}`)
-        .value(`${department}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
-        .getCell(`J${row}`)
-        .value(`${salary}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
-        .getCell(`K${row}`)
-        .value(`${payGrade}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
-        .getCell(`L${row}`)
-        .value(`${appointmentStatus}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
-        .getCell(`M${row}`)
-        .value(`${isGov}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
-        
+            .value(`${department}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`J${row}`)
+            .value(`${salary}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`K${row}`)
+            .value(`${payGrade}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`L${row}`)
+            .value(`${appointmentStatus}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
+            .getCell(`M${row}`)
+            .value(`${isGov}`).align('middle').align('left').font('Arial').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+
     }
 
     slex.mergeCells('A46:M46').value(`(Continue on separate sheet if necessary)`).align('middle').align('center').wrapText(true).font('Arial Narrow').fontSize(8).fontColor('00FF0000').bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', '')
-    
+
     slex.mergeCells('A47:C47').value(`SIGNATURE`).align('middle').align('center').font('Arial Narrow').fontSize(11).bold(true).italic(true).bgFill('00C0C0C0').border('thin', 'thin', 'thin', 'thin')
 
     slex.mergeCells('D47:H47').value(``).align('middle').align('center').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
@@ -1322,7 +1322,107 @@ let templatePds = async (employee) => {
 
 }
 
+let templateHdf = async (healthDeclarations) => {
+    let row = null
+    let cell = null
+    let chk = null
+    let chk2 = null
+    let value = null
+    let colors = {
+        black: { argb: '00000000' }
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    let sheet = workbook.addWorksheet('hdf');
+    sheet.views = [
+        { zoomScale: 100 }
+    ];
+
+    let slex = new Slex(workbook)
+    slex.setSheet(sheet)
+
+    sheet.pageSetup.printArea = 'A1:N61';
+    sheet.pageSetup.fitToPage = true
+    sheet.pageSetup.paperSize = 9 // A4
+    sheet.pageSetup.margins = {
+        left: 0.15, right: 0,
+        top: 0.25, bottom: 0.12,
+        header: 0.24, footer: 0.12
+    };
+
+    slex.getCell('A1').value(`Last Name`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('B1').value(`First Name`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('C1').value(`Age`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('D1').value(`Sex`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('E1').value(`Civil Status`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('F1').value(`Address`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('G1').value(`Contact`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('H1').value(`Department`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('I1').value(`Temp`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('J1').value(`Symptoms`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('K1').value(`Visited Med. Facility`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('L1').value(`Visit Details`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('M1').value(`Suspected COVID Patient`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('N1').value(`Date/Place`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('O1').value(`Sick Family Member`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('P1').value(`Details`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+
+
+    offset = 2
+    for (x = 0; x < healthDeclarations.length; x++) {
+        let hdf = healthDeclarations[x]
+
+        row = offset + x
+        slex.getCell(`A${row}`)
+            .value(`${hdf.data.ln}`).align('middle').align('left').font('Calibri').fontSize(11)
+
+        slex.getCell(`B${row}`)
+            .value(`${hdf.data.fn}`).align('middle').align('left').font('Calibri').fontSize(11)
+
+        slex.getCell(`C${row}`)
+            .value(`${hdf.data.age}`).align('middle').align('left').font('Calibri').fontSize(11)
+
+        slex.getCell(`D${row}`)
+            .value(`${hdf.data.sex}`).align('middle').align('left').font('Calibri').fontSize(11)
+
+        slex.getCell(`E${row}`)
+            .value(`${hdf.data.cs}`).align('middle').align('left').font('Calibri').fontSize(11)
+
+        slex.getCell(`F${row}`)
+            .value(`${hdf.data.adr}`).align('middle').align('left').font('Calibri').fontSize(11)
+
+        slex.getCell(`G${row}`)
+            .value(`${hdf.data.cnt}`).align('middle').align('left').font('Calibri').fontSize(11)
+
+        slex.getCell(`H${row}`)
+            .value(`${hdf.data.dep}`).align('middle').align('left').font('Calibri').fontSize(11)
+
+        slex.getCell(`I${row}`)
+            .value(`${hdf.data.tmp}`).align('middle').align('left').font('Calibri').fontSize(11)
+
+        slex.getCell(`J${row}`)
+            .value(`${lodash.get(hdf, 'data.sym', []).join(', ')}`).align('middle').align('left').font('Calibri').fontSize(11)
+        
+        slex.getCell(`K${row}`)
+            .value(`${hdf.data.vmf}`).align('middle').align('left').font('Calibri').fontSize(11)
+        slex.getCell(`L${row}`)
+            .value(`${lodash.get(hdf, 'data.vmp', []).join(', ')}`).align('middle').align('left').font('Calibri').fontSize(11)
+        slex.getCell(`M${row}`)
+            .value(`${hdf.data.sus}`).align('middle').align('left').font('Calibri').fontSize(11)
+        slex.getCell(`N${row}`)
+            .value(`${hdf.data.sud}`).align('middle').align('left').font('Calibri').fontSize(11)
+        slex.getCell(`O${row}`)
+            .value(`${hdf.data.sfm}`).align('middle').align('left').font('Calibri').fontSize(11)
+        slex.getCell(`P${row}`)
+            .value(`${hdf.data.sfd}`).align('middle').align('left').font('Calibri').fontSize(11)
+
+    }
+
+    return workbook
+
+}
 module.exports = {
+    templateHdf: templateHdf,
     templateJocos: templateJocos,
     templatePds: templatePds,
 }

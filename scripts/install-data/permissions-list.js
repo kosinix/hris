@@ -43,6 +43,13 @@ module.exports = [
     'update_attendance',
     'delete_attendance',
 
+    // Attendance
+    'read_all_hdf',
+    'create_hdf',
+    'read_hdf',
+    'update_hdf',
+    'delete_hdf',
+
     // Employee 
     'use_employee_profile',
 

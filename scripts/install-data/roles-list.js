@@ -35,6 +35,18 @@ const ROLES = [
             'read_scanner',
             'use_scanner',
         ]
+    },
+    {
+        key: 'clinical',
+        name: 'Clinical',
+        description: 'Health related content.',
+        permissions: [
+            'read_all_hdf',
+            'create_hdf',
+            'read_hdf',
+            'update_hdf',
+            'delete_hdf',
+        ]
     }
 ]
 

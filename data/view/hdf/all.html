@@ -1,0 +1,99 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="">
+            <h1 class="h2 d-flex align-items-start">
+                <span class="mr-1">Health Declarations</span>
+                <em>({{pagination.totalDocs}})</em>
+            </h1>
+            <div>
+                {% set url = '/hdf/all' %}
+                {% include 'hdf/date.html' %}
+            </div>
+        </div>
+
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                {# <a href="/hdf/create" class="btn btn-sm btn-outline-primary">Add Employee</a> #}
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    {% if healthDeclarations.length <= 0 %}
+        <p>None found.</p>
+    {% else %}
+        <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>
+                                {% set thId = 'lastName' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                {% set thId = 'firstName' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>Position</th>
+                            <th>Temp</th>
+                            <th>Symptoms</th>
+                            <th>Med. Visit</th>
+                            <th>Suspected</th>
+                            <th>Sick Family</th>
+                            <th>Risk Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for healthDeclaration in healthDeclarations %}
+                        <tr>
+                            <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
+                            <td>{{healthDeclaration.employee.lastName}}</td>
+                            <td>{{healthDeclaration.employee.firstName}}</td>
+                            <td>{{healthDeclaration.employee.employments[0].position}}</td>
+                            <td>{{healthDeclaration.data.tmp}}</td>
+                            <td>{{healthDeclaration.data.sym|join(', ')}}</td>
+                            <td>{{healthDeclaration.data.vmf}}</td>
+                            <td>{{healthDeclaration.data.sus}}</td>
+                            <td>{{healthDeclaration.data.sfm}}</td>
+                            <td>
+                                {% if healthDeclaration.score <= 0 %}
+                                    {% set color = 'text-success' %}
+                                    {% set note = 'Low' %}
+
+                                {% elif healthDeclaration.score > 0 and healthDeclaration.score < 50 %}
+                                    {% set color = 'text-warning' %}
+                                    {% set note = 'Medium' %}
+
+                                {% else %}
+                                    {% set color = 'text-danger' %}
+                                    {% set note = 'High' %}
+
+                                {% endif %}
+                                <a class="{{color}}" href="/healthDeclaration/{{healthDeclaration._id}}">
+                                    {{healthDeclaration.score}} - {{note}}
+                                </a>
+                            </td>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="row">
+                <div class="col-md-12 text-center text-md-left pt-3 pb-5">
+                    <a href="{{pagination.urlBase}}?{{pagination.query|query_string({csv: 1})}}" class="btn btn-sm btn-primary">Download CSV</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 text-center text-md-left pt-3 pb-5">
+                    {% include "parts/pagination.html" %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

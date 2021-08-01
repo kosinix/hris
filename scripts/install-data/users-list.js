@@ -32,5 +32,16 @@ module.exports = [
         "email" : "mis+checker@gsc.edu.ph",
         "active" : true,
         permissions: [],
+    },
+    {
+        "roles" : [
+            "clinical"
+        ],
+        "firstName" : "Nico",
+        "middleName" : "G",
+        "lastName" : "Amarilla",
+        "email" : "mis+clinic@gsc.edu.ph",
+        "active" : true,
+        permissions: [],
     }
 ]

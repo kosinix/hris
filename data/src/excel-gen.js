@@ -581,7 +581,7 @@ let templatePds = async (employee) => {
     // unit
     sheet.mergeCells('I17:K17');
     cell = sheet.getCell('I17')
-    slex.setCell(cell).value(`${employee.addresses[1].unit}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', '', '', '')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[1].unit', '')}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', '', '', '')
 
     sheet.mergeCells('I18:K18');
     cell = sheet.getCell('I18')
@@ -590,7 +590,7 @@ let templatePds = async (employee) => {
     // street
     sheet.mergeCells('L17:N17');
     cell = sheet.getCell('L17')
-    slex.setCell(cell).value(`${employee.addresses[1].street}`).align('bottom').align('center').font('Arial Narrow').bold(true).fontSize(8).border('thin', 'thin', '', '')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[1].street', '')}`).align('bottom').align('center').font('Arial Narrow').bold(true).fontSize(8).border('thin', 'thin', '', '')
 
     sheet.mergeCells('L18:N18');
     cell = sheet.getCell('L18')
@@ -599,7 +599,7 @@ let templatePds = async (employee) => {
     // village
     sheet.mergeCells('I19:K20');
     cell = sheet.getCell('I19')
-    slex.setCell(cell).value(`${employee.addresses[1].village}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', '', '', '')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[1].village', '')}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', '', '', '')
 
     sheet.mergeCells('I21:K21');
     cell = sheet.getCell('I21')
@@ -608,7 +608,7 @@ let templatePds = async (employee) => {
     // brgy
     sheet.mergeCells('L19:N20');
     cell = sheet.getCell('L19')
-    slex.setCell(cell).value(`${employee.addresses[1].brgy}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', 'thin', '', '')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[1].brgy', '')}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', 'thin', '', '')
 
     sheet.mergeCells('L21:N21');
     cell = sheet.getCell('L21')
@@ -617,7 +617,7 @@ let templatePds = async (employee) => {
     // city mun
     sheet.mergeCells('I22:K22');
     cell = sheet.getCell('I22')
-    slex.setCell(cell).value(`${employee.addresses[1].cityMun}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', '', '', '')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[1].cityMun', '')}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', '', '', '')
 
     sheet.mergeCells('I23:K23');
     cell = sheet.getCell('I23')
@@ -626,7 +626,7 @@ let templatePds = async (employee) => {
     // province
     sheet.mergeCells('L22:N22');
     cell = sheet.getCell('L22')
-    slex.setCell(cell).value(`${employee.addresses[1].province}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', 'thin', '', '')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[1].province', '')}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', 'thin', '', '')
 
     sheet.mergeCells('L23:N23');
     cell = sheet.getCell('L23')
@@ -639,7 +639,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('I24:N24');
     cell = sheet.getCell('I24')
-    slex.setCell(cell).value(`${employee.addresses[1].zipCode}`).align('middle').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[1].zipCode', '')}`).align('middle').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
 
 
     // permanent addr
@@ -650,7 +650,7 @@ let templatePds = async (employee) => {
     // unit
     sheet.mergeCells('I25:K25');
     cell = sheet.getCell('I25')
-    slex.setCell(cell).value(`${employee.addresses[0].unit}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', '', '', '')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[0].unit', '')}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', '', '', '')
 
     sheet.mergeCells('I26:K26');
     cell = sheet.getCell('I26')
@@ -659,7 +659,7 @@ let templatePds = async (employee) => {
     // street
     sheet.mergeCells('L25:N25');
     cell = sheet.getCell('L25')
-    slex.setCell(cell).value(`${employee.addresses[0].street}`).align('bottom').align('center').font('Arial Narrow').bold(true).fontSize(8).border('thin', 'thin', '', '')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[0].street', '')}`).align('bottom').align('center').font('Arial Narrow').bold(true).fontSize(8).border('thin', 'thin', '', '')
 
     sheet.mergeCells('L26:N26');
     cell = sheet.getCell('L26')
@@ -668,7 +668,7 @@ let templatePds = async (employee) => {
     // village
     sheet.mergeCells('I27:K27');
     cell = sheet.getCell('I27')
-    slex.setCell(cell).value(`${employee.addresses[0].village}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', '', '', '')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[0].village', '')}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', '', '', '')
 
     sheet.mergeCells('I28:K28');
     cell = sheet.getCell('I28')
@@ -677,7 +677,7 @@ let templatePds = async (employee) => {
     // brgy
     sheet.mergeCells('L27:N27');
     cell = sheet.getCell('L27')
-    slex.setCell(cell).value(`${employee.addresses[0].brgy}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', 'thin', '', '')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[0].brgy', '')}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', 'thin', '', '')
 
     sheet.mergeCells('L28:N28');
     cell = sheet.getCell('L28')
@@ -686,7 +686,7 @@ let templatePds = async (employee) => {
     // city mun
     sheet.mergeCells('I29:K29');
     cell = sheet.getCell('I29')
-    slex.setCell(cell).value(`${employee.addresses[0].cityMun}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', '', '', '')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[0].cityMun', '')}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', '', '', '')
 
     sheet.mergeCells('I30:K30');
     cell = sheet.getCell('I30')
@@ -695,7 +695,7 @@ let templatePds = async (employee) => {
     // province
     sheet.mergeCells('L29:N29');
     cell = sheet.getCell('L29')
-    slex.setCell(cell).value(`${employee.addresses[0].province}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', 'thin', '', '')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[0].province', '')}`).align('bottom').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', 'thin', '', '')
 
     sheet.mergeCells('L30:N30');
     cell = sheet.getCell('L30')
@@ -708,7 +708,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('I31:N31');
     cell = sheet.getCell('I31')
-    slex.setCell(cell).value(`${employee.addresses[0].zipCode}`).align('middle').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'addresses[0].zipCode', '')}`).align('middle').align('center').font('Arial Narrow').fontSize(8).bold(true).border('thin', 'thin', 'thin', 'thin')
 
 
     // height
@@ -1402,7 +1402,7 @@ let templateHdf = async (healthDeclarations) => {
 
         slex.getCell(`J${row}`)
             .value(`${lodash.get(hdf, 'data.sym', []).join(', ')}`).align('middle').align('left').font('Calibri').fontSize(11)
-        
+
         slex.getCell(`K${row}`)
             .value(`${hdf.data.vmf}`).align('middle').align('left').font('Calibri').fontSize(11)
         slex.getCell(`L${row}`)

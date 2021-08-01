@@ -4,7 +4,7 @@
 const express = require('express')
 const flash = require('kisapmata')
 const lodash = require('lodash')
-const moment = require('moment')
+const moment = require('moment-timezone');
 const qr = require('qr-image')
 
 //// Modules
@@ -193,38 +193,19 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
             employeeId: employee._id,
             employmentId: employmentId,
             createdAt: {
-                $gte: momentNow.startOf('month').toDate(),
-                $lt: momentNow.endOf('month').toDate(),
+                $gte: momentNow.clone().startOf('month').toDate(),
+                $lt: momentNow.clone().endOf('month').toDate(),
             }
         })
 
-        attendances = lodash.mapKeys(attendances, (a) => {
-            return moment(a.createdAt).format('YYYY-MM-DD')
-        })
-
-        let days = new Array(momentNow.daysInMonth())
-        days = days.fill(1).map((v, i) => {
-            let attendance = attendances[`${year}-${month}-${String(v + i).padStart(2, '0')}`] || null
-            let dtr = dtrHelper.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
-
-            return {
-                date: `${year}-${month}-${String(v + i).padStart(2, '0')}`,
-                year: year,
-                month: month,
-                day: v + i,
-                dtr: dtr,
-                attendance: attendance
-            }
-        })
-        let qrCodeSvg = qr.imageSync(employee.uid, { size: 10, type: 'png' })
-
+        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances)
+        // return res.send(days)
         res.render('e-profile/dtr.html', {
             momentNow: momentNow,
-            days: days,
             attendances: attendances,
             employee: employee,
             employment: employment,
-            qrCodeSvg: qrCodeSvg.toString('base64'),
+            dtrDays: dtrDays,
         });
     } catch (err) {
         next(err);
@@ -399,6 +380,61 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
             employment: employment,
             qrCodeSvg: qrCodeSvg.toString('base64'),
             title: `DTR-${momentNow.format('YYYY-MM')}-${employee.lastName}`
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/e-profile/wfh/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+        let momentNow = moment()
+
+        res.render('e-profile/wfh.html', {
+            momentNow: momentNow,
+            employee: employee,
+            employment: employment,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e-profile/wfh/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+        let momentNow = moment()
+
+        // Today attendance
+        let attendance = await db.main.Attendance.findOne({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            createdAt: {
+                $gte: moment().startOf('day').toDate(),
+                $lt: moment().endOf('day').toDate(),
+            }
+        })
+        if (attendance) {
+            throw new Error('Already have attendance for today.')
+        } else {
+            attendance = new db.main.Attendance({
+                employeeId: employee._id,
+                employmentId: employment._id,
+                onTravel: false,
+                wfh: true,
+                logs: [
+                ]
+            })
+        }
+        await attendance.save()
+
+        return res.send(req.body)
+        res.render('e-profile/wfh.html', {
+            momentNow: momentNow,
+            employee: employee,
+            employment: employment,
         });
     } catch (err) {
         next(err);

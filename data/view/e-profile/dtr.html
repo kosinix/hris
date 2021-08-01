@@ -50,25 +50,37 @@
                         <th>Hours</th>
                         <th>Minutes</th>
                     </tr>
-                    {% for day in days %}
-                    {% set attendance = day.attendance %}
-                    <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
-                        <td class="text-center">{{day.day}}</td>
+                    {% for dtrDay in dtrDays %}
+                    {% set attendance = dtrDay.attendance %}
+                    <tr class="{% if dtrDay.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if dtrDay.dtr.undertime === true %} undertime {% endif %}">
+                        <td class="text-center">{{loop.index}}</td>
                         {% if attendance.onTravel %}
-                            <td colspan="6">On Travel</td>
+                            <td>On Travel</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        {% elif attendance.wfh %}
+                            <td>WFH</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         {% else %}
                             <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                             <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                             <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                             <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                             <td>
-                                {% if day.dtr.underMinutes %}
-                                    {{day.dtr.underHours}}
+                                {% if dtrDay.dtr.underMinutes %}
+                                    {{dtrDay.dtr.underHours}}
                                 {% endif %}
                             </td>
                             <td>
-                                {% if day.dtr.underMinutes %}
-                                    {{day.dtr.underMinutes}}
+                                {% if dtrDay.dtr.underMinutes %}
+                                    {{dtrDay.dtr.underMinutes}}
                                 {% endif %}
                             </td>
                         {% endif %}

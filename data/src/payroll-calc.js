@@ -95,7 +95,7 @@ let getTotalAttendanceMinutes = (attendances) => {
 let addDtr = (attendances, hoursPerDay, travelPoints, gracePeriods) => {
     for (let a = 0; a < attendances.length; a++) {
         let attendance = attendances[a] // daily
-        let dtr = calcDailyAttendance(attendance, hoursPerDay, travelPoints, gracePeriods)
+        let dtr = dtrHelper.calcDailyAttendance(attendance, hoursPerDay, travelPoints)
         attendances[a].dtr = dtr
     }
     return attendances

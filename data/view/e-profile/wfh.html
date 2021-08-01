@@ -1,0 +1,182 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="">
+            <h1 class="h3">Attendance - Work From Home</h1>
+            <p><em>({{momentNow|format_date('MMMM D, YYYY')}})</em></p>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/e-profile/home" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <div class=" mb-5">
+        <div style="" class=" ml-auto mr-auto" >
+            <div class="text-center">
+                <h3 class="h4">Work From Home</h3>
+                {# <div class="">-----o0o-----</div> #}
+
+                <div class="text-center pt-3 pb-3">
+                    <div class="profile-photo ml-auto mr-auto">
+                        {% if employee.profilePhoto %}
+                            <img src="{{employee.profilePhoto|s3_url('medium')}}" alt="{{employee.firstName|first}}. {{employee.lastName|first}}.">
+                        {% else %}
+                            {# <span class="initials">{{employee.firstName|first}} {{employee.lastName|first}}</span> #}
+                        {% endif %}
+                    </div>
+                </div>
+                <h4 class="h5 mb-3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
+                <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/wfh/{{employment._id}}" method="POST" class="form-default text-left">
+                    <h2 class="h5 mb-4"></h2>
+                    {# Accomplishments #}
+                    <div class="form-group focusable" tabindex="0">
+                        <h2 class="h5">Accomplishment Report</h2>
+                        <p class="mb-4"><em>List down all work activities at home.</em></p>
+                        <div v-for="(accomplishment, index) in accomplishments">
+                            <hr v-if="index > 0">
+                            <div class="text-right mb-2">
+                                <button v-on:click="deleteAccomplishment(index)" type="button" class="btn btn-danger btn-sm">X - Delete</button>
+                            </div>
+                            <div class="form-row">
+                                <div class="col-md-3">
+                                    {% set name = "'accomplishments[' + index + '][activity]'"|safe %}
+                                    {% set vModel = 'accomplishment.activity' %}
+                                    {% set label = 'Functional Activity' %}
+                                    {% include 'parts/form-group-textarea-vue.html' %}
+                                    {% set label = '' %}
+                                </div>
+                                <div class="col-md-3">
+                                    {% set name = "'accomplishments[' + index + '][output]'"|safe %}
+                                    {% set vModel = 'accomplishment.output' %}
+                                    {% set label = 'Output' %}
+                                    {% include 'parts/form-group-textarea-vue.html' %}
+                                    {% set label = '' %}
+                                </div>
+                                <div class="col-md-2">
+                                    {% set name = "'accomplishments[' + index + '][performanceIndicator]'"|safe %}
+                                    {% set vModel = 'accomplishment.performanceIndicator' %}
+                                    {% set label = 'Performance Indicator' %}
+                                    {% include 'parts/form-group-textarea-vue.html' %}
+                                    {% set label = '' %}
+                                </div>
+                                <div class="col-md-2">
+                                    {% set name = "'accomplishments[' + index + '][operationalDefinition]'"|safe %}
+                                    {% set vModel = 'accomplishment.operationalDefinition' %}
+                                    {% set label = 'Operational Definition' %}
+                                    {% include 'parts/form-group-textarea-vue.html' %}
+                                    {% set label = '' %}
+                                </div>
+                                <div class="col-md-2">
+                                    {% set name = "'accomplishments[' + index + '][hours]'"|safe %}
+                                    {% set vModel = 'accomplishment.hours' %}
+                                    {% set label = 'Number of Hours' %}
+                                    {% include 'parts/form-group-number-vue.html' %}
+                                    {% set label = '' %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="button" v-bind:disabled="disabled" v-on:click.prevent="addAccomplishment" class="btn btn-sm btn-primary">Add Activity</button>
+                        </div> 
+                    </div>
+                    <hr>
+                    <div class="form-row pt-3 pb-3">
+                        <div class="col-md-12">
+                            <button v-if="accomplishments.length > 0" type="submit" name="save" value="save" class="btn btn-primary">Save </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            accomplishments:{{accomplishments|default([], true)|stringify|safe}},
+        },
+        computed: {
+            disabled: function(){
+                return (this.totalHours >= 8)
+            },
+            totalHours: function(){
+                var hours = _.map(this.accomplishments, function(o){
+                    var num = parseFloat(o.hours)
+                    if(isNaN(num)){
+                        num = 0
+                    }
+                    return num
+                })
+                return _.reduce(hours, function (accum, next) {
+                    return accum + next
+                }, 0)
+            },
+            hasBlanks: function(){
+                var b = false 
+                _.each(this.accomplishments, function (accomplishment) {
+                    _.each(accomplishment, function (prop) {
+                        if(!prop){
+                            b = true 
+                            return 
+                        }
+                    })
+                })
+                return b
+            }
+        },
+        validations: {
+           
+        },
+        methods: {
+            addAccomplishment: function(){
+                if(this.totalHours >= 8){
+                    alert('Max working hours reached. Please reduce time on other activities to continue.');
+                    return;
+                }
+                this.accomplishments.push({
+                    activity: '',
+                    output: '',
+                    performanceIndicator: '',
+                    hours: '',
+                    operationalDefinition: '',
+                })
+            },
+            deleteAccomplishment: function(start){
+                this.$delete(this.accomplishments, start)
+            },
+            onSubmit: function(){
+                var me = this;
+                if(me.totalHours != 8){
+                    alert('Total hours must be 8 hours.');
+                    return;
+                }
+                if(me.hasBlanks){
+                    alert('All fields must be filled-in.');
+                    return;
+                }
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

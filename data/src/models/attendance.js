@@ -13,6 +13,7 @@ let schema = mongoose.Schema({
         $type: mongoose.Schema.Types.ObjectId
     },
     onTravel: Boolean,
+    wfh: Boolean,
     logs: [
         {
             scannerId: mongoose.Schema.Types.ObjectId,

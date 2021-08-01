@@ -111,7 +111,7 @@ const momentToMinutes = (momentObject) => {
 /**
  * Breakdown total minutes into: minutes, hours, days
  * @param {number} minutes Total minutes worked
- * @param {number} totalMinutesUnderTime Total undertime minutes
+ * @param {number} totalMinutesUnderTime Total undertime in minutes
  * @param {number} hoursPerDay Work hours per day
  * @returns {object} See return
  */
@@ -161,6 +161,8 @@ const calcDailyAttendance = (attendance, hoursPerDay, travelPoints) => {
     let underMinutes = 0
     if (attendance.onTravel) {
         minutes += travelPoints
+    } else if (attendance.wfh) {
+        minutes += travelPoints
     } else {
         // roll logs 
         let momentIn = null
@@ -198,14 +200,14 @@ const calcDailyAttendance = (attendance, hoursPerDay, travelPoints) => {
                 if (minutesWorked > shiftCurrent.maxMinutes) {
                     minutesWorked = shiftCurrent.maxMinutes
                 }
-                
+
                 // Attach
                 log.minutesWorked = minutesWorked
                 log.underMinutes = shiftCurrent.maxMinutes - minutesWorked
 
                 minutes += minutesWorked
                 underMinutes += shiftCurrent.maxMinutes - minutesWorked
-                
+
             }
         }
 
@@ -216,13 +218,48 @@ const calcDailyAttendance = (attendance, hoursPerDay, travelPoints) => {
         minutes = 60 * hoursPerDay
     }
     return calcTimeRecord(minutes, underMinutes, hoursPerDay)
-    
+
 }
 
+const getDtrMonthlyView = (month, year, attendances) => {
+
+    let momentNow = moment().year(year).month(month)
+
+    // Turn array of attendances into an object with date as keys: "2020-12-31"
+    attendances = lodash.mapKeys(attendances, (a) => {
+        return moment(a.createdAt).format('YYYY-MM-DD')
+    })
+
+    // Array containing 1 - 31
+    let days = new Array(31)
+    days = days.fill(1).map((val, index) => val + index)
+
+    days = days.map((index1) => {
+        let year = momentNow.format('YYYY')
+        let month = momentNow.format('MM')
+        let day = String(index1).padStart(2, '0')
+        let date = `${year}-${month}-${day}`
+        let attendance = attendances[date] || null
+        let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
+
+        return {
+            date: date,
+            year: year,
+            month: month,
+            day: day,
+            dtr: dtr,
+            attendance: attendance
+        }
+    })
+
+
+    return days
+}
 module.exports = {
     calcDailyAttendance: calcDailyAttendance,
     calcTimeRecord: calcTimeRecord,
     createShift: createShift,
+    getDtrMonthlyView: getDtrMonthlyView,
     getNearestShift: getNearestShift,
     getNextShift: getNextShift,
     momentToMinutes: momentToMinutes

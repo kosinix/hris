@@ -4,7 +4,7 @@
 const express = require('express')
 const flash = require('kisapmata')
 const lodash = require('lodash')
-const moment = require('moment-timezone');
+const moment = require('moment');
 const qr = require('qr-image')
 
 //// Modules

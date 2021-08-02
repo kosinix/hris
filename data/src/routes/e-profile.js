@@ -43,12 +43,6 @@ router.get('/e-profile/home', middlewares.guardRoute(['use_employee_profile']), 
                 employment: e,
                 title: e.position || 'Employment',
             })
-            carouselItems.push({
-                type: 'qr',
-                data: qrData,
-                employment: e,
-                title: e.position || 'Employment',
-            })
         })
 
 
@@ -430,7 +424,7 @@ router.post('/e-profile/wfh/:employmentId', middlewares.guardRoute(['use_employe
         }
         await attendance.save()
 
-        return res.send(req.body)
+        return res.redirect(`/e-profile/dtr/${employment._id}`)
         res.render('e-profile/wfh.html', {
             momentNow: momentNow,
             employee: employee,
@@ -440,6 +434,42 @@ router.post('/e-profile/wfh/:employmentId', middlewares.guardRoute(['use_employe
         next(err);
     }
 });
+
+router.get('/e-profile/travel/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+        let momentNow = moment()
+
+        // Today attendance
+        let attendance = await db.main.Attendance.findOne({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            createdAt: {
+                $gte: moment().startOf('day').toDate(),
+                $lt: moment().endOf('day').toDate(),
+            }
+        })
+        if (attendance) {
+            throw new Error('Already have attendance for today.')
+        } else {
+            attendance = new db.main.Attendance({
+                employeeId: employee._id,
+                employmentId: employment._id,
+                onTravel: true,
+                wfh: false,
+                logs: [
+                ]
+            })
+        }
+        await attendance.save()
+
+        return res.redirect(`/e-profile/dtr/${employment._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+
 
 router.get('/e-profile/payroll', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {

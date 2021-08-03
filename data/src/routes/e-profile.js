@@ -561,8 +561,9 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
                 lodash.get(patch, 'addresses.0.village'),
                 lodash.get(address0, 'full'),
             )
+            
             lodash.set(patch, 'address', full)
-            lodash.set(patch, 'addresses.0.full', full)
+            lodash.set(patch, 'addresses.0.full', lodash.get(address0, 'full'))
             lodash.set(patch, 'addresses.0.brgy', address0.name)
             lodash.set(patch, 'addresses.0.cityMun', address0.cityMunName)
             lodash.set(patch, 'addresses.0.province', address0.provName)
@@ -587,7 +588,7 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
                 lodash.get(address1, 'full'),
             )
             lodash.set(patch, 'address', full)
-            lodash.set(patch, 'addresses.1.full', full)
+            lodash.set(patch, 'addresses.1.full', lodash.get(address1, 'full'))
             lodash.set(patch, 'addresses.1.brgy', address1.name)
             lodash.set(patch, 'addresses.1.cityMun', address1.cityMunName)
             lodash.set(patch, 'addresses.1.province', address1.provName)

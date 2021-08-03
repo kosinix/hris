@@ -1,7 +1,7 @@
 /**
  * Use actual employees and add attendance
  * 
- * Usage: node scripts/attendance.perma.test.js
+ * Usage: node scripts/install-payroll-permanent.js
  */
 //// Core modules
 const path = require('path');
@@ -408,7 +408,7 @@ const db = require('../data/src/db-install');
             return o
         })
         let payroll = await db.main.Payroll.create({
-            name: 'June 1st Quincena Perma',
+            name: 'June 15th Permanent',
             dateStart: '2021-06-01',
             dateEnd: '2021-06-15',
             employments: employments,

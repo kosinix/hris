@@ -120,11 +120,15 @@ const db = require('../data/src/db-install');
 
                         let emps = await db.main.Employment.find({
                             employeeId: e._id,
-                            position: 'Administrative Aide ',
+                            position: /^Administrative Aide $/,
                         })
+
                         if (emps.length > 0) {
                             for (let x = 0; x < emps.length; x++) {
                                 let emp = emps[x]
+                                await db.main.Employment.updateOne({
+                                    _id: emp._id,
+                                }, { position: position })
                                 positionsRestored.push(`${entry.lastName} restored from ${emp.position} to ${position}`)
                             }
                         }

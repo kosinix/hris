@@ -120,7 +120,7 @@ const db = require('../data/src/db-install');
 
                         let emps = await db.main.Employment.find({
                             employeeId: e._id,
-                            position: 'Administrative Aide',
+                            position: 'Administrative Aide ',
                         })
                         if (emps.length > 0) {
                             for (let x = 0; x < emps.length; x++) {

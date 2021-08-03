@@ -1,22 +1,23 @@
-{% extends "document-public.html" %}
+{% extends "document-camera.html" %}
 
 {% block body %}
-<div class="col-md-6 ml-auto mr-auto pt-5 mt-5">
-    <div id="vApp">
-        <div class="form-login" >
-
-            <div class="form-header">
-                <h1 class="h6 mb-0">Scanner</h1>
-            </div>
-            <div class="form-body text-center">
-               <div class="alert alert-info">Scanning paused.</div>
-               <a href="/scanner/{{scanner.uid}}/scan" class="btn btn-lg btn-success">Resume Scanner</a>
-            </div>
+<div class="scanner d-flex justify-content-center">
+    <div class="scan-bar-title d-flex justify-content-center align-items-center">
+        <h1 class="h6 mb-0">Scanner: {{scanner.name}}</h1>
+    </div>
+    <div class="scan-text">
+    <blink>Scanning paused...</blink>
+    </div>
+    <div class="scan-bar d-flex justify-content-center align-items-center">
+        <div>
+            <a href="/scanner/{{scanner.uid}}/scan">   
+                <svg style="width:64px;height:64px" viewBox="0 0 24 24">
+                    <path fill="#fff" d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
+                </svg>
+            </a>
         </div>
     </div>
 </div>
 {% endblock %}
 {% block scripts %}
-{{ super() }}
-
 {% endblock %}

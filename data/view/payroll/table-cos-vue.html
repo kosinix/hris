@@ -6,28 +6,19 @@
             <th></th>
                 <th>Name</th>
                 <th>Position</th>
-                <th>Basic</th>
+                <th>Daily</th>
+                
+                <th>No. of Days Rendered</th>
+                <th>Grant Total</th>
                 {% for incentive in payroll.incentives %}
                     <th>{{incentive.name}}</th>
                 {% endfor %}
-                <th>Total</th>
-                <th>Undertime</th>
-                <th>
-                    Less: <br> Late
-                </th>
-                <th>Grant Total</th>
-                {% for deduction in payroll.deductions %}
-                    {% if deduction.mandatory %}
-                        <th>{{deduction.name}}</th>
-                    {% endif %}
-                {% endfor %}
-                <th>Total Mandatory Deductions</th>
                 {% for deduction in payroll.deductions %}
                     {% if deduction.mandatory == false %}
                         <th>{{deduction.name}}</th>
                     {% endif %}
                 {% endfor %}
-                <th>Total Non-Mandatory Deductions</th>
+                <th>Total Deductions</th>
             </tr>
         </thead>
         <tbody id="sortMe">
@@ -40,22 +31,15 @@
                 <td>${employment.employee.lastName}, ${employment.employee.firstName} <u>${_.first(employment.employee.middleName)}</u></td>
                 <td>${employment.position}</td>
                 <td>${employment.salary|currency}</td>
-                <td v-for="incentive in employment.incentives">${incentive.amount|currency}</td>
-                <td>${employment.amountPostIncentives|currency}</td>
                 <td>
                     <a target="_blank" v-bind:href="`http://localhost:9094/attendance/employee/employment/${employment.employee._id}/${employment._id}?month=${moment(payroll.dateStart).format('MMM')}&amp;year=${moment(payroll.dateStart).format('YYYY')}&amp;undertime=1`" class="d-flex">
-                        <div>${employment.timeRecord.underDays} days</div>
-                        <div class="pl-2 pr-2">${employment.timeRecord.underHours} hrs</div>
-                        <div>${employment.timeRecord.underMinutes} mins</div>
+                        <div>${employment.timeRecord.renderedDays} days</div>
+                        <div class="pl-2 pr-2">${employment.timeRecord.renderedHours} hrs</div>
+                        <div>${employment.timeRecord.renderedMinutes} mins</div>
                     </a>
                 </td>
-                <td>${((employment.tardiness) ? employment.tardiness : 0) | currency}</td>
                 <td>${employment.grantTotal|currency}</td>
-                <td v-for="(deduction, deductionIndex) in filterDeductions(rowIndex, true)">
-                    <input v-on:blur="lockInput($event, rowIndex, deductionIndex)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
-                    <span class="text-danger" v-on:dblclick="editInput($event, rowIndex, deductionIndex, deduction.deductionType)">${deduction.amount | currency}</span>
-                </td>
-                <td>${getTotalDeductions(rowIndex, true) | currency}</td>
+                <td v-for="incentive in employment.incentives">${incentive.amount|currency}</td>
                 <td v-for="(deduction, deductionIndex) in filterDeductions(rowIndex, false)">
                     <input v-on:blur="lockInput($event, rowIndex, deductionIndex)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
                     <span class="text-danger" v-on:dblclick="editInput($event, rowIndex, deductionIndex, deduction.deductionType)">${deduction.amount | currency}</span>

@@ -11,67 +11,8 @@
         {% if payroll.employments.length > 0 %}
             {% if payroll.template === 'permanent' %}
                 {% include 'payroll/table-permanent-vue.html' %}
-            {% else %}
-                <div class="table-responsive">
-                    <div class="cover"></div>
-                    <table class="table table-payroll table-striped">
-                        <thead>
-                            <tr>
-                            <th></th>
-                               <th>Name</th>
-                                <th>Position</th>
-                                {# <th>Office Assigned</th> #}
-                                <th>Daily Wage</th>
-                                <th>No. of Days/Hrs/Mins <br>Rendered</th>
-                                <th>Amount</th>
-                                {# {% for deduction in payroll.deductions %}
-                                    <th>{{deduction.name}}</th>
-                                {% endfor %}
-                                <th>Total Deductions</th>
-                                <th>Net Amount</th> #}
-                            </tr>
-                        </thead>
-                        <tbody id="sortMe">
-                        {% for employment in payroll.employments %}
-                            {% set employee = employment.employee %}
-                            <tr class="drag-employment" data-id="{{employment._id}}" data-employee-id="{{employee._id}}">
-                                <td style="padding:0; text-align:center; vertical-align: middle;">
-                                    <svg class="dragMe" style="cursor: move; width:24px;height:24px; opacity: 0.4" viewBox="0 0 24 24">
-                                        <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
-                                    </svg>
-                                </td>
-                                <td>{{employee.lastName}}, {{employee.firstName}} <u>{{employee.middleName|first}}</u></td>
-                                <td>{{employment.position}}</td>
-                                {# <td>{{employment.department}}</td> #}
-                                <td>{{employment.salary|currency}}</td>
-                                <td>
-                                    <a href="http://localhost:9094/attendance/employee/employment/{{employee._id}}/{{employment._id}}?month={{payroll.dateStart|format_date('MMM')}}&amp;year={{payroll.dateStart|format_date('YYYY')}}&amp;undertime=1" class="d-flex">
-                                        <div>{{employment.timeRecord.renderedDays}} days</div>
-                                        <div class="pl-2 pr-2">{{employment.timeRecord.renderedHours}} hrs</div>
-                                        <div>{{employment.timeRecord.renderedMinutes}} mins</div>
-                                    </a>
-                                </td>
-                                {# {% for incentive in employment.incentives %}
-                                    <td>{{incentive.amount|currency}}</td>
-                                {% endfor %} #}
-                                <td>{{employment.amountWorked|currency}}</td>
-                                {# <td>{{employment.grantTotal|currency}}</td>
-                                {% for deduction in employment.deductions %}
-                                    <td>
-                                        {{deduction.amount|currency}}
-                                    </td>
-                                {% endfor %}
-                                <td>{{employment.totalDeductions|currency}}</td>
-                                <td>{{employment.netAmountPostDeductions|currency}}</td> #}
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-
-                </div> 
-                <div class="d-flex ">
-                    <a href="/payroll/employees/{{payroll._id}}/payroll.xlsx" class="btn btn-light">Download</a>
-                </div>
+            {% elif payroll.template === 'cos_staff' %}
+                {% include 'payroll/table-cos-vue.html' %}
             {% endif %}
         {% endif %}
         <hr>

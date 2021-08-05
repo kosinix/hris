@@ -52,10 +52,11 @@
 
                 // Use facingMode: environment to attemt to get the front camera on phones
                 // 720x480 = D1 - a resolution standard for TV and DVD-Video.
+                // CIF	352 x 240	
                 navigator.mediaDevices.getUserMedia({
                     video: {
-                        width: 720,
-                        height: 480,
+                        width: 352,
+                        height: 240,
                         facingMode: "environment"
                     }
                 }).then(function (stream) {

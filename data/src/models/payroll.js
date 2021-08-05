@@ -34,11 +34,15 @@ let schema = mongoose.Schema({
             name: {
                 $type: String
             },
-            "type": {
+            type: {
                 $type: String
             },
-            "percentage": Number,
-            "initialAmount": Number,
+            percentage: Number,
+            percentOf: String,
+            initialAmount: Number,
+            groupName: {
+                $type: String
+            },
         }
     ],
     deductions: [
@@ -60,6 +64,10 @@ let schema = mongoose.Schema({
             },
             percentage: Number,
             initialAmount: Number, // only for deductionType normal
+            groupName: {
+                $type: String,
+                trim: true,
+            },
         }
     ],
     employees: [

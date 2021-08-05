@@ -1,6 +1,7 @@
 //// Core modules
 
 //// External modules
+const lodash = require('lodash');
 const nunjucks = require('nunjucks');
 const nunjucksFilters = require('nunjucks-filters');
 
@@ -24,6 +25,10 @@ env.addFilter('s3_url', function (value, sizePrefix = "") {
         sizePrefix += "-";
     }
     return `/file-getter/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/${sizePrefix}${value}`
+})
+
+env.addFilter('customFilter', function (array, filterObj) {
+    return lodash.filter(array, filterObj)
 })
 
 //// Export

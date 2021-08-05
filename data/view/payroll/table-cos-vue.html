@@ -14,6 +14,7 @@
                 <th colspan="3">Tax</th>
                 <th colspan="3">SSS</th>
                 <th></th>
+                <th></th>
             </tr>
             <tr class="text-center">
                 <th></th>
@@ -39,6 +40,7 @@
                 <th>Total SSS</th>
                
                 <th>Total Deductions</th>
+                <th>Net Amount Received</th>
             </tr>
         </thead>
         <tbody id="sortMe">
@@ -72,6 +74,7 @@
                 </td>
                 <td>${getTotalDeductions(filterBy(employment.deductions, ['groupName', 'SSS'])) | currency}</td>
                 <td>${getTotalDeductions(employment.deductions) | currency}</td>
+                <td>${employment.amountWorked + getTotalIncentives(employment.incentives) - getTotalDeductions(employment.deductions) | currency}</td>
             </tr>
             
         </tbody>

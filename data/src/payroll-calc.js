@@ -116,7 +116,7 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
         // Payroll period attendance
         let attendances = employment.attendances
 
-        // add computed values
+        // Attach computed values
         let totalMinutes = 0
         let totalMinutesUnderTime = 0
         for (let a = 0; a < attendances.length; a++) {
@@ -133,11 +133,9 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
         employment.timeRecord = dtrHelper.calcTimeRecord(totalMinutes, totalMinutesUnderTime, hoursPerDay)
         // console.log(employee.lastName, employment.timeRecord)
 
+        // 1. AMOUNT WORKED
         if (employment.salaryType === 'monthly') {
-            let perDay = employment.salary / workDays
-            let perHour = perDay / 8
-            let perMin = perHour / 60
-            employment.amountWorked = (perMin * employment.timeRecord.totalMinutes)
+            employment.amountWorked = employment.salary
         }
         if (employment.salaryType === 'daily') {
             let perHour = employment.salary / 8
@@ -145,9 +143,9 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
             employment.amountWorked = (perMin * employment.timeRecord.totalMinutes)
         }
 
+        // DEDUCTION TARDINESS
         employment.tardiness = 0
-        if (empType === 'permanent') {
-            employment.amountWorked = employment.salary
+        if (employment.salaryType === 'monthly') {
             // Undertime
             let perDay = employment.salary / workDays
             let perHour = perDay / 8
@@ -163,7 +161,7 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
                 tardiness = parseFloat(tardiness)
 
                 employment.tardiness = tardiness
-                employment.amountWorked -= tardiness
+                // employment.amountWorked -= tardiness
             }
         }
 
@@ -177,16 +175,22 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
                 incentive.amount = (incentive.initialAmount)
 
             } else if (incentive.type === 'percentage') {
-                incentive.amount = (incentive.percentage / 100 * employment.salary)
+                let percentage = incentive.percentage / 100
+                if(incentive.percentOf === 'amountWorked'){
+                    incentive.amount = percentage * employment.amountWorked
+                } else {
+                    incentive.amount = percentage * employment.salary
+                }
+
             }
             totalIncentives += parseFloat(incentive.amount)
             employment.incentives.push(incentive)// TODO: check what it does
 
         }
         employment.totalIncentives = totalIncentives
-        employment.amountPostIncentives = employment.salary + totalIncentives
-        employment.grantTotal = employment.amountPostIncentives - employment.tardiness
-        totalAmountPostIncentives += employment.amountPostIncentives
+        // employment.amountPostIncentives = employment.salary + totalIncentives
+        // employment.grantTotal = employment.amountPostIncentives - employment.tardiness
+        // totalAmountPostIncentives += employment.amountPostIncentives
         // 
         // Attach deductions
         if(employee.lastName=='Alminaza') console.log(employment)
@@ -217,10 +221,8 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
             }
         }
 
-       
-
-        employment.amountPostDeductions = employment.amountWorked + totalIncentives - employment.totalDeductions
-        totalAmountPostDeductions += employment.amountPostDeductions
+        // employment.amountPostDeductions = employment.amountWorked + totalIncentives - employment.totalDeductions
+        // totalAmountPostDeductions += employment.amountPostDeductions
 
         payroll.employments[x] = employment
 

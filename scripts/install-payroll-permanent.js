@@ -12,12 +12,8 @@ const util = require('util');
 const moment = require('moment');
 const lodash = require('lodash');
 const pigura = require('pigura');
-const uuid = require('uuid');
 
 //// Modules
-const passwordMan = require('../data/src/password-man');
-const payrollCalc = require('../data/src/payroll-man');
-const uid = require('../data/src/uid');
 
 
 //// First things first

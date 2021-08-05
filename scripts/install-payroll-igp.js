@@ -12,12 +12,8 @@ const util = require('util');
 const moment = require('moment');
 const lodash = require('lodash');
 const pigura = require('pigura');
-const uuid = require('uuid');
 
 //// Modules
-const passwordMan = require('../data/src/password-man');
-const payrollCalc = require('../data/src/payroll-man');
-const uid = require('../data/src/uid');
 
 
 //// First things first
@@ -169,14 +165,53 @@ const db = require('../data/src/db-install');
             incentives: [
                 {
                     "name": "5% Premium",
-                    "type": "normal",
+                    "type": "percentage",
+                    "percentage": 5,
+                    "percentOf": "amountWorked",
                     "initialAmount": 0,
                     "_id": db.mongoose.Types.ObjectId(),
-                    "uid": "5Premium"
+                    "uid": lodash.camelCase("5% Premium")
                 }
             ],
-            deductions: [],
-            template: 'permanent',
+            deductions: [
+                {
+                    
+                    uid: '3Tax',
+                    name: '3 %',
+                    mandatory: true,
+                    deductionType: 'normal',
+                    initialAmount: 0,
+                    groupName: 'Tax'
+                },
+                {
+                    
+                    uid: '10Tax',
+                    name: '10 %',
+                    mandatory: true,
+                    deductionType: 'normal',
+                    initialAmount: 0,
+                    groupName: 'Tax'
+                },
+                {
+                    
+                    uid: 'contributionSSS',
+                    name: 'Contribution',
+                    mandatory: true,
+                    deductionType: 'normal',
+                    initialAmount: 0,
+                    groupName: 'SSS'
+                },
+                {
+                    
+                    uid: 'ecSSS',
+                    name: 'EC',
+                    mandatory: true,
+                    deductionType: 'normal',
+                    initialAmount: 0,
+                    groupName: 'SSS'
+                }
+            ],
+            template: 'cos_staff',
         })
         console.log(`Payrolls...`)
         logs.push(`db.getCollection('payrolls').remove({_id:ObjectId("${payroll._id}")})`)

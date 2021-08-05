@@ -113,20 +113,23 @@
             })
         },
         methods: {
-            filterDeductions: function(employmentIndex, mandatory) {
-                return this.payroll.employments[employmentIndex].deductions.filter((o) => {
-                    return o.mandatory === mandatory
-                })
+            filterBy: function(array, filterObj) {
+                return _.filter(array, filterObj)
             },
-            getTotalDeductions: function(employmentIndex, mandatory){
-                var deductions = this.filterDeductions(employmentIndex, mandatory)
+            getTotalIncentives: function(incentives){
+                incentives = incentives.map(o => o.amount)
+                return incentives.reduce( (accum, current) => {
+                    return accum + current;
+                }, 0)
+            },
+            getTotalDeductions: function(deductions){
                 deductions = deductions.map(o => o.amount)
                 return deductions.reduce( (accum, current) => {
                     return accum + current;
                 }, 0)
             },
             
-            editInput: function(e, rowIndex, deductionIndex, deductionType) {
+            editInput: function(e, deductionType) {
                 if(deductionType=='percentage') return
                 var el = jQuery(e.target)
                 var elInput = el.siblings('input')
@@ -134,13 +137,19 @@
                 el.parents('td').addClass('editable')
                 elInput.focus()
             },
-            lockInput: function(e, rowIndex, deductionIndex) { // onBlur
+            lockInput: function(e) { // onBlur
                 var el = jQuery(e.target)
-                el.val(parseFloat(_.trim(e.target.value).replace(/[^0-9.]+/ig, '')))
                 el.parents('td').removeClass('editable')
+
+                e.target.value = this.toMoney(e.target.value)
             },
-            inputMoney: function(e, d){
-                d.amount = parseFloat(_.trim(e.target.value).replace(/[^0-9.]+/ig, ''))
+            toMoney: function(value){
+                value = parseFloat(_.trim(value).replace(/[^0-9.]+/ig, ''))
+                value = isNaN(value) ? 0 : value
+                return value
+            },
+            inputMoney: function(e, deduction){
+                deduction.amount = this.toMoney(e.target.value)
             },
             onKeyUp: function(e, rowIndex, deductionIndex) {
                 var el = jQuery(e.target)

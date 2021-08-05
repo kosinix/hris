@@ -2,22 +2,42 @@
     <div class="cover"></div>
     <table class="table table-payroll table-sm table-striped">
         <thead>
-            <tr>
-            <th></th>
+            <tr class="text-center">
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th colspan="3">Tax</th>
+                <th colspan="3">SSS</th>
+                <th></th>
+            </tr>
+            <tr class="text-center">
+                <th></th>
                 <th>Name</th>
                 <th>Position</th>
                 <th>Daily</th>
                 
                 <th>No. of Days Rendered</th>
-                <th>Grant Total</th>
+                <th>Gross Amount</th>
                 {% for incentive in payroll.incentives %}
                     <th>{{incentive.name}}</th>
                 {% endfor %}
-                {% for deduction in payroll.deductions %}
-                    {% if deduction.mandatory == false %}
-                        <th>{{deduction.name}}</th>
-                    {% endif %}
+                <th>Total</th>
+
+                {% for deduction in payroll.deductions|customFilter({groupName: 'Tax'}) %}
+                    <th>{{deduction.name}}</th>
                 {% endfor %}
+                <th>Total Tax</th>
+
+                {% for deduction in payroll.deductions|customFilter({groupName: 'SSS'}) %}
+                    <th>{{deduction.name}}</th>
+                {% endfor %}
+                <th>Total SSS</th>
+               
                 <th>Total Deductions</th>
             </tr>
         </thead>
@@ -38,13 +58,20 @@
                         <div>${employment.timeRecord.renderedMinutes} mins</div>
                     </a>
                 </td>
-                <td>${employment.grantTotal|currency}</td>
+                <td>${employment.amountWorked|currency}</td>
                 <td v-for="incentive in employment.incentives">${incentive.amount|currency}</td>
-                <td v-for="(deduction, deductionIndex) in filterDeductions(rowIndex, false)">
-                    <input v-on:blur="lockInput($event, rowIndex, deductionIndex)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
-                    <span class="text-danger" v-on:dblclick="editInput($event, rowIndex, deductionIndex, deduction.deductionType)">${deduction.amount | currency}</span>
+                <td>${getTotalIncentives(employment.incentives)+employment.amountWorked | currency}</td>
+                <td v-for="deduction in filterBy(employment.deductions, {groupName: 'Tax'})">
+                    <input v-on:blur="lockInput($event)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
+                    <span class="text-danger" v-on:dblclick="editInput($event, deduction.deductionType)">${deduction.amount | currency}</span>
                 </td>
-                <td>${getTotalDeductions(rowIndex, false) | currency}</td>
+                <td>${getTotalDeductions(filterBy(employment.deductions, ['groupName', 'Tax'])) | currency}</td>
+                <td v-for="deduction in filterBy(employment.deductions, {groupName: 'SSS'})">
+                    <input v-on:blur="lockInput($event)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
+                    <span class="text-danger" v-on:dblclick="editInput($event, deduction.deductionType)">${deduction.amount | currency}</span>
+                </td>
+                <td>${getTotalDeductions(filterBy(employment.deductions, ['groupName', 'SSS'])) | currency}</td>
+                <td>${getTotalDeductions(employment.deductions) | currency}</td>
             </tr>
             
         </tbody>

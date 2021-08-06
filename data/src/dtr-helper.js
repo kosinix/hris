@@ -3,6 +3,7 @@
 //// External modules
 const lodash = require('lodash')
 const moment = require('moment')
+const money = require('money-math')
 
 //// Modules
 
@@ -116,9 +117,24 @@ const momentToMinutes = (momentObject) => {
  * @returns {object} See return
  */
 const calcTimeRecord = (minutes, totalMinutesUnderTime, hoursPerDay) => {
+
+    /* Bare JS  is inaccurate */
+    // /*
     let renderedDays = minutes / 60 / hoursPerDay
     let renderedHours = (renderedDays - Math.floor(renderedDays)) * hoursPerDay
     let renderedMinutes = (renderedHours - Math.floor(renderedHours)) * 60
+    // */
+
+    /*
+    let renderedDays = money.floatToAmount(minutes / 60 / hoursPerDay)
+    let renderedHours = money.mul(money.subtract(renderedDays, Math.floor(renderedDays).toFixed(2)), money.floatToAmount(hoursPerDay))
+    let renderedMinutes = money.mul(money.subtract(renderedHours, Math.floor(renderedHours).toFixed(2)), "60.00")
+    */
+
+
+    console.log(renderedDays)
+    console.log(renderedHours)
+    console.log(renderedMinutes)
 
     let undertime = false
     let underDays = 0
@@ -127,20 +143,27 @@ const calcTimeRecord = (minutes, totalMinutesUnderTime, hoursPerDay) => {
 
     if (totalMinutesUnderTime > 0) {
         undertime = true
+        /*
+        underDays = money.floatToAmount(totalMinutesUnderTime / 60 / hoursPerDay)
+        underHours = money.mul(money.subtract(underDays, Math.floor(underDays).toFixed(2)), money.floatToAmount(hoursPerDay))
+        underMinutes = money.mul(money.subtract(underHours, Math.floor(underHours).toFixed(2)), "60.00")
+        */
+
         underDays = totalMinutesUnderTime / 60 / hoursPerDay
         underHours = (underDays - Math.floor(underDays)) * hoursPerDay
         underMinutes = (underHours - Math.floor(underHours)) * 60
+        
     }
 
     return {
         totalMinutes: minutes,
         renderedDays: Math.floor(renderedDays),
         renderedHours: Math.floor(renderedHours),
-        renderedMinutes: Math.floor(renderedMinutes),
+        renderedMinutes: Math.round(renderedMinutes),
         underTimeTotalMinutes: totalMinutesUnderTime,
         underDays: Math.floor(underDays),
         underHours: Math.floor(underHours),
-        underMinutes: Math.floor(underMinutes),
+        underMinutes: Math.round(underMinutes),
         undertime: undertime
     }
 }
@@ -150,7 +173,7 @@ const calcDailyAttendance = (attendance, hoursPerDay, travelPoints) => {
     // Default govt shift
     let shifts = []
     shifts.push(createShift({ hour: 8, minute: 0 }, { hour: 12, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4 }))
-    shifts.push(createShift({ hour: 13, minute: 0 }, { hour: 17, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4 }))
+    shifts.push(createShift({ hour: 13, minute: 0 }, { hour: 17, minute: 0 }, { hour: 0, minute: 0 }, { maxHours: 4 }))
 
 
     // travelPoints 480 minutes = 8 hours 

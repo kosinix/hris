@@ -13,6 +13,7 @@ const qr = require('qr-image')
 
 //// Modules
 const db = require('../db');
+const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
 const passwordMan = require('../password-man');
@@ -600,6 +601,34 @@ router.post('/employee/user/:employeeId', middlewares.guardRoute(['create_employ
         next(err);
     }
 });
+
+router.get('/employee/e201/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        
+
+        res.render('employee/e201.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/employee/e201/:employeeId/pds', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        let workbook = await excelGen.templatePds(employee)
+        let buffer = await workbook.xlsx.writeBuffer();
+        res.set('Content-Disposition', `attachment; filename="${employee.lastName}-PDS.xlsx"`)
+        res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        res.send(buffer)
+    } catch (err) {
+        next(err);
+    }
+});
+
 
 router.post('/employee/user/:employeeId/password', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {

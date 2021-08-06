@@ -8,6 +8,8 @@
     {% include 'parts/payroll-tabs.html' %}
 
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <div v-if="pending" class="wait cover"></div>
+
         {% if payroll.employments.length > 0 %}
             {% if payroll.template === 'permanent' %}
                 {% include 'payroll/table-permanent-vue.html' %}
@@ -162,28 +164,17 @@
             moment: function (date) {
                 return moment(date);
             },
-            saveNow: function(value, d, employeeIndex, deductionIndex) {
-                var me = this;
-
-                d.vueReadOnly = true
-                d.vueDisabled = true
-                axios.post(`/payroll/{{payroll._id}}/ded`, {value: value}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
-                    console.log(response.data);
-                }).catch(function(error){
-                    alert("Something went wrong.");
-                }).then(function(){
-                    d.vueDisabled = false
-                });
-
+            addRow: function() {
             },
             saveMe: function() {
                 var me = this;
-
+                me.pending = true
                 axios.post(`/payroll/{{payroll._id}}/save`, {employments: JSON.parse(JSON.stringify(me.payroll.employments))}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
                     console.log(response.data);
                 }).catch(function(error){
                     alert("Something went wrong.");
                 }).then(function(){
+                    me.pending = false
                 });
 
             },

@@ -8,8 +8,15 @@
     {% include 'parts/employee-tabs.html' %}
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        {% if employee.user %}
+            <p>Username: <em>{{employee.user.email}} </em></p>
+            <p>Password: <em>****</em></p>
+            <form onsubmit="return confirm('This will generate a new random password for this user. Continue?');" action="/employee/user/{{employee._id}}/password" method="POST" class="form-default">
+                <p><button class="btn btn-primary btn-sm">Reset Password</button></p>
+            </form>
+        {% else %}
         <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/user/{{employee._id}}" method="POST" class="form-default">
-            
+            <p class="alert alert-info"><em>Employee does not have an HRIS web access account yet.</em></p>
             {% set name = 'username' %}
             {% set label = 'Username *' %}
             {% include 'parts/form-group-text.html' %}
@@ -24,7 +31,7 @@
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-6 text-md-left">
                     <a class="btn btn-link" href="/employee/{{employee._id}}">Cancel</a>
-                    <button class="btn btn-primary">Update</button>
+                    <button class="btn btn-primary">Create Web Account</button>
                 </div>
                 <div class="col-md-6 text-md-right">
                     {# <a class="btn btn-danger" href="/employee/employment/{{employee._id}}/{{employment._id}}/delete">Delete</a> #}
@@ -32,6 +39,8 @@
             </div>
 
         </form>
+        {% endif %}
+
     </div>
 
 </div>

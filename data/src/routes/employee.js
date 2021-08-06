@@ -521,6 +521,7 @@ router.get('/employee/find', middlewares.guardRoute(['create_employee', 'update_
 router.get('/employee/user/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
+        employee.user = await db.main.User.findById(employee.userId)
 
         let username = passwordMan.genUsername(employee.firstName, employee.lastName)
         let password = passwordMan.randomString(8)
@@ -592,7 +593,34 @@ router.post('/employee/user/:employeeId', middlewares.guardRoute(['create_employ
             await employee.save()
         }
 
-        flash.ok(req, 'employee', `Updated "${employee.firstName} ${employee.lastName}'s" web access.`)
+        flash.ok(req, 'employee', `Web access account created with username "${body.username}" and password "${body.password}".`)
+        res.redirect(`/employee/user/${employee._id}`)
+
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.post('/employee/user/:employeeId/password', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employeeUser = await db.main.User.findById(employee.userId)
+
+        if (employeeUser) { // Assoc user
+            let password = passwordMan.randomString(8)
+            let passwordHash = passwordMan.hashPassword(password, employeeUser.salt)
+
+            employeeUser.passwordHash = passwordHash
+            await employeeUser.save()
+
+            flash.ok(req, 'employee', `New password is "${password}". Please save as you will only see this once.`)
+
+        } else { // No assoc user
+
+            flash.error(req, 'employee', `No associated user.`)
+
+        }
+
         res.redirect(`/employee/user/${employee._id}`)
 
     } catch (err) {

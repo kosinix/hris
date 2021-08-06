@@ -106,12 +106,12 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         // console.log(util.inspect(aggr, false, null, true))
 
         // return res.send(employees)
-        if(req.query.csv==1){
-            let csv = employees.map((i)=>{
+        if (req.query.csv == 1) {
+            let csv = employees.map((i) => {
                 return `${i.lastName}, ${i.firstName}, ${i.middleName}, ${lodash.get(i, 'employments[0].position')}`
             })
             return res.send(csv.join("\n"))
-        } else if (req.query.qr==1){
+        } else if (req.query.qr == 1) {
             let count = 0
             employees.forEach((employee, a) => {
                 employee.employments.forEach((employment, b) => {
@@ -122,9 +122,9 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
                     }
                     qrData = Buffer.from(JSON.stringify(qrData)).toString('base64')
                     // console.log(qrData)
-    
+
                     qrData = qr.imageSync(qrData, { size: 4, type: 'png' }).toString('base64')
-    
+
                     employees[a].employments[b].qrCode = {
                         count: ++count,
                         data: qrData,
@@ -219,7 +219,7 @@ router.post('/employee/personal/:employeeId', middlewares.guardRoute(['create_em
         await db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName}'s personal info.`)
-        res.redirect(`/employee/employment/${employee._id}`)
+        res.redirect(`/employee/personal/${employee._id}`)
     } catch (err) {
         next(err);
     }
@@ -368,23 +368,21 @@ router.post('/employee/address/:employeeId', middlewares.guardRoute(['create_emp
         let body = req.body
         let patch = {}
 
-        if (!body.psgc) {
+        if (!body.psgc0) {
             throw new Error('Invalid address.')
         }
 
-
         // TODO: Should generate new id every save??
         lodash.set(patch, 'addresses.0._id', db.mongoose.Types.ObjectId())
-        lodash.set(patch, 'addresses.0.unit', lodash.get(body, 'unit'))
-        lodash.set(patch, 'addresses.0.street', lodash.get(body, 'street'))
-        lodash.set(patch, 'addresses.0.village', lodash.get(body, 'village'))
-        lodash.set(patch, 'addresses.0.psgc', lodash.get(body, 'psgc'))
-        lodash.set(patch, 'addresses.0.zipCode', lodash.get(body, 'zipCode'))
+        lodash.set(patch, 'addresses.0.unit', lodash.get(body, 'unit0'))
+        lodash.set(patch, 'addresses.0.street', lodash.get(body, 'street0'))
+        lodash.set(patch, 'addresses.0.village', lodash.get(body, 'village0'))
+        lodash.set(patch, 'addresses.0.psgc', lodash.get(body, 'psgc0'))
+        lodash.set(patch, 'addresses.0.zipCode', lodash.get(body, 'zipCode0'))
         lodash.set(patch, 'addressPermanent', lodash.get(patch, 'addresses.0._id'))
         let address0 = await db.main.Address.findOne({
-            code: lodash.get(body, 'psgc', '')
+            code: lodash.get(body, 'psgc0', '')
         })
-
         if (address0) {
             let full = res.employee.buildAddress(
                 lodash.get(patch, 'addresses.0.unit'),
@@ -392,17 +390,43 @@ router.post('/employee/address/:employeeId', middlewares.guardRoute(['create_emp
                 lodash.get(patch, 'addresses.0.village'),
                 lodash.get(address0, 'full'),
             )
+
             lodash.set(patch, 'address', full)
-            lodash.set(patch, 'addresses.0.full', full)
+            lodash.set(patch, 'addresses.0.full', lodash.get(address0, 'full'))
             lodash.set(patch, 'addresses.0.brgy', address0.name)
             lodash.set(patch, 'addresses.0.cityMun', address0.cityMunName)
             lodash.set(patch, 'addresses.0.province', address0.provName)
         }
 
+        // TODO: Should generate new id every save??
+        lodash.set(patch, 'addresses.1._id', db.mongoose.Types.ObjectId())
+        lodash.set(patch, 'addresses.1.unit', lodash.get(body, 'unit1'))
+        lodash.set(patch, 'addresses.1.street', lodash.get(body, 'street1'))
+        lodash.set(patch, 'addresses.1.village', lodash.get(body, 'village1'))
+        lodash.set(patch, 'addresses.1.psgc', lodash.get(body, 'psgc1'))
+        lodash.set(patch, 'addresses.1.zipCode', lodash.get(body, 'zipCode1'))
+        lodash.set(patch, 'addressPresent', lodash.get(patch, 'addresses.1._id'))
+        let address1 = await db.main.Address.findOne({
+            code: lodash.get(body, 'psgc1', '')
+        })
+        if (address1) {
+            let full = res.employee.buildAddress(
+                lodash.get(patch, 'addresses.1.unit'),
+                lodash.get(patch, 'addresses.1.street'),
+                lodash.get(patch, 'addresses.1.village'),
+                lodash.get(address1, 'full'),
+            )
+            lodash.set(patch, 'address', full)
+            lodash.set(patch, 'addresses.1.full', lodash.get(address1, 'full'))
+            lodash.set(patch, 'addresses.1.brgy', address1.name)
+            lodash.set(patch, 'addresses.1.cityMun', address1.cityMunName)
+            lodash.set(patch, 'addresses.1.province', address1.provName)
+        }
+
         await db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} address.`)
-        res.redirect(`/employee/id-card/${employee._id}`)
+        res.redirect(`/employee/address/${employee._id}`)
     } catch (err) {
         next(err);
     }

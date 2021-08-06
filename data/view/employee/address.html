@@ -9,31 +9,122 @@
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
         <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/address/{{employee._id}}" method="POST" class="form-default">
-            <div class="form-group">
-                <label for="psgc">Address <span class="text-danger">*</span></label>
-                <div>
-                    <autocomplete v-model="psgc"
-                        name="psgc"
-                        initial-value="{{employee.addressPsgc}}"
-                        initial-display="{{employee.address}}"
-                        placeholder="Type your barangay and city/municipality..."
-                        :source="dataSource"
-                        input-class="form-control"
-                        :request-headers="headers"
-                        v-on:selected="onSelect"
-                        >
-                    </autocomplete>
-                    <small class="invalid-feedback">${getError('psgc')}</small>
+            {# Address #}
+            <div class="form-group focusable" tabindex="0">
+                <h2 class="h5">Permanent Address</h2>
+                <p class="mb-4"><em>(The one found in your primary IDs)</em></p>
+                <div class="form-group form-row">
+                    <div class="col-md-4 form-group">
+                        <label for="unit0">House/Block/Lot No.</label>
+                        <div>
+                            {% set name = 'unit0' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('unit0')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="street0">Street</label>
+                        <div>
+                            {% set name = 'street0' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('street0')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="village0">Subdivision/Village</label>
+                        <div>
+                            {% set name = 'village0' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('village0')}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group form-row">
+                    <div class="col-md-8 form-group">
+                        <label for="psgc0">Barangay, Municipality, Province <a data-toggle="modal" data-target="#modal-help" href="#" class="btn btn-info btn-help">?</a></label>
+                        <div>
+                            <autocomplete v-model="psgc0"
+                                name="psgc0"
+                                initial-value="{{employee.addresses[0].psgc}}"
+                                initial-display="{{employee.addresses[0].full}}"
+                                placeholder="Type your barangay and city/municipality..."
+                                :source="dataSource"
+                                input-class="form-control"
+                                :request-headers="headers"
+                                v-on:selected="onSelect"
+                                >
+                            </autocomplete>
+                            <small class="invalid-feedback">${getError('psgc0')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="zipCode0">Zip Code</label>
+                        <div>
+                            {% set name = 'zipCode0' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('zipCode0')}</small>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label for="unit">Unit No. or Street No. or Purok</label>
-                <div>
-                    <input name="unit" id="unit" v-model="unit" type="text" class="form-control">
-                    <small class="invalid-feedback">${getError('unit')}</small>
+            {# Address #}
+            <div class="form-group focusable" tabindex="0">
+                <h2 class="h5">Present Address</h2>
+                <p class="mb-4"><em>(The one where you currently reside. Ignore if the same as Permanent Address.)</em></p>
+                <div class="form-group form-row">
+                    <div class="col-md-4 form-group">
+                        <label for="unit1">House/Block/Lot No.</label>
+                        <div>
+                            {% set name = 'unit1' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('unit1')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="street1">Street</label>
+                        <div>
+                            {% set name = 'street1' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('street1')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="village1">Subdivision/Village</label>
+                        <div>
+                            {% set name = 'village1' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('village1')}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group form-row">
+                    <div class="col-md-8 form-group">
+                        <label for="psgc1">Barangay, Municipality, Province <a data-toggle="modal" data-target="#modal-help" href="#" class="btn btn-info btn-help">?</a></label>
+                        <div>
+                            <autocomplete v-model="psgc1"
+                                name="psgc1"
+                                initial-value="{{employee.addresses[1].psgc}}"
+                                initial-display="{{employee.addresses[1].full}}"
+                                placeholder="Type your barangay and city/municipality..."
+                                :source="dataSource"
+                                input-class="form-control"
+                                :request-headers="headers"
+                                v-on:selected="onSelect"
+                                >
+                            </autocomplete>
+                            <small class="invalid-feedback">${getError('psgc1')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="zipCode1">Zip Code</label>
+                        <div>
+                            {% set name = 'zipCode1' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('zipCode1')}</small>
+                        </div>
+                    </div>
                 </div>
             </div>
-
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
                     <button class="btn btn-primary">Save Address</button>
@@ -43,6 +134,7 @@
     </div>
 
 </div>
+{% include 'parts/modal-help.html' %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
@@ -60,11 +152,20 @@
             'autocomplete': window["vuejs-autocomplete"]
         },
         data: {
-            psgc: '{{employee.addressPsgc}}',
-            unit: '{{employee.addressUnit}}',
+            psgc0: '{{employee.addresses[0].psgc}}',
+            unit0: '{{employee.addresses[0].unit}}',
+            street0: '{{employee.addresses[0].street}}',
+            village0: '{{employee.addresses[0].village}}',
+            zipCode0: '{{employee.addresses[0].zipCode}}',
+
+            psgc1: '{{employee.addresses[1].psgc}}',
+            unit1: '{{employee.addresses[1].unit}}',
+            street1: '{{employee.addresses[1].street}}',
+            village1: '{{employee.addresses[1].village}}',
+            zipCode1: '{{employee.addresses[1].zipCode}}',
         },
         validations: {
-            psgc: {
+            psgc0: {
                 required: window.validators.required
             },
         },

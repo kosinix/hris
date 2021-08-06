@@ -60,10 +60,8 @@
                     {% include 'parts/form-group-select.html' %}
                 </div>
             </div>
-
             {% set name = 'address' %}
             {% include 'parts/form-group-text.html' %}
-            
             <div class="form-row">
                 <div class="col">
                     {% set name = 'contactNumber' %}
@@ -74,7 +72,6 @@
                     {% include 'parts/form-group-text.html' %}
                 </div>
             </div>
-
             <h2 class="h5 mb-4">B. Check if you have any of the following at present or during tha past 14 days:</h2>
             <div class="form-row">
                 <div class="col-md-4">
@@ -136,7 +133,6 @@
                     </div>
                 </div>
             </div>
-
             <h2 class="h5 mb-4">2. Have you ever been considered a suspect or probable case of COVID-19 by any health authority?</h2>
             <div class="form-group">
                 <div>
@@ -154,7 +150,6 @@
                     <small class="invalid-feedback">${getError('suspectedCovidPatientDetails')}</small>
                 </div>
             </div>
-
             <h2 class="h5 mb-4">3. Do you have any member of the family who are sick & have symptoms of COVID-19?</h2>
             <div class="form-group">
                 <div>
@@ -172,15 +167,11 @@
                     <small class="invalid-feedback">${getError('sickFamilyMembersDetails')}</small>
                 </div>
             </div>
-
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
                     <button class="btn btn-primary">Submit Form</button>
                 </div>
             </div>
-
-           
-
         </form>
     </div>
 </div>

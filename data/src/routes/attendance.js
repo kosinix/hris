@@ -29,46 +29,25 @@ router.get('/attendance/all', middlewares.guardRoute(['read_all_attendance', 're
 
 router.get('/attendance/employee/employment/:employeeId/:employmentId', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
-        let employee = res.employee
+        let employee = res.employee.toObject()
         let employment = res.employment
 
-        let year = lodash.get(req, 'query.year', moment().format('YYYY'))
         let month = lodash.get(req, 'query.month', moment().format('MMM'))
+        let year = lodash.get(req, 'query.year', moment().format('YYYY'))
         let momentNow = moment().year(year).month(month)
 
         let attendances = await db.main.Attendance.find({
             employeeId: employee._id,
             employmentId: employment._id,
+            createdAt: {
+                $gte: momentNow.clone().startOf('month').toDate(),
+                $lt: momentNow.clone().endOf('month').toDate(),
+            }
         })
-        attendances = lodash.mapKeys(attendances, (a) => {
-            return moment(a.createdAt).format('YYYY-MM-DD')
-        })
-        let undertimeView = lodash.get(req, 'query.undertime') == 1 ? true : false
-        let days = new Array(momentNow.daysInMonth())
-        days = days.fill(1).map((v, i) => {
-            let attendance = attendances[`${momentNow.format('YYYY')}-${momentNow.format('MM')}-${String(v + i).padStart(2, '0')}`] || null
-            let dtr = dtrHelper.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 
-            if (dtr) {
-                dtr.hours = 0
-                dtr.minutes = 0
-                if (undertimeView) {
-                    dtr.hours = dtr.underDays * CONFIG.workTime.hoursPerDay + dtr.underHours
-                    dtr.minutes = dtr.underMinutes
-                } else {
-                    dtr.hours = dtr.renderedDays * CONFIG.workTime.hoursPerDay + dtr.renderedHours
-                    dtr.minutes = dtr.renderedMinutes
-                }
-            }
-            return {
-                date: `${year}-${month}-${String(v + i).padStart(2, '0')}`,
-                year: year,
-                month: month,
-                day: v + i,
-                dtr: dtr,
-                attendance: attendance,
-            }
-        })
+        let undertimeView = lodash.get(req, 'query.undertime') == 1 ? true : false
+        
+        let days = dtrHelper.getDtrMonthlyView(month, year, attendances)
 
         // console.log(kalendaryo.getMatrix(momentNow, 0))
         let months = Array.from(Array(12).keys()).map((e, i) => {

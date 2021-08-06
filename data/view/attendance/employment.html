@@ -45,13 +45,17 @@
                         <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                         <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                         <td>
-                            {% if day.dtr.hours %}
-                                {{day.dtr.hours}}
+                            {% if undertimeView %}
+                                {{day.dtr.underHours|default('', true)}}
+                            {% else %}
+                                {{day.dtr.renderedHours|default('', true)}}
                             {% endif %}
                         </td>
                         <td>
-                            {% if day.dtr.minutes %}
-                                {{day.dtr.minutes}}
+                            {% if undertimeView %}
+                                {{day.dtr.underMinutes|default('', true)}}
+                            {% else %}
+                                {{day.dtr.renderedMinutes|default('', true)}}
                             {% endif %}
                         </td>
                     {% endif %}

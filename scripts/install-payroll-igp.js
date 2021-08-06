@@ -42,14 +42,21 @@ const db = require('../data/src/db-install');
 
 ; (async () => {
     try {
+        let payrollName = 'July 15th IGP'
+        let dateStart = '2021-07-01'
+        let dateEnd = '2021-07-15'
+
         let logs = []
         // 1. List of employees to use that are in db
-        let list = [['Cañete', 'Roland'],
-        ['Concepcion', 'Mary'],
-        ['Gabito', 'Unicorne'],
-        ['Platigue', 'John Carlo'],
-        ['Real', 'Joseph'],
-        ['Tapangan', 'Lybert']]
+        let list = [
+            ['Cañete', 'Roland', 10, 6, 56],
+            ['Concepcion', 'Mary', 11],
+            ['Gabito', 'Unicorne', 10, 6],
+            ['Platigue', 'John Carlo', 11],
+            ['Real', 'Joseph', 9, 3, 8],
+            ['Tapangan', 'Lybert', 9, 6, 19]
+        ]
+
 
         let lastNames = []
         let firstNames = []
@@ -58,33 +65,47 @@ const db = require('../data/src/db-install');
             firstNames.push(new RegExp(`^${el[1]}`, "i"))
         })
 
-        let promises = []
-        list.forEach((el) => {
-            promises.push(db.main.Employee.findOne({
+        let promises = list.map((el) => {
+            return db.main.Employee.findOne({
                 lastName: new RegExp(`^${el[0]}`, "i"),
                 firstName: new RegExp(`^${el[1]}`, "i"),
-            }).lean())
+            }).lean()
         })
         let employees = await Promise.all(promises)
 
-        employees = employees.filter((el) => {
-            return el !== null
-        })
-
-        promises = []
+        let missing = []
         employees.forEach((el, i) => {
-            promises.push(db.main.Employment.find({
-                employeeId: el._id
-            }).lean())
+            if (el === null) {
+                missing.push(list[i][0])
+            }
         })
+        if (missing.length > 0) {
+            throw new Error(`Employee(s) not found: ${missing.join(', ')}`)
+        }
 
+
+        promises = employees.map((el, i) => {
+            return db.main.Employment.find({
+                employeeId: el._id
+            }).lean()
+        })
         let employments = await Promise.all(promises)
+        missing = []
+        employments.forEach((el, i) => {
+            if (el === null) {
+                missing.push(list[i][0])
+            }
+        })
+        if (missing.length > 0) {
+            throw new Error(`Employee Employment not found: ${missing.join(', ')}`)
+        }
+
         employees = employees.map((el, i) => {
             el.employments = employments[i]
             return el
         })
-       
-        console.log(util.inspect(employments, false, null, true))
+
+        // console.log(util.inspect(employments, false, null, true))
 
         if (employees.length <= 0) {
             throw new Error('No employees found.')
@@ -99,50 +120,78 @@ const db = require('../data/src/db-install');
 
         // 3. Insert attendances
         let attendances = []
-        for (d = 1; d <= 15; d++) {
-            let dateTime = moment('2021-07-01').startOf('month').date(d)
-            if (![0, 6].includes(dateTime.day())) { // Workdays only
-                // console.log(dateTime.toISOString(true))
-                employees.forEach((employee) => {
-                    if (lodash.has(employee, 'employments.0')) {
-                        let inAM = dateTime.clone().hour(8).minutes(15).toISOString(true)
-                        if(employee.firstName === 'Sol' && d === 15){
-                            inAM = dateTime.clone().hour(8).minutes(16).toISOString(true)//16 min late
-                        }
-                        attendances.push({
-                            "employeeId": employee._id,
-                            "employmentId": employee.employments[0]._id,
-                            "onTravel": false,
-                            "logs": [
-                                {
-                                    "scannerId": scannerId,
-                                    "dateTime": inAM,
-                                    "mode": 1
-                                },
-                                {
-                                    "scannerId": scannerId,
-                                    "dateTime": dateTime.clone().hour(12).minutes(0).toISOString(true),
-                                    "mode": 0
-                                },
-                                {
-                                    "scannerId": scannerId,
-                                    "dateTime": dateTime.clone().hour(13).minutes(0).toISOString(true),
-                                    "mode": 1
-                                },
-                                {
-                                    "scannerId": scannerId,
-                                    "dateTime": dateTime.clone().hour(17).minutes(0).toISOString(true),
-                                    "mode": 0
-                                },
-                            ],
-                            createdAt: dateTime.clone().hour(8).minutes(0).toISOString(true),
-                        })
+        employees.forEach((employee, i) => {
+            let days = lodash.get(list, `${i}.2`, 0)
+            let hours = lodash.get(list, `${i}.3`, 0)
+            let minutes = lodash.get(list, `${i}.4`, 0)
 
-                        logs.push(`db.getCollection('attendances').remove({employeeId:ObjectId("${employee._id}")})`)
+            let dayCount = 0
+            let breakFree = false
+            for (d = 1; d <= 15; d++) {
+                let dateTime = moment(dateStart).startOf('month').date(d)
+
+                if (![0, 6].includes(dateTime.day())) { // Workdays only
+                    let inAM = null
+                    let outAM = null
+                    let inPM = null
+                    let outPM = null
+
+                    if (dayCount < days) {
+                        inAM = dateTime.clone().hour(8).minutes(0).toISOString(true)
+                        outAM = dateTime.clone().hour(12).minutes(0).toISOString(true)
+                        inPM = dateTime.clone().hour(13).minutes(0).toISOString(true)
+                        outPM = dateTime.clone().hour(17).minutes(0).toISOString(true)
+                        dayCount++
+                    } else {
+                        if (hours >= 5) {
+                            inAM = dateTime.clone().hour(8).minutes(0).toISOString(true)
+                            outAM = dateTime.clone().hour(12).minutes(0).toISOString(true)
+                            inPM = dateTime.clone().hour(13).minutes(0).toISOString(true)
+                            outPM = dateTime.clone().hour(13).minutes(0).add(hours - 4, 'hours').add(minutes, 'minutes').toISOString(true)
+                        } else {
+                            inAM = dateTime.clone().hour(8).minutes(0).toISOString(true)
+                            outAM = dateTime.clone().hour(8).minutes(0).clone().add(hours, 'hours').add(minutes, 'minutes').toISOString(true)
+                        }
+                        breakFree = true
                     }
-                })
+
+                    attendances.push({
+                        "employeeId": employee._id,
+                        "employmentId": employee.employments[0]._id,
+                        "onTravel": false,
+                        "wfh": false,
+                        "logs": [
+                            {
+                                "scannerId": scannerId,
+                                "dateTime": inAM,
+                                "mode": 1
+                            },
+                            {
+                                "scannerId": scannerId,
+                                "dateTime": outAM,
+                                "mode": 0
+                            },
+                            {
+                                "scannerId": scannerId,
+                                "dateTime": inPM,
+                                "mode": 1
+                            },
+                            {
+                                "scannerId": scannerId,
+                                "dateTime": outPM,
+                                "mode": 0
+                            },
+                        ],
+                        createdAt: inAM,
+                    })
+
+                    logs.push(`db.getCollection('attendances').remove({employeeId:ObjectId("${employee._id}")})`)
+                    if (breakFree) {
+                        break;
+                    }
+                }
             }
-        }
+        })
         let r2 = await db.main.Attendance.insertMany(attendances)
         console.log(`Inserted ${r2.length} attendances into ${employees.length} employees...`)
 
@@ -158,9 +207,9 @@ const db = require('../data/src/db-install');
 
         // 4. Insert Payroll
         let payroll = await db.main.Payroll.create({
-            name: 'July 15th IGP',
-            dateStart: '2021-07-01',
-            dateEnd: '2021-07-15',
+            name: payrollName,
+            dateStart: dateStart,
+            dateEnd: dateEnd,
             employments: employments,
             incentives: [
                 {
@@ -175,7 +224,7 @@ const db = require('../data/src/db-install');
             ],
             deductions: [
                 {
-                    
+
                     uid: '3Tax',
                     name: '3 %',
                     mandatory: true,
@@ -184,7 +233,7 @@ const db = require('../data/src/db-install');
                     groupName: 'Tax'
                 },
                 {
-                    
+
                     uid: '10Tax',
                     name: '10 %',
                     mandatory: true,
@@ -193,7 +242,7 @@ const db = require('../data/src/db-install');
                     groupName: 'Tax'
                 },
                 {
-                    
+
                     uid: 'contributionSSS',
                     name: 'Contribution',
                     mandatory: true,
@@ -202,7 +251,7 @@ const db = require('../data/src/db-install');
                     groupName: 'SSS'
                 },
                 {
-                    
+
                     uid: 'ecSSS',
                     name: 'EC',
                     mandatory: true,
@@ -219,6 +268,9 @@ const db = require('../data/src/db-install');
         file = CONFIG.app.dir + '/scripts/logs/payroll-igp.log'
         fs.writeFileSync(file, logs.join(";\n"), { encoding: 'utf8' })
         console.log(`Log file "${file}""`)
+
+
+
     } catch (err) {
         console.log(err)
     } finally {

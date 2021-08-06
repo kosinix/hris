@@ -41,7 +41,7 @@
                 <td>${employment.position}</td>
                 <td>${employment.salary|currency}</td>
                 <td v-for="incentive in employment.incentives">${incentive.amount|currency}</td>
-                <td>${employment.amountPostIncentives|currency}</td>
+                <td>${employment.amountWorked + getTotalIncentives(employment.incentives) |currency}</td>
                 <td>
                     <a target="_blank" v-bind:href="`http://localhost:9094/attendance/employee/employment/${employment.employee._id}/${employment._id}?month=${moment(payroll.dateStart).format('MMM')}&amp;year=${moment(payroll.dateStart).format('YYYY')}&amp;undertime=1`" class="d-flex">
                         <div>${employment.timeRecord.underDays} days</div>
@@ -50,17 +50,17 @@
                     </a>
                 </td>
                 <td>${((employment.tardiness) ? employment.tardiness : 0) | currency}</td>
-                <td>${employment.grantTotal|currency}</td>
-                <td v-for="(deduction, deductionIndex) in filterDeductions(rowIndex, true)">
-                    <input v-on:blur="lockInput($event, rowIndex, deductionIndex)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
-                    <span class="text-danger" v-on:dblclick="editInput($event, rowIndex, deductionIndex, deduction.deductionType)">${deduction.amount | currency}</span>
+                <td>${employment.amountWorked + getTotalIncentives(employment.incentives) - ((employment.tardiness) ? employment.tardiness : 0) | currency}</td>
+                <td v-for="deduction in filterBy(employment.deductions, ['mandatory', true])">
+                    <input v-on:blur="lockInput($event)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
+                    <span class="text-danger" v-on:dblclick="editInput($event, deduction.deductionType)">${deduction.amount | currency}</span>
                 </td>
-                <td>${getTotalDeductions(rowIndex, true) | currency}</td>
-                <td v-for="(deduction, deductionIndex) in filterDeductions(rowIndex, false)">
-                    <input v-on:blur="lockInput($event, rowIndex, deductionIndex)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
-                    <span class="text-danger" v-on:dblclick="editInput($event, rowIndex, deductionIndex, deduction.deductionType)">${deduction.amount | currency}</span>
+                <td>${getTotalDeductions(filterBy(employment.deductions, ['mandatory', true])) | currency}</td>
+                <td v-for="deduction in filterBy(employment.deductions, ['mandatory', false])">
+                    <input v-on:blur="lockInput($event)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
+                    <span class="text-danger" v-on:dblclick="editInput($event, deduction.deductionType)">${deduction.amount | currency}</span>
                 </td>
-                <td>${getTotalDeductions(rowIndex, false) | currency}</td>
+                <td>${getTotalDeductions(filterBy(employment.deductions, ['mandatory', false])) | currency}</td>
             </tr>
             
         </tbody>

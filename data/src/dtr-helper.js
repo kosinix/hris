@@ -244,7 +244,7 @@ const calcDailyAttendance = (attendance, hoursPerDay, travelPoints) => {
 
 }
 
-const getDtrMonthlyView = (month, year, attendances) => {
+const getDtrMonthlyView = (month, year, attendances, useDaysInMonth = false) => {
 
     let momentNow = moment().year(year).month(month)
 
@@ -253,8 +253,9 @@ const getDtrMonthlyView = (month, year, attendances) => {
         return moment(a.createdAt).format('YYYY-MM-DD')
     })
 
-    // Array containing 1 - 31
-    let days = new Array(31)
+    // Array containing 1 - x
+    let max = (useDaysInMonth) ? momentNow.daysInMonth() : 31
+    let days = new Array(max)
     days = days.fill(1).map((val, index) => val + index)
 
     days = days.map((index1) => {
@@ -262,6 +263,7 @@ const getDtrMonthlyView = (month, year, attendances) => {
         let month = momentNow.format('MM')
         let day = String(index1).padStart(2, '0')
         let date = `${year}-${month}-${day}`
+        let weekDay = moment(date).format('ddd')
         let attendance = attendances[date] || null
         let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 
@@ -269,6 +271,7 @@ const getDtrMonthlyView = (month, year, attendances) => {
             date: date,
             year: year,
             month: month,
+            weekDay: weekDay,
             day: day,
             dtr: dtr,
             attendance: attendance

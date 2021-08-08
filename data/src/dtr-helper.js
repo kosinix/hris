@@ -229,7 +229,6 @@ const calcDailyAttendance = (attendance, hoursPerDay, travelPoints) => {
                 log.underMinutes = shiftCurrent.maxMinutes - minutesWorked
 
                 minutes += minutesWorked
-                underMinutes += shiftCurrent.maxMinutes - minutesWorked
 
             }
         }
@@ -240,6 +239,7 @@ const calcDailyAttendance = (attendance, hoursPerDay, travelPoints) => {
     if (minutes > 60 * hoursPerDay) {
         minutes = 60 * hoursPerDay
     }
+    underMinutes = 60 * hoursPerDay - minutes
     return calcTimeRecord(minutes, underMinutes, hoursPerDay)
 
 }

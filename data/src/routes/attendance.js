@@ -47,7 +47,7 @@ router.get('/attendance/employee/employment/:employeeId/:employmentId', middlewa
 
         let undertimeView = lodash.get(req, 'query.undertime') == 1 ? true : false
         
-        let days = dtrHelper.getDtrMonthlyView(month, year, attendances)
+        let days = dtrHelper.getDtrMonthlyView(month, year, attendances, true)
 
         // console.log(kalendaryo.getMatrix(momentNow, 0))
         let months = Array.from(Array(12).keys()).map((e, i) => {

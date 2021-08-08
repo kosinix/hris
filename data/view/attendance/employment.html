@@ -12,6 +12,7 @@
         <div class="table-responsive">
             <table class="table table-dtr">
                 <tr>
+                    <th class="text-center" rowspan="2"></th>
                     <th class="text-center" rowspan="2">Day</th>
                     <th class="text-center" colspan="2">AM</th>
                     <th class="text-center" colspan="2">PM</th>
@@ -36,6 +37,7 @@
                 {% for day in days %}
                 {% set attendance = day.attendance %}
                 <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
+                    <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
                     <td class="text-center">{{day.day}}</td>
                     {% if attendance.onTravel %}
                         <td colspan="6">On Travel</td>

@@ -198,18 +198,19 @@ router.post('/payroll/employees/:payrollId', middlewares.guardRoute(['update_pay
     }
 });
 
-router.post('/payroll/employees/:payrollId/sort-employments', middlewares.guardRoute(['update_payroll']), middlewares.getPayroll, async (req, res, next) => {
+router.post('/payroll/employees/:payrollId/sort-rows', middlewares.guardRoute(['update_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll
         let payrollPlain = res.payroll.toObject()
 
         let body = req.body
-        let employmentsIdsArray = lodash.get(body, 'employments')
+        let rowsIdsArray = lodash.get(body, 'rows')
 
-        let employments = lodash.sortBy(payrollPlain.employments, (o) => {
-            return employmentsIdsArray.indexOf(o._id)
+        let rows = lodash.sortBy(payrollPlain.rows, (o) => {
+            return rowsIdsArray.indexOf(o.uid)
         });
-        payroll.employments = employments;
+        
+        payroll.rows = rows;
         await payroll.save()
 
         res.send('Sorting saved.')

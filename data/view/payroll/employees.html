@@ -96,12 +96,12 @@
                         if(evt.newIndex === evt.oldIndex) return;
 
                         jQuery('.cover').addClass('wait')
-                        var employments = []
+                        var rows = []
                         jQuery('.drag-employment').each(function(i, e){
-                            employments.push(jQuery(e).data('id'))
+                            rows.push(String(jQuery(e).data('ruid'))) // Row UID
                         })
                         me.pending = true;
-                        window.axios.post('/payroll/employees/{{payroll._id}}/sort-employments', {employments: employments}).then(function(response){
+                        window.axios.post('/payroll/employees/{{payroll._id}}/sort-rows', {rows: rows}).then(function(response){
                             var data = response.data;
                             console.log('Changes saved.');
                         }).catch(function(error){

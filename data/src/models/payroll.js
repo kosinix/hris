@@ -70,19 +70,17 @@ let schema = mongoose.Schema({
             },
         }
     ],
-    employees: [
+    rows: [
         {
-            _id: {
-                $type: mongoose.Schema.Types.ObjectId,
-            },
-            basic: Number,
-            minutesWorked: Number,
+            type: Number,
+            employment: {},
+            employee: {},
+            incentives: {},
+            deductions: {},
+            attendances: {},
+            timeRecord: {},
         }
     ],
-    employments: [
-       
-    ],
-    rows: [],// row.employee, row.incentives, row.deductions, attendances, timeRecord,
     status: Number
 }, { timestamps: true, typeKey: '$type' })
 

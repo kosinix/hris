@@ -101,7 +101,7 @@
                             rows.push(String(jQuery(e).data('ruid'))) // Row UID
                         })
                         me.pending = true;
-                        window.axios.post('/payroll/employees/{{payroll._id}}/sort-rows', {rows: rows}).then(function(response){
+                        window.axios.post('/payroll/{{payroll._id}}/sort-rows', {rows: rows}).then(function(response){
                             var data = response.data;
                             console.log('Changes saved.');
                         }).catch(function(error){
@@ -130,7 +130,45 @@
                     return accum + current;
                 }, 0)
             },
-            
+            getSubTotal: function(path){
+                let subTotal = 0;
+                this.payroll.rows.forEach((row)=>{
+                    subTotal += _.get(row, path, 0)
+                })
+                return subTotal
+            },
+            getIncentivesSubTotal: function(uid){
+                let subTotal = 0;
+                this.payroll.rows.forEach((row)=>{
+                    let incentiveIndex = _.findIndex(row.incentives, (o)=>o.uid===uid)
+                    subTotal += _.get(row, `incentives.${incentiveIndex}.amount`, 0)
+                })
+                return subTotal
+            },
+            getTotalX: function(){
+                let subTotal = 0;
+                for(let x = 0; x < this.payroll.rows.length; x++){
+                    let row = this.payroll.rows[x]
+
+                    subTotal += this.getTotalIncentives(row.incentives) + _.get(row, 'computed.amountWorked', 0)
+
+                }
+               
+                return subTotal
+            },
+            getTotalY: function(){
+                let subTotal = 0;
+                for(let x = 0; x < this.payroll.rows.length; x++){
+                    let row = this.payroll.rows[x]
+
+                    subTotal += _.get(row, 'computed.amountWorked', 0) + this.getTotalIncentives(row.incentives) - this.getTotalDeductions(row.deductions)
+                }
+               
+                return subTotal
+            },
+            deleteRow: function(i){
+                this.payroll.rows.splice(i, 1)
+            },
             editInput: function(e, deductionType) {
                 if(deductionType=='percentage') return
                 var el = jQuery(e.target)
@@ -144,6 +182,17 @@
                 el.parents('td').removeClass('editable')
 
                 e.target.value = this.toMoney(e.target.value)
+            },
+
+            editText: function(e) {
+                var el = jQuery(e.target)
+                var elInput = el.siblings('input')
+                el.parents('td').addClass('editable')
+                elInput.focus()
+            },
+            lockText: function(e) { // onBlur
+                var el = jQuery(e.target)
+                el.parents('td').removeClass('editable')
             },
             toMoney: function(value){
                 value = parseFloat(_.trim(value).replace(/[^0-9.]+/ig, ''))
@@ -164,12 +213,22 @@
             moment: function (date) {
                 return moment(date);
             },
-            addRow: function() {
+            addRow: function(type) {
+                var me = this;
+                me.pending = true
+                axios.post(`/payroll/{{payroll._id}}/add-row`, {type: type}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
+                    me.payroll.rows.push(_.get(response, 'data'))
+                    console.log(response.data);
+                }).catch(function(error){
+                    alert("Something went wrong.");
+                }).then(function(){
+                    me.pending = false
+                });
             },
             saveMe: function() {
                 var me = this;
                 me.pending = true
-                axios.post(`/payroll/{{payroll._id}}/save`, {employments: JSON.parse(JSON.stringify(me.payroll.employments))}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
+                axios.post(`/payroll/{{payroll._id}}/save`, {rows: JSON.parse(JSON.stringify(me.payroll.rows))}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
                     console.log(response.data);
                 }).catch(function(error){
                     alert("Something went wrong.");

@@ -4,6 +4,7 @@
 const ExcelJS = require('exceljs');
 const lodash = require('lodash')
 const moment = require('moment')
+const money = require('money-math')
 
 //// Modules
 
@@ -35,6 +36,10 @@ class Slex {
     }
     value(s) {
         this.cell.value = s
+        return this
+    }
+    numFmt(s) {
+        this.cell.numFmt = s
         return this
     }
     align(pos) {
@@ -96,6 +101,9 @@ class Slex {
     }
 }
 
+let currency = (s) => {
+    return parseFloat(money.floatToAmount(s))
+}
 let templateJocos = async (payroll) => {
     const workbook = new ExcelJS.Workbook();
     let sheet = workbook.addWorksheet('igp');
@@ -1549,9 +1557,6 @@ let templateHdf = async (healthDeclarations) => {
         { zoomScale: 100 }
     ];
 
-    let slex = new Slex(workbook)
-    slex.setSheet(sheet)
-
     sheet.pageSetup.printArea = 'A1:N61';
     sheet.pageSetup.fitToPage = true
     sheet.pageSetup.paperSize = 9 // A4
@@ -1560,6 +1565,9 @@ let templateHdf = async (healthDeclarations) => {
         top: 0.25, bottom: 0.12,
         header: 0.24, footer: 0.12
     };
+
+    let slex = new Slex(workbook)
+    slex.setSheet(sheet)
 
     slex.getCell('A1').value(`Last Name`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
     slex.getCell('B1').value(`First Name`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
@@ -1632,8 +1640,132 @@ let templateHdf = async (healthDeclarations) => {
     return workbook
 
 }
+
+let templateCos = async (payroll) => {
+    const workbook = new ExcelJS.Workbook();
+    let sheet = workbook.addWorksheet('igp');
+    sheet.views = [
+        { zoomScale: 80 }
+    ];
+
+    let slex = new Slex(workbook)
+    slex.setSheet(sheet)
+
+    // merge a range of cells
+    slex.mergeCells('A1:Y1')
+        .value('PAYROLL').align('bottom').align('center').font('Arial').fontSize(20).bold(true)
+
+    slex.mergeCells('A2:Y2')
+        .value(`Salary for the period ${moment(payroll.dateStart).format('MMMM DD')} - ${moment(payroll.dateEnd).format('DD, YYYY')}`).align('bottom').align('center').font('Arial').fontSize(10).bold(true)
+
+    slex.mergeCells('B3:C3')
+        .value(`Entity Name: GSC`).align('bottom').align('left').font('Arial').fontSize(11).bold(true)
+
+    slex.mergeCells('B4:C4')
+        .value(`Fund Cluster: `).align('bottom').align('left').font('Arial').fontSize(11).bold(true)
+
+
+    // sheet.mergeCells('A5:K5');
+    slex.mergeCells('A5:R5')
+        .value(`We acknowledge receipt of cash shown opposite our name as full compensation for services rendered for the period covered.`)
+        .align('bottom').font('Arial').fontSize(10)
+
+    slex.mergeCells('A6:A8')
+        .value(`NO.`).align('middle').align('center').font('Arial').fontSize(10).bold(true)
+
+    slex.mergeCells('B6:B8')
+        .value(`Source of Fund`).align('middle').align('center').font('Arial').fontSize(10).bold(true)
+
+    slex.mergeCells('C6:C8')
+        .value(`NAME`).align('middle').align('center').font('Arial').fontSize(11).bold(true)
+
+    slex.mergeCells('D6:D8')
+        .value(`POSITION`).align('middle').align('center').font('Arial').fontSize(11).bold(true)
+
+    slex.mergeCells('E6:E8')
+        .value(`DAILY/ \nMONTHLY \nWAGE`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
+
+    slex.mergeCells('F6:K8')
+        .value(`No. of Days Rendered`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
+
+    slex.mergeCells('L6:L8')
+        .value(`Gross Amount`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
+
+    slex.mergeCells('M6:M8')
+        .value(`5% premium\nJune 1 - 15, 2021`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
+
+    slex.mergeCells('N6:N8')
+        .value(`Total`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
+
+    slex.mergeCells('O6:U6')
+        .value(`Deductions`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
+    slex.mergeCells('O7:Q7')
+        .value(`Tax`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
+
+    let offset = 10
+    payroll.rows.forEach((row, i) => {
+
+        slex.getCell(`A${offset + i}`)
+            .value(i + 1).font('Arial').fontSize(14).align('bottom').align('center')
+
+        slex.getCell(`B${offset + i}`)
+            .value(`${row.employment.fundSource}`).font('Arial').fontSize(14)
+
+        slex.getCell(`C${offset + i}`)
+            .value(`${row.employee.lastName}, ${row.employee.firstName}`).font('Arial').fontSize(14)
+
+        slex.getCell(`D${offset + i}`)
+            .value(`${row.employment.position}`).font('Arial').fontSize(14).align('center')
+
+        slex.getCell(`E${offset + i}`)
+            .value(currency(row.employment.salary)).font('Arial').fontSize(14).numFmt('0.00')
+
+        slex.getCell(`F${offset + i}`)
+            .value(lodash.get(row, 'timeRecord.renderedDays', 0)).font('Arial').fontSize(14).align('center').align('bottom')
+        slex.getCell(`G${offset + i}`)
+            .value(`days`).font('Arial').fontSize(14).align('center').align('bottom')
+
+        slex.getCell(`H${offset + i}`)
+            .value(lodash.get(row, 'timeRecord.renderedHours', 0)).font('Arial').fontSize(14).align('center').align('bottom')
+        slex.getCell(`I${offset + i}`)
+            .value(`hrs`).font('Arial').fontSize(14).align('center').align('bottom')
+
+        slex.getCell(`J${offset + i}`)
+            .value(lodash.get(row, 'timeRecord.renderedMinutes', 0)).font('Arial').fontSize(14).align('center').align('bottom')
+        slex.getCell(`K${offset + i}`)
+            .value(`mins`).font('Arial').fontSize(14).align('center').align('bottom')
+
+        //=F10*E10+H10*E10/8+J10*E10/8/60
+        slex.getCell(`L${offset + i}`)
+            .value({
+                formula: `F${10 + i}*E${10 + i}+H${10 + i}*E${10 + i}/8+J${10 + i}*E${10 + i}/8/60`,
+                result: parseFloat(row.computed.amountWorked.toFixed(2))
+            }).font('Arial').fontSize(14).numFmt('0.00')
+
+    })
+
+    // sheet.columns.forEach(function (column, i) {
+    //     if (![0].includes(i)) {
+    //         var maxLength = 0;
+
+    //         column.eachCell({ includeEmpty: false }, function (cell, rowNumber) {
+    //             if (rowNumber > 5) {
+    //                 var columnLength = cell.value ? cell.value.toString().length : 10;
+    //                 if (columnLength > maxLength) {
+    //                     maxLength = columnLength;
+    //                 }
+    //             }
+    //         });
+    //         column.width = maxLength < 10 ? 10 : maxLength;
+    //     }
+    // });
+
+    return workbook
+
+}
 module.exports = {
     templateHdf: templateHdf,
+    templateCos: templateCos,
     templateJocos: templateJocos,
     templatePds: templatePds,
 }

@@ -12,6 +12,7 @@ const middlewares = require('../middlewares');
 const paginator = require('../paginator');
 const payrollCalc = require('../payroll-calc');
 const excelGen = require('../excel-gen');
+const uid = require('../uid');
 
 // Router
 let router = express.Router()
@@ -128,7 +129,7 @@ router.post('/payroll/:payrollId/save', middlewares.guardRoute(['read_payroll'])
         let payroll = res.payroll.toObject()
         let body = lodash.get(req, 'body')
         let patch = {
-            employments: lodash.get(body, 'employments')
+            rows: lodash.get(body, 'rows')
         }
 
         let r = await db.main.Payroll.updateOne({ _id: payroll._id }, patch)
@@ -147,7 +148,7 @@ router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payr
 
         // return res.send(payroll)
         if (req.originalUrl.includes('.xlsx')) {
-            let workbook = await excelGen.templateJocos(payroll)
+            let workbook = await excelGen.templateCos(payroll)
             let buffer = await workbook.xlsx.writeBuffer();
             res.set('Content-Disposition', `attachment; filename="payroll.xlsx"`)
             res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -198,7 +199,7 @@ router.post('/payroll/employees/:payrollId', middlewares.guardRoute(['update_pay
     }
 });
 
-router.post('/payroll/employees/:payrollId/sort-rows', middlewares.guardRoute(['update_payroll']), middlewares.getPayroll, async (req, res, next) => {
+router.post('/payroll/:payrollId/sort-rows', middlewares.guardRoute(['update_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll
         let payrollPlain = res.payroll.toObject()
@@ -209,11 +210,30 @@ router.post('/payroll/employees/:payrollId/sort-rows', middlewares.guardRoute(['
         let rows = lodash.sortBy(payrollPlain.rows, (o) => {
             return rowsIdsArray.indexOf(o.uid)
         });
-        
+
         payroll.rows = rows;
         await payroll.save()
 
         res.send('Sorting saved.')
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.post('/payroll/:payrollId/add-row', middlewares.guardRoute(['update_payroll']), middlewares.getPayroll, async (req, res, next) => {
+    try {
+        let payroll = res.payroll
+        let rowType = lodash.get(req, 'body.type')
+        let row = {
+            uid: uid.gen(),
+            type: rowType,
+            name: 'Name'
+        }
+        payroll.rows.push(row)
+        await payroll.save()
+        let payrollPlain = payroll.toObject()
+
+        res.send(payrollPlain.rows[payrollPlain.rows.length - 1])
     } catch (err) {
         next(err);
     }

@@ -119,7 +119,7 @@ let compute = {
             // Undertime
             let perDay = salary / workDays
             let perHour = perDay / 8
-            
+
             if (underTimeTotalMinutes > 0) {
                 /*
                 Swap with code below if need more accuracy
@@ -145,56 +145,58 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
     // Compute row of employments
     for (let x = 0; x < payroll.rows.length; x++) {
         let row = payroll.rows[x]
-        let employment = row.employment
-        let attendances = row.attendances
-        let timeRecord = row.timeRecord
-        let incentives = row.incentives
-        let deductions = row.deductions
+        if (row.type === 1) {
+            let employment = row.employment
+            let attendances = row.attendances
+            let timeRecord = row.timeRecord
+            let incentives = row.incentives
+            let deductions = row.deductions
 
-        // Attach computed values
-        row.computed.amountWorked = compute.amountWorked(employment.salary, employment.salaryType, timeRecord.totalMinutes)
-        row.computed.tardiness = compute.tardiness(employment.salary, employment.salaryType, workDays,  timeRecord.underTimeTotalMinutes)
+            // Attach computed values
+            row.computed.amountWorked = compute.amountWorked(employment.salary, employment.salaryType, timeRecord.totalMinutes)
+            row.computed.tardiness = compute.tardiness(employment.salary, employment.salaryType, workDays, timeRecord.underTimeTotalMinutes)
 
-        // 
-        let totalIncentives = 0
-        for (let i = 0; i < payroll.incentives.length; i++) {
-            let incentive = lodash.cloneDeep(payroll.incentives[i])
-            if (incentive.type === 'normal') {
-                incentive.amount = (incentive.initialAmount)
-            } else if (incentive.type === 'percentage') {
-                let percentage = incentive.percentage / 100
-                if(incentive.percentOf === 'amountWorked'){
-                    incentive.amount = percentage * row.computed.amountWorked
+            // TODO: Should move this to call during add incentive
+            let totalIncentives = 0
+            for (let i = 0; i < payroll.incentives.length; i++) {
+                let incentive = lodash.cloneDeep(payroll.incentives[i])
+                if (incentive.type === 'normal') {
+                    incentive.amount = (incentive.initialAmount)
+                } else if (incentive.type === 'percentage') {
+                    let percentage = incentive.percentage / 100
+                    if (incentive.percentOf === 'amountWorked') {
+                        incentive.amount = percentage * row.computed.amountWorked
+                    } else {
+                        incentive.amount = percentage * employment.salary
+                    }
+                }
+                totalIncentives += parseFloat(incentive.amount)
+            }
+            row.computed.totalIncentives = totalIncentives
+
+            // TODO: Should move this to add deduction
+            let totalDeductions = 0
+            for (let d = 0; d < payroll.deductions.length; d++) {
+                let deduction = lodash.cloneDeep(payroll.deductions[d])
+
+                let found = deductions.find((o) => {
+                    return o.uid === deduction.uid
+                })
+                if (!found) { // payroll d is not yet in employment
+                    if (deduction.deductionType === 'normal') {
+                        deduction.amount = deduction.initialAmount
+                    } else if (deduction.deductionType === 'percentage') {
+                        deduction.amount = (deduction.percentage / 100 * employment.salary)
+                    }
+                    deductions.push(deduction)
+                    totalDeductions += parseFloat(deduction.amount)
+
                 } else {
-                    incentive.amount = percentage * employment.salary
+                    totalDeductions += parseFloat(found.amount)
                 }
             }
-            totalIncentives += parseFloat(incentive.amount)
-            incentives.push(incentive)// TODO: check what it does
+            row.computed.totalDeductions = totalDeductions
         }
-        row.computed.totalIncentives = totalIncentives
-        
-        let totalDeductions = 0
-        for (let d = 0; d < payroll.deductions.length; d++) {
-            let deduction = lodash.cloneDeep(payroll.deductions[d])
-
-            let found = deductions.find((o) => {
-                return o.uid === deduction.uid
-            })
-            if (!found) { // payroll d is not yet in employment
-                if (deduction.deductionType === 'normal') {
-                    deduction.amount = deduction.initialAmount
-                } else if (deduction.deductionType === 'percentage') {
-                    deduction.amount = (deduction.percentage / 100 * employment.salary)
-                }
-                deductions.push(deduction)
-                totalDeductions += parseFloat(deduction.amount)
-
-            } else {
-                totalDeductions += parseFloat(found.amount)
-            }
-        }
-        row.computed.totalDeductions = totalDeductions
     }
 
     return payroll

@@ -73,6 +73,7 @@ let schema = mongoose.Schema({
     rows: [
         {
             uid: String,
+            name: String,
             type: Number,
 
             employment: {},

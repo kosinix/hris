@@ -142,43 +142,6 @@ router.post('/payroll/:payrollId/save', middlewares.guardRoute(['read_payroll'])
 router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payroll.xlsx`], middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll.toObject()
-        let payroll2 = res.payroll.toObject()
-        // payroll.employments = payroll.employments.slice(0, 2)
-
-        // Expand from just _id and employmentId to full details
-        payroll.employments = payroll.employments.map((o) => {
-            return db.main.Employment.findById(o._id).lean()
-        })
-        payroll.employments = await Promise.all(payroll.employments)
-        payroll.employments = lodash.merge(payroll.employments, payroll2.employments)
-
-        // Add employee details to employments[x].employee property
-        let promises = []
-        payroll.employments.forEach((o) => {
-            promises.push(db.main.Employee.findById(o.employeeId).lean())
-        })
-        let employees = await Promise.all(promises)
-        payroll.employments = payroll.employments.map((o, i) => {
-            o.employee = employees[i]
-            return o
-        })
-
-        // attendance
-        promises = []
-        payroll.employments.forEach((employment) => {
-            promises.push(db.main.Attendance.find({
-                employmentId: employment._id,
-                createdAt: {
-                    $gte: moment(payroll.dateStart).startOf('day').toDate(),
-                    $lt: moment(payroll.dateEnd).endOf('day').toDate(),
-                }
-            }).lean())
-        })
-        let attendances = await Promise.all(promises)
-        payroll.employments = payroll.employments.map((o, i) => {
-            o.attendances = attendances[i]
-            return o
-        })
 
         payroll = await payrollCalc.getCosStaff(payroll, CONFIG.workTime.workDays, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 

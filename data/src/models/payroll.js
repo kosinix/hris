@@ -72,13 +72,19 @@ let schema = mongoose.Schema({
     ],
     rows: [
         {
+            uid: String,
             type: Number,
+
             employment: {},
             employee: {},
-            incentives: {},
-            deductions: {},
-            attendances: {},
             timeRecord: {},
+            computed: {
+                amountWorked: 0
+            }, // Gets populated only when payroll is final
+
+            incentives: [],
+            deductions: [],
+            attendances: [],
         }
     ],
     status: Number

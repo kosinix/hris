@@ -116,7 +116,7 @@ const momentToMinutes = (momentObject) => {
  * @param {number} hoursPerDay Work hours per day
  * @returns {object} See return
  */
-const calcTimeRecord = (minutes, totalMinutesUnderTime, hoursPerDay) => {
+const calcTimeRecord = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
 
     /* Bare JS  is inaccurate */
     // /*
@@ -168,7 +168,7 @@ const calcTimeRecord = (minutes, totalMinutesUnderTime, hoursPerDay) => {
     }
 }
 
-const calcDailyAttendance = (attendance, hoursPerDay, travelPoints) => {
+const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480) => {
 
     // Default govt shift
     let shifts = []
@@ -283,10 +283,11 @@ const getDtrMonthlyView = (month, year, attendances, useDaysInMonth = false) => 
 }
 module.exports = {
     calcDailyAttendance: calcDailyAttendance,
-    calcTimeRecord: calcTimeRecord,
+    calcTimeRecord: calcTimeRecord, //@deprecated. Use getTimeBreakdown
     createShift: createShift,
     getDtrMonthlyView: getDtrMonthlyView,
     getNearestShift: getNearestShift,
     getNextShift: getNextShift,
+    getTimeBreakdown: calcTimeRecord,
     momentToMinutes: momentToMinutes
 }

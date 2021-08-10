@@ -10,7 +10,7 @@
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-2">
         <div v-if="pending" class="wait cover"></div>
 
-        {% if payroll.employments.length > 0 %}
+        {% if payroll.rows.length > 0 %}
             {% if payroll.template === 'permanent' %}
                 {% include 'payroll/table-permanent-vue.html' %}
             {% elif payroll.template === 'cos_staff' %}
@@ -153,11 +153,11 @@
             inputMoney: function(e, deduction){
                 deduction.amount = this.toMoney(e.target.value)
             },
-            onKeyUp: function(e, rowIndex, deductionIndex) {
+            onKeyUp: function(e, deduction) {
                 var el = jQuery(e.target)
 
                 if(e.keyCode === 27){
-                    this.payroll.employments[rowIndex].deductions[deductionIndex].amount = el.data('orig')
+                    deduction.amount = el.data('orig')
                     el.blur()
                 }
             },

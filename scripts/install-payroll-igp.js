@@ -14,7 +14,8 @@ const lodash = require('lodash');
 const pigura = require('pigura');
 
 //// Modules
-
+const dtrHelper = require('../data/src/dtr-helper')
+const uid = require('../data/src/uid')
 
 //// First things first
 //// Save full path of our root app directory and load config and credentials
@@ -91,7 +92,7 @@ const db = require('../data/src/db-install');
             }).lean()
         })
         let employments = await Promise.all(promises)
-        
+
         missing = []
         employments.forEach((el, i) => {
             if (el === null) {
@@ -111,7 +112,7 @@ const db = require('../data/src/db-install');
         }
         let scannerId = scanner._id
 
-        // 3. Insert attendances
+        // 3. Insert test attendances
         let attendances = []
         employees.forEach((employee, i) => {
             let days = lodash.get(list, `${i}.2`, 0)
@@ -186,28 +187,59 @@ const db = require('../data/src/db-install');
                 }
             }
         })
-        let r2 = await db.main.Attendance.insertMany(attendances)
-        console.log(`Inserted ${r2.length} attendances into ${employees.length} employees...`)
+        let insertedAttendances = await db.main.Attendance.insertMany(attendances)
+        console.log(`Inserted ${insertedAttendances.length} attendances into ${employees.length} employees...`)
 
         let rows = employments.map((employment, i) => {
             let employee = employees[i]
             return {
+                uid: uid.gen(),
                 type: 1,
                 employment: employment,
                 employee: employee,
-                incentives: {},
-                deductions: {},
-                attendances: {},
                 timeRecord: {},
+                computed: {},
+                incentives: [],
+                deductions: [],
+                attendances: [],
             }
         })
+
+        for (let x = 0; x < rows.length; x++) {
+            let row = rows[x]
+
+            // Get attendances based on payroll date range
+            let attendances = await db.main.Attendance.find({
+                employmentId: row.employment._id,
+                createdAt: {
+                    $gte: moment(dateStart).startOf('day').toDate(),
+                    $lt: moment(dateEnd).endOf('day').toDate(),
+                }
+            }).lean()
+
+            // Attach computed values
+            let totalMinutes = 0
+            let totalMinutesUnderTime = 0
+            for (let a = 0; a < attendances.length; a++) {
+                let attendance = attendances[a] // daily
+                let dtr = dtrHelper.calcDailyAttendance(attendance, 8, 480)
+                totalMinutes += dtr.totalMinutes
+                totalMinutesUnderTime += dtr.underTimeTotalMinutes
+                attendances[a].dtr = dtr
+            }
+
+            row.timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
+            row.attendances = attendances
+            row.computed = {
+                amountWorked: 0
+            }
+        }
 
         // 4. Insert Payroll
         let payroll = await db.main.Payroll.create({
             name: payrollName,
             dateStart: dateStart,
             dateEnd: dateEnd,
-            employments: employments,
             incentives: [
                 {
                     "name": "5% Premium",

@@ -44,37 +44,40 @@
             </tr>
         </thead>
         <tbody id="sortMe">
-            <tr v-for="(employment, rowIndex) in payroll.employments" class="drag-employment" v-bind:data-id="employment._id" v-bind:data-employee-id="employment.employee._id">
+            <tr v-for="(row, rowIndex) in filterBy(payroll.rows, ['type', 2])" class="drag-employment" v-bind:data-id="row.uid">
+                <td colspan="16">${row.uid}</td>
+            </tr>
+            <tr v-for="(row, rowIndex) in filterBy(payroll.rows, ['type', 1])" class="drag-employment" v-bind:data-id="row.uid">
                 <td style="padding:0; text-align:center; vertical-align: middle;">
                     <svg class="dragMe" style="cursor: move; width:24px;height:24px; opacity: 0.4" viewBox="0 0 24 24">
                         <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
                     </svg>
                 </td>
-                <td>${employment.employee.lastName}, ${employment.employee.firstName} <u>${_.first(employment.employee.middleName)}</u></td>
-                <td>${employment.position}</td>
-                <td>${employment.salary|currency}</td>
+                <td>${row.employee.lastName}, ${row.employee.firstName} <u>${_.first(row.employee.middleName)}</u></td>
+                <td>${row.employment.position}</td>
+                <td>${row.employment.salary|currency}</td>
                 <td>
-                    <a target="_blank" v-bind:href="`http://localhost:9094/attendance/employee/employment/${employment.employee._id}/${employment._id}?month=${moment(payroll.dateStart).format('MMM')}&amp;year=${moment(payroll.dateStart).format('YYYY')}&amp;undertime=1`" class="d-flex">
-                        <div>${employment.timeRecord.renderedDays} days</div>
-                        <div class="pl-2 pr-2">${employment.timeRecord.renderedHours} hrs</div>
-                        <div>${employment.timeRecord.renderedMinutes} mins</div>
+                    <a target="_blank" v-bind:href="`http://localhost:9094/attendance/employee/employment/${row.employee._id}/${row.employment._id}?month=${moment(payroll.dateStart).format('MMM')}&amp;year=${moment(payroll.dateStart).format('YYYY')}&amp;undertime=1`" class="d-flex">
+                        <div>${row.timeRecord.renderedDays} days</div>
+                        <div class="pl-2 pr-2">${row.timeRecord.renderedHours} hrs</div>
+                        <div>${row.timeRecord.renderedMinutes} mins</div>
                     </a>
                 </td>
-                <td>${employment.amountWorked|currency}</td>
-                <td v-for="incentive in employment.incentives">${incentive.amount|currency}</td>
-                <td>${getTotalIncentives(employment.incentives)+employment.amountWorked | currency}</td>
-                <td v-for="deduction in filterBy(employment.deductions, {groupName: 'Tax'})">
+                <td>${row.computed.amountWorked|currency}</td>
+                <td v-for="incentive in row.incentives">${incentive.amount|currency}</td>
+                <td>${getTotalIncentives(row.incentives)+row.computed.amountWorked | currency}</td>
+                <td v-for="deduction in filterBy(row.deductions, ['groupName', 'Tax'])">
                     <input v-on:blur="lockInput($event)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
                     <span class="text-danger" v-on:dblclick="editInput($event, deduction.deductionType)">${deduction.amount | currency}</span>
                 </td>
-                <td>${getTotalDeductions(filterBy(employment.deductions, ['groupName', 'Tax'])) | currency}</td>
-                <td v-for="deduction in filterBy(employment.deductions, {groupName: 'SSS'})">
+                <td>${getTotalDeductions(filterBy(row.deductions, ['groupName', 'Tax'])) | currency}</td>
+                <td v-for="deduction in filterBy(row.deductions, ['groupName', 'SSS'])">
                     <input v-on:blur="lockInput($event)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
                     <span class="text-danger" v-on:dblclick="editInput($event, deduction.deductionType)">${deduction.amount | currency}</span>
                 </td>
-                <td>${getTotalDeductions(filterBy(employment.deductions, ['groupName', 'SSS'])) | currency}</td>
-                <td>${getTotalDeductions(employment.deductions) | currency}</td>
-                <td>${employment.amountWorked + getTotalIncentives(employment.incentives) - getTotalDeductions(employment.deductions) | currency}</td>
+                <td>${getTotalDeductions(filterBy(row.deductions, ['groupName', 'SSS'])) | currency}</td>
+                <td>${getTotalDeductions(row.deductions) | currency}</td>
+                <td>${row.computed.amountWorked + getTotalIncentives(row.incentives) - getTotalDeductions(row.deductions) | currency}</td>
             </tr>
             
         </tbody>

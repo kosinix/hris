@@ -35,6 +35,7 @@ router.get('/attendance/employee/employment/:employeeId/:employmentId', middlewa
         let month = lodash.get(req, 'query.month', moment().format('MMM'))
         let year = lodash.get(req, 'query.year', moment().format('YYYY'))
         let momentNow = moment().year(year).month(month)
+        let momentCurrent = moment()
 
         let attendances = await db.main.Attendance.find({
             employeeId: employee._id,
@@ -60,6 +61,7 @@ router.get('/attendance/employee/employment/:employeeId/:employmentId', middlewa
             employment: employment,
             attendances: attendances,
             momentNow: momentNow,
+            momentCurrent: momentCurrent,
             months: months,
             days: days,
             selectedMonth: month,

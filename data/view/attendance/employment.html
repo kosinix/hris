@@ -36,7 +36,7 @@
                 </tr>
                 {% for day in days %}
                 {% set attendance = day.attendance %}
-                <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
+                <tr class="{% if day.date === momentCurrent|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
                     <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
                     <td class="text-center">{{day.day}}</td>
                     {% if attendance.onTravel %}

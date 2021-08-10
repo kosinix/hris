@@ -85,11 +85,13 @@ const db = require('../data/src/db-install');
 
 
         promises = employees.map((el, i) => {
-            return db.main.Employment.find({
+            // Employee might have more than 1 employment. We use the first result found.
+            return db.main.Employment.findOne({
                 employeeId: el._id
             }).lean()
         })
         let employments = await Promise.all(promises)
+        
         missing = []
         employments.forEach((el, i) => {
             if (el === null) {
@@ -100,16 +102,7 @@ const db = require('../data/src/db-install');
             throw new Error(`Employee Employment not found: ${missing.join(', ')}`)
         }
 
-        employees = employees.map((el, i) => {
-            el.employments = employments[i]
-            return el
-        })
-
         // console.log(util.inspect(employments, false, null, true))
-
-        if (employees.length <= 0) {
-            throw new Error('No employees found.')
-        }
 
         // 2. Use first found scanner
         let scanner = await db.main.Scanner.findOne()
@@ -124,6 +117,7 @@ const db = require('../data/src/db-install');
             let days = lodash.get(list, `${i}.2`, 0)
             let hours = lodash.get(list, `${i}.3`, 0)
             let minutes = lodash.get(list, `${i}.4`, 0)
+            let employment = employments[i]
 
             let dayCount = 0
             let breakFree = false
@@ -157,7 +151,7 @@ const db = require('../data/src/db-install');
 
                     attendances.push({
                         "employeeId": employee._id,
-                        "employmentId": employee.employments[0]._id,
+                        "employmentId": employment._id,
                         "onTravel": false,
                         "wfh": false,
                         "logs": [
@@ -195,13 +189,16 @@ const db = require('../data/src/db-install');
         let r2 = await db.main.Attendance.insertMany(attendances)
         console.log(`Inserted ${r2.length} attendances into ${employees.length} employees...`)
 
-        employments = []
-        employees.forEach((employee) => {
-            if (lodash.has(employee, 'employments.0')) {
-                employments.push({
-                    _id: employee.employments[0]._id,
-                    employeeId: employee.employments[0].employeeId,
-                })
+        let rows = employments.map((employment, i) => {
+            let employee = employees[i]
+            return {
+                type: 1,
+                employment: employment,
+                employee: employee,
+                incentives: {},
+                deductions: {},
+                attendances: {},
+                timeRecord: {},
             }
         })
 
@@ -260,6 +257,7 @@ const db = require('../data/src/db-install');
                     groupName: 'SSS'
                 }
             ],
+            rows: rows,
             template: 'cos_staff',
         })
         console.log(`Payrolls...`)

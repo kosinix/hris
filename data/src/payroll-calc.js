@@ -109,8 +109,6 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
     // Compute row of employments
     for (let x = 0; x < payroll.employments.length; x++) {
         let employment = payroll.employments[x]
-        let employee = employment.employee
-        let empType = employment.employmentType
 
         // Rendered work
         // Payroll period attendance
@@ -127,11 +125,8 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
             attendances[a].dtr = dtr
         }
 
-        // minutes = 3840
-        // console.log(employee.lastName, totalMinutes, totalMinutesUnderTime, hoursPerDay)
         employment.attendances = attendances
         employment.timeRecord = dtrHelper.calcTimeRecord(totalMinutes, totalMinutesUnderTime, hoursPerDay)
-        // console.log(employee.lastName, employment.timeRecord)
 
         // 1. AMOUNT WORKED
         if (employment.salaryType === 'monthly') {
@@ -166,14 +161,12 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
         }
 
         // 
-
         employment.incentives = []
         let totalIncentives = 0
         for (let i = 0; i < payroll.incentives.length; i++) {
             let incentive = lodash.cloneDeep(payroll.incentives[i])
             if (incentive.type === 'normal') {
                 incentive.amount = (incentive.initialAmount)
-
             } else if (incentive.type === 'percentage') {
                 let percentage = incentive.percentage / 100
                 if(incentive.percentOf === 'amountWorked'){
@@ -181,20 +174,16 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
                 } else {
                     incentive.amount = percentage * employment.salary
                 }
-
             }
             totalIncentives += parseFloat(incentive.amount)
             employment.incentives.push(incentive)// TODO: check what it does
-
         }
         employment.totalIncentives = totalIncentives
         // employment.amountPostIncentives = employment.salary + totalIncentives
         // employment.grantTotal = employment.amountPostIncentives - employment.tardiness
         // totalAmountPostIncentives += employment.amountPostIncentives
-        // 
+        
         // Attach deductions
-        if(employee.lastName=='Alminaza') console.log(employment)
-
         employment.deductions = lodash.get(employment, 'deductions', [])
         employment.totalDeductions = 0
         for (let d = 0; d < payroll.deductions.length; d++) {
@@ -205,7 +194,6 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
                 return o.uid === deduction.uid
             })
             if (!found) { // payroll d is not yet in employment
-                if(employee.lastName=='Alminaza') console.log(`${employee.lastName} - not ${found} inserting ${deduction.uid}`)
                 if (deduction.deductionType === 'normal') {
                     deduction.amount = deduction.initialAmount
                 } else if (deduction.deductionType === 'percentage') {
@@ -215,8 +203,6 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
                 employment.totalDeductions += parseFloat(deduction.amount)
 
             } else {
-                if(employee.lastName=='Alminaza') console.log(`${employee.lastName} - not ${found}`)
-
                 employment.totalDeductions += parseFloat(found.amount)
             }
         }

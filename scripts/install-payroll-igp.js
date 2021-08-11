@@ -231,75 +231,131 @@ const db = require('../data/src/db-install');
             row.timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
             row.attendances = attendances
             row.computed = {
-                amountWorked: 0
+                amountWorked: 0,
+                tardiness: 0,
             }
+            let workDays = 22
+            row.computed.amountWorked = dtrHelper.compute.amountWorked(row.employment.salary, row.employment.salaryType, row.timeRecord.totalMinutes)
+            row.computed.tardiness = dtrHelper.compute.tardiness(row.employment.salary, row.employment.salaryType, workDays, row.timeRecord.underTimeTotalMinutes)
+
         }
 
         // 4. Insert Payroll
-        let payroll = await db.main.Payroll.create({
+        let incentives = [
+            {
+                "name": "5% Premium",
+                "type": "percentage",
+                "percentage": 5,
+                "percentOf": "amountWorked",
+                "initialAmount": 0,
+            }
+        ].map((o) => {
+            o._id = db.mongoose.Types.ObjectId()
+            o.uid = lodash.camelCase(o.name)
+            return o
+        })
+        let deductions = [
+            {
+
+                uid: '3Tax',
+                name: '3 %',
+                mandatory: true,
+                deductionType: 'normal',
+                initialAmount: 0,
+                groupName: 'Tax'
+            },
+            {
+
+                uid: '10Tax',
+                name: '10 %',
+                mandatory: true,
+                deductionType: 'normal',
+                initialAmount: 0,
+                groupName: 'Tax'
+            },
+            {
+
+                uid: 'contributionSSS',
+                name: 'Contribution',
+                mandatory: true,
+                deductionType: 'normal',
+                initialAmount: 0,
+                groupName: 'SSS'
+            },
+            {
+
+                uid: 'ecSSS',
+                name: 'EC',
+                mandatory: true,
+                deductionType: 'normal',
+                initialAmount: 0,
+                groupName: 'SSS'
+            }
+        ].map((o) => {
+            o._id = db.mongoose.Types.ObjectId()
+            o.uid = lodash.camelCase(o.name)
+            return o
+        })
+
+        let payroll = {
             name: payrollName,
             dateStart: dateStart,
             dateEnd: dateEnd,
-            incentives: [
-                {
-                    "name": "5% Premium",
-                    "type": "percentage",
-                    "percentage": 5,
-                    "percentOf": "amountWorked",
-                    "initialAmount": 0,
-                    "_id": db.mongoose.Types.ObjectId(),
-                    "uid": lodash.camelCase("5% Premium")
-                }
-            ],
-            deductions: [
-                {
-
-                    uid: '3Tax',
-                    name: '3 %',
-                    mandatory: true,
-                    deductionType: 'normal',
-                    initialAmount: 0,
-                    groupName: 'Tax'
-                },
-                {
-
-                    uid: '10Tax',
-                    name: '10 %',
-                    mandatory: true,
-                    deductionType: 'normal',
-                    initialAmount: 0,
-                    groupName: 'Tax'
-                },
-                {
-
-                    uid: 'contributionSSS',
-                    name: 'Contribution',
-                    mandatory: true,
-                    deductionType: 'normal',
-                    initialAmount: 0,
-                    groupName: 'SSS'
-                },
-                {
-
-                    uid: 'ecSSS',
-                    name: 'EC',
-                    mandatory: true,
-                    deductionType: 'normal',
-                    initialAmount: 0,
-                    groupName: 'SSS'
-                }
-            ],
+            incentives: incentives,
+            deductions: deductions,
             rows: rows,
             template: 'cos_staff',
+        }
+        payroll.rows = payroll.rows.map((row) => {
+            let employment = row.employment
+
+            let totalIncentives = 0
+            for (let i = 0; i < payroll.incentives.length; i++) {
+                let incentive = lodash.cloneDeep(payroll.incentives[i]) // Clone from payroll to row
+                if (incentive.type === 'normal') {
+                    incentive.amount = incentive.initialAmount
+                } else if (incentive.type === 'percentage') {
+                    let percentage = incentive.percentage / 100
+                    if (incentive.percentOf === 'amountWorked') {
+                        incentive.amount = percentage * row.computed.amountWorked
+                    } else {
+                        incentive.amount = percentage * employment.salary
+                    }
+                }
+                row.incentives.push(incentive)
+                totalIncentives += parseFloat(incentive.amount)
+            }
+            row.computed.totalIncentives = totalIncentives
+
+            let totalDeductions = 0
+            for (let d = 0; d < payroll.deductions.length; d++) {
+                let deduction = lodash.cloneDeep(payroll.deductions[d])
+                if (deduction.deductionType === 'normal') {
+                    deduction.amount = deduction.initialAmount
+                } else if (deduction.deductionType === 'percentage') {
+                    let percentage = deduction.percentage / 100
+                    if (deduction.percentOf === 'amountWorked') {
+                        deduction.amount = percentage * row.computed.amountWorked
+                    } else {
+                        deduction.amount = percentage * employment.salary
+                    }
+                }
+                row.deductions.push(deduction)
+                totalDeductions += parseFloat(deduction.amount)
+            }
+            row.computed.totalDeductions = totalDeductions
+
+            return row
         })
+
+        payroll = await db.main.Payroll.create(payroll)
+
         console.log(`Payrolls...`)
         logs.push(`db.getCollection('payrolls').remove({_id:ObjectId("${payroll._id}")})`)
 
         file = CONFIG.app.dir + '/scripts/logs/payroll-igp.log'
         fs.writeFileSync(file, logs.join(";\n"), { encoding: 'utf8' })
-        console.log(`Log file "${file}""`)
-
-
+        console.log(`Log file "${file}"`)
 
     } catch (err) {
         console.log(err)

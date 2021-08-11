@@ -1705,43 +1705,44 @@ let templateCos = async (payroll) => {
     let offset = 10
     payroll.rows.forEach((row, i) => {
 
-        slex.getCell(`A${offset + i}`)
-            .value(i + 1).font('Arial').fontSize(14).align('bottom').align('center')
+        if (row.type === 1) {
+            slex.getCell(`A${offset + i}`)
+                .value(i + 1).font('Arial').fontSize(14).align('bottom').align('center')
 
-        slex.getCell(`B${offset + i}`)
-            .value(`${row.employment.fundSource}`).font('Arial').fontSize(14)
+            slex.getCell(`B${offset + i}`)
+                .value(`${lodash.get(row, 'employment.fundSource')}`).font('Arial').fontSize(14)
 
-        slex.getCell(`C${offset + i}`)
-            .value(`${row.employee.lastName}, ${row.employee.firstName}`).font('Arial').fontSize(14)
+            slex.getCell(`C${offset + i}`)
+                .value(`${lodash.get(row, 'employee.lastName')}, ${lodash.get(row, 'employee.firstName')}`).font('Arial').fontSize(14)
 
-        slex.getCell(`D${offset + i}`)
-            .value(`${row.employment.position}`).font('Arial').fontSize(14).align('center')
+            slex.getCell(`D${offset + i}`)
+                .value(`${lodash.get(row, 'employment.position')}`).font('Arial').fontSize(14).align('center')
 
-        slex.getCell(`E${offset + i}`)
-            .value(currency(row.employment.salary)).font('Arial').fontSize(14).numFmt('0.00')
+            slex.getCell(`E${offset + i}`)
+                .value(currency(lodash.get(row, 'employment.salary'))).font('Arial').fontSize(14).numFmt('0.00')
 
-        slex.getCell(`F${offset + i}`)
-            .value(lodash.get(row, 'timeRecord.renderedDays', 0)).font('Arial').fontSize(14).align('center').align('bottom')
-        slex.getCell(`G${offset + i}`)
-            .value(`days`).font('Arial').fontSize(14).align('center').align('bottom')
+            slex.getCell(`F${offset + i}`)
+                .value(lodash.get(row, 'timeRecord.renderedDays', 0)).font('Arial').fontSize(14).align('center').align('bottom')
+            slex.getCell(`G${offset + i}`)
+                .value(`days`).font('Arial').fontSize(14).align('center').align('bottom')
 
-        slex.getCell(`H${offset + i}`)
-            .value(lodash.get(row, 'timeRecord.renderedHours', 0)).font('Arial').fontSize(14).align('center').align('bottom')
-        slex.getCell(`I${offset + i}`)
-            .value(`hrs`).font('Arial').fontSize(14).align('center').align('bottom')
+            slex.getCell(`H${offset + i}`)
+                .value(lodash.get(row, 'timeRecord.renderedHours', 0)).font('Arial').fontSize(14).align('center').align('bottom')
+            slex.getCell(`I${offset + i}`)
+                .value(`hrs`).font('Arial').fontSize(14).align('center').align('bottom')
 
-        slex.getCell(`J${offset + i}`)
-            .value(lodash.get(row, 'timeRecord.renderedMinutes', 0)).font('Arial').fontSize(14).align('center').align('bottom')
-        slex.getCell(`K${offset + i}`)
-            .value(`mins`).font('Arial').fontSize(14).align('center').align('bottom')
+            slex.getCell(`J${offset + i}`)
+                .value(lodash.get(row, 'timeRecord.renderedMinutes', 0)).font('Arial').fontSize(14).align('center').align('bottom')
+            slex.getCell(`K${offset + i}`)
+                .value(`mins`).font('Arial').fontSize(14).align('center').align('bottom')
 
-        //=F10*E10+H10*E10/8+J10*E10/8/60
-        slex.getCell(`L${offset + i}`)
-            .value({
-                formula: `F${10 + i}*E${10 + i}+H${10 + i}*E${10 + i}/8+J${10 + i}*E${10 + i}/8/60`,
-                result: parseFloat(row.computed.amountWorked.toFixed(2))
-            }).font('Arial').fontSize(14).numFmt('0.00')
-
+            //=F10*E10+H10*E10/8+J10*E10/8/60
+            slex.getCell(`L${offset + i}`)
+                .value({
+                    formula: `F${10 + i}*E${10 + i}+H${10 + i}*E${10 + i}/8+J${10 + i}*E${10 + i}/8/60`,
+                    result: parseFloat(lodash.get(row, 'computed.amountWorked', 0).toFixed(2))
+                }).font('Arial').fontSize(14).numFmt('0.00')
+        }
     })
 
     // sheet.columns.forEach(function (column, i) {

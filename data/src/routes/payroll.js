@@ -144,8 +144,6 @@ router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payr
     try {
         let payroll = res.payroll.toObject()
 
-        payroll = await payrollCalc.getCosStaff(payroll, CONFIG.workTime.workDays, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
-
         // return res.send(payroll)
         if (req.originalUrl.includes('.xlsx')) {
             let workbook = await excelGen.templateCos(payroll)

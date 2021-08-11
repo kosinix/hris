@@ -47,19 +47,19 @@ const createShift = (start, end, gracePeriod, settings) => {
  * @returns 
  */
 const getNearestShift = (needle, shifts) => {
-    console.log('needle', needle)
+    // console.log('needle', needle)
 
     let index = 0
     let distance = null
     shifts.forEach((shift, i) => {
         if (distance === null) {
             distance = Math.abs(shift.start - needle)
-            console.log('distance null, set to', distance)
+            // console.log('distance null, set to', distance)
         }
         let newDistance = Math.abs(shift.start - needle)
         if (newDistance < distance) {
-            console.log('shift.start < distance', newDistance, distance)
-            console.log('index', i)
+            // console.log('shift.start < distance', newDistance, distance)
+            // console.log('index', i)
 
             distance = newDistance
             index = i
@@ -67,8 +67,8 @@ const getNearestShift = (needle, shifts) => {
         }
         newDistance = Math.abs(shift.end - needle)
         if (newDistance < distance) {
-            console.log('shift.end < distance', newDistance, distance)
-            console.log('index', i)
+            // console.log('shift.end < distance', newDistance, distance)
+            // console.log('index', i)
             distance = newDistance
             index = i
         }
@@ -130,11 +130,6 @@ const calcTimeRecord = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
     let renderedHours = money.mul(money.subtract(renderedDays, Math.floor(renderedDays).toFixed(2)), money.floatToAmount(hoursPerDay))
     let renderedMinutes = money.mul(money.subtract(renderedHours, Math.floor(renderedHours).toFixed(2)), "60.00")
     */
-
-
-    console.log(renderedDays)
-    console.log(renderedHours)
-    console.log(renderedMinutes)
 
     let undertime = false
     let underDays = 0
@@ -215,6 +210,16 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480) =>
                 endMinutes = momentToMinutes(moment(log.dateTime))
                 if (endMinutes < shiftCurrent.start) break // Logging out before shift starts!
 
+                if (endMinutes > shiftCurrent.end) { // Forgot logout on before shift
+                    // let minutesWorked = shiftCurrent.end - startMinutes
+                    // minutes += minutesWorked
+                    // shiftCurrent = getNextShift(endMinutes, shifts)
+                    // startMinutes = shiftCurrent.start
+                    // if (shiftCurrent instanceof Error) break
+                    console.log('Invalid attendance')
+                    break
+                }
+
                 if (endMinutes > shiftCurrent.end) {
                     endMinutes = shiftCurrent.end // Not counted outshide shift
                 }
@@ -281,7 +286,44 @@ const getDtrMonthlyView = (month, year, attendances, useDaysInMonth = false) => 
 
     return days
 }
+
+let compute = {
+    amountWorked: (salary, salaryType, totalMinutes) => {
+        if (salaryType === 'monthly') {
+            return salary
+        } else if (salaryType === 'daily') {
+            let perHour = salary / 8
+            let perMin = perHour / 60
+            return (perMin * totalMinutes)
+        }
+        throw new Error('Invalid condition.')
+    },
+    tardiness: (salary, salaryType, workDays, underTimeTotalMinutes) => {
+        let tardiness = 0
+        if (salaryType === 'monthly') {
+            // Undertime
+            let perDay = salary / workDays
+            let perHour = perDay / 8
+
+            if (underTimeTotalMinutes > 0) {
+                /*
+                Swap with code below if need more accuracy
+                let perMin = perHour / 60
+                tardiness = perMin * underTimeTotalMinutes
+                */
+                // /*
+                // Based on HR excel formula
+                tardiness = money.mul(money.floatToAmount(perHour), money.floatToAmount(underTimeTotalMinutes / 60))
+                tardiness = parseFloat(tardiness)
+                // */
+            }
+        }
+        return tardiness
+    }
+}
+
 module.exports = {
+    compute: compute,
     calcDailyAttendance: calcDailyAttendance,
     calcTimeRecord: calcTimeRecord, //@deprecated. Use getTimeBreakdown
     createShift: createShift,

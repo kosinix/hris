@@ -79,9 +79,7 @@ let schema = mongoose.Schema({
             employment: {},
             employee: {},
             timeRecord: {},
-            computed: {
-                amountWorked: 0
-            }, // Gets populated only when payroll is final
+            computed: {},
 
             incentives: [],
             deductions: [],

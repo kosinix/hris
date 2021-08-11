@@ -329,6 +329,9 @@ div.focusable:focus-within  {
 .sidebar a{
     color: #fff;
 }
+.sidebar .nav-link {
+    position: relative;
+}
 .sidebar .nav-link.active {
     background: #4bb29d;
     color: #fff;
@@ -348,7 +351,12 @@ div.focusable:focus-within  {
 .sidebar .nav-item .nav-item .nav-link:not(.active) {
     color: #fff;
 }
-
+.sidebar .nav-expand {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
 
 .toggler {
     border: 1px solid #ccc;

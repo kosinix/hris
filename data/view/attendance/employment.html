@@ -5,9 +5,14 @@
     {% include 'parts/flash.html' %}
     {% include 'parts/employee-header.html' %}
     {# {% include 'parts/employee-profile-photo.html' %} #}
-    {% include 'attendance/tabs-calendar.html' %}
+    {# {% include 'attendance/tabs-calendar.html' %} #}
     <div class="tab-content pt-3 pb-2 pl-3 pr-3">
-        <h1 class="mt-2 mb-4">{{momentNow|format_date('MMM YYYY')}}</h1>
+        <h1 class="mt-2 mb-4">
+            {{startMoment|format_date('MMM DD, YYYY')}}
+            {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
+                to {{endMoment|format_date('MMM DD, YYYY')}}
+            {% endif %}
+        </h1>
 
         <div class="table-responsive">
             <table class="table table-dtr">
@@ -16,7 +21,7 @@
                     <th class="text-center" rowspan="2">Day</th>
                     <th class="text-center" colspan="2">AM</th>
                     <th class="text-center" colspan="2">PM</th>
-                    <th class="text-center" colspan="2">
+                    <th class="text-center" colspan="3">
                         {% if undertimeView %}
                             <a href="?{{query|query_string({undertime: 0})}}">Undertime</a>
                         {% else %}
@@ -31,12 +36,13 @@
                     <th>Arrival</th>
                     <th>Departure</th>
 
+                    <th>Days</th>
                     <th>Hours</th>
                     <th>Minutes</th>
                 </tr>
                 {% for day in days %}
                 {% set attendance = day.attendance %}
-                <tr class="{% if day.date === momentCurrent|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
+                <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
                     <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
                     <td class="text-center">{{day.day}}</td>
                     {% if attendance.onTravel %}
@@ -48,21 +54,52 @@
                         <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                         <td>
                             {% if undertimeView %}
+                                {{day.dtr.underDays|default('', true)}}
+                            {% else %}
+                                {{day.dtr.renderedDays}}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if undertimeView %}
                                 {{day.dtr.underHours|default('', true)}}
                             {% else %}
-                                {{day.dtr.renderedHours|default('', true)}}
+                                {{day.dtr.renderedHours}}
                             {% endif %}
                         </td>
                         <td>
                             {% if undertimeView %}
                                 {{day.dtr.underMinutes|default('', true)}}
                             {% else %}
-                                {{day.dtr.renderedMinutes|default('', true)}}
+                                {{day.dtr.renderedMinutes}}
                             {% endif %}
                         </td>
                     {% endif %}
                 </tr>
                 {% endfor %}
+                <tr>
+                    <td colspan="6"><h5 class="m-0">Total</h5></td>
+                    <td>
+                        {% if undertimeView %}
+                            {{timeRecordSummary.underDays|default('', true)}}
+                        {% else %}
+                            {{timeRecordSummary.renderedDays}}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if undertimeView %}
+                            {{timeRecordSummary.underHours|default('', true)}}
+                        {% else %}
+                            {{timeRecordSummary.renderedHours}}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if undertimeView %}
+                            {{timeRecordSummary.underMinutes|default('', true)}}
+                        {% else %}
+                            {{timeRecordSummary.renderedMinutes}}
+                        {% endif %}
+                    </td>
+                </tr>
             </table>
         </div>
 

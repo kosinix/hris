@@ -57,7 +57,7 @@
                     <td>${row.employment.position}</td>
                     <td>${row.employment.salary|currency}</td>
                     <td>
-                        <a target="_blank" v-bind:href="`http://localhost:9094/attendance/employee/employment/${row.employee._id}/${row.employment._id}?month=${moment(payroll.dateStart).format('MMM')}&amp;year=${moment(payroll.dateStart).format('YYYY')}&amp;undertime=1`" class="d-flex">
+                        <a target="_blank" v-bind:href="`http://localhost:9094/attendance/employee/${row.employee._id}/employment/${row.employment._id}?start=${moment(payroll.dateStart).format('YYYY-MM-DD')}&amp;end=${moment(payroll.dateEnd).format('YYYY-MM-DD')}&amp;undertime=0`" class="d-flex">
                             <div>${row.timeRecord.renderedDays} days</div>
                             <div class="pl-2 pr-2">${row.timeRecord.renderedHours} hrs</div>
                             <div>${row.timeRecord.renderedMinutes} mins</div>

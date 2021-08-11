@@ -147,7 +147,7 @@ const calcTimeRecord = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
         underDays = totalMinutesUnderTime / 60 / hoursPerDay
         underHours = (underDays - Math.floor(underDays)) * hoursPerDay
         underMinutes = (underHours - Math.floor(underHours)) * 60
-        
+
     }
 
     return {
@@ -287,6 +287,37 @@ const getDtrMonthlyView = (month, year, attendances, useDaysInMonth = false) => 
     return days
 }
 
+const getDtrTable = (startMoment, endMoment, attendances) => {
+
+    // Turn array of attendances into an object with date as keys: "2020-12-31"
+    attendances = lodash.mapKeys(attendances, (a) => {
+        return moment(a.createdAt).format('YYYY-MM-DD')
+    })
+
+    let days = []
+    for (let m = startMoment.clone(); m.diff(endMoment, 'days') <= 0; m.add(1, 'days')) {
+        let date = m.format('YYYY-MM-DD')
+        let year = m.format('YYYY')
+        let month = m.format('MM')
+        let day = m.format('DD')
+        let weekDay = m.format('ddd')
+        let attendance = attendances[date] || null
+        let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
+
+        days.push({
+            date: date,
+            year: year,
+            month: month,
+            weekDay: weekDay,
+            day: day,
+            dtr: dtr,
+            attendance: attendance
+        })
+    }
+
+    return days
+}
+
 let compute = {
     amountWorked: (salary, salaryType, totalMinutes) => {
         if (salaryType === 'monthly') {
@@ -328,6 +359,7 @@ module.exports = {
     calcTimeRecord: calcTimeRecord, //@deprecated. Use getTimeBreakdown
     createShift: createShift,
     getDtrMonthlyView: getDtrMonthlyView,
+    getDtrTable: getDtrTable,
     getNearestShift: getNearestShift,
     getNextShift: getNextShift,
     getTimeBreakdown: calcTimeRecord,

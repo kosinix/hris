@@ -75,6 +75,10 @@ class Slex {
         lodash.set(this, 'cell.font.italic', s)
         return this
     }
+    underline(s) {
+        lodash.set(this, 'cell.font.underline', s)
+        return this
+    }
     bgFill(s) {
         lodash.set(this, 'cell.fill', {
             type: 'pattern',
@@ -1664,6 +1668,11 @@ let templateCos = async (payroll) => {
     slex.mergeCells('B4:C4')
         .value(`Fund Cluster: `).align('bottom').align('left').font('Arial').fontSize(11).bold(true)
 
+    slex.mergeCells('V3:X3')
+        .value(`Payroll No.:______________`).align('middle').align('left').font('Arial').fontSize(11)
+    slex.mergeCells('V4:X4')
+        .value(`Sheet _____ of _____ Sheets`).align('middle').align('left').font('Arial').fontSize(11)
+
 
     // sheet.mergeCells('A5:K5');
     slex.mergeCells('A5:R5')
@@ -1701,6 +1710,38 @@ let templateCos = async (payroll) => {
         .value(`Deductions`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
     slex.mergeCells('O7:Q7')
         .value(`Tax`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
+    slex.mergeCells('R7:T7')
+        .value(`SSS`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
+
+    slex.getCell('O8')
+        .value(`3%`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
+
+    slex.getCell('P8')
+        .value(`10%`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
+
+    slex.getCell('Q8')
+        .value(`Total Tax`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
+
+    slex.getCell('R8')
+        .value(`Contribution`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
+
+    slex.getCell('S8')
+        .value(`EC`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
+
+    slex.getCell('T8')
+        .value(`Total SSS`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
+
+    slex.mergeCells('U7:U8')
+        .value(`Total Deductions`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
+
+    slex.mergeCells('V6:V8')
+        .value(`Net Amount Received`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
+    slex.mergeCells('W6:W8')
+        .value(`NO.`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
+    slex.mergeCells('X6:X8')
+        .value(`SIGNATURE `).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
+    slex.mergeCells('Y6:Y8')
+        .value(`Remarks `).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
 
     let offset = 10
     payroll.rows.forEach((row, i) => {
@@ -1744,6 +1785,29 @@ let templateCos = async (payroll) => {
                 }).font('Arial').fontSize(14).numFmt('0.00')
         }
     })
+
+
+    let ri = offset + payroll.rows.length
+    slex.getCell(`A${ri}`)
+        .value(`A`)
+        .align('middle').align('center').font('Times New Roman').fontSize(14).bold(true).wrapText(true).border('thin', 'thick', 'thick', 'thin')
+
+    slex.mergeCells(`B${ri}:K${ri}`)
+        .value(`CERTIFIED: Services duly rendered as stated.`)
+        .align('middle').align('left').font('Times New Roman').fontSize(10).bold(true)
+
+    slex.getCell(`P${ri}`)
+        .value(`C`).align('middle')
+        .align('center').font('Times New Roman').fontSize(14).bold(true).border('thin', 'thick', 'thick', 'thick')
+
+    slex.getCell(`Q${ri}`)
+        .value(`APPROVED FOR PAYMENT: `)
+        .align('middle').align('left').font('Times New Roman').fontSize(10).bold(true)
+
+    ri += 3
+    slex.mergeCells(`B${ri}:D${ri}`)
+        .value(`MA. RECHEL A. PILLORA, MPA`)
+        .align('bottom').align('center').font('Times New Roman').fontSize(11).bold(true).underline(true)
 
     // sheet.columns.forEach(function (column, i) {
     //     if (![0].includes(i)) {

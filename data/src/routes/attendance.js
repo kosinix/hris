@@ -27,50 +27,62 @@ router.get('/attendance/all', middlewares.guardRoute(['read_all_attendance', 're
     }
 });
 
-router.get('/attendance/employee/employment/:employeeId/:employmentId', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employment = res.employment
 
-        let month = lodash.get(req, 'query.month', moment().format('MMM'))
-        let year = lodash.get(req, 'query.year', moment().format('YYYY'))
-        let momentNow = moment().year(year).month(month)
-        let momentCurrent = moment()
+        let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+        let undertimeView = lodash.get(req, 'query.undertime') == 1 ? true : false
+
+        let startMoment = moment.utc(start)
+        let endMoment = moment.utc(end)
+        let momentNow = moment()
 
         let attendances = await db.main.Attendance.find({
             employeeId: employee._id,
             employmentId: employment._id,
             createdAt: {
-                $gte: momentNow.clone().startOf('month').toDate(),
-                $lt: momentNow.clone().endOf('month').toDate(),
+                $gte: startMoment.toDate(),
+                $lte: endMoment.toDate(),
             }
         })
 
-        let undertimeView = lodash.get(req, 'query.undertime') == 1 ? true : false
-        
-        let days = dtrHelper.getDtrMonthlyView(month, year, attendances, true)
+        let days = dtrHelper.getDtrTable(startMoment, endMoment, attendances, true)
+        let totalMinutes = 0
+        let totalMinutesUnderTime = 0
+        days.forEach((day) => {
+            totalMinutes += lodash.get(day, 'dtr.totalMinutes', 0)
+            totalMinutesUnderTime += lodash.get(day, 'dtr.underTimeTotalMinutes', 0)
+        })
+       
 
-        // console.log(kalendaryo.getMatrix(momentNow, 0))
-        let months = Array.from(Array(12).keys()).map((e, i) => {
-            return moment.utc().month(i).startOf('month')
-        }); // 1-count
-        // return res.send(days)
-        res.render('attendance/employment.html', {
-            flash: flash.get(req, 'attendance'),
-            employee: employee,
-            employment: employment,
-            attendances: attendances,
-            momentNow: momentNow,
-            momentCurrent: momentCurrent,
-            months: months,
-            days: days,
-            selectedMonth: month,
-            undertimeView: undertimeView,
-            matrix: kalendaryo.getMatrix(momentNow, 0)
-        });
-    } catch (err) {
-        next(err);
-    }
+        let timeRecordSummary = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
+
+    // console.log(kalendaryo.getMatrix(momentNow, 0))
+    let months = Array.from(Array(12).keys()).map((e, i) => {
+        return moment.utc().month(i).startOf('month')
+    }); // 1-count
+    // return res.send(days)
+    res.render('attendance/employment.html', {
+        flash: flash.get(req, 'attendance'),
+        employee: employee,
+        employment: employment,
+        attendances: attendances,
+        momentNow: momentNow,
+        months: months,
+        days: days,
+        selectedMonth: 'nu',
+        undertimeView: undertimeView,
+        timeRecordSummary: timeRecordSummary,
+        startMoment: startMoment,
+        endMoment: endMoment,
+        // matrix: kalendaryo.getMatrix(momentNow, 0)
+    });
+} catch (err) {
+    next(err);
+}
 });
 
 module.exports = router;

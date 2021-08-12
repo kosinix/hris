@@ -152,7 +152,7 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
             let incentives = row.incentives
             let deductions = row.deductions
 
-           
+            
             
         }
     }

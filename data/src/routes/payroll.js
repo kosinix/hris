@@ -13,6 +13,8 @@ const paginator = require('../paginator');
 const payrollCalc = require('../payroll-calc');
 const excelGen = require('../excel-gen');
 const uid = require('../uid');
+const formulas = require('../formulas');
+const dtrHelper = require('../dtr-helper');
 
 // Router
 let router = express.Router()
@@ -155,6 +157,8 @@ router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payr
         res.render('payroll/employees.html', {
             flash: flash.get(req, 'payroll'),
             payroll: payroll,
+            formulas: formulas.cos,
+            dtrHelper: dtrHelper,
         });
     } catch (err) {
         next(err);
@@ -225,7 +229,24 @@ router.post('/payroll/:payrollId/add-row', middlewares.guardRoute(['update_payro
         let row = {
             uid: uid.gen(),
             type: rowType,
-            name: 'Name'
+            name: 'Row Title'
+        }
+        if (rowType === 2 && payroll.template === 'cos_staff') {
+            row.cells = [
+                {
+                    columnUid: 'amountWorked',
+                },
+                {
+                    columnUid: '5Premium',
+                },
+                {
+                    columnUid: 'grossPay',
+                },
+                {
+                    columnUid: 'netPay',
+                    // range: [0, 3],
+                },
+            ]
         }
         payroll.rows.push(row)
         await payroll.save()

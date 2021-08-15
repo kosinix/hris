@@ -79,13 +79,13 @@ let schema = mongoose.Schema({
             employment: {},
             employee: {},
             timeRecord: {},
-            computed: {},
 
-            incentives: [],
-            deductions: [],
+            cells: [],
+
             attendances: [],
         }
     ],
+    columns: [],
     status: Number
 }, { timestamps: true, typeKey: '$type' })
 

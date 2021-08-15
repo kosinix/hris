@@ -16,6 +16,7 @@ const pigura = require('pigura');
 //// Modules
 const dtrHelper = require('../data/src/dtr-helper')
 const uid = require('../data/src/uid')
+const formulas = require('../data/src/formulas').cos
 
 //// First things first
 //// Save full path of our root app directory and load config and credentials
@@ -198,9 +199,24 @@ const db = require('../data/src/db-install');
                 employment: employment,
                 employee: employee,
                 timeRecord: {},
-                computed: {},
-                incentives: [],
-                deductions: [],
+                cells: [
+                    {
+                        columnUid: 'tax3',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'tax10',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'contributionSss',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'ecSss',
+                        value: 0
+                    }
+                ],
                 attendances: [],
             }
         })
@@ -230,123 +246,100 @@ const db = require('../data/src/db-install');
 
             row.timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
             row.attendances = attendances
-            row.computed = {
-                amountWorked: 0,
-                tardiness: 0,
-            }
-            let workDays = 22
-            row.computed.amountWorked = dtrHelper.compute.amountWorked(row.employment.salary, row.employment.salaryType, row.timeRecord.totalMinutes)
-            row.computed.tardiness = dtrHelper.compute.tardiness(row.employment.salary, row.employment.salaryType, workDays, row.timeRecord.underTimeTotalMinutes)
 
         }
 
         // 4. Insert Payroll
-        let incentives = [
+        let columns =  [
             {
-                "name": "5% Premium",
-                "type": "percentage",
-                "percentage": 5,
-                "percentOf": "amountWorked",
-                "initialAmount": 0,
-            }
-        ].map((o) => {
-            o._id = db.mongoose.Types.ObjectId()
-            o.uid = lodash.camelCase(o.name)
-            return o
-        })
-        let deductions = [
-            {
-
-                uid: '3Tax',
-                name: '3 %',
-                mandatory: true,
-                deductionType: 'normal',
-                initialAmount: 0,
-                groupName: 'Tax'
+                uid: 'fundSource',
+                title: 'Fund',
+                computed: true,
             },
             {
-
-                uid: '10Tax',
-                name: '10 %',
-                mandatory: true,
-                deductionType: 'normal',
-                initialAmount: 0,
-                groupName: 'Tax'
+                uid: 'name',
+                title: 'Name',
+                computed: true,
             },
             {
-
-                uid: 'contributionSSS',
-                name: 'Contribution',
-                mandatory: true,
-                deductionType: 'normal',
-                initialAmount: 0,
-                groupName: 'SSS'
+                uid: 'position',
+                title: 'Position',
+                computed: true,
             },
             {
-
-                uid: 'ecSSS',
-                name: 'EC',
-                mandatory: true,
-                deductionType: 'normal',
-                initialAmount: 0,
-                groupName: 'SSS'
-            }
-        ].map((o) => {
-            o._id = db.mongoose.Types.ObjectId()
-            o.uid = lodash.camelCase(o.name)
-            return o
-        })
-
+                uid: 'basePay',
+                title: 'Salary',
+                computed: true,
+            },
+            {
+                uid: 'attendance',
+                title: 'Time worked',
+                computed: true,
+            },
+            {
+                uid: 'amountWorked',
+                title: 'Gross Pay',
+                computed: true,
+            },
+            {
+                uid: '5Premium',
+                title: '5% Premium',
+                computed: true,
+            },
+            {
+                uid: 'grossPay',
+                title: 'Total',
+                computed: true,
+            },
+            {
+                uid: 'tax3',
+                title: '3% Tax',
+                computed: false,
+            },
+            {
+                uid: 'tax10',
+                title: '10% Tax',
+                computed: false,
+            },
+            {
+                uid: 'totalTax',
+                title: 'Total Tax',
+                computed: true,
+            },
+            {
+                uid: 'contributionSss',
+                title: 'Contribution',
+                computed: false,
+            },
+            {
+                uid: 'ecSss',
+                title: 'EC',
+                computed: false,
+            },
+            {
+                uid: 'totalSss',
+                title: 'Total SSS',
+                computed: true,
+            },
+            {
+                uid: 'totalDeductions',
+                title: 'Total Deductions',
+                computed: true,
+            },
+            {
+                uid: 'netPay',
+                title: 'Net Amnt ',
+                computed: true,
+            },
+        ]
         let payroll = {
             name: payrollName,
             dateStart: dateStart,
             dateEnd: dateEnd,
-            incentives: incentives,
-            deductions: deductions,
             rows: rows,
+            columns: columns,
             template: 'cos_staff',
         }
-        payroll.rows = payroll.rows.map((row) => {
-            let employment = row.employment
-
-            let totalIncentives = 0
-            for (let i = 0; i < payroll.incentives.length; i++) {
-                let incentive = lodash.cloneDeep(payroll.incentives[i]) // Clone from payroll to row
-                if (incentive.type === 'normal') {
-                    incentive.amount = incentive.initialAmount
-                } else if (incentive.type === 'percentage') {
-                    let percentage = incentive.percentage / 100
-                    if (incentive.percentOf === 'amountWorked') {
-                        incentive.amount = percentage * row.computed.amountWorked
-                    } else {
-                        incentive.amount = percentage * employment.salary
-                    }
-                }
-                row.incentives.push(incentive)
-                totalIncentives += parseFloat(incentive.amount)
-            }
-            row.computed.totalIncentives = totalIncentives
-
-            let totalDeductions = 0
-            for (let d = 0; d < payroll.deductions.length; d++) {
-                let deduction = lodash.cloneDeep(payroll.deductions[d])
-                if (deduction.deductionType === 'normal') {
-                    deduction.amount = deduction.initialAmount
-                } else if (deduction.deductionType === 'percentage') {
-                    let percentage = deduction.percentage / 100
-                    if (deduction.percentOf === 'amountWorked') {
-                        deduction.amount = percentage * row.computed.amountWorked
-                    } else {
-                        deduction.amount = percentage * employment.salary
-                    }
-                }
-                row.deductions.push(deduction)
-                totalDeductions += parseFloat(deduction.amount)
-            }
-            row.computed.totalDeductions = totalDeductions
-
-            return row
-        })
 
         payroll = await db.main.Payroll.create(payroll)
 

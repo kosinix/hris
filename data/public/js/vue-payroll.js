@@ -40,7 +40,7 @@ var dtrHelper = {
         return tardiness
     }
 }
-var getCellValue2 = function (row, column, formulas, defVal = 0) {
+var _getCellValue = function (row, column, formulas, defVal = 0) {
     if(typeof column === 'string' || column instanceof String){
         column = {
             uid: column
@@ -98,11 +98,11 @@ VuePayroll.mixin = {
                         uid: 'attendance',
                         getValue: function (row) {
                             var t = _.get(row, 'timeRecord')
-                            return JSON.stringify({
+                            return {
                                 days: t.renderedDays,
                                 hrs: t.renderedHours,
                                 mins: t.renderedMinutes,
-                            })
+                            }
                         }
                     },
                     {
@@ -265,22 +265,22 @@ VuePayroll.mixin = {
                         getValue: function (row, formulas) {
                             if (row.type !== 1) return ''
                             var v = []
-                            v.push(getCellValue2(row, 'rlipPs9', formulas))
-                            v.push(getCellValue2(row, 'emergencyLoan', formulas))
-                            v.push(getCellValue2(row, 'eal', formulas))
-                            v.push(getCellValue2(row, 'consoLoan', formulas))
-                            v.push(getCellValue2(row, 'ouliPremium', formulas))
-                            v.push(getCellValue2(row, 'policyOuliLoan', formulas))
-                            v.push(getCellValue2(row, 'regularPolicyLoan', formulas))
-                            v.push(getCellValue2(row, 'gfal', formulas))
-                            v.push(getCellValue2(row, 'mpl', formulas))
-                            v.push(getCellValue2(row, 'cpl', formulas))
-                            v.push(getCellValue2(row, 'help', formulas))
-                            v.push(getCellValue2(row, 'medicare', formulas))
-                            v.push(getCellValue2(row, 'pagibigContribution', formulas))
-                            v.push(getCellValue2(row, 'mplLoan', formulas))
-                            v.push(getCellValue2(row, 'calamityLoan', formulas))
-                            v.push(getCellValue2(row, 'withholdingTax', formulas))
+                            v.push(_getCellValue(row, 'rlipPs9', formulas))
+                            v.push(_getCellValue(row, 'emergencyLoan', formulas))
+                            v.push(_getCellValue(row, 'eal', formulas))
+                            v.push(_getCellValue(row, 'consoLoan', formulas))
+                            v.push(_getCellValue(row, 'ouliPremium', formulas))
+                            v.push(_getCellValue(row, 'policyOuliLoan', formulas))
+                            v.push(_getCellValue(row, 'regularPolicyLoan', formulas))
+                            v.push(_getCellValue(row, 'gfal', formulas))
+                            v.push(_getCellValue(row, 'mpl', formulas))
+                            v.push(_getCellValue(row, 'cpl', formulas))
+                            v.push(_getCellValue(row, 'help', formulas))
+                            v.push(_getCellValue(row, 'medicare', formulas))
+                            v.push(_getCellValue(row, 'pagibigContribution', formulas))
+                            v.push(_getCellValue(row, 'mplLoan', formulas))
+                            v.push(_getCellValue(row, 'calamityLoan', formulas))
+                            v.push(_getCellValue(row, 'withholdingTax', formulas))
                             return v.reduce((accum, current) => {
                                 return accum + current;
                             }, 0)
@@ -292,8 +292,8 @@ VuePayroll.mixin = {
                         uid: 'netAfterTotalMandatoryDeductions',
                         getValue: function (row, formulas) {
                             if (row.type !== 1) return ''
-                            var v1 = getCellValue2(row, 'grossPay', formulas)
-                            var v2 = getCellValue2(row, 'totalMandatoryDeductions', formulas)
+                            var v1 = _getCellValue(row, 'grossPay', formulas)
+                            var v2 = _getCellValue(row, 'totalMandatoryDeductions', formulas)
                             return parseFloat(v1 - v2)
                         }
                     },
@@ -303,9 +303,9 @@ VuePayroll.mixin = {
                         getValue: function (row, formulas) {
                             if (row.type !== 1) return ''
                             var v = []
-                            v.push(getCellValue2(row, 'teachersScholars', formulas))
-                            v.push(getCellValue2(row, 'ffaLoan', formulas))
-                            v.push(getCellValue2(row, 'citySavingsBank', formulas))
+                            v.push(_getCellValue(row, 'teachersScholars', formulas))
+                            v.push(_getCellValue(row, 'ffaLoan', formulas))
+                            v.push(_getCellValue(row, 'citySavingsBank', formulas))
                             return v.reduce((accum, current) => {
                                 return accum + current;
                             }, 0)
@@ -316,10 +316,9 @@ VuePayroll.mixin = {
                         uid: 'netPay',
                         getValue: function (row, formulas) {
                             if (row.type !== 1) return ''
-                            var me = this
-                            var v1 = getCellValue2(row, 'grossPay', formulas)
-                            var v2 = getCellValue2(row, 'totalMandatoryDeductions', formulas)
-                            var v3 = getCellValue2(row, 'totalNonMandatoryDeductions', formulas)
+                            var v1 = _getCellValue(row, 'grossPay', formulas)
+                            var v2 = _getCellValue(row, 'totalMandatoryDeductions', formulas)
+                            var v3 = _getCellValue(row, 'totalNonMandatoryDeductions', formulas)
                             return parseFloat(v1 - (v2 + v3))
                         }
                     },
@@ -334,7 +333,7 @@ VuePayroll.mixin = {
                 return c.columnUid === column.uid;
             });
         },
-        getCellValue: getCellValue2,
+        getCellValue: _getCellValue,
         getSubTotal: function (columnUid, range) {
             var cell = {
                 columnUid: columnUid,
@@ -350,7 +349,7 @@ VuePayroll.mixin = {
             let values = me.payroll.rows.slice(start, length).filter(function (r) {
                 return r.type === 1;
             }).map(function (row) {
-                return getCellValue2(row, column, me.formulas[me.payroll.template])
+                return _getCellValue(row, column, me.formulas[me.payroll.template])
             })
             return values.reduce((accum, current) => {
                 return accum + current;

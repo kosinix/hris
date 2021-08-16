@@ -22,7 +22,14 @@
                             <span class="text-danger" v-on:dblclick="editInput($event)">${getCellValue(row, column, formulas.cos_staff) | currency}</span>
                         </template>
                         <template v-else>
-                            ${getCellValue(row, column, formulas.cos_staff) | currency}
+                            <template v-if="column.uid === 'attendance'">
+                                <a class="d-flex justify-content-around text-right link-attendance" href="#">
+                                    <span>${getCellValue(row, column, formulas.cos_staff)['days']} days</span>
+                                    <span>${getCellValue(row, column, formulas.cos_staff)['hrs']} hrs</span>
+                                    <span>${getCellValue(row, column, formulas.cos_staff)['mins']} mins</span>
+                                </a>
+                            </template>
+                            <template v-else>${getCellValue(row, column, formulas.cos_staff) | currency}</template>
                         </template>
                     </td>
                    

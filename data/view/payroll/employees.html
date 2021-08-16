@@ -58,7 +58,6 @@
 <script src="{{app.url}}/js/Sortable.min.js"></script>
 {% include "parts/script-employment.html" %}
 <script>
-    
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
@@ -114,6 +113,11 @@
             })
         },
         methods: {
+            attendance: function(a){
+                return a.days + ' days ' +
+                a.hrs + ' hrs ' + 
+                a.mins + ' mins'
+            },
             deleteRow: function(i){
                 this.payroll.rows.splice(i, 1)
             },

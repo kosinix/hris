@@ -469,6 +469,13 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     z-index: 99;
 }
 
+.link-attendance {
+    min-width: 200px;
+}
+.link-attendance span {
+    width: 33%;
+}
+
 /* Scanner */
 .scanner {
     overflow:hidden; 

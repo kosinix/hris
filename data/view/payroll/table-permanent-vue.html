@@ -5,29 +5,7 @@
             <tr>
                 <th></th>
                 <th></th>
-                <th>Name</th>
-                <th>Position</th>
-                <th>Basic</th>
-                {% for incentive in payroll.incentives %}
-                    <th>{{incentive.name}}</th>
-                {% endfor %}
-                <th>Total</th>
-                <th>
-                    Less: <br> Late
-                </th>
-                <th>Grant Total</th>
-                {% for deduction in payroll.deductions %}
-                    {% if deduction.mandatory %}
-                        <th>{{deduction.name}}</th>
-                    {% endif %}
-                {% endfor %}
-                <th>Total Mandatory Deductions</th>
-                {% for deduction in payroll.deductions %}
-                    {% if deduction.mandatory == false %}
-                        <th>{{deduction.name}}</th>
-                    {% endif %}
-                {% endfor %}
-                <th>Total Non-Mandatory Deductions</th>
+                <th v-for="column in payroll.columns">${column.title}</th>
                 <th></th>
             </tr>
         </thead>
@@ -40,23 +18,15 @@
                         </svg>
                     </td>
                     <td>${rowIndex+1}</td>
-                    <td>${row.employee.lastName}, ${row.employee.firstName} <u>${_.first(row.employee.middleName)}</u></td>
-                    <td>${row.employment.position}</td>
-                    <td>${row.employment.salary|currency}</td>
-                    <td v-for="incentive in row.incentives">${incentive.amount|currency}</td>
-                    <td>${getTotalIncentives(row.incentives) + row.computed.amountWorked | currency}</td>
-                    <td>${row.computed.tardiness | currency}</td>
-                    <td>${row.computed.amountWorked + getTotalIncentives(row.incentives) - row.computed.tardiness | currency}</td>
-                    <td v-for="deduction in filterBy(row.deductions, ['mandatory', true])">
-                        <input v-on:blur="lockInput($event)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
-                        <span class="text-danger" v-on:dblclick="editInput($event, deduction.deductionType)">${deduction.amount | currency}</span>
+                    <td v-for="column in payroll.columns">
+                        <template v-if="column.computed===false">
+                            <input v-on:blur="lockInput($event)" type="text" v-bind:value="getCellValue(row, column, formulas.permanent)" v-on:input="inputCell($event, getCell(row, column))">
+                            <span class="text-danger" v-on:dblclick="editInput($event)">${getCellValue(row, column, formulas.permanent) | currency}</span>
+                        </template>
+                        <template v-else>
+                            ${getCellValue(row, column, formulas.permanent) | currency}
+                        </template>
                     </td>
-                    <td>${getTotalDeductions(filterBy(row.deductions, ['mandatory', true])) | currency}</td>
-                    <td v-for="deduction in filterBy(row.deductions, ['mandatory', false])">
-                        <input v-on:blur="lockInput($event)" type="text" v-bind:value="deduction.amount" v-on:input="inputMoney($event, deduction)">
-                        <span class="text-danger" v-on:dblclick="editInput($event, deduction.deductionType)">${deduction.amount | currency}</span>
-                    </td>
-                    <td>${getTotalDeductions(filterBy(row.deductions, ['mandatory', false])) | currency}</td>
                     <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>
                 </template>
                 <template v-if="row.type===2">
@@ -65,12 +35,35 @@
                             <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
                         </svg>
                     </td>
-                    <td colspan="3"></td>
-                    <td>${getSubTotal('employment.salary') | currency}</td>
-                    <td>${getIncentivesSubTotal('allowancePeraAca') | currency}</td>
-                    <td>${getTotalX() | currency}</td>
-                    <td colspan="8"></td>
-                    <td>${getTotalY() | currency}</td>
+                    <td colspan="3">Grand Total &gt;&gt;&gt;</td>
+                    <td>${getSubTotal('basePay') | currency}</td>
+                    <td>${getSubTotal('peraAca') | currency}</td>
+                    <td>${getSubTotal('grossPayAllowance') | currency}</td>
+                    <td>${getSubTotal('tardiness') | currency}</td>
+                    <td>${getSubTotal('grossPay') | currency}</td>
+                    <td>${getSubTotal('rlipPs9') | currency}</td>
+                    <td>${getSubTotal('emergencyLoan') | currency}</td>
+                    <td>${getSubTotal('eal') | currency}</td>
+                    <td>${getSubTotal('consoLoan') | currency}</td>
+                    <td>${getSubTotal('ouliPremium') | currency}</td>
+                    <td>${getSubTotal('policyOuliLoan') | currency}</td>
+                    <td>${getSubTotal('regularPolicyLoan') | currency}</td>
+                    <td>${getSubTotal('gfal') | currency}</td>
+                    <td>${getSubTotal('mpl') | currency}</td>
+                    <td>${getSubTotal('cpl') | currency}</td>
+                    <td>${getSubTotal('help') | currency}</td>
+                    <td>${getSubTotal('medicare') | currency}</td>
+                    <td>${getSubTotal('pagibigContribution') | currency}</td>
+                    <td>${getSubTotal('mplLoan') | currency}</td>
+                    <td>${getSubTotal('calamityLoan') | currency}</td>
+                    <td>${getSubTotal('withholdingTax') | currency}</td>
+                    <td>${getSubTotal('totalMandatoryDeductions') | currency}</td>
+                    <td>${getSubTotal('netAfterTotalMandatoryDeductions') | currency}</td>
+                    <td>${getSubTotal('teachersScholars') | currency}</td>
+                    <td>${getSubTotal('ffaLoan') | currency}</td>
+                    <td>${getSubTotal('citySavingsBank') | currency}</td>
+                    <td>${getSubTotal('totalNonMandatoryDeductions') | currency}</td>
+                    <td>${getSubTotal('netPay') | currency}</td>
                     <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>
 
                 </template>
@@ -80,9 +73,9 @@
                             <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
                         </svg>
                     </td>
-                    <td>
-                        <input v-on:blur="lockText($event)" type="text" v-bind:value="row.name" v-on:input="row.name = $event.target.value">
-                        <span v-on:dblclick="editText($event)">${row.name}</span>
+                    <td colspan="2">
+                        <input v-on:blur="lockInput2($event)" type="text" v-bind:value="row.name" v-on:input="row.name = $event.target.value">
+                        <span class="text-success" v-on:dblclick="editInput($event)">${row.name}</span>
                     </td>
                     <td colspan="14"></td>
                     <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>

@@ -82,7 +82,7 @@ const db = require('../data/src/db-install');
             }
         })
         if (missing.length > 0) {
-            throw new Error(`Employee(s) not found: ${missing.join(', ')}`)
+            throw new Error(`${missing.length} employee(s) not found: ${missing.join(', ')}`)
         }
 
 

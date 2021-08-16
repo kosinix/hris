@@ -51,49 +51,14 @@
 <script src="{{app.url}}/js/axios.min.js"></script>
 <script src="{{app.url}}/js/script-axios-extend.js"></script>
 <script src="{{app.url}}/js/vue-ph-address.js"></script>
-<script src="{{app.url}}/js/vue-money.js"></script>
 <script src="{{app.url}}/js/jsbn.js"></script>
 <script src="{{app.url}}/js/money.js"></script>
+<script src="{{app.url}}/js/vue-money.js"></script>
+<script src="{{app.url}}/js/vue-payroll.js"></script>
 <script src="{{app.url}}/js/Sortable.min.js"></script>
 {% include "parts/script-employment.html" %}
 <script>
-{# var el = document.getElementById('sort-me'); #}
-    var dtrHelper = {
-        compute: {
-            amountWorked: (salary, salaryType, totalMinutes) => {
-                if (salaryType === 'monthly') {
-                    return salary
-                } else if (salaryType === 'daily') {
-                    let perHour = salary / 8
-                    let perMin = perHour / 60
-                    return (perMin * totalMinutes)
-                }
-                throw new Error('Invalid condition.')
-            },
-            tardiness: (salary, salaryType, workDays, underTimeTotalMinutes) => {
-                let tardiness = 0
-                if (salaryType === 'monthly') {
-                    // Undertime
-                    let perDay = salary / workDays
-                    let perHour = perDay / 8
-
-                    if (underTimeTotalMinutes > 0) {
-                        /*
-                        Swap with code below if need more accuracy
-                        let perMin = perHour / 60
-                        tardiness = perMin * underTimeTotalMinutes
-                        */
-                        // /*
-                        // Based on HR excel formula
-                        tardiness = window.Money.mul(window.Money.floatToAmount(perHour), window.Money.floatToAmount(underTimeTotalMinutes / 60))
-                        tardiness = parseFloat(tardiness)
-                        // */
-                    }
-                }
-                return tardiness
-            }
-        }
-    }
+    
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
@@ -102,6 +67,7 @@
             window.vuelidateExtendMixin,
             VuePhAddress.mixin,
             VueMoney.mixin,
+            VuePayroll.mixin,
         ],
         components: {
             'autocomplete': window["vuejs-autocomplete"]
@@ -110,137 +76,9 @@
             employmentId: '',
             pending: false,
             payroll: {{payroll|default({}, true)|stringify|safe}},
-            formulas: {
-                cos: [
-                    {
-                        uid: 'fundSource',
-                        getValue: (row) => {
-                            return `${_.get(row, 'employment.fundSource', '')}`
-                        }
-                    },
-                    {
-                        uid: 'name',
-                        getValue: (row) => {
-                            let names = [_.get(row, 'employee.lastName', ''), _.get(row, 'employee.firstName', '')].filter(o => o !== '')
-                            return names.join(', ')
-                        }
-                    },
-                    {
-                        uid: 'position',
-                        getValue: (row) => {
-                            return `${_.get(row, 'employment.position', '')}`
-                        }
-                    },
-                    {
-                        uid: 'basePay',
-                        getValue: (row) => {
-                            return `${_.get(row, 'employment.salary', 0).toFixed(2)}`
-                        }
-                    },
-                    {
-                        uid: 'attendance',
-                        getValue: (row) => {
-                            let t = _.get(row, 'timeRecord')
-                            return JSON.stringify({
-                                days: t.renderedDays,
-                                hrs: t.renderedHours,
-                                mins: t.renderedMinutes,
-                            })
-                        }
-                    },
-                    {
-                        uid: 'amountWorked',
-                        getValue: (row) => {
-                            if (row.type !== 1) return ''
-                            return parseFloat(window.Money.floatToAmount(
-                                dtrHelper.compute.amountWorked(_.get(row, 'employment.salary', 0), _.get(row, 'employment.salaryType'), _.get(row, 'timeRecord.totalMinutes', 0))
-                            ))
-                        }
-                    },
-                    {
-                        uid: '5Premium',
-                        getValue: (row, formulas) => {
-                            if (row.type !== 1) return ''
-                            let formula = formulas.find(f => f.uid === 'amountWorked')
-
-                            return parseFloat(window.Money.floatToAmount(_.invoke(formula, 'getValue', row, formulas) * 0.05))
-                        }
-                    },
-                    {
-                        uid: 'grossPay',
-                        getValue: (row, formulas) => {
-                            if (row.type !== 1) return ''
-                            let formula = formulas.find(f => f.uid === 'amountWorked')
-                            let formula2 = formulas.find(f => f.uid === '5Premium')
-
-                            return parseFloat(window.Money.floatToAmount(_.invoke(formula, 'getValue', row, formulas) +
-                                _.invoke(formula2, 'getValue', row, formulas)))
-                        }
-                    },
-                    {
-                        uid: 'totalTax',
-                        getValue: (row, formulas) => {
-                            if (row.type !== 1) return ''
-                            let cell1 = row.cells.find(c => c.columnUid === 'tax3')
-                            let cell2 = row.cells.find(c => c.columnUid === 'tax10')
-
-                            return parseFloat(window.Money.floatToAmount(_.get(cell1, 'value', 0) +
-                                _.get(cell2, 'value', 0)))
-                        }
-                    },
-                    {
-                        uid: 'totalSss',
-                        getValue: (row, formulas) => {
-                            if (row.type !== 1) return ''
-                            let cell1 = row.cells.find(c => c.columnUid === 'contributionSss')
-                            let cell2 = row.cells.find(c => c.columnUid === 'ecSss')
-
-                            return parseFloat(window.Money.floatToAmount(_.get(cell1, 'value', 0) +
-                                _.get(cell2, 'value', 0)))
-                        }
-                    },
-                    {
-                        uid: 'totalDeductions',
-                        getValue: (row, formulas) => {
-                            if (row.type !== 1) return ''
-                            let formula = formulas.find(f => f.uid === 'totalTax')
-                            let formula2 = formulas.find(f => f.uid === 'totalSss')
-
-                            return parseFloat(window.Money.floatToAmount(_.invoke(formula, 'getValue', row, formulas) +
-                                _.invoke(formula2, 'getValue', row, formulas)))
-                        }
-                    },
-                    {
-                        uid: 'netPay',
-                        getValue: (row, formulas) => {
-                            if (row.type !== 1) return ''
-                            let formula = formulas.find(f => f.uid === 'grossPay')
-                            let formula2 = formulas.find(f => f.uid === 'totalDeductions')
-
-                            return parseFloat(window.Money.floatToAmount(_.invoke(formula, 'getValue', row, formulas) -
-                                _.invoke(formula2, 'getValue', row, formulas)))
-                        }
-                    },
-                    {
-                        uid: 'totalGrossPay',
-                        getValue: (rows, formulas) => {
-                            if (row.type !== 1) return ''
-                            let formula = formulas.find(f => f.uid === 'grossPay')
-                            let formula2 = formulas.find(f => f.uid === 'totalDeductions')
-
-                            return parseFloat(window.Money.floatToAmount(_.invoke(formula, 'getValue', row, formulas) -
-                                _.invoke(formula2, 'getValue', row, formulas)))
-                        }
-                    },
-                ]
-            }
         },
         computed: {
-            deductionsMandatory: function () {
-                return this.users.filter(function (user) {
-                    return user.isActive
-                })
-            }
+            
         },
         validations: {
             employmentId: {
@@ -276,78 +114,6 @@
             })
         },
         methods: {
-            getCell: function(row, column) {
-                return row.cells.find(c => c.columnUid === column.uid)
-            },
-            getCellValue: function(row, column, formulas) {
-                let cell = row.cells.find(c => c.columnUid === column.uid)
-                let formula = formulas.find(f => f.uid === column.uid)
-                let cellVal = _.get(cell, 'value')
-                if (cellVal) return cellVal
-
-                return _.invoke(formula, 'getValue', row, formulas) || 0
-            },
-            filterBy: function(array, filterObj) {
-                return _.filter(array, filterObj)
-            },
-            getTotalIncentives: function(incentives){
-                incentives = incentives.map(o => o.amount)
-                return incentives.reduce( (accum, current) => {
-                    return accum + current;
-                }, 0)
-            },
-            getTotalDeductions: function(deductions){
-                deductions = deductions.map(o => o.amount)
-                return deductions.reduce( (accum, current) => {
-                    return accum + current;
-                }, 0)
-            },
-            getSubTotal: function(columnUid, range){
-                var cell = {
-                    columnUid: columnUid,
-                    range: range
-                }
-                var me = this;
-                let column = me.payroll.columns.find(c => c.uid === cell.columnUid)
-                if(!column) throw new Error(`Cannot find column "${cell.columnUid}" in a subtotal row.`)
-                let start = _.get(cell, 'range[0]', 0)
-                let length = _.get(cell, 'range[1]', me.payroll.rows.length)
-                let values = me.payroll.rows.slice(start, length).filter(r => r.type === 1).map((row) => {
-                    return me.getCellValue(row, column, me.formulas.cos)
-                })
-                return values.reduce((accum, current) => {
-                    return accum + current;
-                }, 0)
-            },
-            getIncentivesSubTotal: function(uid){
-                let subTotal = 0;
-                this.payroll.rows.forEach((row)=>{
-                    let incentiveIndex = _.findIndex(row.incentives, (o)=>o.uid===uid)
-                    subTotal += _.get(row, `incentives.${incentiveIndex}.amount`, 0)
-                })
-                return subTotal
-            },
-            getTotalX: function(){
-                let subTotal = 0;
-                for(let x = 0; x < this.payroll.rows.length; x++){
-                    let row = this.payroll.rows[x]
-
-                    subTotal += this.getTotalIncentives(row.incentives) + _.get(row, 'computed.amountWorked', 0)
-
-                }
-               
-                return subTotal
-            },
-            getTotalY: function(){
-                let subTotal = 0;
-                for(let x = 0; x < this.payroll.rows.length; x++){
-                    let row = this.payroll.rows[x]
-
-                    subTotal += _.get(row, 'computed.amountWorked', 0) + this.getTotalIncentives(row.incentives) - this.getTotalDeductions(row.deductions)
-                }
-               
-                return subTotal
-            },
             deleteRow: function(i){
                 this.payroll.rows.splice(i, 1)
             },
@@ -419,36 +185,6 @@
                 }).then(function(){
                     me.pending = false
                 });
-
-            },
-            updateAmount: function(){
-                var me = this;
-                var totalAmountPostIncentives = 0;
-                var totalAmountPostDeductions = 0;
-                for(x = 0; x < me.payroll.employees.length; x++){
-                    var employee = me.payroll.employees[x];
-                    var totalIncentives = 0;
-                    for(b = 0; b < employee.incentives.length; b++){
-                        var incentive = employee.incentives[b];
-                        totalIncentives += parseFloat(incentive.amount)
-                    }
-                    employee.totalIncentives = totalIncentives;
-                    employee.amountPostIncentives = employee.amountWorked - totalIncentives
-                    totalAmountPostIncentives += employee.amountPostIncentives
-
-                    var totalDeductions = 0;
-                    for(b = 0; b < employee.deductions.length; b++){
-                        var deduction = employee.deductions[b];
-                        totalDeductions += parseFloat(deduction.amount)
-                    }
-                    employee.totalDeductions = totalDeductions;
-                    employee.amountPostDeductions = employee.amountWorked - totalDeductions
-                    totalAmountPostDeductions += employee.amountPostDeductions
-
-                }
-                me.payroll.totalAmountPostIncentives = totalAmountPostIncentives
-                me.payroll.totalAmountPostDeductions = totalAmountPostDeductions
-
             },
             dataSource: function(input) {
                 return '/employee?s=' + input

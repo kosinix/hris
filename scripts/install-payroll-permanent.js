@@ -329,9 +329,80 @@ const db = require('../data/src/db-install');
                 employment: employment,
                 employee: employee,
                 timeRecord: {},
-                computed: {},
-                incentives: [],
-                deductions: [],
+                cells: [
+                    {
+                        columnUid: 'emergencyLoan',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'eal',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'consoLoan',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'ouliPremium',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'policyOuliLoan',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'regularPolicyLoan',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'gfal',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'mpl',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'cpl',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'help',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'medicare',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'pagibigContribution',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'mplLoan',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'calamityLoan',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'withholdingTax',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'teachersScholars',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'ffaLoan',
+                        value: 0
+                    },
+                    {
+                        columnUid: 'citySavingsBank',
+                        value: 0
+                    },
+                ],
                 attendances: [],
             }
         })
@@ -361,196 +432,174 @@ const db = require('../data/src/db-install');
 
             row.timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
             row.attendances = attendances
-            row.computed = {
-                amountWorked: 0,
-                tardiness: 0,
-            }
-            let workDays = 22
-            row.computed.amountWorked = dtrHelper.compute.amountWorked(row.employment.salary, row.employment.salaryType, row.timeRecord.totalMinutes)
-            row.computed.tardiness = dtrHelper.compute.tardiness(row.employment.salary, row.employment.salaryType, workDays, row.timeRecord.underTimeTotalMinutes)
 
         }
 
         // 4. Insert Payroll
-        let incentives = [
+        let columns =  [
             {
-                "name": "Allowance PERA/ACA",
-                "type": "normal",
-                "initialAmount": 2000,
-            }
-        ].map((o) => {
-            o._id = db.mongoose.Types.ObjectId()
-            o.uid = lodash.camelCase(o.name)
-            return o
-        })
-        let deductions = [
-            {
-                "name": "RLIP PS 9%",
-                "deductionType": "percentage",
-                "percentage": 9,
-                "mandatory": true,
+                uid: 'name',
+                title: 'Name',
+                computed: true,
             },
             {
-                "name": "Emergency Loan",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'position',
+                title: 'Position',
+                computed: true,
             },
             {
-                "name": "EAL",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'basePay',
+                title: 'Salary',
+                computed: true,
             },
             {
-                "name": "Conso Loan",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'peraAca',
+                title: 'Allowance PERA/ACA',
+                computed: true,
             },
             {
-                "name": "Ouili Premium",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'grossPayAllowance',
+                title: 'Total',
+                computed: true,
             },
             {
-                "name": "Policy Ouli Loan",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'tardiness',
+                title: 'Less: Late/Tardiness',
+                computed: true,
             },
             {
-                "name": "Regular Policy Loan",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'grossPay',
+                title: 'Grant Total',
+                computed: true,
             },
             {
-                "name": "GFAL",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'rlipPs9',
+                title: 'RLIP PS 9%',
+                computed: true,
+            },
+            // 
+            {
+                uid: 'emergencyLoan',
+                title: 'Emergency Loan',
+                computed: false,
             },
             {
-                "name": "MPL",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'eal',
+                title: 'EAL',
+                computed: false,
             },
             {
-                "name": "CPL",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'consoLoan',
+                title: 'CONSO LOAN',
+                computed: false,
             },
             {
-                "name": "HELP",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'ouliPremium',
+                title: 'OULI Premium',
+                computed: false,
             },
             {
-                "name": "Medicare",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'policyOuliLoan',
+                title: 'Policy OULI Loan',
+                computed: false,
             },
             {
-                "name": "Contribution",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'regularPolicyLoan',
+                title: 'Regular Policy Loan',
+                computed: false,
             },
             {
-                "name": "MPL Loan",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'gfal',
+                title: 'GFAL',
+                computed: false,
             },
             {
-                "name": "Calamity Loan",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'mpl',
+                title: 'MPL',
+                computed: false,
             },
             {
-                "name": "Withholding Tax",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": true,
+                uid: 'cpl',
+                title: 'CPL',
+                computed: false,
             },
             {
-                "name": "Teacher's Scholars",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": false,
+                uid: 'help',
+                title: 'HELP',
+                computed: false,
             },
             {
-                "name": "City Savings Bank",
-                "deductionType": "normal",
-                "initialAmount": 0,
-                "mandatory": false,
+                uid: 'medicare',
+                title: 'Medicare',
+                computed: false,
             },
-        ].map((o) => {
-            o._id = db.mongoose.Types.ObjectId()
-            o.uid = lodash.camelCase(o.name)
-            return o
-        })
-
-
-
-
+            {
+                uid: 'pagibigContribution',
+                title: 'PAGIBIG Contribution',
+                computed: false,
+            },
+            {
+                uid: 'mplLoan',
+                title: 'MPL Loan',
+                computed: false,
+            },
+            {
+                uid: 'calamityLoan',
+                title: 'Calamity Loan',
+                computed: false,
+            },
+            {
+                uid: 'withholdingTax',
+                title: 'Withholding Tax',
+                computed: false,
+            },
+            // //
+            {
+                uid: 'totalMandatoryDeductions',
+                title: 'Total Mandatory Deductions',
+                computed: true,
+            },
+            {
+                uid: 'netAfterTotalMandatoryDeductions',
+                title: 'Net Amount After Deductions',
+                computed: true,
+            },
+            // //
+            {
+                uid: 'teachersScholars',
+                title: 'Teachers Scholars',
+                computed: false,
+            },
+            {
+                uid: 'ffaLoan',
+                title: 'FFA Loan and Others',
+                computed: false,
+            },
+            {
+                uid: 'citySavingsBank',
+                title: 'City Savings Bank',
+                computed: false,
+            },
+            // //
+            {
+                uid: 'totalNonMandatoryDeductions',
+                title: 'Total Non-Mandatory Deductions',
+                computed: true,
+            },
+            {
+                uid: 'netPay',
+                title: 'Net Amnt ',
+                computed: true,
+            },
+        ]
         let payroll = {
             name: payrollName,
             dateStart: dateStart,
             dateEnd: dateEnd,
-            incentives: incentives,
-            deductions: deductions,
             rows: rows,
+            columns: columns,
             template: 'permanent',
         }
-        payroll.rows = payroll.rows.map((row) => {
-            let employment = row.employment
-
-            let totalIncentives = 0
-            for (let i = 0; i < payroll.incentives.length; i++) {
-                let incentive = lodash.cloneDeep(payroll.incentives[i]) // Clone from payroll to row
-                if (incentive.type === 'normal') {
-                    incentive.amount = incentive.initialAmount
-                } else if (incentive.type === 'percentage') {
-                    let percentage = incentive.percentage / 100
-                    if (incentive.percentOf === 'amountWorked') {
-                        incentive.amount = percentage * row.computed.amountWorked
-                    } else {
-                        incentive.amount = percentage * employment.salary
-                    }
-                }
-                row.incentives.push(incentive)
-                totalIncentives += parseFloat(incentive.amount)
-            }
-            row.computed.totalIncentives = totalIncentives
-
-            let totalDeductions = 0
-            for (let d = 0; d < payroll.deductions.length; d++) {
-                let deduction = lodash.cloneDeep(payroll.deductions[d])
-                if (deduction.deductionType === 'normal') {
-                    deduction.amount = deduction.initialAmount
-                } else if (deduction.deductionType === 'percentage') {
-                    let percentage = deduction.percentage / 100
-                    if (deduction.percentOf === 'amountWorked') {
-                        deduction.amount = percentage * row.computed.amountWorked
-                    } else {
-                        deduction.amount = percentage * employment.salary
-                    }
-                }
-                row.deductions.push(deduction)
-                totalDeductions += parseFloat(deduction.amount)
-            }
-            row.computed.totalDeductions = totalDeductions
-
-            return row
-        })
 
         payroll = await db.main.Payroll.create(payroll)
 

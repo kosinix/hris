@@ -18,11 +18,11 @@
                     </td>
                     <td v-for="column in payroll.columns">
                         <template v-if="column.computed===false">
-                            <input v-on:blur="lockInput($event)" type="text" v-bind:value="getCellValue(row, column, formulas.cos)" v-on:input="inputCell($event, getCell(row, column))">
-                            <span class="text-danger" v-on:dblclick="editInput($event)">${getCellValue(row, column, formulas.cos) | currency}</span>
+                            <input v-on:blur="lockInput($event)" type="text" v-bind:value="getCellValue(row, column, formulas.cos_staff)" v-on:input="inputCell($event, getCell(row, column))">
+                            <span class="text-danger" v-on:dblclick="editInput($event)">${getCellValue(row, column, formulas.cos_staff) | currency}</span>
                         </template>
                         <template v-else>
-                            ${getCellValue(row, column, formulas.cos) | currency}
+                            ${getCellValue(row, column, formulas.cos_staff) | currency}
                         </template>
                     </td>
                    

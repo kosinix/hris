@@ -89,6 +89,7 @@ router.post('/scanner/create', middlewares.guardRoute(['create_scanner']), async
 
         lodash.set(patch, 'name', lodash.get(body, 'name'))
         lodash.set(patch, 'campus', lodash.get(body, 'campus'))
+        lodash.set(patch, 'device', lodash.get(body, 'device'))
         lodash.set(patch, 'userId', lodash.get(body, 'userId'))
 
 
@@ -121,7 +122,11 @@ router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']),
     let scanner = res.scanner.toObject()
 
     try {
-        res.render('scanner/scan.html', {
+        let template = 'scanner/scan.html'
+        if(scanner.device === 'qrCodeDevice'){
+            template = 'scanner/scan-device.html'
+        }
+        res.render(template, {
             scanner: scanner
         })
     } catch (err) {

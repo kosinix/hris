@@ -37,10 +37,10 @@
                             {% set thId = 'campus' %}
                             {% include 'parts/sorted-th.html' %}
                         </th>
-                        {# <th>
-                            {% set thId = 'type' %}
+                        <th>
+                            {% set thId = 'device' %}
                             {% include 'parts/sorted-th.html' %}
-                        </th> #}
+                        </th>
                         <th>
                             {% set thId = 'userId' %}
                             {% include 'parts/sorted-th.html' %}
@@ -52,7 +52,7 @@
                     <tr>
                         <td><a href="/scanner/{{scanner._id}}">{{scanner.name}}</a></td>
                         <td>{{scanner.campus|capitalize}}</td>
-                        {# <td>{% if scanner.type === 1 %}Entrance{% elif scanner.type === 2 %}Exit{% endif %}</td> #}
+                        <td>{{scanner.device|start_case}}</td>
                         <td>{{scanner.user.email}}</td>
                     </tr>
                 {% endfor %}

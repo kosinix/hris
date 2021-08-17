@@ -26,6 +26,12 @@
         {% include 'parts/form-group-select.html' %}
         {% set label = '' %}
 
+        {% set name = 'device' %}
+        {% set label = 'Scanning Device' %}
+        {% set options = [{value: '', text:''}, {value: 'phone', text:'Phone'}, {value: 'tablet', text:'Tablet'}, {value: 'laptop', text:'Laptop'}, {value: 'qrCodeDevice', text:'QR Code Device'}] %}
+        {% include 'parts/form-group-select.html' %}
+        {% set label = '' %}
+
         <div class="form-group">
                 <label for="userId">Assign User <span class="text-danger">*</span></label>
                 <div>
@@ -69,12 +75,17 @@
         data: {
             name: '',
             campus: 'main',
+            device: 'webcam',
+            userId: '',
         },
         validations: {
             name: {
                 required: window.validators.required
             },
             campus: {
+                required: window.validators.required
+            },
+            device: {
                 required: window.validators.required
             },
             userId: {

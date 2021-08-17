@@ -25,18 +25,9 @@ let schema = mongoose.Schema({
     userId: {
         $type: mongoose.Schema.Types.ObjectId,
     },
-    // type: {
-    //     $type: Number,
-    //     enum: [1, 2]
-    // },
-    // passwordHash: {
-    //     $type: String,
-    //     trim: true,
-    // },
-    // salt: {
-    //     $type: String,
-    //     trim: true,
-    // },
+    device: {
+        $type: String,
+    },
     active: {
         $type: Boolean,
         default: true

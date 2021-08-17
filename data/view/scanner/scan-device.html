@@ -1,0 +1,51 @@
+{% extends "document-public.html" %}
+
+{% block body %}
+<div id="vApp" v-cloak class="col-md-6">
+    <h1 class="h5">Scanner Ready</h1>
+    <form class="p-5" ref="form" v-on:submit.prevent="onSubmit" action="/scanner/{{scanner.uid}}/scan" method="POST" novalidate>
+        <div class="form-group" style="position:relative; overflow:hidden">
+            <div style="position:absolute; left:0; right:0; top:0; bottom:0; background:#fff; z-index:1; opacity:1"></div>
+            <label for="code">Code</label>
+            <input style="outline: none" v-on:blur="focus" v-model="code" name="code" id="code" type="text" class="form-control">
+            <br>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/lodash.min.js"></script>
+<script src="{{app.url}}/js/vue.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+        ],
+        data: {
+            code: ''
+        },
+        validations: {
+
+        },
+        mounted: function(){
+            document.getElementById("code").focus();
+        },
+        methods: {
+            focus: function(){
+                setTimeout(function() {
+                    document.getElementById("code").focus();
+                }, 10);
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$nextTick(function() {
+                    me.$refs.form.submit();
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}

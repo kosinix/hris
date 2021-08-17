@@ -19,39 +19,6 @@ let getHourlyRate = (monthlyRate, workDays = 22, hoursPerDay = 8) => {
     return monthlyRate / workDays / hoursPerDay
 }
 
-let getPerMinuteRate = (monthlyRate, workDays = 22, hoursPerDay = 8) => {
-    return monthlyRate / workDays / hoursPerDay / 60
-}
-
-let calcTimeRecord = (minutes, totalMinutesUnderTime, hoursPerDay) => {
-    let renderedDays = minutes / 60 / hoursPerDay
-    let renderedHours = (renderedDays - Math.floor(renderedDays)) * hoursPerDay
-    let renderedMinutes = (renderedHours - Math.floor(renderedHours)) * 60
-
-    let undertime = false
-    let underDays = 0
-    let underHours = 0
-    let underMinutes = 0
-
-    if (totalMinutesUnderTime > 0) {
-        undertime = true
-        underDays = totalMinutesUnderTime / 60 / hoursPerDay
-        underHours = (underDays - Math.floor(underDays)) * hoursPerDay
-        underMinutes = (underHours - Math.floor(underHours)) * 60
-    }
-
-    return {
-        totalMinutes: minutes,
-        renderedDays: Math.floor(renderedDays),
-        renderedHours: Math.floor(renderedHours),
-        renderedMinutes: Math.floor(renderedMinutes),
-        underTimeTotalMinutes: totalMinutesUnderTime,
-        underDays: Math.floor(underDays),
-        underHours: Math.floor(underHours),
-        underMinutes: Math.floor(underMinutes),
-        undertime: undertime
-    }
-}
 let calcRenderedTime = (minutes, hoursPerDay) => {
     let renderedDays = minutes / 60 / hoursPerDay
     let renderedHours = (renderedDays - Math.floor(renderedDays)) * hoursPerDay
@@ -261,7 +228,7 @@ let attachDailyTime = async (attendances) => {
     return attendances
 }
 
-
+// 
 
 module.exports = {
     compute: compute,

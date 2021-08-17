@@ -7,7 +7,7 @@ const moment = require('moment')
 const money = require('money-math')
 
 //// Modules
-
+const payrollJs = require('../public/js/payroll');
 
 class Slex {
     workbook
@@ -89,6 +89,13 @@ class Slex {
         return this
     }
     border(t, r, b, l) {
+        if (t && r === undefined && b === undefined && l === undefined) {
+            lodash.set(this, 'cell.border.top.style', t)
+            lodash.set(this, 'cell.border.right.style', t)
+            lodash.set(this, 'cell.border.bottom.style', t)
+            lodash.set(this, 'cell.border.left.style', t)
+            return this
+        }
         if (t) {
             lodash.set(this, 'cell.border.top.style', t)
         }
@@ -1655,6 +1662,47 @@ let templateCos = async (payroll) => {
     let slex = new Slex(workbook)
     slex.setSheet(sheet)
 
+    // Set column widths
+    sheet.getColumn('A').width = 5.43
+    sheet.getColumn('B').width = 13.86
+    sheet.getColumn('C').width = 29.86
+    sheet.getColumn('D').width = 11.57
+    sheet.getColumn('E').width = 12.57
+    sheet.getColumn('F').width = 3.57
+    sheet.getColumn('G').width = 6.86
+    sheet.getColumn('H').width = 2.43
+    sheet.getColumn('I').width = 5.86
+    sheet.getColumn('J').width = 4.43
+    sheet.getColumn('K').width = 6
+    sheet.getColumn('L').width = 13.14
+    sheet.getColumn('M').width = 13.14
+    sheet.getColumn('N').width = 13.14
+    sheet.getColumn('O').width = 11
+    sheet.getColumn('P').width = 11
+    sheet.getColumn('Q').width = 11
+    sheet.getColumn('R').width = 13.29
+    sheet.getColumn('S').width = 11
+    sheet.getColumn('T').width = 11
+    sheet.getColumn('U').width = 13.14
+    sheet.getColumn('V').width = 14
+    sheet.getColumn('W').width = 5.71
+    sheet.getColumn('X').width = 20.71
+    sheet.getColumn('Y').width = 16.43
+
+    let titleCells = 'ABCDEFGHIJKLMNOPQRSTUVWXY'.split('').map(o => `${o}6`)
+    titleCells.forEach((cell) => {
+        slex.getCell(cell).wrapText(true).border('thin')
+    })
+
+    let borderCells = ['O7', 'R7', 'U7',
+        'O8', 'P8', 'Q8', 'R8', 'S8', 'T8']
+    borderCells.forEach((cell) => {
+        slex.getCell(cell).wrapText(true).border('thin')
+    })
+
+
+
+
     // merge a range of cells
     slex.mergeCells('A1:Y1')
         .value('PAYROLL').align('bottom').align('center').font('Arial').fontSize(20).bold(true)
@@ -1743,12 +1791,36 @@ let templateCos = async (payroll) => {
     slex.mergeCells('Y6:Y8')
         .value(`Remarks `).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
 
-    let offset = 10
+    let offset = 9
+    let count = 0
+    let row1Count = payroll.rows.filter(o => o.type === 1).length
     payroll.rows.forEach((row, i) => {
 
-        if (row.type === 1) {
+        if (row.type === 3) {
+            sheet.getRow(offset + i).height = 20
+
+            slex.mergeCells(`A${offset + i}:B${offset + i}`)
+                .value(row.name).font('Arial').fontSize(11).bold(true).align('bottom').align('center')
+
+
+        } else if (row.type === 2) {
+            slex.getCell(`L${offset + i}`)
+                .value({
+                    formula: `=SUM(L${offset + 1}:L${offset + row1Count})`,
+                    result: payrollJs.getSubTotal('amountWorked', [1, payroll.rows.length], payroll, payrollJs.formulas)
+                })
+                .font('Arial').fontSize(11).bold(true).align('bottom').align('center').numFmt('#,##0.00')
+
+            slex.getCell(`M${offset + i}`)
+                .value(payrollJs.getSubTotal('5Premium', [1, payroll.rows.length], payroll, payrollJs.formulas)).font('Arial').fontSize(11).bold(true).align('bottom').align('center').numFmt('#,##0.00')
+
+            slex.getCell(`N${offset + i}`)
+                .value(payrollJs.getSubTotal('grossPay', [1, payroll.rows.length], payroll, payrollJs.formulas)).font('Arial').fontSize(11).bold(true).align('bottom').align('center').numFmt('#,##0.00')
+        } else if (row.type === 1) {
+            sheet.getRow(offset + i).height = 30
+
             slex.getCell(`A${offset + i}`)
-                .value(i + 1).font('Arial').fontSize(14).align('bottom').align('center')
+                .value(++count).font('Arial').fontSize(14).align('bottom').align('center')
 
             slex.getCell(`B${offset + i}`)
                 .value(`${lodash.get(row, 'employment.fundSource')}`).font('Arial').fontSize(14)
@@ -1760,7 +1832,7 @@ let templateCos = async (payroll) => {
                 .value(`${lodash.get(row, 'employment.position')}`).font('Arial').fontSize(14).align('center')
 
             slex.getCell(`E${offset + i}`)
-                .value(currency(lodash.get(row, 'employment.salary'))).font('Arial').fontSize(14).numFmt('0.00')
+                .value(currency(lodash.get(row, 'employment.salary'))).font('Arial').fontSize(14).numFmt('#,##0.00')
 
             slex.getCell(`F${offset + i}`)
                 .value(lodash.get(row, 'timeRecord.renderedDays', 0)).font('Arial').fontSize(14).align('center').align('bottom')
@@ -1777,53 +1849,86 @@ let templateCos = async (payroll) => {
             slex.getCell(`K${offset + i}`)
                 .value(`mins`).font('Arial').fontSize(14).align('center').align('bottom')
 
+            let amount = payrollJs.amountWorked(lodash.get(row, 'employment.salary', 0), lodash.get(row, 'employment.salaryType', 0), lodash.get(row, 'timeRecord.totalMinutes', 0))
+
             //=F10*E10+H10*E10/8+J10*E10/8/60
             slex.getCell(`L${offset + i}`)
                 .value({
                     formula: `F${10 + i}*E${10 + i}+H${10 + i}*E${10 + i}/8+J${10 + i}*E${10 + i}/8/60`,
-                    result: parseFloat(lodash.get(row, 'computed.amountWorked', 0).toFixed(2))
-                }).font('Arial').fontSize(14).numFmt('0.00')
+                    result: parseFloat(amount.toFixed(2))
+                }).font('Arial').fontSize(14).numFmt('#,##0.00')
         }
     })
 
 
     let ri = offset + payroll.rows.length
-    slex.getCell(`A${ri}`)
-        .value(`A`)
-        .align('middle').align('center').font('Times New Roman').fontSize(14).bold(true).wrapText(true).border('thin', 'thick', 'thick', 'thin')
+
+    let numberCells = [`A${ri}`, `P${ri}`]
+    numberCells.forEach((cell) => {
+        slex.getCell(cell).font('Times New Roman').fontSize(14).bold(true).align('middle').align('center').border('thin', 'thick', 'thick', 'thin')
+    })
+
+    slex.getCell(`A${ri}`).value(`A`)
+    slex.getCell(`P${ri}`).value(`C`)
+
+    let cells = [`B${ri}`, `Q${ri}`]
+    cells.forEach((cell) => {
+        slex.getCell(cell).font('Times New Roman').fontSize(10).bold(true).align('middle').align('left')
+    })
 
     slex.mergeCells(`B${ri}:K${ri}`)
         .value(`CERTIFIED: Services duly rendered as stated.`)
-        .align('middle').align('left').font('Times New Roman').fontSize(10).bold(true)
-
-    slex.getCell(`P${ri}`)
-        .value(`C`).align('middle')
-        .align('center').font('Times New Roman').fontSize(14).bold(true).border('thin', 'thick', 'thick', 'thick')
+        .fontSize(11)
 
     slex.getCell(`Q${ri}`)
         .value(`APPROVED FOR PAYMENT: `)
-        .align('middle').align('left').font('Times New Roman').fontSize(10).bold(true)
 
-    ri += 3
+    // 
+    ri = offset + payroll.rows.length + 3
+    cells = [`B${ri}`, `R${ri}`]
+    cells.forEach((cell) => {
+        slex.getCell(cell).font('Times New Roman').fontSize(11).bold(true).align('middle').align('center').underline(true)
+    })
+    cells = [`E${ri}`, `V${ri}`]
+    cells.forEach((cell) => {
+        slex.getCell(cell).border('', '', 'thin', '')
+    })
+
     slex.mergeCells(`B${ri}:D${ri}`)
         .value(`MA. RECHEL A. PILLORA, MPA`)
-        .align('bottom').align('center').font('Times New Roman').fontSize(11).bold(true).underline(true)
+    slex.mergeCells(`E${ri}:K${ri}`)
 
-    // sheet.columns.forEach(function (column, i) {
-    //     if (![0].includes(i)) {
-    //         var maxLength = 0;
+    slex.mergeCells(`R${ri}:T${ri}`)
+        .value(`LILIAN DIANA B. PARREÑO, Ph.D.`)
+    slex.mergeCells(`V${ri}:W${ri}`)
 
-    //         column.eachCell({ includeEmpty: false }, function (cell, rowNumber) {
-    //             if (rowNumber > 5) {
-    //                 var columnLength = cell.value ? cell.value.toString().length : 10;
-    //                 if (columnLength > maxLength) {
-    //                     maxLength = columnLength;
-    //                 }
-    //             }
-    //         });
-    //         column.width = maxLength < 10 ? 10 : maxLength;
-    //     }
-    // });
+
+    // 
+    ri = offset + payroll.rows.length + 4
+    cells = [`B${ri}`, `D${ri}`, `E${ri}`, `K${ri}`, `R${ri}`, `T${ri}`, `V${ri}`, `W${ri}`]
+    cells.forEach((cell) => {
+        slex.getCell(cell).font('Times New Roman').fontSize(11).align('top').align('center')
+    })
+
+    slex.mergeCells(`B${ri}:D${ri}`)
+        .value(`HRMO/ AO V`)
+    slex.mergeCells(`E${ri}:K${ri}`)
+        .value('Date')
+
+    slex.mergeCells(`R${ri}:T${ri}`)
+        .value(`SUC President III`)
+    slex.mergeCells(`V${ri}:W${ri}`)
+        .value('Date')
+
+    // 
+    ri = offset + payroll.rows.length + 8
+
+    numberCells = [`A${ri}`, `P${ri}`]
+    numberCells.forEach((cell) => {
+        slex.getCell(cell).font('Times New Roman').fontSize(14).bold(true).align('middle').align('center').border('thin', 'thick', 'thick', 'thin')
+    })
+    slex.getCell(`A${ri}`).value(`B`)
+    slex.getCell(`P${ri}`).value(`D`)
 
     return workbook
 

@@ -9,7 +9,6 @@ const money = require('money-math')
 //// Modules
 const db = require('./db')
 const dtrHelper = require('./dtr-helper')
-const formulas = require('./formulas')
 
 let getDailyRate = (monthlyRate, workDays = 22) => {
     return monthlyRate / workDays

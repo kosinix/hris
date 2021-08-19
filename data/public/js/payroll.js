@@ -318,6 +318,7 @@ var formulas = {
 }
 
 function getSubTotal(columnUid, range, payroll, formulas) {
+    if(!columnUid) return 0
     var cell = {
         columnUid: columnUid,
         range: range
@@ -325,7 +326,9 @@ function getSubTotal(columnUid, range, payroll, formulas) {
     let column = payroll.columns.find(function (c) {
         return c.uid === cell.columnUid;
     })
-    if (!column) throw new Error('Cannot find column "' + cell.columnUid + '" in a subtotal row.');
+    if (!column) {
+        throw new Error('Cannot find column "' + cell.columnUid + '" in a subtotal row.');
+    }
     let start = _.get(cell, 'range[0]', 0)
     let length = _.get(cell, 'range[1]', payroll.rows.length)
     let values = payroll.rows.slice(start, length).filter(function (r) {

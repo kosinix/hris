@@ -1795,6 +1795,11 @@ let templateCos = async (payroll) => {
     let count = 0
     let row1Count = payroll.rows.filter(o => o.type === 1).length
     payroll.rows.forEach((row, i) => {
+        // Iterate over all cells in a row (including empty cells)
+        let cells = 'ABCDEFGHIJKLMNOPQRSTUVWXY'.split('').map(o => `${o}${offset + i}`)
+        cells.forEach((cell) => {
+            slex.getCell(cell).border('thin', 'thin', 'thin', 'thin')
+        })
 
         if (row.type === 3) {
             sheet.getRow(offset + i).height = 20
@@ -1804,6 +1809,10 @@ let templateCos = async (payroll) => {
 
 
         } else if (row.type === 2) {
+            slex.mergeCells(`A${offset + i}:K${offset + i}`)
+                .value(`GRAND TOTAL > > > > > > `)
+                .fontSize(10).font('Arial')
+
             slex.getCell(`L${offset + i}`)
                 .value({
                     formula: `=SUM(L${offset + 1}:L${offset + row1Count})`,
@@ -1812,18 +1821,36 @@ let templateCos = async (payroll) => {
                 .font('Arial').fontSize(11).bold(true).align('bottom').align('center').numFmt('#,##0.00')
 
             slex.getCell(`M${offset + i}`)
-                .value(payrollJs.getSubTotal('5Premium', [1, payroll.rows.length], payroll, payrollJs.formulas)).font('Arial').fontSize(11).bold(true).align('bottom').align('center').numFmt('#,##0.00')
+                .value({
+                    formula: `=SUM(M${offset + 1}:M${offset + row1Count})`,
+                    result: payrollJs.getSubTotal('5Premium', [1, payroll.rows.length], payroll, payrollJs.formulas)
+                })
+                .font('Arial').fontSize(11).bold(true).align('bottom').align('center').numFmt('#,##0.00')
 
             slex.getCell(`N${offset + i}`)
-                .value(payrollJs.getSubTotal('grossPay', [1, payroll.rows.length], payroll, payrollJs.formulas)).font('Arial').fontSize(11).bold(true).align('bottom').align('center').numFmt('#,##0.00')
+                .value({
+                    formula: `=SUM(N${offset + 1}:N${offset + row1Count})`,
+                    result: payrollJs.getSubTotal('grossPay', [1, payroll.rows.length], payroll, payrollJs.formulas)
+                })
+                .font('Arial').fontSize(11).bold(true).align('bottom').align('center').numFmt('#,##0.00')
         } else if (row.type === 1) {
-            sheet.getRow(offset + i).height = 30
+            let sheetRow = sheet.getRow(offset + i)
+            sheetRow.height = 30
+
 
             slex.getCell(`A${offset + i}`)
                 .value(++count).font('Arial').fontSize(14).align('bottom').align('center')
 
+            // let letters = 'BCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+            // row.cells.forEach((cellValue, c)=>{
+            //     let letter = letters[c]
+            //     slex.getCell(`${letter}${offset + i}`)
+            //     .value(cellValue).font('Arial').fontSize(14).align('bottom').align('center')
+            // })
+
+
             slex.getCell(`B${offset + i}`)
-                .value(`${lodash.get(row, 'employment.fundSource')}`).font('Arial').fontSize(14)
+                .value(lodash.get(row, `cells[${i}]`)).font('Arial').fontSize(14)
 
             slex.getCell(`C${offset + i}`)
                 .value(`${lodash.get(row, 'employee.lastName')}, ${lodash.get(row, 'employee.firstName')}`).font('Arial').fontSize(14)
@@ -1856,7 +1883,37 @@ let templateCos = async (payroll) => {
                 .value({
                     formula: `F${10 + i}*E${10 + i}+H${10 + i}*E${10 + i}/8+J${10 + i}*E${10 + i}/8/60`,
                     result: parseFloat(amount.toFixed(2))
-                }).font('Arial').fontSize(14).numFmt('#,##0.00')
+                }).font('Arial').fontSize(14).numFmt('#,##0.00').align('center')
+
+            //=L15*0.05
+            let premium5 = amount * 0.05
+            slex.getCell(`M${offset + i}`)
+                .value({
+                    formula: `=L${offset + i}*0.05`,
+                    result: parseFloat(premium5.toFixed(2))
+                }).font('Arial').fontSize(14).numFmt('#,##0.00').align('center')
+
+            let grossPay = amount + premium5
+            slex.getCell(`N${offset + i}`)
+                .value({
+                    formula: `=L${offset + i}+M${offset + i}`,
+                    result: parseFloat(grossPay.toFixed(2))
+                }).font('Arial').fontSize(14).numFmt('#,##0.00').align('center')
+
+            let tax3 = payrollJs.getCellValue(row, { uid: 'tax3' }, payrollJs.formulas[payroll.template])
+            let tax10 = payrollJs.getCellValue(row, { uid: 'tax10' }, payrollJs.formulas[payroll.template])
+
+            slex.getCell(`O${offset + i}`)
+                .value(tax3).font('Arial').fontSize(14).numFmt('#,##0.00').align('center')
+            slex.getCell(`P${offset + i}`)
+                .value(tax10).font('Arial').fontSize(14).numFmt('#,##0.00').align('center')
+
+            let totalTax = payrollJs.getCellValue(row, { uid: 'totalTax' }, payrollJs.formulas[payroll.template])
+            slex.getCell(`Q${offset + i}`)
+                .value({
+                    formula: `=O${offset + i} + P${offset + i}`,
+                    result: totalTax
+                }).font('Arial').fontSize(14).numFmt('#,##0.00').align('center')
         }
     })
 
@@ -1933,9 +1990,183 @@ let templateCos = async (payroll) => {
     return workbook
 
 }
+let templateCos2 = async (payroll) => {
+    let workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(`D:/nodejs/hris/data/view/payroll/template_cos_staff.xlsx`);
+    let slex = new Slex(workbook)
+
+    let worksheet = await workbook.getWorksheet('igp')
+
+    let startRowIndex = 9
+
+    // Set Print Area for a sheet
+    worksheet.pageSetup.printArea = `A1:Y${startRowIndex + payroll.rows.length + 12}`;
+
+    if (worksheet) {
+        slex.setSheet(worksheet)
+
+        let rowCount = payroll.rows.filter(r => r.type === 1).length
+
+        worksheet.duplicateRow(10, rowCount - 1, true);
+
+        slex.getCell('A2')
+            .value(`Salary for the period ${moment(payroll.dateStart).format('MMMM DD')} - ${moment(payroll.dateEnd).format('DD, YYYY')}`)
+
+        payroll.rows.forEach((row, rowIndex) => {
+
+            let curRowIndex = startRowIndex + rowIndex
+
+            if (row.type === 3) {
+
+                slex.getCell(`A${curRowIndex}`)
+                    .value(row.name)
+
+            } else if (row.type === 1) {
+
+
+                let attendance = payrollJs.getCellValue(row, { uid: 'attendance' }, payrollJs.formulas[payroll.template])
+
+                //=F10*E10+H10*E10/8+J10*E10/8/60
+                let amount = payrollJs.amountWorked(lodash.get(row, 'employment.salary', 0), lodash.get(row, 'employment.salaryType', 0), lodash.get(row, 'timeRecord.totalMinutes', 0))
+
+                slex.getCell(`A${curRowIndex}`)
+                    .value(rowIndex)
+                    .getCell(`B${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'fundSource' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`C${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'name' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`D${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'position' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`E${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'basePay' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`F${curRowIndex}`)
+                    .value(attendance.days)
+                    .getCell(`H${curRowIndex}`)
+                    .value(attendance.hrs)
+                    .getCell(`J${curRowIndex}`)
+                    .value(attendance.mins)
+                    .getCell(`L${curRowIndex}`)
+                    .value({
+                        formula: `=F${curRowIndex}*E${curRowIndex}+H${curRowIndex}*E${curRowIndex}/8+J${curRowIndex}*E${curRowIndex}/8/60`,
+                        result: parseFloat(amount.toFixed(2))
+                    })
+                    .getCell(`M${curRowIndex}`)
+                    .value({
+                        formula: `=L${curRowIndex}*0.05`,
+                        result: payrollJs.getCellValue(row, { uid: '5Premium' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`N${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(L${curRowIndex}:M${curRowIndex})`,
+                        result: payrollJs.getCellValue(row, { uid: 'grossPay' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`O${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'tax3' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`P${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'tax10' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`Q${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(O${curRowIndex}:P${curRowIndex})`,
+                        result: payrollJs.getCellValue(row, { uid: 'totalTax' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`R${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'contributionSss' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`S${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'ecSss' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`T${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(R${curRowIndex}:S${curRowIndex})`,
+                        result: payrollJs.getCellValue(row, { uid: 'totalSss' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`U${curRowIndex}`)
+                    .value({
+                        formula: `=Q${curRowIndex}+T${curRowIndex}`,
+                        result: payrollJs.getCellValue(row, { uid: 'totalDeductions' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`V${curRowIndex}`)
+                    .value({
+                        formula: `=N${curRowIndex}+U${curRowIndex}`,
+                        result: payrollJs.getCellValue(row, { uid: 'netPay' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`W${curRowIndex}`)
+                    .value({
+                        formula: `=A${rowIndex}`,
+                        result: rowIndex
+                    })
+
+            } else if (row.type === 2) {
+                let range = [10, curRowIndex - 1] // TODO: Magic number
+                let rangeSubtotal = [0, curRowIndex - 1] // TODO: Magic number
+
+                slex.getCell(`L${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(L${range[0]}:L${range[1]})`,
+                        result: payrollJs.getSubTotal('amountWorked', rangeSubtotal, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`M${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(M${range[0]}:M${range[1]})`,
+                        result: payrollJs.getSubTotal('5Premium', rangeSubtotal, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`N${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(N${range[0]}:N${range[1]})`,
+                        result: payrollJs.getSubTotal('grossPay', rangeSubtotal, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`O${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(O${range[0]}:O${range[1]})`,
+                        result: payrollJs.getSubTotal('tax3', rangeSubtotal, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`P${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(P${range[0]}:P${range[1]})`,
+                        result: payrollJs.getSubTotal('tax10', rangeSubtotal, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`Q${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(Q${range[0]}:Q${range[1]})`,
+                        result: payrollJs.getSubTotal('totalTax', rangeSubtotal, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`R${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(R${range[0]}:R${range[1]})`,
+                        result: payrollJs.getSubTotal('contributionSss', rangeSubtotal, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`S${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(S${range[0]}:S${range[1]})`,
+                        result: payrollJs.getSubTotal('ecSss', rangeSubtotal, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`T${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(T${range[0]}:T${range[1]})`,
+                        result: payrollJs.getSubTotal('totalSss', rangeSubtotal, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`U${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(U${range[0]}:U${range[1]})`,
+                        result: payrollJs.getSubTotal('totalDeductions', rangeSubtotal, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`V${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(V${range[0]}:V${range[1]})`,
+                        result: payrollJs.getSubTotal('netPay', rangeSubtotal, payroll, payrollJs.formulas)
+                    })
+            }
+        })
+
+
+    }
+
+    return workbook
+
+}
+
 module.exports = {
     templateHdf: templateHdf,
     templateCos: templateCos,
+    templateCos2: templateCos2,
     templateJocos: templateJocos,
     templatePds: templatePds,
 }

@@ -29,7 +29,9 @@ VuePayroll.mixin = {
             let column = me.payroll.columns.find(function (c) {
                 return c.uid === cell.columnUid;
             })
-            if (!column) throw new Error('Cannot find column "' + cell.columnUid + '" in a subtotal row.');
+            if (!column) {
+                throw new Error('Cannot find column "' + cell.columnUid + '" in a subtotal row.');
+            }
             let start = _.get(cell, 'range[0]', 0)
             let length = _.get(cell, 'range[1]', me.payroll.rows.length)
             let values = me.payroll.rows.slice(start, length).filter(function (r) {

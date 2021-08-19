@@ -13,7 +13,7 @@ const paginator = require('../paginator');
 const payrollCalc = require('../payroll-calc');
 const excelGen = require('../excel-gen');
 const uid = require('../uid');
-const formulas = require('../formulas');
+const payrollJs = require('../../public/js/payroll');
 const dtrHelper = require('../dtr-helper');
 
 // Router
@@ -145,10 +145,36 @@ router.post('/payroll/:payrollId/save', middlewares.guardRoute(['read_payroll'])
 router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payroll.xlsx`], middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll.toObject()
+        
 
         // return res.send(payroll)
         if (req.originalUrl.includes('.xlsx')) {
-            let workbook = await excelGen.templateCos(payroll)
+            payroll.rows = lodash.map(payroll.rows, (row) => {
+                if (row.type === 1) {
+                    row.cells = lodash.map(payroll.columns, (column) => {
+                        return payrollJs.getCellValue(row, column, payrollJs.formulas[payroll.template])
+                    })
+                } else if (row.type === 2) {
+                    row.cells = row.cells.map((cell) => {
+                        let start = lodash.get(cell, 'range[0]', 0)
+                        let length = lodash.get(cell, 'range[1]', payroll.rows.length)
+                        return payrollJs.getSubTotal(cell.columnUid, [start, length], payroll, payrollJs.formulas) 
+                    })
+                } else if (row.type === 3) {
+                    row.cells = [row.name]
+                }
+                return row
+            })
+            // return res.send(payroll)
+
+            let workbook = {}
+
+            if (payroll.template === 'permanent') {
+                workbook = await excelGen.templatePermanent(payroll)
+            } else if (payroll.template === 'cos_staff') {
+                workbook = await excelGen.templateCos2(payroll)
+            }
+
             let buffer = await workbook.xlsx.writeBuffer();
             res.set('Content-Disposition', `attachment; filename="payroll.xlsx"`)
             res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -157,7 +183,7 @@ router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payr
         res.render('payroll/employees.html', {
             flash: flash.get(req, 'payroll'),
             payroll: payroll,
-            formulas: formulas.cos,
+            payrollJs: payrollJs.formulas[payroll.template],
             dtrHelper: dtrHelper,
         });
     } catch (err) {
@@ -233,6 +259,12 @@ router.post('/payroll/:payrollId/add-row', middlewares.guardRoute(['update_payro
         }
         if (rowType === 2 && payroll.template === 'cos_staff') {
             row.cells = [
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
                 {
                     columnUid: 'amountWorked',
                 },

@@ -207,7 +207,7 @@ module.exports = {
             let scannerId = req.params.scannerId || ''
             let scannerUid = req.params.scannerUid || ''
             let scanner = null
-            if(scannerId){
+            if (scannerId) {
                 scanner = await db.main.Scanner.findById(scannerId)
             } else if (scannerUid) {
                 scanner = await db.main.Scanner.findOne({
@@ -281,7 +281,7 @@ module.exports = {
                 return res.render('error.html', { error: "Sorry, employee not found." })
             }
             let employmentId = req.params.employmentId || ''
-            let employmentIndex = res.employee.employments.findIndex((e)=>{
+            let employmentIndex = res.employee.employments.findIndex((e) => {
                 return e._id.toString() === employmentId
             })
             if (employmentIndex === -1) {
@@ -328,11 +328,11 @@ module.exports = {
         try {
             let scanner = res.scanner.toObject()
             let user = res.user.toObject()
-    
-            if(scanner.userId.toString() !== user._id.toString()){
+
+            if (scanner.userId.toString() !== user._id.toString()) {
                 throw new Error('Unauthorized to use the scanner.')
             }
-    
+
             next();
         } catch (err) {
             next(err)
@@ -343,7 +343,7 @@ module.exports = {
             let employee = await db.main.Employee.findOne({
                 userId: res.user._id
             })
-            if(!employee){
+            if (!employee) {
                 throw new Error('No employee associated with this user.')
             }
             employee.employments = await db.main.Employment.find({
@@ -358,7 +358,7 @@ module.exports = {
     },
     getEmployeeEmployment: async (req, res, next) => {
         try {
-            if(!res.employee){
+            if (!res.employee) {
                 throw new Error('Employee needed.')
             }
             let employee = res.employee.toObject()
@@ -371,6 +371,20 @@ module.exports = {
             }
             res.employmentId = employmentId
             res.employment = employment
+
+            next();
+        } catch (err) {
+            next(err)
+        }
+    },
+    getEmployeeList: async (req, res, next) => {
+        try {
+            let employeeListId = lodash.get(req, 'params.employeeListId')
+            let employeeList = await db.main.EmployeeList.findById(employeeListId)
+            if (!employeeList) {
+                throw new Error('Employee List not found.')
+            }
+            res.employeeList = employeeList
 
             next();
         } catch (err) {

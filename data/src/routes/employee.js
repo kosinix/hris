@@ -180,7 +180,7 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
             lastName: patch.lastName,
         })
         if (matches.length > 0) {
-            throw new Error("Dupe")
+            throw new Error("Duplicate entry")
         }
 
         let employee = new db.main.Employee(patch)
@@ -605,7 +605,7 @@ router.post('/employee/user/:employeeId', middlewares.guardRoute(['create_employ
 router.get('/employee/e201/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        
+
 
         res.render('employee/e201.html', {
             flash: flash.get(req, 'employee'),
@@ -722,5 +722,230 @@ router.get('/employee/delete/:employeeId', middlewares.guardRoute(['delete_emplo
         next(err);
     }
 });
+
+// List
+router.get('/employee/list', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+    try {
+        let page = parseInt(lodash.get(req, 'query.page', 1))
+        let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
+        let sortBy = lodash.get(req, 'query.sortBy', '_id')
+        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', 1))
+        let customSort = lodash.get(req, 'query.customSort')
+        let customFilter = lodash.get(req, 'query.customFilter')
+        let customFilterValue = lodash.get(req, 'query.customFilterValue')
+        lodash.set(req, 'session.pagination.perPage', perPage)
+
+        let query = {}
+        let projection = {}
+
+
+        let options = { skip: (page - 1) * perPage, limit: perPage };
+        let sort = {}
+        sort = lodash.set(sort, sortBy, sortOrder)
+        if (['name', 'count'].includes(sortBy)) {
+            // sort[`employments.0.${sortBy}`] = sortOrder
+        }
+
+        // console.log(query, projection, options, sort)
+
+        let aggr = []
+        aggr.push({ $match: query })
+        aggr.push({ $sort: sort })
+
+        // Pagination
+        let countDocuments = await db.main.Employee.aggregate(aggr)
+        let totalDocs = countDocuments.length
+        let pagination = paginator.paginate(
+            page,
+            totalDocs,
+            perPage,
+            '/employee/list',
+            req.query
+        )
+
+        if (!isNaN(perPage)) {
+            aggr.push({ $skip: options.skip })
+            aggr.push({ $limit: options.limit })
+        }
+        let employeeLists = await db.main.EmployeeList.aggregate(aggr)
+
+        // console.log(util.inspect(aggr, false, null, true))
+
+        // return res.send(employees)
+
+        res.render('employee/employee-list.html', {
+            flash: flash.get(req, 'employee'),
+            employeeLists: employeeLists,
+            pagination: pagination,
+            query: req.query,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+// C
+router.post('/employee/list', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+    try {
+        let name = lodash.get(req, 'body.name')
+        let employeeList = await db.main.EmployeeList.create({
+            name: name
+        })
+        flash.ok(req, 'employee', `Created ${name}.`)
+        res.redirect(`/employee/list/${employeeList._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+// RU
+router.get('/employee/list/:employeeListId', middlewares.guardRoute(['read_all_employee', 'read_employee']), middlewares.getEmployeeList, async (req, res, next) => {
+    try {
+        let employeeList = res.employeeList.toObject()
+        let sortBy = lodash.get(req, 'query.sortBy', '_id')
+        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', 1))
+
+        if (['lastName', 'position'].includes(sortBy)) {
+            employeeList.members.sort(function (a, b) {
+                console.log(a, typeof a['_id'])
+                var nameA = a[sortBy].toUpperCase(); // ignore upper and lowercase
+                var nameB = b[sortBy].toUpperCase(); // ignore upper and lowercase
+                if (nameA < nameB) {
+                    return sortOrder * -1;
+                }
+                if (nameA > nameB) {
+                    return sortOrder * 1;
+                }
+                // names must be equal
+                return 0;
+            });
+        }
+
+
+        let refresh = lodash.get(req, 'query.refresh', false)
+        if (refresh) { // Rebuild list
+
+            let promises = []
+            promises = employeeList.members.map((m) => {
+                return db.main.Employment.findById(m.employmentId).lean()
+            })
+            employeeList.members = await Promise.all(promises)
+
+            promises = []
+            promises = employeeList.members.map((m) => {
+                return db.main.Employee.findById(m.employeeId).lean()
+            })
+            let employees = await Promise.all(promises)
+            employeeList.members = employeeList.members.map((m, i) => {
+                return {
+                    employeeId: m.employeeId,
+                    employmentId: m._id,
+                    firstName: employees[i].firstName,
+                    middleName: employees[i].middleName,
+                    lastName: employees[i].lastName,
+                    suffix: employees[i].suffix,
+                    position: m.position,
+                }
+            })
+            await db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
+        }
+
+
+        // return res.send(employeeList)
+
+        res.render('employee/employee-list-read.html', {
+            flash: flash.get(req, 'employee'),
+            employeeList: employeeList,
+            pagination: {},
+            query: req.query,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+// D
+router.delete('/employee/list/:employeeListId', middlewares.guardRoute(['delete_employee']), middlewares.getEmployeeList, async (req, res, next) => {
+    try {
+        let employeeList = res.employeeList.toObject()
+
+        await db.main.EmployeeList.remove({ _id: employeeList._id })
+
+        flash.ok(req, 'employee', `Deleted ${employeeList.name}.`)
+        res.send('Deleted.')
+    } catch (err) {
+        next(err);
+    }
+});
+
+// C
+router.post('/employee/list/:employeeListId/member', middlewares.guardRoute(['create_employee']), middlewares.getEmployeeList, async (req, res, next) => {
+    try {
+        let employeeList = res.employeeList.toObject()
+
+        let employmentId = lodash.get(req, 'body.employmentId')
+
+        let matches = await db.main.EmployeeList.find({
+            _id: employeeList._id,
+            members: {
+                $elemMatch: {
+                    employmentId: employmentId
+                }
+            }
+        })
+        if (matches.length > 0) {
+            flash.error(req, 'employee', `Duplicate entry.`)
+            return res.redirect(`/employee/list/${employeeList._id}`)
+        }
+
+        let employment = await db.main.Employment.findById(employmentId)
+        if (!employment) {
+            throw new Error('Employment not found.')
+        }
+        let employee = await db.main.Employee.findById(employment.employeeId)
+        if (!employee) {
+            throw new Error('Employee not found.')
+
+        }
+
+        employeeList.members.push({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            firstName: employee.firstName,
+            middleName: employee.middleName,
+            lastName: employee.lastName,
+            suffix: employee.suffix,
+            position: employment.position,
+        })
+
+        await db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
+
+
+        flash.ok(req, 'employee', `Added ${employee.firstName} ${employee.lastName}.`)
+        res.redirect(`/employee/list/${employeeList._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+// D
+router.delete('/employee/list/:employeeListId/member/:memberId', middlewares.guardRoute(['delete_employee']), middlewares.getEmployeeList, async (req, res, next) => {
+    try {
+        let employeeList = res.employeeList.toObject()
+
+        let memberId = lodash.get(req, 'params.memberId')
+
+        let index = employeeList.members.findIndex(e => e._id.toString() === memberId)
+        if (index <= -1) {
+            throw new Error("Member not found.")
+        }
+
+        let deleted = employeeList.members.splice(index, 1)
+
+        await db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
+
+        flash.ok(req, 'employee', `Deleted ${deleted[0].firstName} ${deleted[0].lastName}.`)
+        res.send('Deleted.')
+    } catch (err) {
+        next(err);
+    }
+});
+
 
 module.exports = router;

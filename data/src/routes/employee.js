@@ -861,6 +861,44 @@ router.get('/employee/list/:employeeListId', middlewares.guardRoute(['read_all_e
         next(err);
     }
 });
+// U
+router.get('/employee/list/:employeeListId/update', middlewares.guardRoute(['read_all_employee', 'update_employee']), middlewares.getEmployeeList, async (req, res, next) => {
+    try {
+        let employeeList = res.employeeList.toObject()
+
+        // return res.send(employeeList)
+
+        res.render('employee/employee-list-update.html', {
+            flash: flash.get(req, 'employee'),
+            employeeList: employeeList,
+            pagination: {},
+            query: req.query,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/list/:employeeListId/update', middlewares.guardRoute(['read_all_employee', 'update_employee']), middlewares.getEmployeeList, async (req, res, next) => {
+    try {
+        let employeeList = res.employeeList.toObject()
+
+
+        employeeList.name = lodash.get(req, 'body.name')
+        employeeList.tags = lodash.get(req, 'body.tags', [])
+        if(!employeeList.tags){
+            employeeList.tags = []
+        } else {
+            employeeList.tags = employeeList.tags.split(',')
+        }
+
+        await db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
+
+        flash.ok(req, 'employee', `Updated ${employeeList.name}.`)
+        res.redirect(`/employee/list/${employeeList._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
 // D
 router.delete('/employee/list/:employeeListId', middlewares.guardRoute(['delete_employee']), middlewares.getEmployeeList, async (req, res, next) => {
     try {

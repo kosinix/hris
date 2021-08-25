@@ -32,6 +32,7 @@
                                 {% set thId = 'count' %}
                                 {% include 'parts/sorted-th.html' %}
                             </th>
+                            <th>Tags</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -40,6 +41,7 @@
                         <tr>
                             <td><a href="/employee/list/{{employeeList._id}}">{{employeeList.name}}</a></td>
                             <td><a href="/employee/list/{{employeeList._id}}">{{employeeList.members.length}}</a></td>
+                            <td>{{employeeList.tags.join(', ')}}</td>
                             <td class="text-center" width="2%">
                                 <button v-on:click="deleteList('{{employeeList._id}}')" class="btn btn-sm btn-none text-danger">X</button>
                             </td>

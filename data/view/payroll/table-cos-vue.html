@@ -4,6 +4,7 @@
         <thead>
             <tr class="text-center">
                 <th></th>
+                <th></th>
                 <th v-for="column in payroll.columns">${column.title}</th>
                 <th></th>
             </tr>
@@ -11,6 +12,7 @@
         <tbody id="sortMe">
             <tr v-for="(row, rowIndex) in payroll.rows" class="drag-employment" v-bind:data-ruid="row.uid">
                 <template v-if="row.type===1">
+                    <td>${rowIndex}</td>
                     <td style="padding:0; text-align:center; vertical-align: middle;">
                         <svg class="dragMe" style="cursor: move; width:24px;height:24px; opacity: 0.4" viewBox="0 0 24 24">
                             <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
@@ -37,21 +39,23 @@
                 
                 </template>
                 <template v-if="row.type===2">
+                    <td>${rowIndex}</td>
                     <td style="padding:0; text-align:center; vertical-align: middle;">
                         <svg class="dragMe" style="cursor: move; width:24px;height:24px; opacity: 0.4" viewBox="0 0 24 24">
                             <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
                         </svg>
                     </td>
-                    <td colspan="5">Grand Total &gt;&gt;&gt;</td>
-                    <td>${getSubTotal('amountWorked') | currency}</td>
-                    <td>${getSubTotal('5Premium') | currency}</td>
-                    <td>${getSubTotal('grossPay') | currency}</td>
+                    <td colspan="5">${getSubTotal(row.cells[0])}</td>
+                    <td>${getSubTotal(row.cells[6]) | currency}</td>
+                    <td>${getSubTotal(row.cells[7]) | currency}</td>
+                    <td>${getSubTotal(row.cells[8]) | currency}</td>
                     <td colspan="7"></td>
-                    <td>${getSubTotal('netPay') | currency}</td>
+                    <td>${getSubTotal(row.cells[9]) | currency}</td>
                     <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>
 
                 </template>
                 <template v-if="row.type===3">
+                    <td>${rowIndex}</td>
                     <td style="padding:0; text-align:center; vertical-align: middle;">
                         <svg class="dragMe" style="cursor: move; width:24px;height:24px; opacity: 0.4" viewBox="0 0 24 24">
                             <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />

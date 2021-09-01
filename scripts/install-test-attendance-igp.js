@@ -1,7 +1,7 @@
 /**
  * Use actual employees and add attendance
  * 
- * Usage: node scripts/install-payroll-igp.js
+ * Usage: node scripts/install-test-attendance-igp.js
  */
 //// Core modules
 const path = require('path');
@@ -14,9 +14,6 @@ const lodash = require('lodash');
 const pigura = require('pigura');
 
 //// Modules
-const dtrHelper = require('../data/src/dtr-helper')
-const uid = require('../data/src/uid')
-const formulas = require('../data/src/formulas').cos
 
 //// First things first
 //// Save full path of our root app directory and load config and credentials
@@ -44,9 +41,8 @@ const db = require('../data/src/db-install');
 
 ; (async () => {
     try {
-        let payrollName = 'July 15th IGP'
+        // June 1 - 15th IGP
         let dateStart = '2021-06-01'
-        let dateEnd = '2021-06-15'
 
         let logs = []
         // 1. List of employees to use that are in db
@@ -190,162 +186,7 @@ const db = require('../data/src/db-install');
         })
         let insertedAttendances = await db.main.Attendance.insertMany(attendances)
         console.log(`Inserted ${insertedAttendances.length} attendances into ${employees.length} employees...`)
-
-        let rows = employments.map((employment, i) => {
-            let employee = employees[i]
-            return {
-                uid: uid.gen(),
-                type: 1,
-                employment: employment,
-                employee: employee,
-                timeRecord: {},
-                cells: [
-                    {
-                        columnUid: 'tax3',
-                        value: 0
-                    },
-                    {
-                        columnUid: 'tax10',
-                        value: 0
-                    },
-                    {
-                        columnUid: 'contributionSss',
-                        value: 0
-                    },
-                    {
-                        columnUid: 'ecSss',
-                        value: 0
-                    }
-                ],
-                attendances: [],
-            }
-        })
-
-        for (let x = 0; x < rows.length; x++) {
-            let row = rows[x]
-
-            // Get attendances based on payroll date range
-            let attendances = await db.main.Attendance.find({
-                employmentId: row.employment._id,
-                createdAt: {
-                    $gte: moment(dateStart).startOf('day').toDate(),
-                    $lt: moment(dateEnd).endOf('day').toDate(),
-                }
-            }).lean()
-
-            // Attach computed values
-            let totalMinutes = 0
-            let totalMinutesUnderTime = 0
-            for (let a = 0; a < attendances.length; a++) {
-                let attendance = attendances[a] // daily
-                let dtr = dtrHelper.calcDailyAttendance(attendance, 8, 480)
-                totalMinutes += dtr.totalMinutes
-                totalMinutesUnderTime += dtr.underTimeTotalMinutes
-                attendances[a].dtr = dtr
-            }
-
-            row.timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
-            row.attendances = attendances
-
-        }
-
-        // 4. Insert Payroll
-        let columns =  [
-            {
-                uid: 'fundSource',
-                title: 'Fund',
-                computed: true,
-            },
-            {
-                uid: 'name',
-                title: 'Name',
-                computed: true,
-            },
-            {
-                uid: 'position',
-                title: 'Position',
-                computed: true,
-            },
-            {
-                uid: 'basePay',
-                title: 'Salary',
-                computed: true,
-            },
-            {
-                uid: 'attendance',
-                title: 'Time worked',
-                computed: true,
-            },
-            {
-                uid: 'amountWorked',
-                title: 'Gross Pay',
-                computed: true,
-            },
-            {
-                uid: '5Premium',
-                title: '5% Premium',
-                computed: true,
-            },
-            {
-                uid: 'grossPay',
-                title: 'Total',
-                computed: true,
-            },
-            {
-                uid: 'tax3',
-                title: '3% Tax',
-                computed: false,
-            },
-            {
-                uid: 'tax10',
-                title: '10% Tax',
-                computed: false,
-            },
-            {
-                uid: 'totalTax',
-                title: 'Total Tax',
-                computed: true,
-            },
-            {
-                uid: 'contributionSss',
-                title: 'Contribution',
-                computed: false,
-            },
-            {
-                uid: 'ecSss',
-                title: 'EC',
-                computed: false,
-            },
-            {
-                uid: 'totalSss',
-                title: 'Total SSS',
-                computed: true,
-            },
-            {
-                uid: 'totalDeductions',
-                title: 'Total Deductions',
-                computed: true,
-            },
-            {
-                uid: 'netPay',
-                title: 'Net Amnt ',
-                computed: true,
-            },
-        ]
-        let payroll = {
-            name: payrollName,
-            dateStart: dateStart,
-            dateEnd: dateEnd,
-            rows: rows,
-            columns: columns,
-            template: 'cos_staff',
-        }
-
-        payroll = await db.main.Payroll.create(payroll)
-
-        console.log(`Payrolls...`)
-        logs.push(`db.getCollection('payrolls').remove({_id:ObjectId("${payroll._id}")})`)
-
+        
         file = CONFIG.app.dir + '/scripts/logs/payroll-igp.log'
         fs.writeFileSync(file, logs.join(";\n"), { encoding: 'utf8' })
         console.log(`Log file "${file}"`)

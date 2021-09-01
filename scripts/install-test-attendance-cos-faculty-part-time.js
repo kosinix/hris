@@ -1,7 +1,7 @@
 /**
  * Use actual employees and add attendance
  * 
- * Usage: node scripts/install-payroll-igp.js
+ * Usage: node scripts/install-test-attendance-cos-faculty-part-time.js
  */
 //// Core modules
 const path = require('path');
@@ -14,9 +14,6 @@ const lodash = require('lodash');
 const pigura = require('pigura');
 
 //// Modules
-const dtrHelper = require('../data/src/dtr-helper')
-const uid = require('../data/src/uid')
-const formulas = require('../data/src/formulas').cos
 
 //// First things first
 //// Save full path of our root app directory and load config and credentials
@@ -44,19 +41,82 @@ const db = require('../data/src/db-install');
 
 ; (async () => {
     try {
-        let payrollName = 'July 15th IGP'
+        // June 1 - 15th stf
         let dateStart = '2021-06-01'
-        let dateEnd = '2021-06-15'
 
         let logs = []
         // 1. List of employees to use that are in db
         let list = [
-            ['Cañete', 'Roland', 10, 6, 56],
-            ['Concepcion', 'Mary', 11],
-            ['Gabito', 'Unicorne', 10, 6],
-            ['Platigue', 'John Carlo', 11],
-            ['Real', 'Joseph', 9, 3, 8],
-            ['Tapangan', 'Lybert', 9, 6, 19]
+            ['Andrade', 'Eula Mae', 9, 7],
+            ['Bermejo', 'Ralph Gerald', 10],
+
+            ['Brillantes', 'Kezia Joice', 10],
+            ['Estalogo', 'Christine'],
+            ['Germina', 'Luis', 10],
+            ['Labra', 'Wenmar'],
+            ['Monton', 'Gejette'],
+            ['Morada', 'Nenita'],
+            ['Ysulan', 'Charlie'],
+
+            ['Ejar', 'Marin', 10],
+            ['Hervilla', 'Ralph'],
+            ['Occeña', 'Michael'],
+
+            // part-timers
+            ['Baylon', 'Neriza', 0, 45, 0, 'part-time'],
+            ['Bermejo', 'Edzel', 0, 36, 45, 'part-time'],
+            ['Cabagsican', 'Janet', 0, 0, 0, 'part-time'],
+            ['Claudio', 'Mark', 0, 0, 0, 'part-time'],
+            ['Dulaca', 'Janine', 0, 0, 0, 'part-time'],
+            ['Dumadaog', 'Jella', 0, 0, 0, 'part-time'],
+            ['Ellaga', 'Riza', 0, 0, 0, 'part-time'],
+            ['Gabasa', 'Melajen', 0, 0, 0, 'part-time'],
+            ['Gadian', 'Joshua', 0, 0, 0, 'part-time'],
+            ['Gaje', 'Michael', 0, 0, 0, 'part-time'],
+            ['Infante', 'Kim Adrian', 0, 0, 0, 'part-time'],
+            ['Jimenez', 'Carel', 0, 0, 0, 'part-time'],
+            ['Nava', 'Jeryl', 0, 0, 0, 'part-time'],
+            ['Palerit', 'Jenny', 0, 0, 0, 'part-time'],
+            ['Ronco', 'Keince', 0, 0, 0, 'part-time'],
+            ['Simora', 'Noreen', 0, 0, 0, 'part-time'],
+
+            ['Baguio', 'Perla', 0, 45, 0, 'part-time'],
+            ['Baron', 'Keseiah', 0, 0, 0, 'part-time'],
+            ['Chavez', 'Janice', 0, 0, 0, 'part-time'],
+            ['Gaborno', 'Lian Jean', 0, 0, 0, 'part-time'],
+            ['Gencianeo', 'Salvador', 0, 0, 0, 'part-time'],
+            ['Hortinela', 'Phoenix', 0, 0, 0, 'part-time'],
+            ['Junco', 'Marianne', 0, 0, 0, 'part-time'],
+            ['Lachica', 'Anelyn', 0, 0, 0, 'part-time'],
+            ['Mendez', 'Mario', 0, 0, 0, 'part-time'],
+            ['Relano', 'Prudencio', 0, 0, 0, 'part-time'],
+            ['Satajo', 'Janet', 0, 0, 0, 'part-time'],
+            ['Ricablanca', 'June', 0, 0, 0, 'part-time'],
+            ['Alameda', 'Jesseca', 0, 0, 0, 'part-time'],
+            ['Floro', 'Reciel Jay', 0, 0, 0, 'part-time'],
+            ['Gabayeron', 'Lovel', 0, 0, 0, 'part-time'],
+
+            ['Cavan', 'Paulino', 5, 5, 0, 'part-time'],
+            ['Dagoon', 'Salvador', 0, 0, 0, 'part-time'],
+            ['Dusaban', 'Criscelen', 0, 0, 0, 'part-time'],
+            ['Edang', 'Rommel', 0, 0, 0, 'part-time'],
+            ['Elvas', 'Mark', 0, 0, 0, 'part-time'],
+            ['Estember', 'Ahlie', 0, 0, 0, 'part-time'],
+            ['Ferrer', 'Jefrey', 0, 0, 0, 'part-time'],
+            ['Gonzales', 'Jonas', 0, 0, 0, 'part-time'],
+            ['Hilarion', 'Roga', 0, 0, 0, 'part-time'],
+            ['Junco', 'Tomas', 0, 0, 0, 'part-time'],
+            ['Lagaña', 'Melvin', 0, 0, 0, 'part-time'],
+            ['Lusaya', 'Angelino', 0, 0, 0, 'part-time'],
+            ['Padilla', 'Jay', 0, 0, 0, 'part-time'],
+            ['Parreño', 'Mark', 0, 0, 0, 'part-time'],
+            ['Peremne', 'Rara', 0, 0, 0, 'part-time'],
+            ['Balidiong', 'Madelyn', 0, 0, 0, 'part-time'],
+
+            // ['Banez', 'Richard', 0, 45,  0, 'part-time'],
+            ['Dador', 'Elvir', 0, 0, 0, 'part-time'],
+            ['Estember', 'Rollin', 0, 0, 0, 'part-time'],
+            ['Gallo', 'Alfred', 0, 0, 0, 'part-time'],
         ]
 
 
@@ -87,10 +147,16 @@ const db = require('../data/src/db-install');
 
 
         promises = employees.map((el, i) => {
-            // Employee might have more than 1 employment. We use the first result found.
-            return db.main.Employment.findOne({
+            // Employee might have more than 1 employment. We use the first result found....
+            let criteria = {
                 employeeId: el._id
-            }).lean()
+            }
+            // ... Unless criteria is provided
+            let employmentType = lodash.get(list[i], `[5]`)
+            if (employmentType) {
+                lodash.set(criteria, 'employmentType', employmentType)
+            }
+            return db.main.Employment.findOne(criteria).lean()
         })
         let employments = await Promise.all(promises)
 
@@ -191,162 +257,7 @@ const db = require('../data/src/db-install');
         let insertedAttendances = await db.main.Attendance.insertMany(attendances)
         console.log(`Inserted ${insertedAttendances.length} attendances into ${employees.length} employees...`)
 
-        let rows = employments.map((employment, i) => {
-            let employee = employees[i]
-            return {
-                uid: uid.gen(),
-                type: 1,
-                employment: employment,
-                employee: employee,
-                timeRecord: {},
-                cells: [
-                    {
-                        columnUid: 'tax3',
-                        value: 0
-                    },
-                    {
-                        columnUid: 'tax10',
-                        value: 0
-                    },
-                    {
-                        columnUid: 'contributionSss',
-                        value: 0
-                    },
-                    {
-                        columnUid: 'ecSss',
-                        value: 0
-                    }
-                ],
-                attendances: [],
-            }
-        })
-
-        for (let x = 0; x < rows.length; x++) {
-            let row = rows[x]
-
-            // Get attendances based on payroll date range
-            let attendances = await db.main.Attendance.find({
-                employmentId: row.employment._id,
-                createdAt: {
-                    $gte: moment(dateStart).startOf('day').toDate(),
-                    $lt: moment(dateEnd).endOf('day').toDate(),
-                }
-            }).lean()
-
-            // Attach computed values
-            let totalMinutes = 0
-            let totalMinutesUnderTime = 0
-            for (let a = 0; a < attendances.length; a++) {
-                let attendance = attendances[a] // daily
-                let dtr = dtrHelper.calcDailyAttendance(attendance, 8, 480)
-                totalMinutes += dtr.totalMinutes
-                totalMinutesUnderTime += dtr.underTimeTotalMinutes
-                attendances[a].dtr = dtr
-            }
-
-            row.timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
-            row.attendances = attendances
-
-        }
-
-        // 4. Insert Payroll
-        let columns =  [
-            {
-                uid: 'fundSource',
-                title: 'Fund',
-                computed: true,
-            },
-            {
-                uid: 'name',
-                title: 'Name',
-                computed: true,
-            },
-            {
-                uid: 'position',
-                title: 'Position',
-                computed: true,
-            },
-            {
-                uid: 'basePay',
-                title: 'Salary',
-                computed: true,
-            },
-            {
-                uid: 'attendance',
-                title: 'Time worked',
-                computed: true,
-            },
-            {
-                uid: 'amountWorked',
-                title: 'Gross Pay',
-                computed: true,
-            },
-            {
-                uid: '5Premium',
-                title: '5% Premium',
-                computed: true,
-            },
-            {
-                uid: 'grossPay',
-                title: 'Total',
-                computed: true,
-            },
-            {
-                uid: 'tax3',
-                title: '3% Tax',
-                computed: false,
-            },
-            {
-                uid: 'tax10',
-                title: '10% Tax',
-                computed: false,
-            },
-            {
-                uid: 'totalTax',
-                title: 'Total Tax',
-                computed: true,
-            },
-            {
-                uid: 'contributionSss',
-                title: 'Contribution',
-                computed: false,
-            },
-            {
-                uid: 'ecSss',
-                title: 'EC',
-                computed: false,
-            },
-            {
-                uid: 'totalSss',
-                title: 'Total SSS',
-                computed: true,
-            },
-            {
-                uid: 'totalDeductions',
-                title: 'Total Deductions',
-                computed: true,
-            },
-            {
-                uid: 'netPay',
-                title: 'Net Amnt ',
-                computed: true,
-            },
-        ]
-        let payroll = {
-            name: payrollName,
-            dateStart: dateStart,
-            dateEnd: dateEnd,
-            rows: rows,
-            columns: columns,
-            template: 'cos_staff',
-        }
-
-        payroll = await db.main.Payroll.create(payroll)
-
-        console.log(`Payrolls...`)
-        logs.push(`db.getCollection('payrolls').remove({_id:ObjectId("${payroll._id}")})`)
-
-        file = CONFIG.app.dir + '/scripts/logs/payroll-igp.log'
+        file = CONFIG.app.dir + '/scripts/logs/payroll-stf.log'
         fs.writeFileSync(file, logs.join(";\n"), { encoding: 'utf8' })
         console.log(`Log file "${file}"`)
 

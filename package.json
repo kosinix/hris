@@ -4,7 +4,7 @@
   "description": "HR-IS",
   "main": "index.js",
   "scripts": {
-    "dev": "set NODE_ENV=dev&& nodemon index.js",
+    "dev": "set NODE_ENV=dev&& node ./scripts/open.js&& nodemon index.js",
     "postinstall": "node ./scripts/copy-front-js-css.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -20,7 +20,6 @@
     "bootstrap": "^4.5.0",
     "connect-mongodb-session": "^2.4.1",
     "cookie-parser": "^1.4.5",
-    "excel4node": "^1.7.2",
     "exceljs": "^4.2.1",
     "exif-reader": "^1.0.3",
     "express": "^4.17.1",
@@ -57,6 +56,7 @@
   "devDependencies": {
     "csv-parser": "^3.0.0",
     "csv-stringify": "^5.6.2",
+    "open": "^8.2.1",
     "say": "^0.16.0"
   }
 }

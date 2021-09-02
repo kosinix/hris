@@ -9,6 +9,8 @@ const money = require('money-math')
 //// Modules
 const db = require('./db')
 const dtrHelper = require('./dtr-helper')
+const payrollTemplate = require('./payroll-template')
+const uid = require('./uid')
 
 let getDailyRate = (monthlyRate, workDays = 22) => {
     return monthlyRate / workDays
@@ -119,8 +121,8 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
             let incentives = row.incentives
             let deductions = row.deductions
 
-            
-            
+
+
         }
     }
 
@@ -228,6 +230,136 @@ let attachDailyTime = async (attendances) => {
 }
 
 // 
+let addPayrollRow = async (payroll, employmentId) => {
+
+    let employment = await db.main.Employment.findById(employmentId);
+    if (!employment) {
+        throw new Error("Sorry, employment not found.")
+    }
+
+    let employee = await db.main.Employee.findById(employment.employeeId);
+    if (!employee) {
+        throw new Error("Sorry, employee not found.")
+    }
+
+    if (payroll.rows.find((e) => {
+        return lodash.invoke(e, 'employment._id.toString') === employment._id.toString()
+    })) {
+        throw new Error("Sorry, employment already here.")
+    }
+
+    let attendances = await db.main.Attendance.find({
+        employmentId: employmentId,
+        createdAt: {
+            $gte: moment(payroll.dateStart).startOf('day').toDate(),
+            $lt: moment(payroll.dateEnd).endOf('day').toDate(),
+        }
+    }).lean()
+
+    // 3. Get columns
+    let columns = payrollTemplate.getColumns(payroll.template)
+
+    // Format rows based on employee, employment, and columns for template, and attendance
+
+
+    // Generate cells
+    let cells = columns.filter(o => o.computed === false)
+    cells = cells.map(o => {
+        return {
+            columnUid: o.uid,
+            value: 0
+        }
+    })
+
+    // Get attendances based on payroll date range
+    let totalMinutes = 0
+    let totalMinutesUnderTime = 0
+    let hoursPerDay = 8
+    let travelPoints = 480
+    for (let a = 0; a < attendances.length; a++) {
+        let attendance = attendances[a] // daily
+        let dtr = dtrHelper.calcDailyAttendance(attendance, hoursPerDay, travelPoints)
+        totalMinutes += dtr.totalMinutes
+        totalMinutesUnderTime += dtr.underTimeTotalMinutes
+        attendances[a].dtr = dtr
+    }
+
+    let timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, hoursPerDay)
+
+    let row = {
+        uid: uid.gen(),
+        type: 1,
+        employment: employment,
+        employee: employee,
+        timeRecord: timeRecord,
+        cells: cells,
+        attendances: attendances,
+    }
+
+    payroll.rows.push(row)
+
+    return row
+}
+
+let buildPayrollRowAsync = async (payroll, employmentId) => {
+
+    // 1. Get employment data
+    let employment = await db.main.Employment.findById(employmentId).lean()
+    if (!employment) {
+        throw new Error("Sorry, employment not found.")
+    }
+
+    // 2. Get employee data from employment
+    let employee = await db.main.Employee.findById(employment.employeeId).lean()
+    if (!employee) {
+        throw new Error("Sorry, employee not found.")
+    }
+
+    // 3. Get attendances from date range
+    let attendances = await db.main.Attendance.find({
+        employmentId: employmentId,
+        createdAt: {
+            $gte: moment(payroll.dateStart).startOf('day').toDate(),
+            $lt: moment(payroll.dateEnd).endOf('day').toDate(),
+        }
+    }).lean()
+    let totalMinutes = 0
+    let totalMinutesUnderTime = 0
+    let hoursPerDay = 8
+    let travelPoints = 480
+    for (let a = 0; a < attendances.length; a++) {
+        let attendance = attendances[a] // daily
+        let dtr = dtrHelper.calcDailyAttendance(attendance, hoursPerDay, travelPoints)
+        totalMinutes += dtr.totalMinutes
+        totalMinutesUnderTime += dtr.underTimeTotalMinutes
+        attendances[a].dtr = dtr
+    }
+    let timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, hoursPerDay)
+
+    // 4. Get columns for payroll template
+    let columns = payrollTemplate.getColumns(payroll.template)
+
+
+    // 5. Generate non-computed cells
+    let cells = columns.filter(o => o.computed === false)
+    cells = cells.map(o => {
+        return {
+            columnUid: o.uid,
+            value: 0
+        }
+    })
+
+    // Format rows based on employee, employment, and columns for template, and attendance
+    return {
+        uid: uid.gen(),
+        type: 1,
+        employment: employment,
+        employee: employee,
+        timeRecord: timeRecord,
+        cells: cells,
+        attendances: attendances,
+    }
+}
 
 module.exports = {
     compute: compute,
@@ -236,4 +368,6 @@ module.exports = {
     getDailyRate: getDailyRate,
     getHourlyRate: getHourlyRate,
     attachDailyTime: attachDailyTime,
+    addPayrollRow: addPayrollRow,
+    buildPayrollRowAsync: buildPayrollRowAsync,
 }

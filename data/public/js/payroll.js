@@ -24,6 +24,10 @@ var amountWorked = function (salary, salaryType, totalMinutes) {
         var perHour = salary / 8;
         var perMin = perHour / 60;
         return (perMin * totalMinutes);
+    } else if (salaryType === 'hourly') {
+        var perHour = salary;
+        var perMin = perHour / 60;
+        return (perMin * totalMinutes);
     }
     throw new Error('Invalid condition.');
 }
@@ -105,9 +109,9 @@ var formulas = {
             getValue: function (row) {
                 var t = _.get(row, 'timeRecord')
                 return {
-                    days: t.renderedDays,
-                    hrs: t.renderedHours,
-                    mins: t.renderedMinutes,
+                    days: _.get(t, 'renderedDays', 0),
+                    hrs: _.get(t, 'renderedHours', 0),
+                    mins: _.get(t, 'renderedMinutes', 0),
                 }
             }
         },
@@ -172,7 +176,7 @@ var formulas = {
         {
             uid: 'netPay',
             getValue: function (row, formulas) {
-                
+
 
                 return parseFloat(
                     money.floatToAmount(
@@ -207,14 +211,14 @@ var formulas = {
         {
             uid: 'peraAca',
             getValue: function (row) {
-                
+
                 return 2000
             }
         },
         {
             uid: 'grossPayAllowance',
             getValue: function (row, formulas) {
-                
+
 
                 return parseFloat(
                     money.floatToAmount(
@@ -226,7 +230,7 @@ var formulas = {
         {
             uid: 'tardiness',
             getValue: function (row, formulas) {
-                
+
                 return parseFloat(money.floatToAmount(
                     tardiness(_.get(row, 'employment.salary', 0), _.get(row, 'employment.salaryType'), 22, _.get(row, 'timeRecord.underTimeTotalMinutes', 0))
                 ))
@@ -235,7 +239,7 @@ var formulas = {
         {
             uid: 'grossPay',
             getValue: function (row, formulas) {
-                
+
 
                 return parseFloat(
                     money.floatToAmount(
@@ -247,7 +251,7 @@ var formulas = {
         {
             uid: 'rlipPs9',
             getValue: function (row, formulas) {
-                
+
 
                 return parseFloat(
                     money.floatToAmount(getCellValue(row, 'basePay', formulas) * 0.09)
@@ -257,7 +261,7 @@ var formulas = {
         {
             uid: 'totalMandatoryDeductions',
             getValue: function (row, formulas) {
-                
+
                 var v = []
                 v.push(getCellValue(row, 'rlipPs9', formulas))
                 v.push(getCellValue(row, 'emergencyLoan', formulas))
@@ -317,12 +321,9 @@ var formulas = {
     ]
 }
 
-function getSubTotal(columnUid, range, payroll, formulas) {
-    if(!columnUid) return 0
-    var cell = {
-        columnUid: columnUid,
-        range: range
-    }
+function getSubTotal(cell, rowIndex, payroll, formulas) {
+    if (!cell && !cell.columnUid) return 0
+
     let column = payroll.columns.find(function (c) {
         return c.uid === cell.columnUid;
     })
@@ -330,12 +331,48 @@ function getSubTotal(columnUid, range, payroll, formulas) {
         console.log('Cannot find column "' + cell.columnUid + '" in a subtotal row.');
         return 0;
     }
-    let start = _.get(cell, 'range[0]', 0)
-    let length = _.get(cell, 'range[1]', payroll.rows.length)
-    let values = payroll.rows.slice(start, length).filter(function (r) {
-        return r.type === 1;
+
+    if (rowIndex > payroll.rows.length - 1) throw new Error('Out of bounds.')
+
+    let start = 0
+    // Start from before current row
+    // Until a non row.type === 1 is found
+    for (let y = rowIndex - 1; y >= 0; y--) {
+        let row = payroll.rows[y]
+        if (row.type !== 1) {
+            start = y + 1
+            break
+        }
+    }
+    let end = rowIndex // rowIndex - 1 is actual end index
+
+    let values = payroll.rows.slice(start, end).filter(function (row) {
+        return row.type === 1;
     }).map(function (row) {
-        return getCellValue(row, column, formulas[payroll.template])
+        return getCellValue(row, column, formulas[payroll.template]);
+    })
+    return values.reduce(function (accum, current) {
+        return accum + current;
+    }, 0)
+}
+
+function getGrandTotal(cell, rowIndex, payroll, formulas) {
+    if (!cell && !cell.columnUid) return 0
+
+    let column = payroll.columns.find(function (c) {
+        return c.uid === cell.columnUid;
+    })
+    if (!column) {
+        console.log('Cannot find column "' + cell.columnUid + '" in a subtotal row.');
+        return 0;
+    }
+
+    if (rowIndex > payroll.rows.length - 1) throw new Error('Out of bounds.')
+
+    let values = payroll.rows.slice(0, rowIndex).filter(function (row) {
+        return row.type === 1;
+    }).map(function (row) {
+        return getCellValue(row, column, formulas[payroll.template]);
     })
     return values.reduce(function (accum, current) {
         return accum + current;
@@ -347,6 +384,7 @@ try {
         amountWorked: amountWorked,
         formulas: formulas,
         getCellValue: getCellValue,
+        getGrandTotal: getGrandTotal,
         getSubTotal: getSubTotal,
         tardiness: tardiness,
     }

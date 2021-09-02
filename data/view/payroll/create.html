@@ -32,7 +32,6 @@
                     <small class="invalid-feedback">${getError('dateEnd')}</small>
                 </div>
             </div>
-
         </div>
 
         {% set name = 'template' %}
@@ -41,6 +40,11 @@
         {% include 'parts/form-group-select.html' %}
         {% set label = '' %}
 
+        {% set name = 'employeeList' %}
+        {% set label = 'Employee List *' %}
+        {% set options = employeeLists %}
+        {% include 'parts/form-group-select.html' %}
+        {% set label = '' %}
 
         <div class="form-row pt-3 pb-3">
             <div class="col-md-12">
@@ -61,10 +65,11 @@
             window.vuelidateExtendMixin,
         ],
         data: {
-            name: '',
-            dateStart: '',
-            dateEnd: '',
-            template: '',
+            name: 'June 15th IGP',
+            dateStart: '2021-06-01',
+            dateEnd: '2021-06-15',
+            template: 'cos_staff',
+            employeeList: '612787011de0c22c14b809e2',
         },
         validations: {
             name: {
@@ -77,6 +82,9 @@
                 required: window.validators.required
             },
             template: {
+                required: window.validators.required
+            },
+            employeeList: {
                 required: window.validators.required
             },
         },

@@ -20,11 +20,13 @@ VuePayroll.mixin = {
             });
         },
         getCellValue: getCellValue,
-        getSubTotal: function (columnUid, range) {
-            var cell = {
-                columnUid: columnUid,
-                range: range
+        getSubTotal: getSubTotal,
+        getGrandTotal: getGrandTotal,
+        getSubTotal2: function (cell, rowIndex) {
+            if (!cell) {
+                return ''
             }
+
             var me = this;
             let column = me.payroll.columns.find(function (c) {
                 return c.uid === cell.columnUid;
@@ -33,12 +35,26 @@ VuePayroll.mixin = {
                 console.log('Cannot find column "' + cell.columnUid + '" in a subtotal row.');
                 return 0;
             }
-            let start = _.get(cell, 'range[0]', 0)
-            let length = _.get(cell, 'range[1]', me.payroll.rows.length)
-            let values = me.payroll.rows.slice(start, length).filter(function (r) {
-                return r.type === 1;
+
+            if (rowIndex > me.payroll.rows.length - 1) throw new Error('Out of bounds.')
+
+
+            let start = 0
+            // Start from before current row
+            // Until a non row.type === 1 is found
+            for (let y = rowIndex - 1; y >= 0; y--) {
+                let row = me.payroll.rows[y]
+                if (row.type !== 1) {
+                    start = y + 1
+                    break
+                }
+            }
+            let end = rowIndex // rowIndex - 1 is actual end index
+
+            let values = me.payroll.rows.slice(start, end).filter(function (row) {
+                return row.type === 1;
             }).map(function (row) {
-                return getCellValue(row, column, me.formulas[me.payroll.template])
+                return getCellValue(row, column, me.formulas[me.payroll.template]);
             })
             return values.reduce(function (accum, current) {
                 return accum + current;

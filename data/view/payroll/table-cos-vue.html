@@ -45,14 +45,13 @@
                             <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
                         </svg>
                     </td>
-                    <td colspan="5">${getSubTotal(row.cells[0])}</td>
-                    <td>${getSubTotal(row.cells[6]) | currency}</td>
-                    <td>${getSubTotal(row.cells[7]) | currency}</td>
-                    <td>${getSubTotal(row.cells[8]) | currency}</td>
+                    <td colspan="5"><strong>Subtotal</strong></td>
+                    <td>${getSubTotal(row.cells[5], rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal(row.cells[6], rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal(row.cells[7], rowIndex, payroll, formulas) | currency}</td>
                     <td colspan="7"></td>
-                    <td>${getSubTotal(row.cells[9]) | currency}</td>
+                    <td>${getSubTotal(row.cells[15], rowIndex, payroll, formulas) | currency}</td>
                     <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>
-
                 </template>
                 <template v-if="row.type===3">
                     <td>${rowIndex}</td>
@@ -68,6 +67,23 @@
                     <td colspan="14"></td>
                     <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>
                 </template>
+
+                <template v-if="row.type===4">
+                    <td>${rowIndex}</td>
+                    <td style="padding:0; text-align:center; vertical-align: middle;">
+                        <svg class="dragMe" style="cursor: move; width:24px;height:24px; opacity: 0.4" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
+                        </svg>
+                    </td>
+                    <td colspan="5"><strong>Grand Total >>>>></strong></td>
+                    <td>${getGrandTotal(row.cells[5], rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal(row.cells[6], rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal(row.cells[7], rowIndex, payroll, formulas) | currency}</td>
+                    <td colspan="7"></td>
+                    <td>${getGrandTotal(row.cells[15], rowIndex, payroll, formulas) | currency}</td>
+                    <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>
+                </template>
+
             </tr>
         </tbody>
     </table>
@@ -75,7 +91,8 @@
 <div class="form-inline mt-3">
     <div class="col-md-6">
         <button type="button" v-on:click="addRow(2)" class="btn btn-primary btn-sm">Add Sub Total Row</button>
-        <button type="button" v-on:click="addRow(3)" class="btn btn-primary btn-sm">Add Fund Source Row</button>
+        <button type="button" v-on:click="addRow(4)" class="btn btn-primary btn-sm">Add Grand Total Row</button>
+        <button type="button" v-on:click="addRow(3)" class="btn btn-primary btn-sm">Add Title Row</button>
         <button type="button" v-on:click="saveMe" class="btn btn-primary btn-sm">Save</button>
         <a href="/payroll/employees/{{payroll._id}}/payroll.xlsx" class="btn btn-light btn-sm">Download</a>
     </div>

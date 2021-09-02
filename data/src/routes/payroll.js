@@ -11,6 +11,7 @@ const db = require('../db');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
 const payrollCalc = require('../payroll-calc');
+const payrollTemplate = require('../payroll-template');
 const excelGen = require('../excel-gen');
 const uid = require('../uid');
 const payrollJs = require('../../public/js/payroll');
@@ -74,7 +75,15 @@ router.get('/payroll/all', middlewares.guardRoute(['read_all_payroll', 'read_pay
 router.get('/payroll/create', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
     try {
 
+        let employeeLists = await db.main.EmployeeList.find()
+
         res.render('payroll/create.html', {
+            employeeLists: employeeLists.map((o) => {
+                return {
+                    value: o._id,
+                    text: o.name
+                }
+            })
         });
     } catch (err) {
         next(err);
@@ -85,46 +94,198 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
         let body = req.body
         let patch = {}
         lodash.set(patch, 'name', lodash.get(body, 'name'))
-
         lodash.set(patch, 'template', lodash.get(body, 'template'))
         lodash.set(patch, 'dateStart', lodash.get(body, 'dateStart'))
         lodash.set(patch, 'dateEnd', lodash.get(body, 'dateEnd'))
+        lodash.set(patch, 'employeeList', lodash.get(body, 'employeeList'))
 
-        let payroll = new db.main.Payroll(patch)
-        await payroll.save()
+        // 1. Get list members
+        let list = await db.main.EmployeeList.findOne({
+            _id: patch.employeeList
+        }, { members: 1 })
+        let members = lodash.get(list, 'members', [])
+
+        // 2. From members, get employee and employment
+        let employees = []
+        let employments = []
+        let attendances = []
+
+        members.forEach((member, i) => {
+            employees.push(db.main.Employee.findById(member.employeeId).lean())
+            employments.push(db.main.Employment.findById(member.employmentId).lean())
+            attendances.push(db.main.Attendance.find({
+                employmentId: member.employmentId,
+                createdAt: {
+                    $gte: moment(patch.dateStart).startOf('day').toDate(),
+                    $lt: moment(patch.dateEnd).endOf('day').toDate(),
+                }
+            }).lean())
+        })
+
+        employees = await Promise.all(employees)
+        employments = await Promise.all(employments)
+        attendances = await Promise.all(attendances)
+
+        // 3. Get columns
+        let columns = payrollTemplate.getColumns(patch.template)
+
+        // 4. Format rows based on employee, employment, and columns for template, and attendance
+        let rows = employees.map((employee, i) => {
+            let employment = employments[i]
+
+            // Generate cells
+            let cells = columns.filter(o => o.computed === false)
+            cells = cells.map(o => {
+                return {
+                    columnUid: o.uid,
+                    value: 0
+                }
+            })
+
+            // Get attendances based on payroll date range
+            _attendances = attendances[i]
+
+            // Attach computed values
+            let totalMinutes = 0
+            let totalMinutesUnderTime = 0
+            let hoursPerDay = 8
+            let travelPoints = 480
+            for (let a = 0; a < _attendances.length; a++) {
+                let attendance = _attendances[a] // daily
+                let dtr = dtrHelper.calcDailyAttendance(attendance, hoursPerDay, travelPoints)
+                totalMinutes += dtr.totalMinutes
+                totalMinutesUnderTime += dtr.underTimeTotalMinutes
+                _attendances[a].dtr = dtr
+            }
+
+            let timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, hoursPerDay)
+
+            return {
+                uid: uid.gen(),
+                type: 1,
+                employment: employment,
+                employee: employee,
+                timeRecord: timeRecord,
+                cells: cells,
+                attendances: _attendances,
+            }
+        })
+
+        // insert 
+        rows.unshift({
+            uid: uid.gen(),
+            type: 3,
+            employment: {},
+            employee: {},
+            timeRecord: {},
+            cells: [],
+            name: 'Title',
+            attendances: [],
+        })
+
+        rows.push({
+            uid: uid.gen(),
+            type: 2,
+            employment: {},
+            employee: {},
+            timeRecord: {},
+            cells: [
+                {},
+                {},
+                {},
+                {},
+                {},
+                {
+                    columnUid: 'amountWorked',
+                },
+                {
+                    columnUid: '5Premium',
+                },
+                {
+                    columnUid: 'grossPay',
+                },
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {
+                    columnUid: 'netPay',
+                },
+            ],
+            attendances: [],
+        })
+        // return res.send(rows)
+
+        let payroll = {
+            name: patch.name,
+            dateStart: patch.dateStart,
+            dateEnd: patch.dateEnd,
+            rows: rows,
+            columns: columns,
+            template: 'cos_staff',
+        }
+
+        payroll = await db.main.Payroll.create(payroll)
+        // return res.send(payroll)
+
         flash.ok(req, 'payroll', `Created payroll "${payroll.name}".`)
-        res.redirect(`/payroll/employees/${payroll._id}`)
+        res.redirect(`/payroll/${payroll._id}`)
     } catch (err) {
         next(err);
     }
 });
 
-router.get('/payroll/:payrollId', middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
+router.get(['/payroll/:payrollId', `/payroll/:payrollId/payroll.xlsx`], middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll.toObject()
 
-        res.redirect(`/payroll/employees/${payroll._id}`)
-    } catch (err) {
-        next(err);
-    }
-});
-
-router.get('/payroll/payrollin/:payrollId', middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
-    try {
-        let payroll = res.payroll.toObject()
-
-        payroll = await payrollCalc.getCosStaff(payroll, CONFIG.workTime.workDays, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 
         // return res.send(payroll)
-        res.render('payroll/payrollin.html', {
+        if (req.originalUrl.includes('.xlsx')) {
+            payroll.rows = lodash.map(payroll.rows, (row) => {
+                if (row.type === 1) {
+                    row.cells = lodash.map(payroll.columns, (column) => {
+                        return payrollJs.getCellValue(row, column, payrollJs.formulas[payroll.template])
+                    })
+                } else if (row.type === 2) {
+                    row.cells = row.cells.map((cell) => {
+                        let start = lodash.get(cell, 'range[0]', 0)
+                        let length = lodash.get(cell, 'range[1]', payroll.rows.length)
+                        return payrollJs.getSubTotal(cell.columnUid, [start, length], payroll, payrollJs.formulas)
+                    })
+                } else if (row.type === 3) {
+                    row.cells = [row.name]
+                }
+                return row
+            })
+            // return res.send(payroll)
+
+            let workbook = {}
+
+            if (payroll.template === 'permanent') {
+                workbook = await excelGen.templatePermanent(payroll)
+            } else if (payroll.template === 'cos_staff') {
+                workbook = await excelGen.templateCos2(payroll)
+            }
+
+            let buffer = await workbook.xlsx.writeBuffer();
+            res.set('Content-Disposition', `attachment; filename="payroll.xlsx"`)
+            res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            return res.send(buffer)
+        }
+        res.render('payroll/read.html', {
             flash: flash.get(req, 'payroll'),
             payroll: payroll,
+            payrollJs: payrollJs.formulas[payroll.template],
+            dtrHelper: dtrHelper,
         });
     } catch (err) {
         next(err);
     }
 });
-
 
 router.post('/payroll/:payrollId/save', middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
@@ -145,26 +306,26 @@ router.post('/payroll/:payrollId/save', middlewares.guardRoute(['read_payroll'])
 router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payroll.xlsx`], middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll.toObject()
-        
+
 
         // return res.send(payroll)
         if (req.originalUrl.includes('.xlsx')) {
-            payroll.rows = lodash.map(payroll.rows, (row) => {
-                if (row.type === 1) {
-                    row.cells = lodash.map(payroll.columns, (column) => {
-                        return payrollJs.getCellValue(row, column, payrollJs.formulas[payroll.template])
-                    })
-                } else if (row.type === 2) {
-                    row.cells = row.cells.map((cell) => {
-                        let start = lodash.get(cell, 'range[0]', 0)
-                        let length = lodash.get(cell, 'range[1]', payroll.rows.length)
-                        return payrollJs.getSubTotal(cell.columnUid, [start, length], payroll, payrollJs.formulas) 
-                    })
-                } else if (row.type === 3) {
-                    row.cells = [row.name]
-                }
-                return row
-            })
+            // payroll.rows = lodash.map(payroll.rows, (row) => {
+            //     if (row.type === 1) {
+            //         row.cells = lodash.map(payroll.columns, (column) => {
+            //             return payrollJs.getCellValue(row, column, payrollJs.formulas[payroll.template])
+            //         })
+            //     } else if (row.type === 2) {
+            //         row.cells = row.cells.map((cell) => {
+            //             let start = lodash.get(cell, 'range[0]', 0)
+            //             let length = lodash.get(cell, 'range[1]', payroll.rows.length)
+            //             return payrollJs.getSubTotal(cell.columnUid, [start, length], payroll, payrollJs.formulas)
+            //         })
+            //     } else if (row.type === 3) {
+            //         row.cells = [row.name]
+            //     }
+            //     return row
+            // })
             // return res.send(payroll)
 
             let workbook = {}
@@ -192,30 +353,16 @@ router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payr
 });
 router.post('/payroll/employees/:payrollId', middlewares.guardRoute(['update_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
-        let payroll = res.payroll
+        let payroll = res.payroll.toObject()
 
-        let body = req.body
-        let employment = await db.main.Employment.findById(body.employmentId);
-        if (!employment) {
-            throw new Error("Sorry, employment not found.")
-        }
+        let employmentId = lodash.get(req, 'body.employmentId')
 
-        let employee = await db.main.Employee.findById(employment.employeeId);
-        if (!employee) {
-            throw new Error("Sorry, employee not found.")
-        }
+        let row = await payrollCalc.addPayrollRow(payroll, employmentId)
 
-        if (payroll.employments.find((e) => {
-            return e._id.toString() === employment._id.toString()
-        })) {
-            throw new Error("Sorry, employment already here.")
-        }
-
-        payroll.employments.push(employment)
-        await payroll.save()
+        await db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
 
 
-        flash.ok(req, 'payroll', `Employee "${employee.firstName}" added to payroll "${payroll.name}".`)
+        flash.ok(req, 'payroll', `Employee "${row.employee.firstName}" added to payroll "${payroll.name}".`)
         res.redirect(`/payroll/${payroll._id}`)
 
         // res.render('payroll/employee-add.html', {
@@ -229,18 +376,19 @@ router.post('/payroll/employees/:payrollId', middlewares.guardRoute(['update_pay
 
 router.post('/payroll/:payrollId/sort-rows', middlewares.guardRoute(['update_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
-        let payroll = res.payroll
-        let payrollPlain = res.payroll.toObject()
+        let payroll = res.payroll.toObject()
 
         let body = req.body
-        let rowsIdsArray = lodash.get(body, 'rows')
+        let oldIndex = lodash.get(body, 'oldIndex')
+        let newIndex = lodash.get(body, 'newIndex')
 
-        let rows = lodash.sortBy(payrollPlain.rows, (o) => {
-            return rowsIdsArray.indexOf(o.uid)
-        });
+        /*{# https://stackoverflow.com/a/6470794/1594918 #}*/
+        /* Move array element from old to new index */
+        let element = payroll.rows[oldIndex];
+        payroll.rows.splice(oldIndex, 1);
+        payroll.rows.splice(newIndex, 0, element);
 
-        payroll.rows = rows;
-        await payroll.save()
+        await db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
 
         res.send('Sorting saved.')
     } catch (err) {
@@ -255,11 +403,10 @@ router.post('/payroll/:payrollId/add-row', middlewares.guardRoute(['update_payro
         let row = {
             uid: uid.gen(),
             type: rowType,
-            name: 'Row Title'
+            name: 'Title'
         }
-        if (rowType === 2 && payroll.template === 'cos_staff') {
+        if ([2, 4].includes(rowType) && payroll.template === 'cos_staff') {
             row.cells = [
-                {},
                 {},
                 {},
                 {},
@@ -274,6 +421,13 @@ router.post('/payroll/:payrollId/add-row', middlewares.guardRoute(['update_payro
                 {
                     columnUid: 'grossPay',
                 },
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
                 {
                     columnUid: 'netPay',
                     // range: [0, 3],
@@ -285,6 +439,19 @@ router.post('/payroll/:payrollId/add-row', middlewares.guardRoute(['update_payro
         let payrollPlain = payroll.toObject()
 
         res.send(payrollPlain.rows[payrollPlain.rows.length - 1])
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/payroll/:payrollId/delete-row', middlewares.guardRoute(['update_payroll']), middlewares.getPayroll, async (req, res, next) => {
+    try {
+        let payroll = res.payroll.toObject()
+
+        let rowIndex = lodash.get(req, 'body.rowIndex')
+        payroll.rows.splice(rowIndex, 1)
+        let r = await db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
+
+        res.send(r)
     } catch (err) {
         next(err);
     }

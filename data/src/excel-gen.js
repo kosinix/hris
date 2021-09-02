@@ -1,4 +1,5 @@
 //// Core modules
+const util = require('util');
 
 //// External modules
 const ExcelJS = require('exceljs');
@@ -115,6 +116,27 @@ class Slex {
 let currency = (s) => {
     return parseFloat(money.floatToAmount(s))
 }
+
+let getExcelColumns = (stop = 54) => {
+    let excelColumnIndexes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+    let excelColumnIndexes2 = []
+    let counter = excelColumnIndexes.length;
+    for (let a = 0; a < excelColumnIndexes.length; a++) {
+        let letter1 = excelColumnIndexes[a]
+        for (let b = 0; b < excelColumnIndexes.length; b++) {
+            let letter2 = excelColumnIndexes[b]
+            excelColumnIndexes2.push(`${letter1}${letter2}`)
+            counter++
+            if (counter >= stop) {
+                return excelColumnIndexes.concat(excelColumnIndexes2)
+            }
+        }
+    }
+    return excelColumnIndexes.concat(excelColumnIndexes2)
+}
+
+let excelColumns = getExcelColumns()
+
 let templateJocos = async (payroll) => {
     const workbook = new ExcelJS.Workbook();
     let sheet = workbook.addWorksheet('igp');
@@ -1999,38 +2021,46 @@ let templateCos2 = async (payroll) => {
 
     let startRowIndex = 9
 
-    // Set Print Area for a sheet
-    worksheet.pageSetup.printArea = `A1:Y${startRowIndex + payroll.rows.length + 12}`;
-
     if (worksheet) {
+
+        // Set Print Area for a sheet
+        worksheet.pageSetup.printArea = `A1:Y${startRowIndex + payroll.rows.length + 12}`;
+
         slex.setSheet(worksheet)
 
-        let rowCount = payroll.rows.filter(r => r.type === 1).length
+        let rowCount = payroll.rows.length
+        // let rowCount = payroll.rows.filter(r => r.type === 1).length
 
-        worksheet.duplicateRow(10, rowCount - 1, true);
+        worksheet.duplicateRow(startRowIndex, rowCount - 1, true);
 
         slex.getCell('A2')
             .value(`Salary for the period ${moment(payroll.dateStart).format('MMMM DD')} - ${moment(payroll.dateEnd).format('DD, YYYY')}`)
 
+        let numbering = 0
         payroll.rows.forEach((row, rowIndex) => {
 
             let curRowIndex = startRowIndex + rowIndex
+            let wsRow = worksheet.getRow(curRowIndex)
 
             if (row.type === 3) {
 
-                slex.getCell(`A${curRowIndex}`)
+                wsRow.eachCell(function (cell, colNumber) {
+                    cell.value = ''
+                });
+
+                slex.mergeCells(`A${curRowIndex}:B${curRowIndex}`)
                     .value(row.name)
 
             } else if (row.type === 1) {
 
-
+                numbering++
                 let attendance = payrollJs.getCellValue(row, { uid: 'attendance' }, payrollJs.formulas[payroll.template])
 
                 //=F10*E10+H10*E10/8+J10*E10/8/60
                 let amount = payrollJs.amountWorked(lodash.get(row, 'employment.salary', 0), lodash.get(row, 'employment.salaryType', 0), lodash.get(row, 'timeRecord.totalMinutes', 0))
 
                 slex.getCell(`A${curRowIndex}`)
-                    .value(rowIndex)
+                    .value(numbering)
                     .getCell(`B${curRowIndex}`)
                     .value(payrollJs.getCellValue(row, { uid: 'fundSource' }, payrollJs.formulas[payroll.template]))
                     .getCell(`C${curRowIndex}`)
@@ -2090,68 +2120,176 @@ let templateCos2 = async (payroll) => {
                     })
                     .getCell(`W${curRowIndex}`)
                     .value({
-                        formula: `=A${rowIndex}`,
-                        result: rowIndex
+                        formula: `=A${curRowIndex}`,
+                        result: numbering
                     })
 
             } else if (row.type === 2) {
-                let range = [10, curRowIndex - 1] // TODO: Magic number
-                let rangeSubtotal = [0, curRowIndex - 1] // TODO: Magic number
+                wsRow.eachCell(function (cell, colNumber) {
+                    cell.value = ''
+                });
+                try {
+                    worksheet.unMergeCells(`A${curRowIndex}:K${curRowIndex}`)
+                    worksheet.mergeCells(`A${curRowIndex}:K${curRowIndex}`)
+                } catch (err) {}
+                worksheet.getCell(`A${curRowIndex}`).font = {
+                    name: 'Arial',
+                    size: 12,
+                    bold: true,
+                }
+                worksheet.getCell(`A${curRowIndex}`).alignment = {
+                    horizontal: 'left'
+                }
+                worksheet.getCell(`A${curRowIndex}`).value = 'Subtotal'
+
+                let start = 0
+                // Start from before current row
+                // Until a non row.type === 1 is found
+                for (let y = rowIndex - 1; y >= 0; y--) {
+                    let row = payroll.rows[y]
+                    if (row.type !== 1) {
+                        start = y + 1
+                        break
+                    }
+                }
+                let end = rowIndex // rowIndex - 1 is actual end index because of Array.slice
+
+                // account for excel data row starting index
+                let range = [start + startRowIndex, end + startRowIndex]
 
                 slex.getCell(`L${curRowIndex}`)
                     .value({
                         formula: `=SUM(L${range[0]}:L${range[1]})`,
-                        result: payrollJs.getSubTotal('amountWorked', rangeSubtotal, payroll, payrollJs.formulas)
+                        result: payrollJs.getSubTotal({ columnUid: 'amountWorked' }, rowIndex, payroll, payrollJs.formulas)
                     })
                 slex.getCell(`M${curRowIndex}`)
                     .value({
                         formula: `=SUM(M${range[0]}:M${range[1]})`,
-                        result: payrollJs.getSubTotal('5Premium', rangeSubtotal, payroll, payrollJs.formulas)
+                        result: payrollJs.getSubTotal({ columnUid: '5Premium' }, rowIndex, payroll, payrollJs.formulas)
                     })
                 slex.getCell(`N${curRowIndex}`)
                     .value({
                         formula: `=SUM(N${range[0]}:N${range[1]})`,
-                        result: payrollJs.getSubTotal('grossPay', rangeSubtotal, payroll, payrollJs.formulas)
+                        result: payrollJs.getSubTotal({ columnUid: 'grossPay' }, rowIndex, payroll, payrollJs.formulas)
                     })
                 slex.getCell(`O${curRowIndex}`)
                     .value({
                         formula: `=SUM(O${range[0]}:O${range[1]})`,
-                        result: payrollJs.getSubTotal('tax3', rangeSubtotal, payroll, payrollJs.formulas)
+                        result: payrollJs.getSubTotal({ columnUid: 'tax3' }, rowIndex, payroll, payrollJs.formulas)
                     })
                 slex.getCell(`P${curRowIndex}`)
                     .value({
                         formula: `=SUM(P${range[0]}:P${range[1]})`,
-                        result: payrollJs.getSubTotal('tax10', rangeSubtotal, payroll, payrollJs.formulas)
+                        result: payrollJs.getSubTotal({ columnUid: 'tax10' }, rowIndex, payroll, payrollJs.formulas)
                     })
                 slex.getCell(`Q${curRowIndex}`)
                     .value({
                         formula: `=SUM(Q${range[0]}:Q${range[1]})`,
-                        result: payrollJs.getSubTotal('totalTax', rangeSubtotal, payroll, payrollJs.formulas)
+                        result: payrollJs.getSubTotal({ columnUid: 'totalTax' }, rowIndex, payroll, payrollJs.formulas)
                     })
                 slex.getCell(`R${curRowIndex}`)
                     .value({
                         formula: `=SUM(R${range[0]}:R${range[1]})`,
-                        result: payrollJs.getSubTotal('contributionSss', rangeSubtotal, payroll, payrollJs.formulas)
+                        result: payrollJs.getSubTotal({ columnUid: 'contributionSss' }, rowIndex, payroll, payrollJs.formulas)
                     })
                 slex.getCell(`S${curRowIndex}`)
                     .value({
                         formula: `=SUM(S${range[0]}:S${range[1]})`,
-                        result: payrollJs.getSubTotal('ecSss', rangeSubtotal, payroll, payrollJs.formulas)
+                        result: payrollJs.getSubTotal({ columnUid: 'ecSss' }, rowIndex, payroll, payrollJs.formulas)
                     })
                 slex.getCell(`T${curRowIndex}`)
                     .value({
                         formula: `=SUM(T${range[0]}:T${range[1]})`,
-                        result: payrollJs.getSubTotal('totalSss', rangeSubtotal, payroll, payrollJs.formulas)
+                        result: payrollJs.getSubTotal({ columnUid: 'totalSss' }, rowIndex, payroll, payrollJs.formulas)
                     })
                 slex.getCell(`U${curRowIndex}`)
                     .value({
                         formula: `=SUM(U${range[0]}:U${range[1]})`,
-                        result: payrollJs.getSubTotal('totalDeductions', rangeSubtotal, payroll, payrollJs.formulas)
+                        result: payrollJs.getSubTotal({ columnUid: 'totalDeductions' }, rowIndex, payroll, payrollJs.formulas)
                     })
                 slex.getCell(`V${curRowIndex}`)
                     .value({
                         formula: `=SUM(V${range[0]}:V${range[1]})`,
-                        result: payrollJs.getSubTotal('netPay', rangeSubtotal, payroll, payrollJs.formulas)
+                        result: payrollJs.getSubTotal({ columnUid: 'netPay' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+            } else if (row.type === 4) {
+                wsRow.eachCell(function (cell, colNumber) {
+                    cell.value = ''
+                });
+                try {
+                    worksheet.unMergeCells(`A${curRowIndex}:K${curRowIndex}`)
+                    worksheet.mergeCells(`A${curRowIndex}:K${curRowIndex}`)
+                } catch (err) {}
+                worksheet.getCell(`A${curRowIndex}`).font = {
+                    name: 'Arial',
+                    size: 12,
+                    bold: true,
+                }
+                worksheet.getCell(`A${curRowIndex}`).alignment = {
+                    horizontal: 'left'
+                }
+                worksheet.getCell(`A${curRowIndex}`).value = 'GRAND TOTAL > > > > > >'
+
+                let start = 0
+                let end = rowIndex // rowIndex - 1 is actual end index because of Array.slice
+
+                // account for excel data row starting index
+                let range = [start + startRowIndex, end + startRowIndex]
+
+                slex.getCell(`L${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(L${range[0]}:L${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'amountWorked' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`M${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(M${range[0]}:M${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: '5Premium' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`N${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(N${range[0]}:N${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'grossPay' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`O${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(O${range[0]}:O${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'tax3' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`P${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(P${range[0]}:P${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'tax10' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`Q${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(Q${range[0]}:Q${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'totalTax' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`R${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(R${range[0]}:R${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'contributionSss' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`S${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(S${range[0]}:S${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'ecSss' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`T${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(T${range[0]}:T${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'totalSss' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`U${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(U${range[0]}:U${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'totalDeductions' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`V${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(V${range[0]}:V${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'netPay' }, rowIndex, payroll, payrollJs.formulas)
                     })
             }
         })

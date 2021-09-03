@@ -225,7 +225,7 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
             dateEnd: patch.dateEnd,
             rows: rows,
             columns: columns,
-            template: 'cos_staff',
+            template: patch.template,
         }
 
         payroll = await db.main.Payroll.create(payroll)
@@ -405,34 +405,8 @@ router.post('/payroll/:payrollId/add-row', middlewares.guardRoute(['update_payro
             type: rowType,
             name: 'Title'
         }
-        if ([2, 4].includes(rowType) && payroll.template === 'cos_staff') {
-            row.cells = [
-                {},
-                {},
-                {},
-                {},
-                {},
-                {
-                    columnUid: 'amountWorked',
-                },
-                {
-                    columnUid: '5Premium',
-                },
-                {
-                    columnUid: 'grossPay',
-                },
-                {},
-                {},
-                {},
-                {},
-                {},
-                {},
-                {},
-                {
-                    columnUid: 'netPay',
-                    // range: [0, 3],
-                },
-            ]
+        if ([2, 4].includes(rowType)) {
+            row.cells = []
         }
         payroll.rows.push(row)
         await payroll.save()

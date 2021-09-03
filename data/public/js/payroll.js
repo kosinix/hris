@@ -321,14 +321,12 @@ var formulas = {
     ]
 }
 
-function getSubTotal(cell, rowIndex, payroll, formulas) {
-    if (!cell && !cell.columnUid) return 0
-
+function getSubTotal(columnUid, rowIndex, payroll, formulas) {
     let column = payroll.columns.find(function (c) {
-        return c.uid === cell.columnUid;
+        return c.uid === columnUid;
     })
     if (!column) {
-        console.log('Cannot find column "' + cell.columnUid + '" in a subtotal row.');
+        console.error('Cannot find column "' + columnUid + '" in a subtotal row.');
         return 0;
     }
 
@@ -356,14 +354,13 @@ function getSubTotal(cell, rowIndex, payroll, formulas) {
     }, 0)
 }
 
-function getGrandTotal(cell, rowIndex, payroll, formulas) {
-    if (!cell && !cell.columnUid) return 0
+function getGrandTotal(columnUid, rowIndex, payroll, formulas) {
 
     let column = payroll.columns.find(function (c) {
-        return c.uid === cell.columnUid;
+        return c.uid === columnUid;
     })
     if (!column) {
-        console.log('Cannot find column "' + cell.columnUid + '" in a subtotal row.');
+        console.error('Cannot find column "' + columnUid + '" in a subtotal row.');
         return 0;
     }
 

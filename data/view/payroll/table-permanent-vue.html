@@ -2,68 +2,76 @@
     <div class="cover"></div>
     <table class="table table-payroll table-sm table-striped">
         <thead>
-            <tr>
+            <tr class="text-center">
                 <th></th>
                 <th></th>
                 <th v-for="column in payroll.columns">${column.title}</th>
                 <th></th>
             </tr>
         </thead>
-        <tbody id="sortMe" >
+        <tbody id="sortMe">
             <tr v-for="(row, rowIndex) in payroll.rows" class="drag-employment" v-bind:data-ruid="row.uid">
                 <template v-if="row.type===1">
+                    <td>${rowIndex}</td>
                     <td style="padding:0; text-align:center; vertical-align: middle;">
                         <svg class="dragMe" style="cursor: move; width:24px;height:24px; opacity: 0.4" viewBox="0 0 24 24">
                             <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
                         </svg>
                     </td>
-                    <td>${rowIndex+1}</td>
                     <td v-for="column in payroll.columns">
-                        <template v-if="column.computed===false">
+                        <template v-if="column.computed === false">
                             <input v-on:blur="lockInput($event)" type="text" v-bind:value="getCellValue(row, column, formulas.permanent)" v-on:input="inputCell($event, getCell(row, column))">
                             <span class="text-danger" v-on:dblclick="editInput($event)">${getCellValue(row, column, formulas.permanent) | currency}</span>
                         </template>
                         <template v-else>
-                            ${getCellValue(row, column, formulas.permanent) | currency}
+                            <template v-if="column.uid === 'attendance'">
+                                <a class="d-flex justify-content-around text-right link-attendance" href="#">
+                                    <span>${getCellValue(row, column, formulas.permanent)['days']} days</span>
+                                    <span>${getCellValue(row, column, formulas.permanent)['hrs']} hrs</span>
+                                    <span>${getCellValue(row, column, formulas.permanent)['mins']} mins</span>
+                                </a>
+                            </template>
+                            <template v-else>${getCellValue(row, column, formulas.permanent) | currency}</template>
                         </template>
                     </td>
                     <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>
                 </template>
                 <template v-if="row.type===2">
+                    <td>${rowIndex}</td>
                     <td style="padding:0; text-align:center; vertical-align: middle;">
                         <svg class="dragMe" style="cursor: move; width:24px;height:24px; opacity: 0.4" viewBox="0 0 24 24">
                             <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
                         </svg>
                     </td>
-                    <td colspan="3">Grand Total &gt;&gt;&gt;</td>
-                    <td>${getSubTotal('basePay') | currency}</td>
-                    <td>${getSubTotal('peraAca') | currency}</td>
-                    <td>${getSubTotal('grossPayAllowance') | currency}</td>
-                    <td>${getSubTotal('tardiness') | currency}</td>
-                    <td>${getSubTotal('grossPay') | currency}</td>
-                    <td>${getSubTotal('rlipPs9') | currency}</td>
-                    <td>${getSubTotal('emergencyLoan') | currency}</td>
-                    <td>${getSubTotal('eal') | currency}</td>
-                    <td>${getSubTotal('consoLoan') | currency}</td>
-                    <td>${getSubTotal('ouliPremium') | currency}</td>
-                    <td>${getSubTotal('policyOuliLoan') | currency}</td>
-                    <td>${getSubTotal('regularPolicyLoan') | currency}</td>
-                    <td>${getSubTotal('gfal') | currency}</td>
-                    <td>${getSubTotal('mpl') | currency}</td>
-                    <td>${getSubTotal('cpl') | currency}</td>
-                    <td>${getSubTotal('help') | currency}</td>
-                    <td>${getSubTotal('medicare') | currency}</td>
-                    <td>${getSubTotal('pagibigContribution') | currency}</td>
-                    <td>${getSubTotal('mplLoan') | currency}</td>
-                    <td>${getSubTotal('calamityLoan') | currency}</td>
-                    <td>${getSubTotal('withholdingTax') | currency}</td>
-                    <td>${getSubTotal('totalMandatoryDeductions') | currency}</td>
-                    <td>${getSubTotal('netAfterTotalMandatoryDeductions') | currency}</td>
-                    <td>${getSubTotal('teachersScholars') | currency}</td>
-                    <td>${getSubTotal('ffaLoan') | currency}</td>
-                    <td>${getSubTotal('citySavingsBank') | currency}</td>
-                    <td>${getSubTotal('totalNonMandatoryDeductions') | currency}</td>
-                    <td>${getSubTotal('netPay') | currency}</td>
+                    <td colspan="2" class="font-weight-bold">Subtotal</td>
+                    <td>${getSubTotal('basePay', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('peraAca', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('grossPayAllowance', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('tardiness', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('grossPay', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('rlipPs9', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('emergencyLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('eal', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('consoLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('ouliPremium', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('policyOuliLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('regularPolicyLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('gfal', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('mpl', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('cpl', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('help', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('medicare', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('pagibigContribution', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('mplLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('calamityLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('withholdingTax', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('totalMandatoryDeductions', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('netAfterTotalMandatoryDeductions', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('teachersScholars', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('ffaLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('citySavingsBank', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('totalNonMandatoryDeductions', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getSubTotal('netPay', rowIndex, payroll, formulas) | currency}</td>
                     <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>
 
                 </template>
@@ -77,8 +85,48 @@
                         <input v-on:blur="lockInput2($event)" type="text" v-bind:value="row.name" v-on:input="row.name = $event.target.value">
                         <span class="text-success" v-on:dblclick="editInput($event)">${row.name}</span>
                     </td>
-                    <td colspan="14"></td>
+                    <td colspan="29"></td>
                     <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>
+                </template>
+
+                <template v-if="row.type === 4">
+                    <td>${rowIndex}</td>
+                    <td style="padding:0; text-align:center; vertical-align: middle;">
+                        <svg class="dragMe" style="cursor: move; width:24px;height:24px; opacity: 0.4" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
+                        </svg>
+                    </td>
+                    <td class="font-weight-bold" colspan="2">Grand Total &gt;&gt;&gt;&gt;&gt;&gt;</td>
+                    <td>${getGrandTotal('basePay', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('peraAca', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('grossPayAllowance', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('tardiness', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('grossPay', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('rlipPs9', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('emergencyLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('eal', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('consoLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('ouliPremium', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('policyOuliLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('regularPolicyLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('gfal', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('mpl', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('cpl', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('help', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('medicare', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('pagibigContribution', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('mplLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('calamityLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('withholdingTax', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('totalMandatoryDeductions', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('netAfterTotalMandatoryDeductions', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('teachersScholars', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('ffaLoan', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('citySavingsBank', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('totalNonMandatoryDeductions', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('netPay', rowIndex, payroll, formulas) | currency}</td>
+                    <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>
+
                 </template>
             </tr>
             
@@ -88,7 +136,8 @@
 <div class="form-inline mt-3">
     <div class="col-md-6">
         <button type="button" v-on:click="addRow(2)" class="btn btn-primary btn-sm">Add Sub Total Row</button>
-        <button type="button" v-on:click="addRow(3)" class="btn btn-primary btn-sm">Add Fund Source Row</button>
+        <button type="button" v-on:click="addRow(4)" class="btn btn-primary btn-sm">Add Grand Total Row</button>
+        <button type="button" v-on:click="addRow(3)" class="btn btn-primary btn-sm">Add Title Row</button>
         <button type="button" v-on:click="saveMe" class="btn btn-primary btn-sm">Save</button>
         <a href="/payroll/employees/{{payroll._id}}/payroll.xlsx" class="btn btn-light btn-sm">Download</a>
     </div>

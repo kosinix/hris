@@ -78,7 +78,7 @@ router.get('/payroll/create', middlewares.guardRoute(['create_payroll']), async 
         let employeeLists = await db.main.EmployeeList.find()
 
         res.render('payroll/create.html', {
-            employeeLists: employeeLists.map((o) => {
+            employeeLists: employeeLists.filter(o => o.tags.includes('Fund Source')).map((o) => {
                 return {
                     value: o._id,
                     text: o.name

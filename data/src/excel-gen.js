@@ -113,241 +113,391 @@ class Slex {
     }
 }
 
-let currency = (s) => {
-    return parseFloat(money.floatToAmount(s))
-}
 
-let getExcelColumns = (stop = 54) => {
-    let excelColumnIndexes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
-    let excelColumnIndexes2 = []
-    let counter = excelColumnIndexes.length;
-    for (let a = 0; a < excelColumnIndexes.length; a++) {
-        let letter1 = excelColumnIndexes[a]
-        for (let b = 0; b < excelColumnIndexes.length; b++) {
-            let letter2 = excelColumnIndexes[b]
-            excelColumnIndexes2.push(`${letter1}${letter2}`)
-            counter++
-            if (counter >= stop) {
-                return excelColumnIndexes.concat(excelColumnIndexes2)
+let templateCos = async (payroll) => {
+    let workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/payroll/template_cos_staff.xlsx`);
+    let slex = new Slex(workbook)
+
+    let worksheet = await workbook.getWorksheet('igp')
+
+    let startRowIndex = 9
+
+    if (worksheet) {
+
+        // Set Print Area for a sheet
+        worksheet.pageSetup.printArea = `A1:Y${startRowIndex + payroll.rows.length + 12}`;
+
+        slex.setSheet(worksheet)
+
+        let rowCount = payroll.rows.length
+        // let rowCount = payroll.rows.filter(r => r.type === 1).length
+
+        worksheet.duplicateRow(startRowIndex, rowCount - 1, true);
+
+        slex.getCell('A2')
+            .value(`Salary for the period ${moment(payroll.dateStart).format('MMMM DD')} - ${moment(payroll.dateEnd).format('DD, YYYY')}`)
+
+        let numbering = 0
+        payroll.rows.forEach((row, rowIndex) => {
+
+            let curRowIndex = startRowIndex + rowIndex
+            let wsRow = worksheet.getRow(curRowIndex)
+
+            if (row.type === 3) {
+
+                wsRow.eachCell(function (cell, colNumber) {
+                    cell.value = ''
+                });
+
+                slex.mergeCells(`A${curRowIndex}:B${curRowIndex}`)
+                    .value(row.name)
+
+            } else if (row.type === 1) {
+
+                numbering++
+                let attendance = payrollJs.getCellValue(row, { uid: 'attendance' }, payrollJs.formulas[payroll.template])
+
+                //=F10*E10+H10*E10/8+J10*E10/8/60
+                let amount = payrollJs.amountWorked(lodash.get(row, 'employment.salary', 0), lodash.get(row, 'employment.salaryType', 0), lodash.get(row, 'timeRecord.totalMinutes', 0))
+
+                slex.getCell(`A${curRowIndex}`)
+                    .value(numbering)
+                    .getCell(`B${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'fundSource' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`C${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'name' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`D${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'position' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`E${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'basePay' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`F${curRowIndex}`)
+                    .value(attendance.days)
+                    .getCell(`H${curRowIndex}`)
+                    .value(attendance.hrs)
+                    .getCell(`J${curRowIndex}`)
+                    .value(attendance.mins)
+                    .getCell(`L${curRowIndex}`)
+                    .value({
+                        formula: `=F${curRowIndex}*E${curRowIndex}+H${curRowIndex}*E${curRowIndex}/8+J${curRowIndex}*E${curRowIndex}/8/60`,
+                        result: parseFloat(amount.toFixed(2))
+                    })
+                    .getCell(`M${curRowIndex}`)
+                    .value({
+                        formula: `=L${curRowIndex}*0.05`,
+                        result: payrollJs.getCellValue(row, { uid: '5Premium' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`N${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(L${curRowIndex}:M${curRowIndex})`,
+                        result: payrollJs.getCellValue(row, { uid: 'grossPay' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`O${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'tax3' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`P${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'tax10' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`Q${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(O${curRowIndex}:P${curRowIndex})`,
+                        result: payrollJs.getCellValue(row, { uid: 'totalTax' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`R${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'contributionSss' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`S${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'ecSss' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`T${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(R${curRowIndex}:S${curRowIndex})`,
+                        result: payrollJs.getCellValue(row, { uid: 'totalSss' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`U${curRowIndex}`)
+                    .value({
+                        formula: `=Q${curRowIndex}+T${curRowIndex}`,
+                        result: payrollJs.getCellValue(row, { uid: 'totalDeductions' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`V${curRowIndex}`)
+                    .value({
+                        formula: `=N${curRowIndex}+U${curRowIndex}`,
+                        result: payrollJs.getCellValue(row, { uid: 'netPay' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`W${curRowIndex}`)
+                    .value({
+                        formula: `=A${curRowIndex}`,
+                        result: numbering
+                    })
+
+            } else if (row.type === 2) {
+                wsRow.eachCell(function (cell, colNumber) {
+                    cell.value = ''
+                });
+                try {
+                    worksheet.unMergeCells(`A${curRowIndex}:K${curRowIndex}`)
+                    worksheet.mergeCells(`A${curRowIndex}:K${curRowIndex}`)
+                } catch (err) {}
+                worksheet.getCell(`A${curRowIndex}`).font = {
+                    name: 'Arial',
+                    size: 12,
+                    bold: true,
+                }
+                worksheet.getCell(`A${curRowIndex}`).alignment = {
+                    horizontal: 'left'
+                }
+                worksheet.getCell(`A${curRowIndex}`).value = 'Subtotal'
+
+                let start = 0
+                // Start from before current row
+                // Until a non row.type === 1 is found
+                for (let y = rowIndex - 1; y >= 0; y--) {
+                    let row = payroll.rows[y]
+                    if (row.type !== 1) {
+                        start = y + 1
+                        break
+                    }
+                }
+                let end = rowIndex // rowIndex - 1 is actual end index because of Array.slice
+
+                // account for excel data row starting index
+                let range = [start + startRowIndex, end + startRowIndex]
+
+                slex.getCell(`L${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(L${range[0]}:L${range[1]})`,
+                        result: payrollJs.getSubTotal({ columnUid: 'amountWorked' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`M${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(M${range[0]}:M${range[1]})`,
+                        result: payrollJs.getSubTotal({ columnUid: '5Premium' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`N${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(N${range[0]}:N${range[1]})`,
+                        result: payrollJs.getSubTotal({ columnUid: 'grossPay' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`O${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(O${range[0]}:O${range[1]})`,
+                        result: payrollJs.getSubTotal({ columnUid: 'tax3' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`P${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(P${range[0]}:P${range[1]})`,
+                        result: payrollJs.getSubTotal({ columnUid: 'tax10' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`Q${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(Q${range[0]}:Q${range[1]})`,
+                        result: payrollJs.getSubTotal({ columnUid: 'totalTax' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`R${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(R${range[0]}:R${range[1]})`,
+                        result: payrollJs.getSubTotal({ columnUid: 'contributionSss' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`S${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(S${range[0]}:S${range[1]})`,
+                        result: payrollJs.getSubTotal({ columnUid: 'ecSss' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`T${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(T${range[0]}:T${range[1]})`,
+                        result: payrollJs.getSubTotal({ columnUid: 'totalSss' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`U${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(U${range[0]}:U${range[1]})`,
+                        result: payrollJs.getSubTotal({ columnUid: 'totalDeductions' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`V${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(V${range[0]}:V${range[1]})`,
+                        result: payrollJs.getSubTotal({ columnUid: 'netPay' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+            } else if (row.type === 4) {
+                wsRow.eachCell(function (cell, colNumber) {
+                    cell.value = ''
+                });
+                try {
+                    worksheet.unMergeCells(`A${curRowIndex}:K${curRowIndex}`)
+                    worksheet.mergeCells(`A${curRowIndex}:K${curRowIndex}`)
+                } catch (err) {}
+                worksheet.getCell(`A${curRowIndex}`).font = {
+                    name: 'Arial',
+                    size: 12,
+                    bold: true,
+                }
+                worksheet.getCell(`A${curRowIndex}`).alignment = {
+                    horizontal: 'left'
+                }
+                worksheet.getCell(`A${curRowIndex}`).value = 'GRAND TOTAL > > > > > >'
+
+                let start = 0
+                let end = rowIndex // rowIndex - 1 is actual end index because of Array.slice
+
+                // account for excel data row starting index
+                let range = [start + startRowIndex, end + startRowIndex]
+
+                slex.getCell(`L${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(L${range[0]}:L${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'amountWorked' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`M${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(M${range[0]}:M${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: '5Premium' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`N${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(N${range[0]}:N${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'grossPay' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`O${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(O${range[0]}:O${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'tax3' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`P${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(P${range[0]}:P${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'tax10' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`Q${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(Q${range[0]}:Q${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'totalTax' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`R${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(R${range[0]}:R${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'contributionSss' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`S${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(S${range[0]}:S${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'ecSss' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`T${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(T${range[0]}:T${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'totalSss' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`U${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(U${range[0]}:U${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'totalDeductions' }, rowIndex, payroll, payrollJs.formulas)
+                    })
+                slex.getCell(`V${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(V${range[0]}:V${range[1]})`,
+                        result: payrollJs.getGrandTotal({ columnUid: 'netPay' }, rowIndex, payroll, payrollJs.formulas)
+                    })
             }
-        }
+        })
+
+
     }
-    return excelColumnIndexes.concat(excelColumnIndexes2)
+
+    return workbook
+
 }
 
-let excelColumns = getExcelColumns()
+let templateHdf = async (healthDeclarations) => {
+    let row = null
+    let cell = null
+    let chk = null
+    let chk2 = null
+    let value = null
+    let colors = {
+        black: { argb: '00000000' }
+    }
 
-let templateJocos = async (payroll) => {
     const workbook = new ExcelJS.Workbook();
-    let sheet = workbook.addWorksheet('igp');
+    let sheet = workbook.addWorksheet('hdf');
     sheet.views = [
-        { zoomScale: 80 }
+        { zoomScale: 100 }
     ];
 
-    // merge a range of cells
-    sheet.mergeCells('A1:Y1');
-    sheet.mergeCells('A2:Y2');
-
-    sheet.getCell('A1').value = 'PAYROLL';
-    sheet.getCell('A1').alignment = { vertical: 'bottom', horizontal: 'center' };
-    sheet.getCell('A1').font = {
-        name: 'Arial',
-        size: 20,
-        bold: true
-    };
-    sheet.getCell('A2').value = `Salary for the period ${moment(payroll.dateStart).format('MMMM DD')} - ${moment(payroll.dateEnd).format('DD, YYYY')}`;
-    sheet.getCell('A2').alignment = { vertical: 'bottom', horizontal: 'center' };
-    sheet.getCell('A2').font = {
-        name: 'Arial',
-        size: 11,
-        bold: true
+    sheet.pageSetup.printArea = 'A1:N61';
+    sheet.pageSetup.fitToPage = true
+    sheet.pageSetup.paperSize = 9 // A4
+    sheet.pageSetup.margins = {
+        left: 0.15, right: 0,
+        top: 0.25, bottom: 0.12,
+        header: 0.24, footer: 0.12
     };
 
-    sheet.mergeCells('B3:C3');
-    sheet.getCell('B3').value = `Entity Name: GSC`;
-    sheet.getCell('B3').font = {
-        name: 'Arial',
-        size: 11,
-        bold: true
-    };
+    let slex = new Slex(workbook)
+    slex.setSheet(sheet)
 
-    sheet.mergeCells('B4:C4');
-    sheet.getCell('B4').value = `Fund Cluster: IGP`;
-    sheet.getCell('B4').font = {
-        name: 'Arial',
-        size: 11,
-        bold: true
-    };
+    slex.getCell('A1').value(`Last Name`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('B1').value(`First Name`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('C1').value(`Age`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('D1').value(`Sex`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('E1').value(`Civil Status`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('F1').value(`Address`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('G1').value(`Contact`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('H1').value(`Department`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('I1').value(`Temp`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('J1').value(`Symptoms`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('K1').value(`Visited Med. Facility`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('L1').value(`Visit Details`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('M1').value(`Suspected COVID Patient`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('N1').value(`Date/Place`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('O1').value(`Sick Family Member`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
+    slex.getCell('P1').value(`Details`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
 
-    // sheet.mergeCells('A5:K5');
-    sheet.getCell('A5').value = `We acknowledge receipt of cash shown opposite our name as full compensation for services rendered for the period covered.`;
-    sheet.getCell('A5').font = {
-        name: 'Arial',
-        size: 10,
-    };
 
-    sheet.mergeCells('A6:A8');
-    sheet.getCell('A6').value = `NO.`;
-    sheet.getCell('A6').alignment = { vertical: 'middle', horizontal: 'center' };
-    sheet.getCell('A6').font = {
-        name: 'Arial',
-        size: 11,
-        bold: true
-    };
+    offset = 2
+    for (x = 0; x < healthDeclarations.length; x++) {
+        let hdf = healthDeclarations[x]
 
-    sheet.mergeCells('B6:B8');
-    sheet.getCell('B6').value = `Source of Fund`;
-    sheet.getCell('B6').alignment = { vertical: 'middle', horizontal: 'center' };
-    sheet.getCell('B6').font = {
-        name: 'Arial',
-        size: 10,
-        bold: true
-    };
+        row = offset + x
+        slex.getCell(`A${row}`)
+            .value(`${hdf.data.ln}`).align('middle').align('left').font('Calibri').fontSize(11)
 
-    sheet.mergeCells('C6:C8');
-    sheet.getCell('C6').value = `NAME`;
-    sheet.getCell('C6').alignment = { vertical: 'middle', horizontal: 'center' };
-    sheet.getCell('C6').font = {
-        name: 'Arial',
-        size: 11,
-        bold: true
-    };
+        slex.getCell(`B${row}`)
+            .value(`${hdf.data.fn}`).align('middle').align('left').font('Calibri').fontSize(11)
 
-    sheet.mergeCells('D6:D8');
-    sheet.getCell('D6').value = `POSITION`;
-    sheet.getCell('D6').alignment = { vertical: 'middle', horizontal: 'center' };
-    sheet.getCell('D6').font = {
-        name: 'Arial',
-        size: 11,
-        bold: true
-    };
+        slex.getCell(`C${row}`)
+            .value(`${hdf.data.age}`).align('middle').align('left').font('Calibri').fontSize(11)
 
-    sheet.mergeCells('E6:E8');
-    sheet.getCell('E6').value = `DAILY/ \nMONTHLY \nWAGE`;
-    sheet.getCell('E6').alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-    sheet.getCell('E6').font = {
-        name: 'Arial',
-        size: 11,
-        bold: true
-    };
+        slex.getCell(`D${row}`)
+            .value(`${hdf.data.sex}`).align('middle').align('left').font('Calibri').fontSize(11)
 
-    sheet.mergeCells('F6:K8');
-    sheet.getCell('F6').value = `No. of Days Rendered`;
-    sheet.getCell('F6').alignment = { vertical: 'middle', horizontal: 'center' };
-    sheet.getCell('F6').font = {
-        name: 'Arial',
-        size: 11,
-        bold: true
-    };
+        slex.getCell(`E${row}`)
+            .value(`${hdf.data.cs}`).align('middle').align('left').font('Calibri').fontSize(11)
 
-    sheet.mergeCells('L6:L8');
-    sheet.getCell('L6').value = `Gross Amount`;
-    sheet.getCell('L6').alignment = { vertical: 'middle', horizontal: 'center' };
-    sheet.getCell('L6').font = {
-        name: 'Arial',
-        size: 11,
-        bold: true
-    };
+        slex.getCell(`F${row}`)
+            .value(`${hdf.data.adr}`).align('middle').align('left').font('Calibri').fontSize(11)
 
-    payroll.employments.forEach((employment, i) => {
-        let cellRef = `A${10 + i}`
-        sheet.getCell(cellRef).value = i + 1
-        sheet.getCell(cellRef).font = {
-            name: 'Arial',
-            size: 14,
-        };
+        slex.getCell(`G${row}`)
+            .value(`${hdf.data.cnt}`).align('middle').align('left').font('Calibri').fontSize(11)
 
-        cellRef = `B${10 + i}`
-        sheet.getCell(cellRef).value = `${employment.fundSource}`
-        sheet.getCell(cellRef).font = {
-            name: 'Arial Narrow',
-            size: 14,
-        };
+        slex.getCell(`H${row}`)
+            .value(`${hdf.data.dep}`).align('middle').align('left').font('Calibri').fontSize(11)
 
-        cellRef = `C${10 + i}`
-        sheet.getCell(cellRef).value = `${employment.employee.lastName}, ${employment.employee.firstName}`
-        sheet.getCell(cellRef).font = {
-            name: 'Arial',
-            size: 14,
-        };
+        slex.getCell(`I${row}`)
+            .value(`${hdf.data.tmp}`).align('middle').align('left').font('Calibri').fontSize(11)
 
-        cellRef = `D${10 + i}`
-        sheet.getCell(cellRef).value = `${employment.position}`
-        sheet.getCell(cellRef).font = {
-            name: 'Arial',
-            size: 14,
-        };
+        slex.getCell(`J${row}`)
+            .value(`${lodash.get(hdf, 'data.sym', []).join(', ')}`).align('middle').align('left').font('Calibri').fontSize(11)
 
-        cellRef = `E${10 + i}`
-        sheet.getCell(cellRef).value = employment.salary
-        sheet.getCell(cellRef).font = {
-            name: 'Arial',
-            size: 14,
-        };
+        slex.getCell(`K${row}`)
+            .value(`${hdf.data.vmf}`).align('middle').align('left').font('Calibri').fontSize(11)
+        slex.getCell(`L${row}`)
+            .value(`${lodash.get(hdf, 'data.vmp', []).join(', ')}`).align('middle').align('left').font('Calibri').fontSize(11)
+        slex.getCell(`M${row}`)
+            .value(`${hdf.data.sus}`).align('middle').align('left').font('Calibri').fontSize(11)
+        slex.getCell(`N${row}`)
+            .value(`${hdf.data.sud}`).align('middle').align('left').font('Calibri').fontSize(11)
+        slex.getCell(`O${row}`)
+            .value(`${hdf.data.sfm}`).align('middle').align('left').font('Calibri').fontSize(11)
+        slex.getCell(`P${row}`)
+            .value(`${hdf.data.sfd}`).align('middle').align('left').font('Calibri').fontSize(11)
 
-        cellRef = `F${10 + i}`
-        sheet.getCell(cellRef).value = employment.timeRecord.renderedDays
-        sheet.getCell(cellRef).font = {
-            name: 'Arial',
-            size: 14,
-        };
-        cellRef = `G${10 + i}`
-        sheet.getCell(cellRef).value = `Days`
-        sheet.getCell(cellRef).font = {
-            name: 'Arial',
-            size: 14,
-        };
-        cellRef = `H${10 + i}`
-        sheet.getCell(cellRef).value = employment.timeRecord.renderedHours
-        sheet.getCell(cellRef).font = {
-            name: 'Arial',
-            size: 14,
-        };
-        cellRef = `I${10 + i}`
-        sheet.getCell(cellRef).value = `hours`
-        sheet.getCell(cellRef).font = {
-            name: 'Arial',
-            size: 14,
-        };
-        cellRef = `J${10 + i}`
-        sheet.getCell(cellRef).value = employment.timeRecord.renderedMinutes
-        sheet.getCell(cellRef).font = {
-            name: 'Arial',
-            size: 14,
-        };
-        cellRef = `K${10 + i}`
-        sheet.getCell(cellRef).value = `minutes`
-        sheet.getCell(cellRef).font = {
-            name: 'Arial',
-            size: 14,
-        };
-        //=F10*E10+H10*E10/8+J10*E10/8/60
-        cellRef = `L${10 + i}`
-        sheet.getCell(cellRef).value = {
-            formula: `F${10 + i}*E${10 + i}+H${10 + i}*E${10 + i}/8+J${10 + i}*E${10 + i}/8/60`,
-            result: parseFloat(employment.amountWorked.toFixed(2))
-        };
-        sheet.getCell(cellRef).font = {
-            name: 'Arial',
-            size: 14,
-        };
-    })
-
-    // sheet.columns.forEach(function (column, i) {
-    //     if (![0].includes(i)) {
-    //         var maxLength = 0;
-
-    //         column.eachCell({ includeEmpty: false }, function (cell, rowNumber) {
-    //             if (rowNumber > 5) {
-    //                 var columnLength = cell.value ? cell.value.toString().length : 10;
-    //                 if (columnLength > maxLength) {
-    //                     maxLength = columnLength;
-    //                 }
-    //             }
-    //         });
-    //         column.width = maxLength < 10 ? 10 : maxLength;
-    //     }
-    // });
+    }
 
     return workbook
 
@@ -1574,462 +1724,24 @@ let templatePds = async (employee) => {
 
 }
 
-let templateHdf = async (healthDeclarations) => {
-    let row = null
-    let cell = null
-    let chk = null
-    let chk2 = null
-    let value = null
-    let colors = {
-        black: { argb: '00000000' }
-    }
-
-    const workbook = new ExcelJS.Workbook();
-    let sheet = workbook.addWorksheet('hdf');
-    sheet.views = [
-        { zoomScale: 100 }
-    ];
-
-    sheet.pageSetup.printArea = 'A1:N61';
-    sheet.pageSetup.fitToPage = true
-    sheet.pageSetup.paperSize = 9 // A4
-    sheet.pageSetup.margins = {
-        left: 0.15, right: 0,
-        top: 0.25, bottom: 0.12,
-        header: 0.24, footer: 0.12
-    };
-
-    let slex = new Slex(workbook)
-    slex.setSheet(sheet)
-
-    slex.getCell('A1').value(`Last Name`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('B1').value(`First Name`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('C1').value(`Age`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('D1').value(`Sex`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('E1').value(`Civil Status`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('F1').value(`Address`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('G1').value(`Contact`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('H1').value(`Department`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('I1').value(`Temp`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('J1').value(`Symptoms`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('K1').value(`Visited Med. Facility`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('L1').value(`Visit Details`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('M1').value(`Suspected COVID Patient`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('N1').value(`Date/Place`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('O1').value(`Sick Family Member`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-    slex.getCell('P1').value(`Details`).align('top').align('left').font('Calibri').fontSize(11).bold(true)
-
-
-    offset = 2
-    for (x = 0; x < healthDeclarations.length; x++) {
-        let hdf = healthDeclarations[x]
-
-        row = offset + x
-        slex.getCell(`A${row}`)
-            .value(`${hdf.data.ln}`).align('middle').align('left').font('Calibri').fontSize(11)
-
-        slex.getCell(`B${row}`)
-            .value(`${hdf.data.fn}`).align('middle').align('left').font('Calibri').fontSize(11)
-
-        slex.getCell(`C${row}`)
-            .value(`${hdf.data.age}`).align('middle').align('left').font('Calibri').fontSize(11)
-
-        slex.getCell(`D${row}`)
-            .value(`${hdf.data.sex}`).align('middle').align('left').font('Calibri').fontSize(11)
-
-        slex.getCell(`E${row}`)
-            .value(`${hdf.data.cs}`).align('middle').align('left').font('Calibri').fontSize(11)
-
-        slex.getCell(`F${row}`)
-            .value(`${hdf.data.adr}`).align('middle').align('left').font('Calibri').fontSize(11)
-
-        slex.getCell(`G${row}`)
-            .value(`${hdf.data.cnt}`).align('middle').align('left').font('Calibri').fontSize(11)
-
-        slex.getCell(`H${row}`)
-            .value(`${hdf.data.dep}`).align('middle').align('left').font('Calibri').fontSize(11)
-
-        slex.getCell(`I${row}`)
-            .value(`${hdf.data.tmp}`).align('middle').align('left').font('Calibri').fontSize(11)
-
-        slex.getCell(`J${row}`)
-            .value(`${lodash.get(hdf, 'data.sym', []).join(', ')}`).align('middle').align('left').font('Calibri').fontSize(11)
-
-        slex.getCell(`K${row}`)
-            .value(`${hdf.data.vmf}`).align('middle').align('left').font('Calibri').fontSize(11)
-        slex.getCell(`L${row}`)
-            .value(`${lodash.get(hdf, 'data.vmp', []).join(', ')}`).align('middle').align('left').font('Calibri').fontSize(11)
-        slex.getCell(`M${row}`)
-            .value(`${hdf.data.sus}`).align('middle').align('left').font('Calibri').fontSize(11)
-        slex.getCell(`N${row}`)
-            .value(`${hdf.data.sud}`).align('middle').align('left').font('Calibri').fontSize(11)
-        slex.getCell(`O${row}`)
-            .value(`${hdf.data.sfm}`).align('middle').align('left').font('Calibri').fontSize(11)
-        slex.getCell(`P${row}`)
-            .value(`${hdf.data.sfd}`).align('middle').align('left').font('Calibri').fontSize(11)
-
-    }
-
-    return workbook
-
-}
-
-let templateCos = async (payroll) => {
-    const workbook = new ExcelJS.Workbook();
-    let sheet = workbook.addWorksheet('igp');
-    sheet.views = [
-        { zoomScale: 80 }
-    ];
-
-    let slex = new Slex(workbook)
-    slex.setSheet(sheet)
-
-    // Set column widths
-    sheet.getColumn('A').width = 5.43
-    sheet.getColumn('B').width = 13.86
-    sheet.getColumn('C').width = 29.86
-    sheet.getColumn('D').width = 11.57
-    sheet.getColumn('E').width = 12.57
-    sheet.getColumn('F').width = 3.57
-    sheet.getColumn('G').width = 6.86
-    sheet.getColumn('H').width = 2.43
-    sheet.getColumn('I').width = 5.86
-    sheet.getColumn('J').width = 4.43
-    sheet.getColumn('K').width = 6
-    sheet.getColumn('L').width = 13.14
-    sheet.getColumn('M').width = 13.14
-    sheet.getColumn('N').width = 13.14
-    sheet.getColumn('O').width = 11
-    sheet.getColumn('P').width = 11
-    sheet.getColumn('Q').width = 11
-    sheet.getColumn('R').width = 13.29
-    sheet.getColumn('S').width = 11
-    sheet.getColumn('T').width = 11
-    sheet.getColumn('U').width = 13.14
-    sheet.getColumn('V').width = 14
-    sheet.getColumn('W').width = 5.71
-    sheet.getColumn('X').width = 20.71
-    sheet.getColumn('Y').width = 16.43
-
-    let titleCells = 'ABCDEFGHIJKLMNOPQRSTUVWXY'.split('').map(o => `${o}6`)
-    titleCells.forEach((cell) => {
-        slex.getCell(cell).wrapText(true).border('thin')
-    })
-
-    let borderCells = ['O7', 'R7', 'U7',
-        'O8', 'P8', 'Q8', 'R8', 'S8', 'T8']
-    borderCells.forEach((cell) => {
-        slex.getCell(cell).wrapText(true).border('thin')
-    })
-
-
-
-
-    // merge a range of cells
-    slex.mergeCells('A1:Y1')
-        .value('PAYROLL').align('bottom').align('center').font('Arial').fontSize(20).bold(true)
-
-    slex.mergeCells('A2:Y2')
-        .value(`Salary for the period ${moment(payroll.dateStart).format('MMMM DD')} - ${moment(payroll.dateEnd).format('DD, YYYY')}`).align('bottom').align('center').font('Arial').fontSize(10).bold(true)
-
-    slex.mergeCells('B3:C3')
-        .value(`Entity Name: GSC`).align('bottom').align('left').font('Arial').fontSize(11).bold(true)
-
-    slex.mergeCells('B4:C4')
-        .value(`Fund Cluster: `).align('bottom').align('left').font('Arial').fontSize(11).bold(true)
-
-    slex.mergeCells('V3:X3')
-        .value(`Payroll No.:______________`).align('middle').align('left').font('Arial').fontSize(11)
-    slex.mergeCells('V4:X4')
-        .value(`Sheet _____ of _____ Sheets`).align('middle').align('left').font('Arial').fontSize(11)
-
-
-    // sheet.mergeCells('A5:K5');
-    slex.mergeCells('A5:R5')
-        .value(`We acknowledge receipt of cash shown opposite our name as full compensation for services rendered for the period covered.`)
-        .align('bottom').font('Arial').fontSize(10)
-
-    slex.mergeCells('A6:A8')
-        .value(`NO.`).align('middle').align('center').font('Arial').fontSize(10).bold(true)
-
-    slex.mergeCells('B6:B8')
-        .value(`Source of Fund`).align('middle').align('center').font('Arial').fontSize(10).bold(true)
-
-    slex.mergeCells('C6:C8')
-        .value(`NAME`).align('middle').align('center').font('Arial').fontSize(11).bold(true)
-
-    slex.mergeCells('D6:D8')
-        .value(`POSITION`).align('middle').align('center').font('Arial').fontSize(11).bold(true)
-
-    slex.mergeCells('E6:E8')
-        .value(`DAILY/ \nMONTHLY \nWAGE`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
-
-    slex.mergeCells('F6:K8')
-        .value(`No. of Days Rendered`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
-
-    slex.mergeCells('L6:L8')
-        .value(`Gross Amount`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
-
-    slex.mergeCells('M6:M8')
-        .value(`5% premium\nJune 1 - 15, 2021`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
-
-    slex.mergeCells('N6:N8')
-        .value(`Total`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
-
-    slex.mergeCells('O6:U6')
-        .value(`Deductions`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
-    slex.mergeCells('O7:Q7')
-        .value(`Tax`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
-    slex.mergeCells('R7:T7')
-        .value(`SSS`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
-
-    slex.getCell('O8')
-        .value(`3%`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
-
-    slex.getCell('P8')
-        .value(`10%`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
-
-    slex.getCell('Q8')
-        .value(`Total Tax`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
-
-    slex.getCell('R8')
-        .value(`Contribution`).align('middle').align('center').font('Arial').fontSize(11).bold(true).wrapText(true)
-
-    slex.getCell('S8')
-        .value(`EC`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
-
-    slex.getCell('T8')
-        .value(`Total SSS`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
-
-    slex.mergeCells('U7:U8')
-        .value(`Total Deductions`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
-
-    slex.mergeCells('V6:V8')
-        .value(`Net Amount Received`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
-    slex.mergeCells('W6:W8')
-        .value(`NO.`).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
-    slex.mergeCells('X6:X8')
-        .value(`SIGNATURE `).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
-    slex.mergeCells('Y6:Y8')
-        .value(`Remarks `).align('middle').align('center').font('Arial').fontSize(10).bold(true).wrapText(true)
-
-    let offset = 9
-    let count = 0
-    let row1Count = payroll.rows.filter(o => o.type === 1).length
-    payroll.rows.forEach((row, i) => {
-        // Iterate over all cells in a row (including empty cells)
-        let cells = 'ABCDEFGHIJKLMNOPQRSTUVWXY'.split('').map(o => `${o}${offset + i}`)
-        cells.forEach((cell) => {
-            slex.getCell(cell).border('thin', 'thin', 'thin', 'thin')
-        })
-
-        if (row.type === 3) {
-            sheet.getRow(offset + i).height = 20
-
-            slex.mergeCells(`A${offset + i}:B${offset + i}`)
-                .value(row.name).font('Arial').fontSize(11).bold(true).align('bottom').align('center')
-
-
-        } else if (row.type === 2) {
-            slex.mergeCells(`A${offset + i}:K${offset + i}`)
-                .value(`GRAND TOTAL > > > > > > `)
-                .fontSize(10).font('Arial')
-
-            slex.getCell(`L${offset + i}`)
-                .value({
-                    formula: `=SUM(L${offset + 1}:L${offset + row1Count})`,
-                    result: payrollJs.getSubTotal('amountWorked', [1, payroll.rows.length], payroll, payrollJs.formulas)
-                })
-                .font('Arial').fontSize(11).bold(true).align('bottom').align('center').numFmt('#,##0.00')
-
-            slex.getCell(`M${offset + i}`)
-                .value({
-                    formula: `=SUM(M${offset + 1}:M${offset + row1Count})`,
-                    result: payrollJs.getSubTotal('5Premium', [1, payroll.rows.length], payroll, payrollJs.formulas)
-                })
-                .font('Arial').fontSize(11).bold(true).align('bottom').align('center').numFmt('#,##0.00')
-
-            slex.getCell(`N${offset + i}`)
-                .value({
-                    formula: `=SUM(N${offset + 1}:N${offset + row1Count})`,
-                    result: payrollJs.getSubTotal('grossPay', [1, payroll.rows.length], payroll, payrollJs.formulas)
-                })
-                .font('Arial').fontSize(11).bold(true).align('bottom').align('center').numFmt('#,##0.00')
-        } else if (row.type === 1) {
-            let sheetRow = sheet.getRow(offset + i)
-            sheetRow.height = 30
-
-
-            slex.getCell(`A${offset + i}`)
-                .value(++count).font('Arial').fontSize(14).align('bottom').align('center')
-
-            // let letters = 'BCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
-            // row.cells.forEach((cellValue, c)=>{
-            //     let letter = letters[c]
-            //     slex.getCell(`${letter}${offset + i}`)
-            //     .value(cellValue).font('Arial').fontSize(14).align('bottom').align('center')
-            // })
-
-
-            slex.getCell(`B${offset + i}`)
-                .value(lodash.get(row, `cells[${i}]`)).font('Arial').fontSize(14)
-
-            slex.getCell(`C${offset + i}`)
-                .value(`${lodash.get(row, 'employee.lastName')}, ${lodash.get(row, 'employee.firstName')}`).font('Arial').fontSize(14)
-
-            slex.getCell(`D${offset + i}`)
-                .value(`${lodash.get(row, 'employment.position')}`).font('Arial').fontSize(14).align('center')
-
-            slex.getCell(`E${offset + i}`)
-                .value(currency(lodash.get(row, 'employment.salary'))).font('Arial').fontSize(14).numFmt('#,##0.00')
-
-            slex.getCell(`F${offset + i}`)
-                .value(lodash.get(row, 'timeRecord.renderedDays', 0)).font('Arial').fontSize(14).align('center').align('bottom')
-            slex.getCell(`G${offset + i}`)
-                .value(`days`).font('Arial').fontSize(14).align('center').align('bottom')
-
-            slex.getCell(`H${offset + i}`)
-                .value(lodash.get(row, 'timeRecord.renderedHours', 0)).font('Arial').fontSize(14).align('center').align('bottom')
-            slex.getCell(`I${offset + i}`)
-                .value(`hrs`).font('Arial').fontSize(14).align('center').align('bottom')
-
-            slex.getCell(`J${offset + i}`)
-                .value(lodash.get(row, 'timeRecord.renderedMinutes', 0)).font('Arial').fontSize(14).align('center').align('bottom')
-            slex.getCell(`K${offset + i}`)
-                .value(`mins`).font('Arial').fontSize(14).align('center').align('bottom')
-
-            let amount = payrollJs.amountWorked(lodash.get(row, 'employment.salary', 0), lodash.get(row, 'employment.salaryType', 0), lodash.get(row, 'timeRecord.totalMinutes', 0))
-
-            //=F10*E10+H10*E10/8+J10*E10/8/60
-            slex.getCell(`L${offset + i}`)
-                .value({
-                    formula: `F${10 + i}*E${10 + i}+H${10 + i}*E${10 + i}/8+J${10 + i}*E${10 + i}/8/60`,
-                    result: parseFloat(amount.toFixed(2))
-                }).font('Arial').fontSize(14).numFmt('#,##0.00').align('center')
-
-            //=L15*0.05
-            let premium5 = amount * 0.05
-            slex.getCell(`M${offset + i}`)
-                .value({
-                    formula: `=L${offset + i}*0.05`,
-                    result: parseFloat(premium5.toFixed(2))
-                }).font('Arial').fontSize(14).numFmt('#,##0.00').align('center')
-
-            let grossPay = amount + premium5
-            slex.getCell(`N${offset + i}`)
-                .value({
-                    formula: `=L${offset + i}+M${offset + i}`,
-                    result: parseFloat(grossPay.toFixed(2))
-                }).font('Arial').fontSize(14).numFmt('#,##0.00').align('center')
-
-            let tax3 = payrollJs.getCellValue(row, { uid: 'tax3' }, payrollJs.formulas[payroll.template])
-            let tax10 = payrollJs.getCellValue(row, { uid: 'tax10' }, payrollJs.formulas[payroll.template])
-
-            slex.getCell(`O${offset + i}`)
-                .value(tax3).font('Arial').fontSize(14).numFmt('#,##0.00').align('center')
-            slex.getCell(`P${offset + i}`)
-                .value(tax10).font('Arial').fontSize(14).numFmt('#,##0.00').align('center')
-
-            let totalTax = payrollJs.getCellValue(row, { uid: 'totalTax' }, payrollJs.formulas[payroll.template])
-            slex.getCell(`Q${offset + i}`)
-                .value({
-                    formula: `=O${offset + i} + P${offset + i}`,
-                    result: totalTax
-                }).font('Arial').fontSize(14).numFmt('#,##0.00').align('center')
-        }
-    })
-
-
-    let ri = offset + payroll.rows.length
-
-    let numberCells = [`A${ri}`, `P${ri}`]
-    numberCells.forEach((cell) => {
-        slex.getCell(cell).font('Times New Roman').fontSize(14).bold(true).align('middle').align('center').border('thin', 'thick', 'thick', 'thin')
-    })
-
-    slex.getCell(`A${ri}`).value(`A`)
-    slex.getCell(`P${ri}`).value(`C`)
-
-    let cells = [`B${ri}`, `Q${ri}`]
-    cells.forEach((cell) => {
-        slex.getCell(cell).font('Times New Roman').fontSize(10).bold(true).align('middle').align('left')
-    })
-
-    slex.mergeCells(`B${ri}:K${ri}`)
-        .value(`CERTIFIED: Services duly rendered as stated.`)
-        .fontSize(11)
-
-    slex.getCell(`Q${ri}`)
-        .value(`APPROVED FOR PAYMENT: `)
-
-    // 
-    ri = offset + payroll.rows.length + 3
-    cells = [`B${ri}`, `R${ri}`]
-    cells.forEach((cell) => {
-        slex.getCell(cell).font('Times New Roman').fontSize(11).bold(true).align('middle').align('center').underline(true)
-    })
-    cells = [`E${ri}`, `V${ri}`]
-    cells.forEach((cell) => {
-        slex.getCell(cell).border('', '', 'thin', '')
-    })
-
-    slex.mergeCells(`B${ri}:D${ri}`)
-        .value(`MA. RECHEL A. PILLORA, MPA`)
-    slex.mergeCells(`E${ri}:K${ri}`)
-
-    slex.mergeCells(`R${ri}:T${ri}`)
-        .value(`LILIAN DIANA B. PARREÑO, Ph.D.`)
-    slex.mergeCells(`V${ri}:W${ri}`)
-
-
-    // 
-    ri = offset + payroll.rows.length + 4
-    cells = [`B${ri}`, `D${ri}`, `E${ri}`, `K${ri}`, `R${ri}`, `T${ri}`, `V${ri}`, `W${ri}`]
-    cells.forEach((cell) => {
-        slex.getCell(cell).font('Times New Roman').fontSize(11).align('top').align('center')
-    })
-
-    slex.mergeCells(`B${ri}:D${ri}`)
-        .value(`HRMO/ AO V`)
-    slex.mergeCells(`E${ri}:K${ri}`)
-        .value('Date')
-
-    slex.mergeCells(`R${ri}:T${ri}`)
-        .value(`SUC President III`)
-    slex.mergeCells(`V${ri}:W${ri}`)
-        .value('Date')
-
-    // 
-    ri = offset + payroll.rows.length + 8
-
-    numberCells = [`A${ri}`, `P${ri}`]
-    numberCells.forEach((cell) => {
-        slex.getCell(cell).font('Times New Roman').fontSize(14).bold(true).align('middle').align('center').border('thin', 'thick', 'thick', 'thin')
-    })
-    slex.getCell(`A${ri}`).value(`B`)
-    slex.getCell(`P${ri}`).value(`D`)
-
-    return workbook
-
-}
-let templateCos2 = async (payroll) => {
+let templatePermanent = async (payroll) => {
     let workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(`D:/nodejs/hris/data/view/payroll/template_cos_staff.xlsx`);
+    
+    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/payroll/template_permanent.xlsx`);
     let slex = new Slex(workbook)
 
-    let worksheet = await workbook.getWorksheet('igp')
+    let worksheet = await workbook.getWorksheet('Permanent')
 
-    let startRowIndex = 9
+    let startRowIndex = 11
 
     if (worksheet) {
 
         // Set Print Area for a sheet
-        worksheet.pageSetup.printArea = `A1:Y${startRowIndex + payroll.rows.length + 12}`;
+        // worksheet.pageSetup.printArea = `A1:AM${startRowIndex + payroll.rows.length + 12}`;
 
         slex.setSheet(worksheet)
 
         let rowCount = payroll.rows.length
-        // let rowCount = payroll.rows.filter(r => r.type === 1).length
 
         worksheet.duplicateRow(startRowIndex, rowCount - 1, true);
 
@@ -2054,74 +1766,126 @@ let templateCos2 = async (payroll) => {
             } else if (row.type === 1) {
 
                 numbering++
-                let attendance = payrollJs.getCellValue(row, { uid: 'attendance' }, payrollJs.formulas[payroll.template])
+                // let attendance = payrollJs.getCellValue(row, { uid: 'attendance' }, payrollJs.formulas[payroll.template])
 
                 //=F10*E10+H10*E10/8+J10*E10/8/60
-                let amount = payrollJs.amountWorked(lodash.get(row, 'employment.salary', 0), lodash.get(row, 'employment.salaryType', 0), lodash.get(row, 'timeRecord.totalMinutes', 0))
+                // let amount = payrollJs.amountWorked(lodash.get(row, 'employment.salary', 0), lodash.get(row, 'employment.salaryType', 0), lodash.get(row, 'timeRecord.totalMinutes', 0))
 
+                let grossPayAllowance = payrollJs.getCellValue(row, { uid: 'grossPayAllowance' }, payrollJs.formulas[payroll.template])
                 slex.getCell(`A${curRowIndex}`)
                     .value(numbering)
+                    
                     .getCell(`B${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, { uid: 'fundSource' }, payrollJs.formulas[payroll.template]))
-                    .getCell(`C${curRowIndex}`)
                     .value(payrollJs.getCellValue(row, { uid: 'name' }, payrollJs.formulas[payroll.template]))
-                    .getCell(`D${curRowIndex}`)
+                    .getCell(`C${curRowIndex}`)
                     .value(payrollJs.getCellValue(row, { uid: 'position' }, payrollJs.formulas[payroll.template]))
-                    .getCell(`E${curRowIndex}`)
+                    .getCell(`D${curRowIndex}`)
                     .value(payrollJs.getCellValue(row, { uid: 'basePay' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`E${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'peraAca' }, payrollJs.formulas[payroll.template]))
                     .getCell(`F${curRowIndex}`)
-                    .value(attendance.days)
+                    .value({
+                        formula: `=D${curRowIndex}+E${curRowIndex}`,
+                        result: parseFloat(grossPayAllowance.toFixed(2))
+                    })
+                    .getCell(`G${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'tardiness' }, payrollJs.formulas[payroll.template]))
                     .getCell(`H${curRowIndex}`)
-                    .value(attendance.hrs)
+                    .value({
+                        formula: `=F${curRowIndex}-G${curRowIndex}`,
+                        result: parseFloat(payrollJs.getCellValue(row, { uid: 'grossPayAllowance' }, payrollJs.formulas[payroll.template]).toFixed(2))
+                    })
+                    .getCell(`I${curRowIndex}`)
+                    .value({
+                        formula: `=D${curRowIndex}*9%`,
+                        result: parseFloat(payrollJs.getCellValue(row, { uid: 'rlipPs9' }, payrollJs.formulas[payroll.template]).toFixed(2))
+                    })
                     .getCell(`J${curRowIndex}`)
-                    .value(attendance.mins)
+                    .value(payrollJs.getCellValue(row, { uid: 'emergencyLoan' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`K${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'eal' }, payrollJs.formulas[payroll.template]))
                     .getCell(`L${curRowIndex}`)
-                    .value({
-                        formula: `=F${curRowIndex}*E${curRowIndex}+H${curRowIndex}*E${curRowIndex}/8+J${curRowIndex}*E${curRowIndex}/8/60`,
-                        result: parseFloat(amount.toFixed(2))
-                    })
+                    .value(payrollJs.getCellValue(row, { uid: 'consoLoan' }, payrollJs.formulas[payroll.template]))
                     .getCell(`M${curRowIndex}`)
-                    .value({
-                        formula: `=L${curRowIndex}*0.05`,
-                        result: payrollJs.getCellValue(row, { uid: '5Premium' }, payrollJs.formulas[payroll.template])
-                    })
+                    .value(payrollJs.getCellValue(row, { uid: 'ouliPremium' }, payrollJs.formulas[payroll.template]))
                     .getCell(`N${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(L${curRowIndex}:M${curRowIndex})`,
-                        result: payrollJs.getCellValue(row, { uid: 'grossPay' }, payrollJs.formulas[payroll.template])
-                    })
+                    .value(payrollJs.getCellValue(row, { uid: 'policyOuliLoan' }, payrollJs.formulas[payroll.template]))
                     .getCell(`O${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, { uid: 'tax3' }, payrollJs.formulas[payroll.template]))
+                    .value(payrollJs.getCellValue(row, { uid: 'regularPolicyLoan' }, payrollJs.formulas[payroll.template]))
                     .getCell(`P${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, { uid: 'tax10' }, payrollJs.formulas[payroll.template]))
+                    .value(payrollJs.getCellValue(row, { uid: 'gfal' }, payrollJs.formulas[payroll.template]))
                     .getCell(`Q${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(O${curRowIndex}:P${curRowIndex})`,
-                        result: payrollJs.getCellValue(row, { uid: 'totalTax' }, payrollJs.formulas[payroll.template])
-                    })
+                    .value(payrollJs.getCellValue(row, { uid: 'mpl' }, payrollJs.formulas[payroll.template]))
                     .getCell(`R${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, { uid: 'contributionSss' }, payrollJs.formulas[payroll.template]))
+                    .value(payrollJs.getCellValue(row, { uid: 'cpl' }, payrollJs.formulas[payroll.template]))
                     .getCell(`S${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, { uid: 'ecSss' }, payrollJs.formulas[payroll.template]))
+                    .value(payrollJs.getCellValue(row, { uid: 'help' }, payrollJs.formulas[payroll.template]))
                     .getCell(`T${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(R${curRowIndex}:S${curRowIndex})`,
-                        result: payrollJs.getCellValue(row, { uid: 'totalSss' }, payrollJs.formulas[payroll.template])
-                    })
+                    .value(payrollJs.getCellValue(row, { uid: 'medicare' }, payrollJs.formulas[payroll.template]))
                     .getCell(`U${curRowIndex}`)
-                    .value({
-                        formula: `=Q${curRowIndex}+T${curRowIndex}`,
-                        result: payrollJs.getCellValue(row, { uid: 'totalDeductions' }, payrollJs.formulas[payroll.template])
-                    })
+                    .value(payrollJs.getCellValue(row, { uid: 'pagibigContribution' }, payrollJs.formulas[payroll.template]))
                     .getCell(`V${curRowIndex}`)
-                    .value({
-                        formula: `=N${curRowIndex}+U${curRowIndex}`,
-                        result: payrollJs.getCellValue(row, { uid: 'netPay' }, payrollJs.formulas[payroll.template])
-                    })
+                    .value(payrollJs.getCellValue(row, { uid: 'mplLoan' }, payrollJs.formulas[payroll.template]))
                     .getCell(`W${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'calamityLoan' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`X${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'withholdingTax' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`Y${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(J${curRowIndex}:X${curRowIndex})+I${curRowIndex}`,
+                        result: parseFloat(payrollJs.getCellValue(row, { uid: 'totalMandatoryDeductions' }, payrollJs.formulas[payroll.template]).toFixed(2))
+                    })
+                    .getCell(`Z${curRowIndex}`)
+                    .value({
+                        formula: `=F${curRowIndex}-Y${curRowIndex}`,
+                        result: payrollJs.getCellValue(row, { uid: 'netAfterTotalMandatoryDeductions' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`AC${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'teachersScholars' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`AD${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'ffaLoan' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`AG${curRowIndex}`)
+                    .value(payrollJs.getCellValue(row, { uid: 'citySavingsBank' }, payrollJs.formulas[payroll.template]))
+                    .getCell(`AH${curRowIndex}`)
+                    .value({
+                        formula: `=SUM(AC${curRowIndex}:AG${curRowIndex})`,
+                        result: payrollJs.getCellValue(row, { uid: 'totalNonMandatoryDeductions' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`AI${curRowIndex}`)
                     .value({
                         formula: `=A${curRowIndex}`,
                         result: numbering
+                    })
+                    .getCell(`AJ${curRowIndex}`)
+                    .value({
+                        formula: `=Z${curRowIndex}-AH${curRowIndex}`,
+                        result: payrollJs.getCellValue(row, { uid: 'netPay' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`AK${curRowIndex}`)
+                    .value('')
+                    .getCell(`AL${curRowIndex}`)
+                    .value('')
+                    .getCell(`AM${curRowIndex}`)
+                    .value('')
+                    .getCell(`AN${curRowIndex}`)
+                    .value({
+                        formula: `=AK${curRowIndex}+AL${curRowIndex}`,
+                        result: payrollJs.getCellValue(row, { uid: 'totalQuincena' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`AO${curRowIndex}`)
+                    .value({
+                        formula: `=AJ${curRowIndex}-AN${curRowIndex}`,
+                        result: payrollJs.getCellValue(row, { uid: 'variance' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`AP${curRowIndex}`)
+                    .value({
+                        formula: `=Y${curRowIndex}+AH${curRowIndex}`,
+                        result: payrollJs.getCellValue(row, { uid: 'totalDeductions' }, payrollJs.formulas[payroll.template])
+                    })
+                    .getCell(`AS${curRowIndex}`)
+                    .value({
+                        formula: `=Y${curRowIndex}+AH${curRowIndex}`,
+                        result: payrollJs.getCellValue(row, { uid: 'totalDeductions' }, payrollJs.formulas[payroll.template])
                     })
 
             } else if (row.type === 2) {
@@ -2302,9 +2066,8 @@ let templateCos2 = async (payroll) => {
 }
 
 module.exports = {
-    templateHdf: templateHdf,
     templateCos: templateCos,
-    templateCos2: templateCos2,
-    templateJocos: templateJocos,
+    templateHdf: templateHdf,
     templatePds: templatePds,
+    templatePermanent: templatePermanent,
 }

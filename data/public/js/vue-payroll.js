@@ -22,5 +22,8 @@ VuePayroll.mixin = {
         getCellValue: getCellValue,
         getSubTotal: getSubTotal,
         getGrandTotal: getGrandTotal,
+        visibleColumns: function(column){
+            return _.get(column, 'hidden', false) === false;
+        }
     }
 }

@@ -306,6 +306,19 @@ let _permanentColumns = [
         title: 'Net Amnt ',
         computed: true,
     },
+    /////
+    {
+        uid: 'firstQuincena',
+        title: '1st Quincena',
+        computed: false,
+        hidden: true,
+    },
+    {
+        uid: 'secondQuincena',
+        title: '2nd Quincena',
+        computed: false,
+        hidden: true,
+    },
 ]
 
 let _permanentColumnsGrandTotal = [

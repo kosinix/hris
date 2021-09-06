@@ -14,21 +14,18 @@
     </div>
     <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/payroll/create" method="POST" class="form-default">
 
-        {% set name = 'name' %}
-        {% set label = 'Payroll Name *' %}
-        {% include 'parts/form-group-text.html' %}
-        {% set label = '' %}
+        
 
         <div class="form-group">
             <label for="dateStart">Period *</label>
             <div class="d-flex">
                 <div>
-                    <input name="dateStart" id="dateStart" v-model="dateStart" type="date" class="form-control">
+                    <input name="dateStart" v-on:change="updateName" id="dateStart" v-model="dateStart" type="date" class="form-control">
                     <small class="invalid-feedback">${getError('dateStart')}</small>
                 </div>
                 <div class="align-self-center pl-2 pr-2"> to </div>
                 <div>
-                    <input name="dateEnd" id="dateEnd" v-model="dateEnd" type="date" class="form-control">
+                    <input name="dateEnd" v-on:change="updateName" id="dateEnd" v-model="dateEnd" type="date" class="form-control">
                     <small class="invalid-feedback">${getError('dateEnd')}</small>
                 </div>
             </div>
@@ -43,7 +40,28 @@
         {% set name = 'employeeList' %}
         {% set label = 'Employee List *' %}
         {% set options = employeeLists %}
-        {% include 'parts/form-group-select.html' %}
+        <div class="form-group">
+            <label for="{{name}}">
+                {% if label %}
+                    {{label}}
+                {% else %}
+                    {{name|start_case}}
+                {% endif %}
+            </label>
+            <div>
+                <select name="{{name}}" id="{{name}}" v-on:change="updateName" v-model="{% if vModel %}{{vModel}}{% else %}{{name}}{% endif %}" class="form-control">
+                    {% for option in options %}
+                        <option value="{{option.value}}">{{option.text}}</option>
+                    {% endfor %}
+                </select>
+                <small class="invalid-feedback">${getError('{{name}}')}</small>
+            </div>
+        </div>
+        {% set label = '' %}
+
+        {% set name = 'name' %}
+        {% set label = 'Payroll Name *' %}
+        {% include 'parts/form-group-text.html' %}
         {% set label = '' %}
 
         <div class="form-row pt-3 pb-3">
@@ -65,11 +83,12 @@
             window.vuelidateExtendMixin,
         ],
         data: {
-            name: 'June 15th IGP',
-            dateStart: '2021-06-01',
-            dateEnd: '2021-06-15',
-            template: 'cos_staff',
-            employeeList: '612787011de0c22c14b809e2',
+            name: '',
+            dateStart: '',
+            dateEnd: '',
+            template: '',
+            employeeList: '',
+            employeeLists: {{employeeLists|default([], true)|stringify|safe}}
         },
         validations: {
             name: {
@@ -88,7 +107,31 @@
                 required: window.validators.required
             },
         },
+        mounted: function(){
+            this.updateName()
+        },
         methods: {
+            updateName: function() {
+                var me = this;
+                var mDateStart = moment(me.dateStart);
+                var mDateEnd = moment(me.dateEnd);
+                if(!mDateStart.isValid() || !mDateEnd.isValid()){
+                    return false
+                }
+
+                var mQuincena = mDateStart.clone().startOf('month').add(14, 'days');
+                var mToday = moment();
+                var name = '';
+                if(mDateEnd.isSameOrBefore(mQuincena)){
+                    name = mQuincena.format('MMMM Do YYYY');
+                } else {
+                    name = mQuincena.clone().endOf('month').format('MMMM Do YYYY');
+                }
+                var f = _.find(me.employeeLists, function(e){
+                    return e.value === me.employeeList;
+                })
+                this.name = _.trim(name + ' ' + _.get(f, 'text', ''));
+            },
             onSubmit: function(){
                 var me = this;
                 me.$v.$touch()

@@ -171,50 +171,27 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
             }
         })
 
-        // insert 
-        rows.unshift({
+        if (patch.template === 'cos_staff') {
+            // insert 
+            rows.unshift({
+                uid: uid.gen(),
+                type: 3,
+                employment: {},
+                employee: {},
+                timeRecord: {},
+                cells: [],
+                name: 'Title',
+                attendances: [],
+            })
+        }
+
+        rows.push({
             uid: uid.gen(),
-            type: 3,
+            type: 4,
             employment: {},
             employee: {},
             timeRecord: {},
             cells: [],
-            name: 'Title',
-            attendances: [],
-        })
-
-        rows.push({
-            uid: uid.gen(),
-            type: 2,
-            employment: {},
-            employee: {},
-            timeRecord: {},
-            cells: [
-                {},
-                {},
-                {},
-                {},
-                {},
-                {
-                    columnUid: 'amountWorked',
-                },
-                {
-                    columnUid: '5Premium',
-                },
-                {
-                    columnUid: 'grossPay',
-                },
-                {},
-                {},
-                {},
-                {},
-                {},
-                {},
-                {},
-                {
-                    columnUid: 'netPay',
-                },
-            ],
             attendances: [],
         })
         // return res.send(rows)
@@ -333,7 +310,7 @@ router.get(['/payroll/employees/:payrollId', `/payroll/employees/:payrollId/payr
             if (payroll.template === 'permanent') {
                 workbook = await excelGen.templatePermanent(payroll)
             } else if (payroll.template === 'cos_staff') {
-                workbook = await excelGen.templateCos2(payroll)
+                workbook = await excelGen.templateCos(payroll)
             }
 
             let buffer = await workbook.xlsx.writeBuffer();

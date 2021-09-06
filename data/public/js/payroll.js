@@ -317,6 +317,31 @@ var formulas = {
                 return parseFloat(v1 - (v2 + v3))
             }
         },
+        // Outside
+        {
+            uid: 'totalQuincena',
+            getValue: function (row, formulas) {
+                var v1 = getCellValue(row, 'firstQuincena', formulas)
+                var v2 = getCellValue(row, 'secondQuincena', formulas)
+                return v1 + v2
+            }
+        },
+        {
+            uid: 'variance',
+            getValue: function (row, formulas) {
+                var v1 = getCellValue(row, 'totalQuincena', formulas)
+                var v2 = getCellValue(row, 'netPay', formulas)
+                return v1 - v2
+            }
+        },
+        {
+            uid: 'totalDeductions',
+            getValue: function (row, formulas) {
+                var v1 = getCellValue(row, 'totalMandatoryDeductions', formulas)
+                var v2 = getCellValue(row, 'totalNonMandatoryDeductions', formulas)
+                return v1 + v2
+            }
+        },
 
     ]
 }

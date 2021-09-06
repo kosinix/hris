@@ -171,6 +171,14 @@ h4, h5, h6 {
     display: none;
 }
 
+.table-calendar td.bg-current {
+    background: #2685ac;
+}
+.table-calendar td a.log {
+    border-radius: 3px; 
+    background: #eee; 
+    display:inline-block; font-size:12px; padding:2px 3px
+}
 
 .cover {
     position: fixed;

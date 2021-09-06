@@ -1,0 +1,80 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {# {% include 'parts/employee-header.html' %} #}
+    {# {% include 'parts/employee-profile-photo.html' %} #}
+    {# {% include 'attendance/tabs-calendar.html' %} #}
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3">
+        <h1 class="h4 mb-3 mt-3">{{mCalendar|format_date('MMMM YYYY')}}</h1>
+        <div class="table-responsive">
+            <table class="table table-calendar">
+                {% for row in matrix.splice(0, 1) %}
+                    <tr>
+                        {% for cell in row %}
+                        <th class="{{cell.classes}}" width="14%">
+                            {{cell.value}}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                {% for row in matrix %}
+                    <tr>
+                        {% for cell in row %}
+                        <td class="{{cell.classes}}">
+                            <div style="min-height:60px">
+                                <div class="text-right">{{cell.value|format_date('D')}}</div>
+                                <div>
+                                    {% if cell.attendances %}
+                                        {% for attendance in cell.attendances.splice(0, 10) %}
+                                            <a class="log" href="/attendance/employee/{{attendance.employeeId}}/employment/{{attendance.employmentId}}?start={{cell.value}}&amp;end={{cell.value}}">{{attendance.employee.lastName}}</a>
+                                        {% endfor %}
+                                        {% if cell.attendances.length > 0 %}
+                                            <a href="/attendance/daily?start={{cell.value}}&amp;end={{cell.value}}" class="log">{{cell.attendances.length}} more...</a>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            
+        },
+        validations: {
+            
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

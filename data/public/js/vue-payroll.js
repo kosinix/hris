@@ -24,6 +24,9 @@ VuePayroll.mixin = {
         getGrandTotal: getGrandTotal,
         visibleColumns: function(column){
             return _.get(column, 'hidden', false) === false;
+        },
+        attendanceLink: function(row, payroll){
+            return '/attendance/employee/' + row.employee._id + '/employment/' + row.employment._id + '?start=' + payroll.dateStart + '&end=' + payroll.dateEnd
         }
     }
 }

@@ -25,7 +25,7 @@
                         </template>
                         <template v-else>
                             <template v-if="column.uid === 'attendance'">
-                                <a class="d-flex justify-content-around text-right link-attendance" href="#">
+                                <a class="d-flex justify-content-around text-right link-attendance" v-bind:href="attendanceLink(row, payroll)">
                                     <span>${getCellValue(row, column, formulas.cos_staff)['days']} days</span>
                                     <span>${getCellValue(row, column, formulas.cos_staff)['hrs']} hrs</span>
                                     <span>${getCellValue(row, column, formulas.cos_staff)['mins']} mins</span>
@@ -74,11 +74,11 @@
                         </svg>
                     </td>
                     <td class="font-weight-bold" colspan="5">Grand Total &gt;&gt;&gt;&gt;</td>
-                    <td>${getGrandTotal(row.cells[5], rowIndex, payroll, formulas) | currency}</td>
-                    <td>${getGrandTotal(row.cells[6], rowIndex, payroll, formulas) | currency}</td>
-                    <td>${getGrandTotal(row.cells[7], rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('amountWorked', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('5Premium', rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('grossPay', rowIndex, payroll, formulas) | currency}</td>
                     <td colspan="7"></td>
-                    <td>${getGrandTotal(row.cells[15], rowIndex, payroll, formulas) | currency}</td>
+                    <td>${getGrandTotal('netPay', rowIndex, payroll, formulas) | currency}</td>
                     <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>
                 </template>
 

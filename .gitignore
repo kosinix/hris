@@ -114,3 +114,6 @@ package-lock.json
 data/sessions.db
 
 scripts/install-data/import.txt
+
+# Temp excel file
+~*.xlsx

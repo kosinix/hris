@@ -2,12 +2,22 @@
 
 {% block body %}
 <div class="col-md-12">
+
     {% include 'parts/flash.html' %}
-    {# {% include 'parts/employee-header.html' %} #}
+    {% include 'attendance/header.html' %}
     {# {% include 'parts/employee-profile-photo.html' %} #}
-    {# {% include 'attendance/tabs-calendar.html' %} #}
+    {% include 'attendance/tabs-calendar.html' %}
     <div class="tab-content pt-3 pb-2 pl-3 pr-3">
-        <h1 class="h4 mb-3 mt-3">{{mCalendar|format_date('MMMM YYYY')}}</h1>
+        <div class="pb-3 text-right">
+            <form action="">
+                <select onchange="this.form.submit()" name="date" id="">
+                    {% for year in years %}
+                    <option value="{{year}}-01-01" {% if year == mCalendar|format_date('YYYY') %}selected{% endif %}>{{year}}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+        {# <h1 class="h4 mb-3 mt-3">{{mCalendar|format_date('MMMM YYYY')}}</h1> #}
         <div class="table-responsive">
             <table class="table table-calendar">
                 {% for row in matrix.splice(0, 1) %}
@@ -31,7 +41,7 @@
                                             <a class="log" href="/attendance/employee/{{attendance.employeeId}}/employment/{{attendance.employmentId}}?start={{cell.value}}&amp;end={{cell.value}}">{{attendance.employee.lastName}}</a>
                                         {% endfor %}
                                         {% if cell.attendances.length > 0 %}
-                                            <a href="/attendance/daily?start={{cell.value}}&amp;end={{cell.value}}" class="log">{{cell.attendances.length}} more...</a>
+                                            <a href="/attendance/daily?date={{cell.value}}" class="log">{{cell.attendances.length}} more...</a>
                                         {% endif %}
                                     {% endif %}
                                 </div>

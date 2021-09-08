@@ -19,32 +19,55 @@ let router = express.Router()
 
 router.use('/attendance', middlewares.requireAuthUser)
 
-router.get('/attendance/all', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
+router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
     try {
-        let mCalendar = moment()
-        // let mCalendar = moment('2021-06-01')
+        let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
+        let mCalendar = moment(date)
         let mNow = moment()
         let mFirstDay = mCalendar.clone().startOf('month')
         let mLastDay = mCalendar.clone().endOf('month')
         let matrix = kalendaryo.getMatrix(mCalendar, 0)
         let attendances = kalendaryo.getDays(mCalendar, 0)
 
-        attendances = await db.main.Attendance.find({
-            createdAt: {
-                $gte: mFirstDay.toDate(),
-                $lte: mLastDay.toDate(),
-            }
-        }).lean()
-
-        for (let x = 0; x < attendances.length; x++) {
-            attendances[x].employee = await db.main.Employee.findById(attendances[x].employeeId)
-        }
+        attendances = await db.main.Attendance.aggregate([
+            {
+                $match:
+                {
+                    createdAt: {
+                        $gte: mFirstDay.toDate(),
+                        $lte: mLastDay.toDate(),
+                    }
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "employees",
+                    localField: "employeeId",
+                    foreignField: "_id",
+                    as: "employees"
+                }
+            },
+            // Turn array employees into field employee
+            // Add field employee
+            { 
+                "$addFields": { 
+                    "employee": { 
+                        $arrayElemAt: ["$employees", 0] 
+                    } 
+                } 
+            },
+            {
+                $project: {
+                    employees: 0,
+                }
+            },
+        ])
 
         attendances = lodash.groupBy(attendances, (attendance) => {
             return moment(attendance.createdAt).format('YYYY-MM-DD')
         })
 
-        // return res.send(attendances)
         matrix = matrix.map((row, i) => {
             row = row.map((cell) => {
                 let mCellDate = moment(cell)
@@ -73,14 +96,72 @@ router.get('/attendance/all', middlewares.guardRoute(['read_all_attendance', 're
             return row
         })
 
-        // return res.send(matrix)
-        res.render('attendance/all.html', {
+        let months = Array.from(Array(12).keys()).map((e, i) => {
+            return mCalendar.clone().month(i).startOf('month')
+        }); // 1-count
+
+        let years = []
+        for (let y = parseInt(moment().format('YYYY')); y > 1999; y--) {
+            years.push(y)
+        }
+
+        res.render('attendance/monthly.html', {
             flash: flash.get(req, 'attendance'),
-
-            // attendances: attendances,
-
+            months: months,
             mCalendar: mCalendar,
-            matrix: matrix
+            matrix: matrix,
+            years: years
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
+    try {
+        let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
+        let mCalendar = moment(date)
+        let mNow = moment()
+
+        attendances = await db.main.Attendance.aggregate([
+            {
+                $match:
+                {
+                    createdAt: {
+                        $gte: mCalendar.startOf('day').toDate(),
+                        $lte: mCalendar.endOf('day').toDate(),
+                    }
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "employees",
+                    localField: "employeeId",
+                    foreignField: "_id",
+                    as: "employees"
+                }
+            },
+            // Turn array employees into field employee
+            // Add field employee
+            { 
+                "$addFields": { 
+                    "employee": { 
+                        $arrayElemAt: ["$employees", 0] 
+                    } 
+                } 
+            },
+            {
+                $project: {
+                    employees: 0,
+                }
+            },
+        ])
+
+        res.render('attendance/daily.html', {
+            flash: flash.get(req, 'attendance'),
+            mCalendar: mCalendar,
+            attendances: attendances
         });
     } catch (err) {
         next(err);

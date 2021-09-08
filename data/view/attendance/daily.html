@@ -1,0 +1,88 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+
+    {% include 'parts/flash.html' %}
+    {% include 'attendance/header.html' %}
+    {# {% include 'parts/employee-profile-photo.html' %} #}
+    {# {% include 'attendance/tabs-calendar.html' %} #}
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3">
+        <h1 class="text-center h4 mb-3">Attendance Sheet</h1>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <tr class="text-center">
+                    <th class="align-middle text-center" rowspan="2">No.</th>
+                    <th class="align-middle" rowspan="2">Name</th>
+                    <th class="align-middle" colspan="2">Sex</th>
+                    <th>AM</th>
+                    <th class="align-middle" rowspan="2">Sign</th>
+                    <th>AM</th>
+                    <th class="align-middle" rowspan="2">Sign</th>
+                    <th>PM</th>
+                    <th class="align-middle" rowspan="2">Sign</th>
+                    <th>PM</th>
+                    <th class="align-middle" rowspan="2">Sign</th>
+                </tr>
+                <tr class="text-center">
+                    <th>M</th>
+                    <th>F</th>
+                    <th>In</th>
+                    <th>Out</th>
+                    <th>In</th>
+                    <th>Out</th>
+                </tr>
+                {% for attendance in attendances %}
+                    <tr>
+                        <td class="text-center">{{loop.index}}</td>
+                        <td>{{attendance.employee.firstName}} {{attendance.employee.lastName}} {{attendance.employee.suffix}}</td>
+                        <td class="text-center">{% if attendance.employee.gender == 'M' %}✓{% endif %}</td>
+                        <td class="text-center">{% if attendance.employee.gender == 'F' %}✓{% endif %}</td>
+                        <td>{{attendance.logs[0].dateTime|format_date('hh:mm')}}</td>
+                        <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
+                        <td>{{attendance.logs[1].dateTime|format_date('hh:mm')}}</td>
+                        <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
+                        <td>{{attendance.logs[2].dateTime|format_date('hh:mm')}}</td>
+                        <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
+                        <td>{{attendance.logs[3].dateTime|format_date('hh:mm')}}</td>
+                        <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            
+        },
+        validations: {
+            
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

@@ -35,75 +35,11 @@ let _cosStaffColumns = [
         title: 'Gross Pay',
         computed: true,
     },
-    {
-        uid: '5Premium',
-        title: '5% Premium',
-        computed: true,
-    },
-    {
-        uid: 'grossPay',
-        title: 'Total',
-        computed: true,
-    },
-    {
-        uid: 'tax3',
-        title: '3% Tax',
-        computed: false,
-    },
-    {
-        uid: 'tax10',
-        title: '10% Tax',
-        computed: false,
-    },
-    {
-        uid: 'totalTax',
-        title: 'Total Tax',
-        computed: true,
-    },
-    {
-        uid: 'contributionSss',
-        title: 'Contribution',
-        computed: false,
-    },
-    {
-        uid: 'ecSss',
-        title: 'EC',
-        computed: false,
-    },
-    {
-        uid: 'totalSss',
-        title: 'Total SSS',
-        computed: true,
-    },
-    {
-        uid: 'totalDeductions',
-        title: 'Total Deductions',
-        computed: true,
-    },
-    {
-        uid: 'netPay',
-        title: 'Net Amnt ',
-        computed: true,
-    },
-]
-
-// row.name = 'Grand Total >>>>'
-let _cosStaffColumnsGrandTotal = [
-    {},
-    {},
-    {},
-    {},
-    {},
-    {
-        uid: 'amountWorked',
-        title: 'Gross Pay',
-        computed: true,
-    },
-    {
-        uid: '5Premium',
-        title: '5% Premium',
-        computed: true,
-    },
+    // {
+    //     uid: '5Premium',
+    //     title: '5% Premium',
+    //     computed: true,
+    // },
     {
         uid: 'grossPay',
         title: 'Total',
@@ -183,7 +119,7 @@ let _permanentColumns = [
         computed: true,
     },
     {
-        uid: 'grossPay',
+        uid: 'grossPayPermanent',
         title: 'Grant Total',
         computed: true,
     },
@@ -302,7 +238,7 @@ let _permanentColumns = [
         computed: true,
     },
     {
-        uid: 'netPay',
+        uid: 'netPayPermanent',
         title: 'Net Amnt ',
         computed: true,
     },
@@ -321,94 +257,12 @@ let _permanentColumns = [
     },
 ]
 
-let _permanentColumnsGrandTotal = [
-    {},
-    {},
-    {
-        uid: 'basePay',
-        title: 'Salary',
-        computed: true,
-    },
-    {
-        uid: 'peraAca',
-        title: 'Allowance PERA/ACA',
-        computed: true,
-    },
-    {},
-    {
-        uid: 'amountWorked',
-        title: 'Gross Pay',
-        computed: true,
-    },
-    {
-        uid: '5Premium',
-        title: '5% Premium',
-        computed: true,
-    },
-    {
-        uid: 'grossPay',
-        title: 'Total',
-        computed: true,
-    },
-    {
-        uid: 'tax3',
-        title: '3% Tax',
-        computed: false,
-    },
-    {
-        uid: 'tax10',
-        title: '10% Tax',
-        computed: false,
-    },
-    {
-        uid: 'totalTax',
-        title: 'Total Tax',
-        computed: true,
-    },
-    {
-        uid: 'contributionSss',
-        title: 'Contribution',
-        computed: false,
-    },
-    {
-        uid: 'ecSss',
-        title: 'EC',
-        computed: false,
-    },
-    {
-        uid: 'totalSss',
-        title: 'Total SSS',
-        computed: true,
-    },
-    {
-        uid: 'totalDeductions',
-        title: 'Total Deductions',
-        computed: true,
-    },
-    {
-        uid: 'netPay',
-        title: 'Net Amnt ',
-        computed: true,
-    },
-]
-
 let getColumns = (template) => {
     let columns = []
-    if(template === 'cos_staff'){
+    if (template === 'cos_staff') {
         columns = _cosStaffColumns
-    } else if(template === 'permanent'){
+    } else if (template === 'permanent') {
         columns = _permanentColumns
-    } else {
-        throw new Error(`Template "${template}" not found.`)
-    }
-    return columns
-}
-let getColumnsGrandTotal = (template) => {
-    let columns = []
-    if(template === 'cos_staff'){
-        columns = _cosStaffColumnsGrandTotal
-    } else if(template === 'permanent'){
-        columns = _permanentColumnsGrandTotal
     } else {
         throw new Error(`Template "${template}" not found.`)
     }
@@ -417,5 +271,4 @@ let getColumnsGrandTotal = (template) => {
 
 module.exports = {
     getColumns: getColumns,
-    getColumnsGrandTotal: getColumnsGrandTotal,
 }

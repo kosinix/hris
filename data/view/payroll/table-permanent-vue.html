@@ -20,18 +20,18 @@
                     </td>
                     <td v-for="column in payroll.columns.filter(visibleColumns)">
                         <template v-if="column.computed === false">
-                            <input v-on:blur="lockInput($event)" type="text" v-bind:value="getCellValue(row, column, formulas.permanent)" v-on:input="inputCell($event, getCell(row, column))">
-                            <span class="text-danger" v-on:dblclick="editInput($event)">${getCellValue(row, column, formulas.permanent) | currency}</span>
+                            <input v-on:blur="lockInput($event)" type="text" v-bind:value="getCellValue(row, column.uid, formulas, payroll.columns)" v-on:input="inputCell($event, getCell(row, column))">
+                            <span class="text-danger" v-on:dblclick="editInput($event)">${getCellValue(row, column.uid, formulas, payroll.columns) | currency}</span>
                         </template>
                         <template v-else>
                             <template v-if="column.uid === 'attendance'">
                                 <a class="d-flex justify-content-around text-right link-attendance" href="#">
-                                    <span>${getCellValue(row, column, formulas.permanent)['days']} days</span>
-                                    <span>${getCellValue(row, column, formulas.permanent)['hrs']} hrs</span>
-                                    <span>${getCellValue(row, column, formulas.permanent)['mins']} mins</span>
+                                    <span>${getCellValue(row, column.uid, formulas, payroll.columns)['days']} days</span>
+                                    <span>${getCellValue(row, column.uid, formulas, payroll.columns)['hrs']} hrs</span>
+                                    <span>${getCellValue(row, column.uid, formulas, payroll.columns)['mins']} mins</span>
                                 </a>
                             </template>
-                            <template v-else>${getCellValue(row, column, formulas.permanent) | currency}</template>
+                            <template v-else>${getCellValue(row, column.uid, formulas, payroll.columns) | currency}</template>
                         </template>
                     </td>
                     <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>

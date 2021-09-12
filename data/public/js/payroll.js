@@ -55,296 +55,264 @@ var tardiness = function (salary, salaryType, workDays, underTimeTotalMinutes) {
     return tardiness
 }
 
-var getCellValue = function (row, column, formulas, defVal = 0) {
-    if (typeof column === 'string' || column instanceof String) {
-        column = {
-            uid: column
-        }
-    }
-    var cell = row.cells.find(function (c) {
-        return c.columnUid === column.uid;
+var getCellValue = function (row, columnUid, formulas, columns) {
+    // If columnUid is not on payroll columns, return 0
+    var column = columns.find(function (_column) {
+        return _column.uid === columnUid;
     })
-    var formula = formulas.find(function (f) {
-        return f.uid === column.uid;
+    if (!column) return 0
+
+    var cell = row.cells.find(function (_cell) {
+        return _cell.columnUid === columnUid;
     })
 
     var cellVal = _.get(cell, 'value');
     if (cellVal) return cellVal;
 
-    return _.invoke(formula, 'getValue', row, formulas) || defVal;
+    // Get formula key from column.formula
+    var formula = formulas.find(function (f) {
+        return f.uid === columnUid;
+    })
+    return _.invoke(formula, 'getValue', row, columnUid, formulas, columns) || 0;
 }
 
 // Formulas
-var formulas = {
-    cos_staff: [
-        {
-            uid: 'fundSource',
-            getValue: function (row) {
-                return _.get(row, 'employment.fundSource', '');
+var formulas = [
+    {
+        uid: 'fundSource',
+        getValue: function (row, columnUid, formulas, columns) {
+            return _.get(row, 'employment.fundSource', '');
+        }
+    },
+    {
+        uid: 'name',
+        getValue: function (row, columnUid, formulas, columns) {
+            var names = [_.get(row, 'employee.lastName', ''), _.get(row, 'employee.firstName', '')].filter(function (o) {
+                return o !== '';
+            })
+            return names.join(', ');
+        }
+    },
+    {
+        uid: 'position',
+        getValue: function (row, columnUid, formulas, columns) {
+            return _.get(row, 'employment.position', '');
+        }
+    },
+    {
+        uid: 'basePay',
+        getValue: function (row, columnUid, formulas, columns) {
+            return parseFloat(_.get(row, 'employment.salary', 0));
+        }
+    },
+    {
+        uid: 'attendance',
+        getValue: function (row, columnUid, formulas, columns) {
+            var t = _.get(row, 'timeRecord')
+            return {
+                days: _.get(t, 'renderedDays', 0),
+                hrs: _.get(t, 'renderedHours', 0),
+                mins: _.get(t, 'renderedMinutes', 0),
             }
-        },
-        {
-            uid: 'name',
-            getValue: function (row) {
-                var names = [_.get(row, 'employee.lastName', ''), _.get(row, 'employee.firstName', '')].filter(function (o) {
-                    return o !== '';
-                })
-                return names.join(', ');
-            }
-        },
-        {
-            uid: 'position',
-            getValue: function (row) {
-                return _.get(row, 'employment.position', '');
-            }
-        },
-        {
-            uid: 'basePay',
-            getValue: function (row) {
-                return parseFloat(_.get(row, 'employment.salary', 0));
-            }
-        },
-        {
-            uid: 'attendance',
-            getValue: function (row) {
-                var t = _.get(row, 'timeRecord')
-                return {
-                    days: _.get(t, 'renderedDays', 0),
-                    hrs: _.get(t, 'renderedHours', 0),
-                    mins: _.get(t, 'renderedMinutes', 0),
-                }
-            }
-        },
-        {
-            uid: 'amountWorked',
-            getValue: function (row) {
-                return parseFloat(money.floatToAmount(
-                    amountWorked(_.get(row, 'employment.salary', 0), _.get(row, 'employment.salaryType'), _.get(row, 'timeRecord.totalMinutes', 0))
-                ))
-            }
-        },
-        {
-            uid: '5Premium',
-            getValue: function (row, formulas) {
-                return parseFloat(
-                    money.floatToAmount(
-                        getCellValue(row, 'amountWorked', formulas) * 0.05
-                    )
+        }
+    },
+    {
+        uid: 'amountWorked',
+        getValue: function (row, columnUid, formulas, columns) {
+            return parseFloat(money.floatToAmount(
+                amountWorked(_.get(row, 'employment.salary', 0), _.get(row, 'employment.salaryType'), _.get(row, 'timeRecord.totalMinutes', 0))
+            ))
+        }
+    },
+    {
+        uid: '5Premium',
+        getValue: function (row, columnUid, formulas, columns) {
+            return parseFloat(
+                money.floatToAmount(
+                    getCellValue(row, 'amountWorked', formulas, columns) * 0.05
                 )
-            }
-        },
-        {
-            uid: 'grossPay',
-            getValue: function (row, formulas) {
-                return parseFloat(
-                    money.floatToAmount(
-                        getCellValue(row, 'amountWorked', formulas) + getCellValue(row, '5Premium', formulas)
-                    )
+            )
+        }
+    },
+    {
+        uid: 'grossPay',
+        getValue: function (row, columnUid, formulas, columns) {
+            return parseFloat(
+                money.floatToAmount(
+                    getCellValue(row, 'amountWorked', formulas, columns) + getCellValue(row, '5Premium', formulas, columns)
                 )
-            }
-        },
-        {
-            uid: 'totalTax',
-            getValue: function (row, formulas) {
-                return parseFloat(
-                    money.floatToAmount(
-                        getCellValue(row, 'tax3', formulas) + getCellValue(row, 'tax10', formulas)
-                    )
+            )
+        }
+    },
+    {
+        uid: 'totalTax',
+        getValue: function (row, columnUid, formulas, columns) {
+            return parseFloat(
+                money.floatToAmount(
+                    getCellValue(row, 'tax3', formulas, columns) + getCellValue(row, 'tax10', formulas, columns)
                 )
-            }
-        },
-        {
-            uid: 'totalSss',
-            getValue: function (row, formulas) {
-                return parseFloat(
-                    money.floatToAmount(
-                        getCellValue(row, 'contributionSss', formulas) + getCellValue(row, 'ecSss', formulas)
-                    )
+            )
+        }
+    },
+    {
+        uid: 'totalSss',
+        getValue: function (row, columnUid, formulas, columns) {
+            return parseFloat(
+                money.floatToAmount(
+                    getCellValue(row, 'contributionSss', formulas, columns) + getCellValue(row, 'ecSss', formulas, columns)
                 )
-            }
-        },
-        {
-            uid: 'totalDeductions',
-            getValue: function (row, formulas) {
-                return parseFloat(
-                    money.floatToAmount(
-                        getCellValue(row, 'totalTax', formulas) + getCellValue(row, 'totalSss', formulas)
-                    )
+            )
+        }
+    },
+    {
+        uid: 'totalDeductions',
+        getValue: function (row, columnUid, formulas, columns) {
+            return parseFloat(
+                money.floatToAmount(
+                    getCellValue(row, 'totalTax', formulas, columns) + getCellValue(row, 'totalSss', formulas, columns)
                 )
-            }
-        },
-        {
-            uid: 'netPay',
-            getValue: function (row, formulas) {
-
-
-                return parseFloat(
-                    money.floatToAmount(
-                        getCellValue(row, 'grossPay', formulas) - getCellValue(row, 'totalDeductions', formulas)
-                    )
+            )
+        }
+    },
+    {
+        uid: 'netPay',
+        getValue: function (row, columnUid, formulas, columns) {
+            return parseFloat(
+                money.floatToAmount(
+                    getCellValue(row, 'grossPay', formulas, columns) - getCellValue(row, 'totalDeductions', formulas, columns)
                 )
-            }
-        },
-    ],
-    permanent: [
-        {
-            uid: 'name',
-            getValue: function (row) {
-                var names = [_.get(row, 'employee.lastName', ''), _.get(row, 'employee.firstName', '')].filter(function (o) {
-                    return o !== '';
-                })
-                return names.join(', ')
-            }
-        },
-        {
-            uid: 'position',
-            getValue: function (row) {
-                return `${_.get(row, 'employment.position', '')}`
-            }
-        },
-        {
-            uid: 'basePay',
-            getValue: function (row) {
-                return parseFloat(_.get(row, 'employment.salary', 0))
-            }
-        },
-        {
-            uid: 'peraAca',
-            getValue: function (row) {
-
-                return 2000
-            }
-        },
-        {
-            uid: 'grossPayAllowance',
-            getValue: function (row, formulas) {
-
-
-                return parseFloat(
-                    money.floatToAmount(
-                        getCellValue(row, 'basePay', formulas) + getCellValue(row, 'peraAca', formulas)
-                    )
+            )
+        }
+    },
+    /////////////////
+    {
+        uid: 'peraAca',
+        getValue: function (row, columnUid, formulas, columns) {
+            return 2000
+        }
+    },
+    {
+        uid: 'grossPayAllowance',
+        getValue: function (row, columnUid, formulas, columns) {
+            return parseFloat(
+                money.floatToAmount(
+                    getCellValue(row, 'basePay', formulas, columns) + getCellValue(row, 'peraAca', formulas, columns)
                 )
-            }
-        },
-        {
-            uid: 'tardiness',
-            getValue: function (row, formulas) {
-
-                return parseFloat(money.floatToAmount(
-                    tardiness(_.get(row, 'employment.salary', 0), _.get(row, 'employment.salaryType'), 22, _.get(row, 'timeRecord.underTimeTotalMinutes', 0))
-                ))
-            }
-        },
-        {
-            uid: 'grossPay',
-            getValue: function (row, formulas) {
-
-
-                return parseFloat(
-                    money.floatToAmount(
-                        getCellValue(row, 'grossPayAllowance', formulas) - getCellValue(row, 'tardiness', formulas)
-                    )
+            )
+        }
+    },
+    {
+        uid: 'tardiness',
+        getValue: function (row, columnUid, formulas, columns) {
+            return parseFloat(money.floatToAmount(
+                tardiness(_.get(row, 'employment.salary', 0), _.get(row, 'employment.salaryType'), 22, _.get(row, 'timeRecord.underTimeTotalMinutes', 0))
+            ))
+        }
+    },
+    {
+        uid: 'grossPayPermanent',
+        getValue: function (row, columnUid, formulas, columns) {
+            return parseFloat(
+                money.floatToAmount(
+                    getCellValue(row, 'grossPayAllowance', formulas, columns) - getCellValue(row, 'tardiness', formulas, columns)
                 )
-            }
-        },
-        {
-            uid: 'rlipPs9',
-            getValue: function (row, formulas) {
+            )
+        }
+    },
+    {
+        uid: 'rlipPs9',
+        getValue: function (row, columnUid, formulas, columns) {
+            return parseFloat(
+                money.floatToAmount(getCellValue(row, 'basePay', formulas, columns) * 0.09)
+            )
+        }
+    },
+    {
+        uid: 'totalMandatoryDeductions',
+        getValue: function (row, columnUid, formulas, columns) {
+            var v = []
+            v.push(getCellValue(row, 'rlipPs9', formulas, columns))
+            v.push(getCellValue(row, 'emergencyLoan', formulas, columns))
+            v.push(getCellValue(row, 'eal', formulas, columns))
+            v.push(getCellValue(row, 'consoLoan', formulas, columns))
+            v.push(getCellValue(row, 'ouliPremium', formulas, columns))
+            v.push(getCellValue(row, 'policyOuliLoan', formulas, columns))
+            v.push(getCellValue(row, 'regularPolicyLoan', formulas, columns))
+            v.push(getCellValue(row, 'gfal', formulas, columns))
+            v.push(getCellValue(row, 'mpl', formulas, columns))
+            v.push(getCellValue(row, 'cpl', formulas, columns))
+            v.push(getCellValue(row, 'help', formulas, columns))
+            v.push(getCellValue(row, 'medicare', formulas, columns))
+            v.push(getCellValue(row, 'pagibigContribution', formulas, columns))
+            v.push(getCellValue(row, 'mplLoan', formulas, columns))
+            v.push(getCellValue(row, 'calamityLoan', formulas, columns))
+            v.push(getCellValue(row, 'withholdingTax', formulas, columns))
+            return v.reduce(function (accum, current) {
+                return accum + current;
+            }, 0)
 
+        }
+    },
 
-                return parseFloat(
-                    money.floatToAmount(getCellValue(row, 'basePay', formulas) * 0.09)
-                )
-            }
-        },
-        {
-            uid: 'totalMandatoryDeductions',
-            getValue: function (row, formulas) {
+    {
+        uid: 'netAfterTotalMandatoryDeductions',
+        getValue: function (row, columnUid, formulas, columns) {
+            var v1 = getCellValue(row, 'grossPayPermanent', formulas, columns)
+            var v2 = getCellValue(row, 'totalMandatoryDeductions', formulas, columns)
+            return parseFloat(v1 - v2)
+        }
+    },
+    //
+    {
+        uid: 'totalNonMandatoryDeductions',
+        getValue: function (row, columnUid, formulas, columns) {
+            var v = []
+            v.push(getCellValue(row, 'teachersScholars', formulas, columns))
+            v.push(getCellValue(row, 'ffaLoan', formulas, columns))
+            v.push(getCellValue(row, 'citySavingsBank', formulas, columns))
+            return v.reduce(function (accum, current) {
+                return accum + current;
+            }, 0)
 
-                var v = []
-                v.push(getCellValue(row, 'rlipPs9', formulas))
-                v.push(getCellValue(row, 'emergencyLoan', formulas))
-                v.push(getCellValue(row, 'eal', formulas))
-                v.push(getCellValue(row, 'consoLoan', formulas))
-                v.push(getCellValue(row, 'ouliPremium', formulas))
-                v.push(getCellValue(row, 'policyOuliLoan', formulas))
-                v.push(getCellValue(row, 'regularPolicyLoan', formulas))
-                v.push(getCellValue(row, 'gfal', formulas))
-                v.push(getCellValue(row, 'mpl', formulas))
-                v.push(getCellValue(row, 'cpl', formulas))
-                v.push(getCellValue(row, 'help', formulas))
-                v.push(getCellValue(row, 'medicare', formulas))
-                v.push(getCellValue(row, 'pagibigContribution', formulas))
-                v.push(getCellValue(row, 'mplLoan', formulas))
-                v.push(getCellValue(row, 'calamityLoan', formulas))
-                v.push(getCellValue(row, 'withholdingTax', formulas))
-                return v.reduce(function (accum, current) {
-                    return accum + current;
-                }, 0)
+        }
+    },
+    {
+        uid: 'netPayPermanent',
+        getValue: function (row, columnUid, formulas, columns) {
+            var v1 = getCellValue(row, 'grossPayPermanent', formulas, columns)
+            var v2 = getCellValue(row, 'totalMandatoryDeductions', formulas, columns)
+            var v3 = getCellValue(row, 'totalNonMandatoryDeductions', formulas, columns)
+            return parseFloat(v1 - (v2 + v3))
+        }
+    },
+    // Outside
+    {
+        uid: 'totalQuincena',
+        getValue: function (row, columnUid, formulas, columns) {
+            var v1 = getCellValue(row, 'firstQuincena', formulas, columns)
+            var v2 = getCellValue(row, 'secondQuincena', formulas, columns)
+            return v1 + v2
+        }
+    },
+    {
+        uid: 'variance',
+        getValue: function (row, columnUid, formulas, columns) {
+            var v1 = getCellValue(row, 'totalQuincena', formulas, columns)
+            var v2 = getCellValue(row, 'netPayPermanent', formulas, columns)
+            return v1 - v2
+        }
+    },
+    {
+        uid: 'totalDeductionsPermanent',
+        getValue: function (row, columnUid, formulas, columns) {
+            var v1 = getCellValue(row, 'totalMandatoryDeductions', formulas, columns)
+            var v2 = getCellValue(row, 'totalNonMandatoryDeductions', formulas, columns)
+            return v1 + v2
+        }
+    },
 
-            }
-        },
+]
 
-        {
-            uid: 'netAfterTotalMandatoryDeductions',
-            getValue: function (row, formulas) {
-                var v1 = getCellValue(row, 'grossPay', formulas)
-                var v2 = getCellValue(row, 'totalMandatoryDeductions', formulas)
-                return parseFloat(v1 - v2)
-            }
-        },
-        //
-        {
-            uid: 'totalNonMandatoryDeductions',
-            getValue: function (row, formulas) {
-                var v = []
-                v.push(getCellValue(row, 'teachersScholars', formulas))
-                v.push(getCellValue(row, 'ffaLoan', formulas))
-                v.push(getCellValue(row, 'citySavingsBank', formulas))
-                return v.reduce(function (accum, current) {
-                    return accum + current;
-                }, 0)
-
-            }
-        },
-        {
-            uid: 'netPay',
-            getValue: function (row, formulas) {
-                var v1 = getCellValue(row, 'grossPay', formulas)
-                var v2 = getCellValue(row, 'totalMandatoryDeductions', formulas)
-                var v3 = getCellValue(row, 'totalNonMandatoryDeductions', formulas)
-                return parseFloat(v1 - (v2 + v3))
-            }
-        },
-        // Outside
-        {
-            uid: 'totalQuincena',
-            getValue: function (row, formulas) {
-                var v1 = getCellValue(row, 'firstQuincena', formulas)
-                var v2 = getCellValue(row, 'secondQuincena', formulas)
-                return v1 + v2
-            }
-        },
-        {
-            uid: 'variance',
-            getValue: function (row, formulas) {
-                var v1 = getCellValue(row, 'totalQuincena', formulas)
-                var v2 = getCellValue(row, 'netPay', formulas)
-                return v1 - v2
-            }
-        },
-        {
-            uid: 'totalDeductions',
-            getValue: function (row, formulas) {
-                var v1 = getCellValue(row, 'totalMandatoryDeductions', formulas)
-                var v2 = getCellValue(row, 'totalNonMandatoryDeductions', formulas)
-                return v1 + v2
-            }
-        },
-
-    ]
-}
 
 function getSubTotal(columnUid, rowIndex, payroll, formulas) {
     let column = payroll.columns.find(function (c) {
@@ -372,7 +340,7 @@ function getSubTotal(columnUid, rowIndex, payroll, formulas) {
     let values = payroll.rows.slice(start, end).filter(function (row) {
         return row.type === 1;
     }).map(function (row) {
-        return getCellValue(row, column, formulas[payroll.template]);
+        return getCellValue(row, columnUid, formulas, payroll.columns);
     })
     return values.reduce(function (accum, current) {
         return accum + current;
@@ -394,7 +362,7 @@ function getGrandTotal(columnUid, rowIndex, payroll, formulas) {
     let values = payroll.rows.slice(0, rowIndex).filter(function (row) {
         return row.type === 1;
     }).map(function (row) {
-        return getCellValue(row, column, formulas[payroll.template]);
+        return getCellValue(row, columnUid, formulas, payroll.columns);
     })
     return values.reduce(function (accum, current) {
         return accum + current;

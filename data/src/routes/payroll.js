@@ -219,8 +219,6 @@ router.get(['/payroll/:payrollId', `/payroll/:payrollId/payroll.xlsx`], middlewa
     try {
         let payroll = res.payroll.toObject()
 
-
-        // return res.send(payroll)
         if (req.originalUrl.includes('.xlsx')) {
             payroll.rows = lodash.map(payroll.rows, (row) => {
                 if (row.type === 1) {

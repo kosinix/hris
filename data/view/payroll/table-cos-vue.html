@@ -5,7 +5,7 @@
             <tr class="text-center">
                 <th></th>
                 <th></th>
-                <th v-for="column in payroll.columns">${column.title}</th>
+                <th v-for="column in payroll.columns.filter(visibleColumns)">${column.title}</th>
                 <th></th>
             </tr>
         </thead>
@@ -18,20 +18,20 @@
                             <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
                         </svg>
                     </td>
-                    <td v-for="column in payroll.columns">
+                    <td v-for="column in payroll.columns.filter(visibleColumns)">
                         <template v-if="column.computed === false">
-                            <input v-on:blur="lockInput($event)" type="text" v-bind:value="getCellValue(row, column, formulas.cos_staff)" v-on:input="inputCell($event, getCell(row, column))">
-                            <span class="text-danger" v-on:dblclick="editInput($event)">${getCellValue(row, column, formulas.cos_staff) | currency}</span>
+                            <input v-on:blur="lockInput($event)" type="text" v-bind:value="getCellValue(row, column.uid, formulas, payroll.columns)" v-on:input="inputCell($event, getCell(row, column))">
+                            <span class="text-danger" v-on:dblclick="editInput($event)">${getCellValue(row, column.uid, formulas, payroll.columns) | currency}</span>
                         </template>
                         <template v-else>
                             <template v-if="column.uid === 'attendance'">
                                 <a class="d-flex justify-content-around text-right link-attendance" v-bind:href="attendanceLink(row, payroll)">
-                                    <span>${getCellValue(row, column, formulas.cos_staff)['days']} days</span>
-                                    <span>${getCellValue(row, column, formulas.cos_staff)['hrs']} hrs</span>
-                                    <span>${getCellValue(row, column, formulas.cos_staff)['mins']} mins</span>
+                                    <span>${getCellValue(row, column.uid, formulas, payroll.columns)['days']} days</span>
+                                    <span>${getCellValue(row, column.uid, formulas, payroll.columns)['hrs']} hrs</span>
+                                    <span>${getCellValue(row, column.uid, formulas, payroll.columns)['mins']} mins</span>
                                 </a>
                             </template>
-                            <template v-else>${getCellValue(row, column, formulas.cos_staff) | currency}</template>
+                            <template v-else>${getCellValue(row, column.uid, formulas, payroll.columns) | currency}</template>
                         </template>
                     </td>
                     <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>
@@ -45,7 +45,7 @@
                     </td>
                     <td colspan="5" class="font-weight-bold">Subtotal</td>
                     <td>${getSubTotal('amountWorked', rowIndex, payroll, formulas) | currency}</td>
-                    <td>${getSubTotal('5Premium', rowIndex, payroll, formulas) | currency}</td>
+                    {# <td>${getSubTotal('5Premium', rowIndex, payroll, formulas) | currency}</td> #}
                     <td>${getSubTotal('grossPay', rowIndex, payroll, formulas) | currency}</td>
                     <td colspan="7"></td>
                     <td>${getSubTotal('netPay', rowIndex, payroll, formulas) | currency}</td>
@@ -75,7 +75,7 @@
                     </td>
                     <td class="font-weight-bold" colspan="5">Grand Total &gt;&gt;&gt;&gt;</td>
                     <td>${getGrandTotal('amountWorked', rowIndex, payroll, formulas) | currency}</td>
-                    <td>${getGrandTotal('5Premium', rowIndex, payroll, formulas) | currency}</td>
+                    {# <td>${getGrandTotal('5Premium', rowIndex, payroll, formulas) | currency}</td> #}
                     <td>${getGrandTotal('grossPay', rowIndex, payroll, formulas) | currency}</td>
                     <td colspan="7"></td>
                     <td>${getGrandTotal('netPay', rowIndex, payroll, formulas) | currency}</td>

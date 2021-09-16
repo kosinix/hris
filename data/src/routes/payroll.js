@@ -60,6 +60,10 @@ router.get('/payroll/all', middlewares.guardRoute(['read_all_payroll', 'read_pay
         // payrolls.forEach((payroll, i) => {
         //     payroll.scanners = scanners[i]
         // })
+        payrolls = payrolls.map((payroll) => {
+            payroll.count = payroll.rows.filter(r => r.type === 1).length
+            return payroll
+        })
 
         res.render('payroll/all.html', {
             flash: flash.get(req, 'payroll'),
@@ -85,6 +89,14 @@ router.get('/payroll/create', middlewares.guardRoute(['create_payroll']), async 
                 }
             })
         });
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/payroll/generate', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
+    try {
+
+        res.render('payroll/generate.html');
     } catch (err) {
         next(err);
     }
@@ -210,6 +222,143 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
 
         flash.ok(req, 'payroll', `Created payroll "${payroll.name}".`)
         res.redirect(`/payroll/${payroll._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
+    try {
+        let body = req.body
+        let patch = {}
+        lodash.set(patch, 'name', lodash.get(body, 'name'))
+        lodash.set(patch, 'dateStart', lodash.get(body, 'dateStart'))
+        lodash.set(patch, 'dateEnd', lodash.get(body, 'dateEnd'))
+
+        let profiles = [
+            ['Permanent Faculty and Staff', 'permanent'],
+            ['GAA NO ATM', 'cos_staff'],
+            ['GAA ATM', 'cos_staff'],
+            ['STF', 'cos_staff'],
+            ['IGP', 'cos_staff'],
+            ['COS Faculty and Part-timers', 'cos_staff'],
+        ]
+        for (let eIndex = 0; eIndex < profiles.length; ++eIndex) {
+            let employeeList = profiles[eIndex][0]
+            let template = profiles[eIndex][1]
+
+            // 1. Get list members
+            let list = await db.main.EmployeeList.findOne({
+                name: employeeList
+            }, { members: 1 })
+            let members = lodash.get(list, 'members', [])
+
+            // 2. From members, get employee and employment
+            let employees = []
+            let employments = []
+            let attendances = []
+
+            members.forEach((member, i) => {
+                employees.push(db.main.Employee.findById(member.employeeId).lean())
+                employments.push(db.main.Employment.findById(member.employmentId).lean())
+                attendances.push(db.main.Attendance.find({
+                    employmentId: member.employmentId,
+                    createdAt: {
+                        $gte: moment(patch.dateStart).startOf('day').toDate(),
+                        $lt: moment(patch.dateEnd).endOf('day').toDate(),
+                    }
+                }).lean())
+            })
+
+            employees = await Promise.all(employees)
+            employments = await Promise.all(employments)
+            attendances = await Promise.all(attendances)
+
+            // 3. Get columns
+            let columns = payrollTemplate.getColumns(template)
+
+            // 4. Format rows based on employee, employment, and columns for template, and attendance
+            let rows = employees.map((employee, i) => {
+                let employment = employments[i]
+
+                // Generate cells
+                let cells = columns.filter(o => o.computed === false)
+                cells = cells.map(o => {
+                    return {
+                        columnUid: o.uid,
+                        value: 0
+                    }
+                })
+
+                // Get attendances based on payroll date range
+                _attendances = attendances[i]
+
+                // Attach computed values
+                let totalMinutes = 0
+                let totalMinutesUnderTime = 0
+                let hoursPerDay = 8
+                let travelPoints = 480
+                for (let a = 0; a < _attendances.length; a++) {
+                    let attendance = _attendances[a] // daily
+                    let dtr = dtrHelper.calcDailyAttendance(attendance, hoursPerDay, travelPoints)
+                    totalMinutes += dtr.totalMinutes
+                    totalMinutesUnderTime += dtr.underTimeTotalMinutes
+                    _attendances[a].dtr = dtr
+                }
+
+                let timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, hoursPerDay)
+
+                return {
+                    uid: uid.gen(),
+                    type: 1,
+                    employment: employment,
+                    employee: employee,
+                    timeRecord: timeRecord,
+                    cells: cells,
+                    attendances: _attendances,
+                }
+            })
+
+            if (template === 'cos_staff') {
+                // insert 
+                rows.unshift({
+                    uid: uid.gen(),
+                    type: 3,
+                    employment: {},
+                    employee: {},
+                    timeRecord: {},
+                    cells: [],
+                    name: 'Title',
+                    attendances: [],
+                })
+            }
+
+            rows.push({
+                uid: uid.gen(),
+                type: 4,
+                employment: {},
+                employee: {},
+                timeRecord: {},
+                cells: [],
+                attendances: [],
+            })
+            // return res.send(rows)
+
+            let payroll = {
+                name: `${patch.name} ${employeeList}`,
+                dateStart: patch.dateStart,
+                dateEnd: patch.dateEnd,
+                rows: rows,
+                columns: columns,
+                template: template,
+            }
+
+            payroll = await db.main.Payroll.create(payroll)
+            // return res.send(payroll)
+
+        }
+
+        flash.ok(req, 'payroll', `Generated payroll group "${patch.name}".`)
+        res.redirect(`/payroll/all`)
     } catch (err) {
         next(err);
     }

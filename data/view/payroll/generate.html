@@ -23,9 +23,7 @@
         </ul>
     </div>
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-2">
-        <form ref="form" v-on:submit.prevent="onSubmit" action="/payroll/create" method="POST" class="form-default">
-
-            
+        <form ref="form" v-on:submit.prevent="onSubmit" action="/payroll/generate" method="POST" class="form-default">
 
             <div class="form-group">
                 <label for="dateStart">Period *</label>
@@ -42,34 +40,6 @@
                 </div>
             </div>
 
-            {% set name = 'template' %}
-            {% set label = 'Template *' %}
-            {% set options = [{value:'', text:''}, {value:'permanent', text:'Permanent'}, {value:'cos_faculty', text:'COS Faculty'}, {value:'cos_staff', text:'COS Staff'}] %}
-            {% include 'parts/form-group-select.html' %}
-            {% set label = '' %}
-
-            {% set name = 'employeeList' %}
-            {% set label = 'Employee List *' %}
-            {% set options = employeeLists %}
-            <div class="form-group">
-                <label for="{{name}}">
-                    {% if label %}
-                        {{label}}
-                    {% else %}
-                        {{name|start_case}}
-                    {% endif %}
-                </label>
-                <div>
-                    <select name="{{name}}" id="{{name}}" v-on:change="updateName" v-model="{% if vModel %}{{vModel}}{% else %}{{name}}{% endif %}" class="form-control">
-                        {% for option in options %}
-                            <option value="{{option.value}}">{{option.text}}</option>
-                        {% endfor %}
-                    </select>
-                    <small class="invalid-feedback">${getError('{{name}}')}</small>
-                </div>
-            </div>
-            {% set label = '' %}
-
             {% set name = 'name' %}
             {% set label = 'Payroll Name *' %}
             {% include 'parts/form-group-text.html' %}
@@ -77,7 +47,7 @@
 
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
-                    <button class="btn btn-primary">Create</button>
+                    <button class="btn btn-primary">Generate</button>
                 </div>
             </div>
         </form>
@@ -98,9 +68,6 @@
             name: '',
             dateStart: '',
             dateEnd: '',
-            template: '',
-            employeeList: '',
-            employeeLists: {{employeeLists|default([], true)|stringify|safe}}
         },
         validations: {
             name: {
@@ -112,15 +79,13 @@
             dateEnd: {
                 required: window.validators.required
             },
-            template: {
-                required: window.validators.required
-            },
-            employeeList: {
-                required: window.validators.required
-            },
         },
         mounted: function(){
-            this.updateName()
+            var me = this;
+            setTimeout(function(){
+                me.updateName()
+            }, 1000)
+            
         },
         methods: {
             updateName: function() {
@@ -139,10 +104,8 @@
                 } else {
                     name = mQuincena.clone().endOf('month').format('MMMM Do YYYY');
                 }
-                var f = _.find(me.employeeLists, function(e){
-                    return e.value === me.employeeList;
-                })
-                this.name = _.trim(name + ' ' + _.get(f, 'text', ''));
+               
+                this.name = name
             },
             onSubmit: function(){
                 var me = this;

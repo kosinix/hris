@@ -101,5 +101,25 @@
         }
       }
     ]
+  },
+  "scanners": {
+    "scanningDeviceList": [
+      {
+        "value": "",
+        "text": ""
+      },
+      {
+        "value": "webcam",
+        "text": "Device with Camera (eg. Phone, Tablet, Laptop)"
+      },
+      {
+        "value": "qrCodeDevice",
+        "text": "QR Code Scanner"
+      },
+      {
+        "value": "rfid",
+        "text": "RFID Card Scanner"
+      }
+    ]
   }
 }

@@ -4,7 +4,7 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h3">Create Scanner</h1>
+            <h1 class="h3">Edit Scanner</h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
@@ -13,7 +13,7 @@
         </div>
     </div>
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/scanner/create" method="POST" class="form-default">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/scanner/{{scanner._id}}/edit" method="POST" class="form-default">
             {% set name = 'name' %}
             {% set label = 'Scanner Name' %}
             {% include 'parts/form-group-text.html' %}
@@ -37,8 +37,8 @@
                 <div>
                     <autocomplete v-model="userId"
                         name="userId"
-                        initial-value="{{''}}"
-                        initial-display="{{''}}"
+                        initial-value="{{scanner.userId}}"
+                        initial-display="{{scanner.user.email}}"
                         placeholder="Type user email..."
                         :source="dataSource"
                         input-class="form-control"
@@ -50,9 +50,23 @@
                 </div>
 
             </div>
+
+            {% set name = 'active' %}
+            {% set options = [{value: true, text: 'Yes'}, {value: false, text: 'No'}] %}
+            {% include 'parts/form-group-select.html' %}
+            {% set label = '' %}
+
+            {% set name = 'verification' %}
+            {% set label = 'Verification Step' %}
+            {% set options = [{value:'', text:''}, {value:'manual', text:'Manual'}, {value:'auto', text:'Automatic'}] %}
+            {% include 'parts/form-group-select.html' %}
+            {% set label = '' %}
+            <div class="alert alert-info"><em>Reminder: Device must have a webcam for "automatic" verification.</em></div>
+
+
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
-                    <button class="btn btn-primary">Create New Scanner</button>
+                    <button class="btn btn-primary">Update Scanner</button>
                 </div>
             </div>
         </form>
@@ -75,10 +89,12 @@
             'autocomplete': window["vuejs-autocomplete"]
         },
         data: {
-            name: '',
-            campus: 'main',
-            device: 'webcam',
-            userId: '',
+            name: '{{scanner.name}}',
+            campus: '{{scanner.campus}}',
+            device: '{{scanner.device}}',
+            userId: '{{scanner.userId}}',
+            active: '{{scanner.active}}',
+            verification: '{{scanner.verification}}',
         },
         validations: {
             name: {
@@ -91,6 +107,12 @@
                 required: window.validators.required
             },
             userId: {
+                required: window.validators.required
+            },
+            active: {
+                required: window.validators.required
+            },
+            verification: {
                 required: window.validators.required
             },
         },
@@ -113,4 +135,3 @@
     });
 </script>
 {% endblock %}
-

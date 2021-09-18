@@ -72,6 +72,7 @@ router.get('/scanner/create', middlewares.guardRoute(['create_scanner']), async 
 
         res.render('scanner/create.html', {
             flash: flash.get(req, 'scanner'),
+            scanningDeviceList: CONFIG.scanners.scanningDeviceList,
         });
     } catch (err) {
         next(err);
@@ -93,10 +94,9 @@ router.post('/scanner/create', middlewares.guardRoute(['create_scanner']), async
         lodash.set(patch, 'userId', lodash.get(body, 'userId'))
 
 
-        let scanner = new db.main.Scanner(patch)
-        await scanner.save()
+        let scanner = await db.main.Scanner.create(patch)
 
-        flash.ok(req, 'scanner', `Added ${scanner.name}.`)
+        flash.ok(req, 'scanner', `Added scanner "${scanner.name}".`)
         res.redirect(`/scanner/${scanner._id}`)
     } catch (err) {
         next(err);
@@ -116,12 +116,56 @@ router.get('/scanner/:scannerId', middlewares.guardRoute(['read_scanner']), midd
         next(err);
     }
 });
+router.get('/scanner/:scannerId/edit', middlewares.guardRoute(['read_scanner', 'update_scanner']), middlewares.getScanner, async (req, res, next) => {
+    try {
+        let scanner = res.scanner.toObject()
+        scanner.user = await db.main.User.findById(scanner.userId)
+
+        res.render('scanner/edit.html', {
+            flash: flash.get(req, 'scanner'),
+            scanner: scanner,
+            scanningDeviceList: CONFIG.scanners.scanningDeviceList,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/scanner/:scannerId/edit', middlewares.guardRoute(['read_scanner', 'update_scanner']), middlewares.getScanner, async (req, res, next) => {
+    try {
+        let scanner = res.scanner.toObject()
+        let body = req.body
+        let patch = scanner
+
+        let user = await db.main.Employee.findById(body.userId);
+        if (user) {
+            throw new Error("Sorry, user not found.")
+        }
+
+        lodash.set(patch, 'name', lodash.get(body, 'name'))
+        lodash.set(patch, 'campus', lodash.get(body, 'campus'))
+        lodash.set(patch, 'device', lodash.get(body, 'device'))
+        lodash.set(patch, 'userId', lodash.get(body, 'userId'))
+        lodash.set(patch, 'active', lodash.get(body, 'active'))
+        lodash.set(patch, 'verification', lodash.get(body, 'verification'))
+
+
+        await db.main.Scanner.updateOne({ _id: scanner._id }, patch)
+
+        flash.ok(req, 'scanner', `Updated scanner "${scanner.name}".`)
+        res.redirect(`/scanner/${scanner._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
 
 // Scanner front page
 router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, async (req, res, next) => {
     let scanner = res.scanner.toObject()
 
     try {
+        if (!scanner.active) {
+            throw new Error('Scanner has been disabled.')
+        }
         let template = 'scanner/scan.html'
         if (scanner.device === 'qrCodeDevice' || scanner.device === 'rfid') {
             template = 'scanner/scan-device.html'
@@ -145,6 +189,9 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
 
         if (scanData.dataType === 'rfid') {
 
+            if(scanner.verification === 'auto'){
+                return res.redirect(`/scanner/${scanner.uid}/no-verify?code=${scanData.code}`)
+            }
             return res.render('scanner/verify.html', {
                 scanner: scanner,
                 employee: scanData.employee,
@@ -212,18 +259,17 @@ router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner'
                 ]
             })
         } else {
-            // TODO: Throttle log to avoid double entry
             if (!attendance.logs.length) {
                 throw new Error('Bad attendance data.') // should have at least 1 log
             }
             let lastLog = attendance.logs[attendance.logs.length - 1]
 
+            // Throttle to avoid double scan
             let waitTime = 5
             let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
-            if(diff < waitTime){
+            if (diff < waitTime) {
                 throw new Error(`You have already logged. Please wait ${5 - diff} minute(s) and try again.`)
             }
-            // throw new Error(`${moment().diff(moment(lastLog.dateTime), 'minutes')}`)
 
             let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0
 
@@ -234,11 +280,68 @@ router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner'
             })
         }
         await attendance.save()
-        // return res.send(attendance)
 
         return res.redirect(`/scanner/${scanner.uid}/check-in?code=${scanData.code}`)
     } catch (err) {
-        // throw err
+        res.render('scanner/error.html', {
+            error: err.message,
+            scanner: scanner,
+        })
+    }
+});
+router.get('/scanner/:scannerUid/no-verify', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.expandScanData, async (req, res, next) => {
+    let scanner = res.scanner.toObject()
+
+    try {
+        let scanData = res.scanData
+
+        // Today attendance
+        let attendance = await db.main.Attendance.findOne({
+            employeeId: scanData.employee._id,
+            employmentId: scanData.employment._id,
+            createdAt: {
+                $gte: moment().startOf('day').toDate(),
+                $lt: moment().endOf('day').toDate(),
+            }
+        })
+        if (!attendance) {
+            attendance = new db.main.Attendance({
+                employeeId: scanData.employee._id,
+                employmentId: scanData.employment._id,
+                onTravel: false,
+                logs: [
+                    {
+                        scannerId: scanner._id,
+                        dateTime: moment().toDate(),
+                        mode: 1 // in
+                    }
+                ]
+            })
+        } else {
+            if (!attendance.logs.length) {
+                throw new Error('Bad attendance data.') // should have at least 1 log
+            }
+            let lastLog = attendance.logs[attendance.logs.length - 1]
+
+            // Throttle to avoid double scan
+            let waitTime = 5
+            let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
+            if (diff < waitTime) {
+                throw new Error(`You have already logged. Please wait ${5 - diff} minute(s) and try again.`)
+            }
+
+            let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0
+
+            attendance.logs.push({
+                scannerId: scanner._id,
+                dateTime: moment().toDate(),
+                mode: mode
+            })
+        }
+        await attendance.save()
+
+        return res.redirect(`/scanner/${scanner.uid}/check-in?code=${scanData.code}`)
+    } catch (err) {
         res.render('scanner/error.html', {
             error: err.message,
             scanner: scanner,
@@ -294,12 +397,12 @@ router.get('/scanner/:scannerUid/check-in', middlewares.guardRoute(['use_scanner
         let employee = scanData.employee
         let message = 'Attendance logged successfully.'
 
-        if(scanData.dataType === 'qr') {
+        if (scanData.dataType === 'qr') {
             if (scanData.qrData.type == 3) {
                 message = 'Health declaration submitted successfully.'
             }
         }
-        
+
         return res.render('scanner/check-in.html', {
             scanner: scanner,
             message: message,

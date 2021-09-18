@@ -45,6 +45,10 @@
                             {% set thId = 'userId' %}
                             {% include 'parts/sorted-th.html' %}
                         </th>
+                        <th>
+                            {% set thId = 'active' %}
+                            {% include 'parts/sorted-th.html' %}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -54,6 +58,7 @@
                         <td>{{scanner.campus|capitalize}}</td>
                         <td>{{scanner.device|start_case}}</td>
                         <td>{{scanner.user.email}}</td>
+                        <td>{{scanner.active|capitalize}}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

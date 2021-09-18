@@ -2,16 +2,59 @@
 
 {% block body %}
 <div class="col-md-6 ml-auto mr-auto pt-5 mt-5">
-    <div>
+    <div id="vApp" v-cloak>
         <div class="form-login" >
             <div class="form-header">
                 <h1 class="h6 mb-0">Error</h1>
             </div>
             <div class="form-body text-center">
-               <div class="alert alert-danger">{{error}}</div>
-               <a href="/scanner/{{scanner.uid}}/scan" class="btn btn-primary">Back to Scanner</a>
+                <div class="alert alert-danger">{{error}}</div>
+                <div v-if="remaining > 0" class="h3 mb-4">
+                    <div v-if="!hideCancel" class="mb-4">Returning to scanner in ${remaining} seconds...</div>
+                    <button v-on:click.prevent="onCancel" v-if="!hideCancel" class="btn btn-danger" type="button">Cancel Return</button>
+                    <a v-if="!hideCancel" class="btn btn-success" href="/scanner/{{scanner.uid}}/scan">Return Now</a>
+
+                    <a v-if="hideCancel" class="btn btn-success" href="/scanner/{{scanner.uid}}/scan">Return to scanner</a>
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            code: '',
+            remaining: 5,
+            timer: null,
+            hideCancel: false
+        },
+        validations: {
+        },
+        mounted: function(){
+            var me = this;
+            me.timer = setInterval(function(){
+                me.remaining -= 1;
+                if (me.remaining <= 0) {
+                    clearInterval(me.timer)
+                    window.location.replace("/scanner/{{scanner.uid}}/scan");
+                }
+            },1000)
+        },
+        methods: {
+            onCancel: function(){
+                this.hideCancel = true;
+                clearInterval(this.timer)
+            },
+        }
+    });
+</script>
 {% endblock %}

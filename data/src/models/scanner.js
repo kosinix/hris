@@ -28,6 +28,9 @@ let schema = mongoose.Schema({
     device: {
         $type: String,
     },
+    verification: {
+        $type: String,
+    },
     active: {
         $type: Boolean,
         default: true

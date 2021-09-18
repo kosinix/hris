@@ -492,6 +492,9 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     height: 100%; 
     background: black;
 }
+.scanner-white {
+    background: #fefefe;
+}
 .scan-bar {
     background-color: rgba(0, 0, 0, 0.6);
     padding: 5px 0; 

@@ -415,4 +415,80 @@ module.exports = {
             next(err)
         }
     },
+    expandScanData: async (req, res, next) => {
+        try {
+            let code = req.query.code || ''
+            if (!code) {
+                code = req.body.code || ''
+            }
+            if (!code) {
+                return res.render('error.html', { error: "Sorry, invalid scan data." })
+            }
+
+            let employee = null
+            let employment = null
+
+            if (res.scanner.device === 'rfid') { // Plain number
+
+                employee = await db.main.Employee.findOne({
+                    uid: code
+                }).lean()
+                if (!employee) {
+                    throw new Error('Employee not found from RFID.')
+                }
+
+                // TODO: Allow choose employment for rfid
+                employment = await db.main.Employment.findOne({
+                    employeeId: employee._id
+                }).lean()
+                if (!employment) {
+                    throw new Error('Employment not found from RFID.')
+                }
+
+                res.scanData = {
+                    dataType: 'rfid',
+                    code: code,
+                    employee: employee,
+                    employment: employment,
+                }
+
+            } else { // QR
+
+
+                let qrData = Buffer.from(code, 'base64').toString('utf8')
+                try {
+                    qrData = JSON.parse(qrData)
+                } catch (errr) {
+                    throw new Error('Invalid QR code.')
+                }
+
+                employee = await db.main.Employee.findOne({
+                    _id: qrData.employeeId
+                }).lean()
+                if (!employee) {
+                    throw new Error('Employee not found from QR Code.')
+                }
+
+                employment = await db.main.Employment.findOne({
+                    _id: qrData.employmentId
+                }).lean()
+                if (!employment) {
+                    throw new Error('Employment not found from QR Code.')
+                }
+
+                res.scanData = {
+                    dataType: 'qr',
+                    code: code,
+                    qrData: qrData,
+                    employee: employee,
+                    employment: employment,
+                }
+
+            }
+            
+            next();
+        } catch (err) {
+            next(err);
+        }
+    },
 }

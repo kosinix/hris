@@ -123,7 +123,7 @@ router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']),
 
     try {
         let template = 'scanner/scan.html'
-        if(scanner.device === 'qrCodeDevice'){
+        if (scanner.device === 'qrCodeDevice' || scanner.device === 'rfid') {
             template = 'scanner/scan-device.html'
         }
         res.render(template, {
@@ -137,42 +137,44 @@ router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']),
     }
 });
 // Decide on what to do with QR code
-router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.qrDecode, async (req, res, next) => {
+router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.expandScanData, async (req, res, next) => {
     let scanner = res.scanner.toObject()
 
     try {
-        let qrData = res.qrData
-        let code = res.qrCode
+        let scanData = res.scanData
 
-        // return res.send(code)
-        let employee = await db.main.Employee.findOne({
-            _id: qrData.employeeId
-        })
-        if (!employee) {
-            throw new Error('Employee not found.')
-        }
-        // Attach employments
-        employee.employments = await db.main.Employment.find({
-            employeeId: employee._id
-        })
+        if (scanData.dataType === 'rfid') {
 
-        if (qrData.type === 2) { // attendance
             return res.render('scanner/verify.html', {
                 scanner: scanner,
-                employee: employee,
-                qrData: qrData,
-                code: code,
+                employee: scanData.employee,
+                employment: scanData.employment,
+                code: scanData.code
             })
-        } else if (qrData.type === 3) { // healthdec
-            return res.render('scanner/verify-hdf.html', {
-                scanner: scanner,
-                employee: employee,
-                qrData: qrData,
-                code: code,
-            })
+        } else if (scanData.dataType === 'qr') { // QR
+
+            if (scanData.qrData.type === 2) { // attendance
+                return res.render('scanner/verify.html', {
+                    scanner: scanner,
+                    employee: employee,
+                    employment: employment,
+                    code: scanData.code
+                })
+            } else if (scanData.qrData.type === 3) { // healthdec
+                return res.render('scanner/verify-hdf.html', {
+                    scanner: scanner,
+                    employee: employee,
+                    employment: employment,
+                    qrData: scanData.qrData,
+                    code: scanData.code
+                })
+            }
+
         } else {
-            throw new Error('Invalid QR code.')
+            throw new Error(`Invalid scan data type.`)
         }
+
+
     } catch (err) {
         res.render('scanner/error.html', {
             error: err.message,
@@ -181,29 +183,16 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
     }
 });
 
-router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.qrDecode, async (req, res, next) => {
+router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.expandScanData, async (req, res, next) => {
     let scanner = res.scanner.toObject()
 
     try {
-        let qrData = res.qrData
-        let code = res.qrCode
-
-        // return res.send(code)
-        let employee = await db.main.Employee.findOne({
-            _id: qrData.employeeId
-        })
-        if (!employee) {
-            throw new Error('Employee not found.')
-        }
-        // Attach employments
-        employee.employments = await db.main.Employment.find({
-            employeeId: employee._id
-        })
+        let scanData = res.scanData
 
         // Today attendance
         let attendance = await db.main.Attendance.findOne({
-            employeeId: employee._id,
-            employmentId: qrData.employmentId,
+            employeeId: scanData.employee._id,
+            employmentId: scanData.employment._id,
             createdAt: {
                 $gte: moment().startOf('day').toDate(),
                 $lt: moment().endOf('day').toDate(),
@@ -211,8 +200,8 @@ router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner'
         })
         if (!attendance) {
             attendance = new db.main.Attendance({
-                employeeId: employee._id,
-                employmentId: qrData.employmentId,
+                employeeId: scanData.employee._id,
+                employmentId: scanData.employment._id,
                 onTravel: false,
                 logs: [
                     {
@@ -223,10 +212,18 @@ router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner'
                 ]
             })
         } else {
+            // TODO: Throttle log to avoid double entry
             if (!attendance.logs.length) {
                 throw new Error('Bad attendance data.') // should have at least 1 log
             }
             let lastLog = attendance.logs[attendance.logs.length - 1]
+
+            let waitTime = 5
+            let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
+            if(diff < waitTime){
+                throw new Error(`You have already logged. Please wait ${5 - diff} minute(s) and try again.`)
+            }
+            // throw new Error(`${moment().diff(moment(lastLog.dateTime), 'minutes')}`)
 
             let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0
 
@@ -239,8 +236,9 @@ router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner'
         await attendance.save()
         // return res.send(attendance)
 
-        return res.redirect(`/scanner/${scanner.uid}/check-in?code=${code}`)
+        return res.redirect(`/scanner/${scanner.uid}/check-in?code=${scanData.code}`)
     } catch (err) {
+        // throw err
         res.render('scanner/error.html', {
             error: err.message,
             scanner: scanner,
@@ -248,24 +246,14 @@ router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner'
     }
 });
 
-router.post('/scanner/:scannerUid/verify-hdf', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.qrDecode, async (req, res, next) => {
+router.post('/scanner/:scannerUid/verify-hdf', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.expandScanData, async (req, res, next) => {
     let scanner = res.scanner.toObject()
 
     try {
-        let qrData = res.qrData
-        let code = res.qrCode
+        let scanData = res.scanData
 
         // return res.send(code)
-        let employee = await db.main.Employee.findOne({
-            _id: qrData.employeeId
-        })
-        if (!employee) {
-            throw new Error('Employee not found.')
-        }
-        // Attach employments
-        employee.employments = await db.main.Employment.find({
-            employeeId: employee._id
-        })
+        let employee = scanData.employee
 
         // Today attendance
         let hd = await db.main.HealthDeclaration.findOne({
@@ -281,13 +269,13 @@ router.post('/scanner/:scannerUid/verify-hdf', middlewares.guardRoute(['use_scan
 
             hd = new db.main.HealthDeclaration({
                 employeeId: employee._id,
-                data: qrData.frm
+                data: scanData.qrData.frm
             })
             await hd.save()
         }
         // return res.send(hd)
 
-        return res.redirect(`/scanner/${scanner.uid}/check-in?code=${code}`)
+        return res.redirect(`/scanner/${scanner.uid}/check-in?code=${scanData.code}`)
     } catch (err) {
         res.render('scanner/error.html', {
             error: err.message,
@@ -296,30 +284,22 @@ router.post('/scanner/:scannerUid/verify-hdf', middlewares.guardRoute(['use_scan
     }
 });
 
-router.get('/scanner/:scannerUid/check-in', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.qrDecode, async (req, res, next) => {
+router.get('/scanner/:scannerUid/check-in', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.expandScanData, async (req, res, next) => {
     let scanner = res.scanner.toObject()
 
     try {
 
-        let qrData = res.qrData
+        let scanData = res.scanData
 
-        // return res.send(code)
-        let employee = await db.main.Employee.findOne({
-            _id: qrData.employeeId
-        })
-        if (!employee) {
-            throw new Error('Employee not found.')
-        }
-        // Attach employments
-        employee.employments = await db.main.Employment.find({
-            employeeId: employee._id
-        })
-        
+        let employee = scanData.employee
         let message = 'Attendance logged successfully.'
-        if (qrData.type == 3) {
-            message = 'Health declaration submitted successfully.'
-        }
 
+        if(scanData.dataType === 'qr') {
+            if (scanData.qrData.type == 3) {
+                message = 'Health declaration submitted successfully.'
+            }
+        }
+        
         return res.render('scanner/check-in.html', {
             scanner: scanner,
             message: message,
@@ -337,7 +317,7 @@ router.get('/scanner/:scannerUid/pause', middlewares.guardRoute(['use_scanner'])
     let scanner = res.scanner.toObject()
 
     try {
-       
+
         return res.render('scanner/pause.html', {
             scanner: scanner,
         })

@@ -1749,7 +1749,6 @@ let templatePds = async (employee) => {
 
 let templatePermanent = async (payroll) => {
     let workbook = new ExcelJS.Workbook();
-
     await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/payroll/template_permanent.xlsx`);
     let slex = new Slex(workbook)
 
@@ -1760,7 +1759,7 @@ let templatePermanent = async (payroll) => {
     if (worksheet) {
 
         // Set Print Area for a sheet
-        // worksheet.pageSetup.printArea = `A1:AM${startRowIndex + payroll.rows.length + 12}`;
+        worksheet.pageSetup.printArea = `A1:AM${startRowIndex + payroll.rows.length + 12}`;
 
         slex.setSheet(worksheet)
 

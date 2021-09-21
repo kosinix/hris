@@ -1,3 +1,7 @@
+/**
+ * Permission checks are hardcoded in route middlewares.
+ * Code should be updated together with this list.
+ */
 
 //// Core modules
 
@@ -20,6 +24,12 @@ module.exports = [
     'read_payroll',
     'update_payroll',
     'delete_payroll',
+
+    // Payroll statuses
+    'payroll_status_1',
+    'payroll_status_2',
+    'payroll_status_3',
+    'payroll_status_4',
 
     // Groups
     'read_all_group',

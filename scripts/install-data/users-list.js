@@ -1,3 +1,6 @@
+/**
+ * Departmental accounts not specifically tied to a single individual.
+ */
 
 //// Core modules
 
@@ -7,32 +10,72 @@
 
 
 module.exports = [
+    // Admin
     {
-        // "passwordHash" : "e76b3a1907049699bd526b3a1fb408ab56db679155cbc9a1df5052a5a17bc7581e183f1c37606d8c7b741f73a24753e50785c58698a2f5162cb74330c52e5f18",
-        // "salt" : "UKDQKgNWZn8pMPPm",
         "roles" : [
             "admin"
         ],
-        "firstName" : "Ma. Rechel",
-        "middleName" : "",
-        "lastName" : "Pillora",
-        "email" : "hrmo@gsc.edu.ph",
+        "firstName" : "Nico",
+        "middleName" : "Gayapa",
+        "lastName" : "Amarilla",
+        "email" : "nico+mis@gsc.edu.ph",
+        "username" : "gsc.mis",
         "active" : true,
         permissions: [],
     },
+    // HRMO
     {
-        // "passwordHash" : "e76b3a1907049699bd526b3a1fb408ab56db679155cbc9a1df5052a5a17bc7581e183f1c37606d8c7b741f73a24753e50785c58698a2f5162cb74330c52e5f18",
-        // "salt" : "UKDQKgNWZn8pMPPm",
+        "roles" : [
+            "hrmo"
+        ],
+        "firstName" : "Ma. Rechel",
+        "middleName" : "A",
+        "lastName" : "Pillora",
+        "email" : "hrmo@gsc.edu.ph",
+        "username" : "gsc.hrmo",
+        "active" : true,
+        permissions: [],
+    },
+    // Accounting
+    {
+        "roles" : [
+            "accountant"
+        ],
+        "firstName" : "Chap",
+        "middleName" : "",
+        "lastName" : "",
+        "email" : "accounting@gsc.edu.ph",
+        "username" : "gsc.accounting",
+        "active" : true,
+        permissions: [],
+    },
+    // Cashier
+    {
+        "roles" : [
+            "cashier"
+        ],
+        "firstName" : "Cashier",
+        "middleName" : "",
+        "lastName" : "GSC",
+        "email" : "hazel.jarangue@gsc.edu.ph ",
+        "username" : "gsc.cashier",
+        "active" : true,
+        permissions: [],
+    },
+    // Checker
+    {
         "roles" : [
             "checker"
         ],
         "firstName" : "Nico",
         "middleName" : "G",
         "lastName" : "Amarilla",
-        "email" : "mis+checker@gsc.edu.ph",
+        "email" : "checker+mis@gsc.edu.ph",
+        "username" : "gsc.scanner",
         "active" : true,
         permissions: [],
     },
+    // Clinic
     {
         "roles" : [
             "clinical"
@@ -41,6 +84,7 @@ module.exports = [
         "middleName" : "G",
         "lastName" : "Amarilla",
         "email" : "mis+clinic@gsc.edu.ph",
+        "username" : "gsc.clinic",
         "active" : true,
         permissions: [],
     }

@@ -133,7 +133,7 @@
         </tbody>
     </table>
 </div> 
-<div class="form-inline mt-3">
+<div class="form-inline mt-3" v-if="payroll.status == 1 || payroll.status == 2">
     <div class="col-md-6">
         <button type="button" v-on:click="addRow(2)" class="btn btn-primary btn-sm">Add Sub Total Row</button>
         <button type="button" v-on:click="addRow(4)" class="btn btn-primary btn-sm">Add Grand Total Row</button>

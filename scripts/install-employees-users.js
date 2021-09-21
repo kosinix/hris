@@ -64,7 +64,8 @@ const db = require('../data/src/db-install');
                 firstName: o.firstName,
                 middleName: o.middleName,
                 lastName: lastName,
-                email: username,
+                email: '',
+                username: username,
                 active: true,
                 permissions: [],
             });

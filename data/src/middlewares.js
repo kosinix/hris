@@ -2,14 +2,15 @@
 //// Core modules
 
 //// External modules
-const access = require('acrb');
-const lodash = require('lodash');
-const moment = require('moment');
+const access = require('acrb')
+const flash = require('kisapmata')
+const lodash = require('lodash')
+const moment = require('moment')
 
 //// Modules
-const db = require('./db');
-const passwordMan = require('./password-man');
-const uploader = require('./uploader');
+const db = require('./db')
+const passwordMan = require('./password-man')
+const uploader = require('./uploader')
 
 let allowIp = async (req, res, next) => {
     try {
@@ -184,6 +185,26 @@ module.exports = {
                 return res.render('error.html', { error: "Sorry, payroll not found." })
             }
             res.payroll = payroll
+            next();
+        } catch (err) {
+            next(err);
+        }
+    },
+    lockPayroll: async (req, res, next) => {
+        try {
+
+            let payroll = res.payroll.toObject()
+            let user = res.user.toObject()
+
+            if (payroll.assignedTo) {
+                if (payroll.assignedTo._id.toString() !== user._id.toString()) {
+                    flash.error(req, 'payroll', `Payroll locked. Currently edited by user "${payroll.assignedTo.username}".`)
+                    return res.redirect('/payroll/all')
+                }
+            } else {
+                payroll.assignedTo = user
+                await db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
+            }
             next();
         } catch (err) {
             next(err);
@@ -485,7 +506,7 @@ module.exports = {
                 }
 
             }
-            
+
             next();
         } catch (err) {
             next(err);

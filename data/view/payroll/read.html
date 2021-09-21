@@ -4,13 +4,15 @@
 <div class="p-3">
 
     {% include 'parts/flash.html' %}
-    {% include 'parts/payroll-header.html' %}
+    {% include 'payroll/payroll-header.html' %}
     {# {% include 'parts/payroll-tabs.html' %} #}
     
 
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-2">
         <div v-if="pending" class="wait cover"></div>
 
+
+        
         {% if payroll.rows.length > 0 %}
             {% if payroll.template === 'permanent' %}
                 {% include 'payroll/table-permanent-vue.html' %}
@@ -19,7 +21,7 @@
             {% endif %}
         {% endif %}
         <hr>
-        <form ref="form" v-cloak v-on:submit.prevent="onSubmit" action="/payroll/employees/{{payroll._id}}" method="POST" class="form-default pt-2">
+        <form ref="form" v-cloak v-on:submit.prevent="onSubmit" v-if="payroll.status == 1 || payroll.status == 2" action="/payroll/employees/{{payroll._id}}" method="POST" class="form-default pt-2">
             <div class="form-group">
                     <label for="employmentId">Add Employee <span class="text-danger">*</span></label>
                     <div>
@@ -167,6 +169,11 @@
                 });
             },
             editInput: function(e) {
+                if(this.payroll.status === 1 || this.payroll.status === 2){
+                    
+                } else {
+                    return false
+                }
                 var el = jQuery(e.target)
                 var elInput = el.siblings('input')
                 elInput.data('orig', elInput.val())

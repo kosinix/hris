@@ -1,5 +1,5 @@
 /**
- * Clear role collection and insert data.
+ * Clear roles collection and insert roles.
  * Usage: node scripts/install-roles.js
  */
 //// Core modules

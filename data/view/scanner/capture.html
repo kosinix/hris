@@ -1,0 +1,112 @@
+{% extends "document-camera.html" %}
+
+{% block body %}
+<div id="vApp" v-cloak class="scanner d-flex justify-content-center">
+    <div class="scan-bar-title d-flex justify-content-center align-items-center">
+        <h1 class="h6 mb-0">Scanner: {{scanner.name}}</h1>
+    </div>
+    <p>Ready to Scan</p>
+    <canvas id="canvas" style="width: auto; height:100%; background:black"></canvas>
+    <div class="scan-bar d-flex justify-content-center align-items-center">
+        <div>
+            <a href="/scanner/{{scanner.uid}}/pause">   
+                <svg style="width:64px;height:64px" viewBox="0 0 24 24">
+                    <path fill="#fff" d="M14,19H18V5H14M6,19H10V5H6V19Z" />
+                </svg>
+            </a>
+        </div>
+        <div><button v-on:click="takePhoto=true">C</button></div>
+        <div><img v-bind:src="photo" alt=""></div>
+    </div>
+    <form ref="form" v-on:submit.prevent="onSubmit" action="/scanner/{{scanner.uid}}/scan" method="POST" novalidate>
+        <div class="form-body text-center">
+            <input type="hidden" name="code" v-model="code">
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/lodash.min.js"></script>
+<script src="{{app.url}}/js/vue.js"></script>
+<script src="{{app.url}}/js/jsQR.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+        ],
+        data: {
+            code: '',
+            takePhoto: false,
+            photo: '',
+        },
+        validations: {
+
+        },
+        mounted: function(){
+            this.onCapture()
+        },
+        methods: {
+            onCapture: function() {
+                var me = this;
+                var video = document.createElement("video");
+                var canvasElement = document.getElementById("canvas");
+                var canvas = canvasElement.getContext("2d");
+
+                // Use facingMode: environment to attemt to get the front camera on phones
+                // 720x480 = D1 - a resolution standard for TV and DVD-Video.
+                // CIF	352 x 240	
+                navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: 352,
+                        height: 240,
+                        facingMode: "environment"
+                    }
+                }).then(function (stream) {
+                    video.srcObject = stream;
+                    me.stream = stream
+                    video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
+                    video.play();
+                    requestAnimationFrame(tick);
+                }).catch(function (error) {
+                    alert(error)
+                })
+
+                
+
+                var stopLoop = false;
+
+                function tick() {
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        canvasElement.hidden = false;
+                        canvasElement.height = video.videoHeight;
+                        canvasElement.width = video.videoWidth;
+                        var vRatio = (canvasElement.height / video.videoHeight) * video.videoWidth;
+                        canvas.drawImage(video, 0, 0, vRatio, canvasElement.height);
+
+                        if (me.takePhoto) {
+                            me.photo = canvasElement.toDataURL('image/jpeg');
+                            stopLoop = true;
+                        } else {
+                        }
+                    }
+                    if (!stopLoop) {
+                        requestAnimationFrame(tick);
+                    }
+
+                    if(stopLoop){
+                        //me.onSubmit()
+                    }
+                }
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$nextTick(function() {
+                    me.$refs.form.submit();
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}

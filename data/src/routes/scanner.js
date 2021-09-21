@@ -180,6 +180,27 @@ router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']),
         })
     }
 });
+router.get('/scanner/:scannerUid/capture', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, async (req, res, next) => {
+    let scanner = res.scanner.toObject()
+
+    try {
+        if (!scanner.active) {
+            throw new Error('Scanner has been disabled.')
+        }
+        let template = 'scanner/capture.html'
+        // if (scanner.device === 'qrCodeDevice' || scanner.device === 'rfid') {
+        //     template = 'scanner/scan-device.html'
+        // }
+        res.render(template, {
+            scanner: scanner
+        })
+    } catch (err) {
+        res.render('scanner/error.html', {
+            error: err.message,
+            scanner: scanner,
+        })
+    }
+});
 // Decide on what to do with QR code
 router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.expandScanData, async (req, res, next) => {
     let scanner = res.scanner.toObject()

@@ -34,6 +34,21 @@ router.get('/payroll/all', middlewares.guardRoute(['read_all_payroll', 'read_pay
         let query = {}
         let projection = {}
 
+        if (res.user.roles.includes('hrmo')) {
+            query = {
+                status: 1
+            }
+        } else if (res.user.roles.includes('accountant')) {
+            query = {
+                status: 2
+            }
+        } else if (res.user.roles.includes('cashier')) {
+            query = {
+                status: {
+                    $in: [3, 4]
+                }
+            }
+        }
         // Pagination
         let totalDocs = await db.main.Payroll.countDocuments(query)
         let pagination = paginator.paginate(
@@ -52,16 +67,17 @@ router.get('/payroll/all', middlewares.guardRoute(['read_all_payroll', 'read_pay
 
         let payrolls = await db.main.Payroll.find(query, projection, options).sort(sort).lean()
 
-        // let scanners = []
-        // payrolls.forEach((payroll) => {
-        //     scanners.push(db.main.Scanner.find({ payrollId: payroll._id })) // return array of scanners
-        // })
-        // scanners = await Promise.all(scanners)
+        let assignedUsers = []
+        payrolls.forEach((payroll) => {
+            assignedUsers.push(db.main.User.findOne({ _id: payroll.assignedTo }))
+        })
+        assignedUsers = await Promise.all(assignedUsers)
         // payrolls.forEach((payroll, i) => {
         //     payroll.scanners = scanners[i]
         // })
-        payrolls = payrolls.map((payroll) => {
+        payrolls = payrolls.map((payroll, i) => {
             payroll.count = payroll.rows.filter(r => r.type === 1).length
+            payroll.assignedUser = assignedUsers[i]
             return payroll
         })
 
@@ -215,6 +231,7 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
             rows: rows,
             columns: columns,
             template: patch.template,
+            status: 1
         }
 
         payroll = await db.main.Payroll.create(payroll)
@@ -350,6 +367,7 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
                 rows: rows,
                 columns: columns,
                 template: template,
+                status: 1,
             }
 
             payroll = await db.main.Payroll.create(payroll)
@@ -364,7 +382,7 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
     }
 });
 
-router.get(['/payroll/:payrollId', `/payroll/:payrollId/payroll.xlsx`], middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, async (req, res, next) => {
+router.get(['/payroll/:payrollId', `/payroll/:payrollId/payroll.xlsx`], middlewares.guardRoute(['read_payroll']), middlewares.getPayroll, middlewares.lockPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll.toObject()
 
@@ -406,6 +424,69 @@ router.get(['/payroll/:payrollId', `/payroll/:payrollId/payroll.xlsx`], middlewa
             payrollJs: payrollJs.formulas[payroll.template],
             dtrHelper: dtrHelper,
         });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/payroll/:payrollId/unlock', middlewares.guardRoute(['read_payroll', 'update_payroll']), middlewares.getPayroll, async (req, res, next) => {
+    try {
+        let payroll = res.payroll.toObject()
+        let user = res.user.toObject()
+
+        if (payroll.assignedTo._id.toString() === user._id.toString()) {
+            payroll.assignedTo = null
+            await db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
+            flash.ok(req, 'payroll', `Payroll "${payroll.name}" unlocked.`)
+
+        } else {
+            flash.error(req, 'payroll', `Cannot unlock.`)
+        }
+
+        res.redirect('/payroll/all')
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/payroll/:payrollId/status', middlewares.guardRoute(['read_payroll', 'update_payroll']), middlewares.getPayroll, async (req, res, next) => {
+    try {
+        let status = lodash.get(req, 'query.status', 1)
+        if ([1, 2, 3, 4].includes(status)) {
+            throw new Error(`Invalid status ${status}`)
+        }
+        let payroll = res.payroll.toObject()
+        let user = res.user.toObject()
+
+        if (payroll.assignedTo._id.toString() === user._id.toString()) {
+            let text = 'updated'
+            if (status > payroll.status) {
+                text = 'forwarded'
+            } else if (status < payroll.status) {
+                text = 'returned'
+            }
+
+            let target = ''
+            if(status == 1){
+                target = ' to HR'
+            } else if(status == 2){
+                target = ' to Accounting'
+            } else if(status == 3){
+                target = ' to Cashier'
+            } else if(status == 4){
+                target = ' set to released'
+            }
+                
+            payroll.assignedTo = null
+            payroll.status = status
+            await db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
+
+            flash.ok(req, 'payroll', `Payroll "${payroll.name}" ${text}${target}.`)
+        } else {
+            flash.error(req, 'payroll', `Cannot update.`)
+        }
+
+        res.redirect(`/payroll/all`)
     } catch (err) {
         next(err);
     }

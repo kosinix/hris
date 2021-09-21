@@ -5,16 +5,17 @@
     <div class="row">
         <div class="col-md-5 ml-auto mr-auto pt-5">
             <div class="login-form">
-            <div class="text-center mb-4">
-                <img src="/images/logo-md.png" alt="GSC Logo">
+            <div class="text-center position-relative mb-4">
+                <img class="rotate" src="/images/logo-gear.png" alt="GSC Gear">
+                <img class="position-relative" src="/images/logo-inner.png" alt="GSC Logo">
             </div>
-                <h1 class="text-center h4 mb-4">HR Information System - Login</h1>
+                <h1 class="text-center h4 mb-4">HR Information System</h1>
                 <div id="vApp" v-cloak>
                     {% include 'parts/flash.html' %}
                     <form ref="form" v-on:submit.prevent="onSubmit" action="/login" method="POST" novalidate>
                         <div class="form-group">
-                            <input placeholder="Email or username..." v-model="email" type="email" name="email" class="form-control" autocomplete="off">
-                            <small class="invalid-feedback">${getError('email')}</small>
+                            <input placeholder="Username..." v-model="username" type="username" name="username" class="form-control" autocomplete="off">
+                            <small class="invalid-feedback">${getError('username')}</small>
                         </div>
                         <div class="form-group">
                             <div class="toggled-password-group">
@@ -48,12 +49,12 @@
             window.vuelidateExtendMixin,
         ],
         data: {
-            email: '',
+            username: '',
             password: '',
             passwordType: 'password'
         },
         validations: {
-            email: {
+            username: {
                 required: window.validators.required
             },
             password: {

@@ -1,5 +1,5 @@
 /**
- * Insert default users.
+ * Insert default admin users.
  * Usage: node scripts/install-users.js
  */
 //// Core modules
@@ -44,6 +44,7 @@ let adminsList = require('./install-data/users-list'); // Do not remove semi-col
         // await db.main.User.deleteMany()
 
 
+        let logs = []
         let csvRows = ['"username", "password"']
         let promises = lodash.map(adminsList, (o) => {
             let password = passwordMan.randomString(10)
@@ -58,17 +59,21 @@ let adminsList = require('./install-data/users-list'); // Do not remove semi-col
                 middleName: o.middleName,
                 lastName: o.lastName,
                 email: o.email,
+                username: o.username,
                 active: o.active,
                 permissions: o.permissions,
             });
-            csvRows.push(`"${o.email}", "${password}"`)
-            console.log(`Inserting "${o.email}" ...`)
+            csvRows.push(`"${o.username}", "${password}"`)
+            logs.push(`"${o.username}"`)
             return user.save()
         })
         await Promise.all(promises)
-        console.log(`Inserted ${promises.length} users.`)
         csvRows = csvRows.join("\n")
-        fs.writeFileSync(CONFIG.app.dir + '/scripts/install-data/logins-admin.csv', csvRows, { encoding: 'utf8' })
+        let logFile = CONFIG.app.dir + '/scripts/install-data/logins-admin.csv'
+        fs.writeFileSync(logFile, csvRows, { encoding: 'utf8' })
+        console.log(`Inserted ${promises.length} users:`)
+        console.log(logs.join("\n"))
+        console.log(`Log saved to "${logFile}".`)
 
     } catch (err) {
         console.log(err)

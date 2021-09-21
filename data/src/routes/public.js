@@ -28,13 +28,13 @@ router.post('/login', async (req, res, next) => {
     try {
         let post = req.body;
 
-        let email = lodash.get(post, 'email', '');
+        let username = lodash.get(post, 'username', '');
         let password = lodash.get(post, 'password', '');
 
         // Find admin
-        let user = await db.main.User.findOne({ email: email });
+        let user = await db.main.User.findOne({ username: username });
         if (!user) {
-            throw new Error('Incorrect email or password.')
+            throw new Error('Incorrect username or password.')
         }
 
         if (!user.active) {

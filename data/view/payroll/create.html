@@ -12,16 +12,7 @@
             </div>
         </div>
     </div>
-    <div>
-        <ul class="nav nav-tabs">
-            <li class="nav-item">
-                <a class="nav-link {{urlPath|active_class([r/^\/payroll\/create/])}}" href="/payroll/create">Create</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{urlPath|active_class([r/^\/payroll\/generate/])}}" href="/payroll/generate">Generate</a>
-            </li>
-        </ul>
-    </div>
+    {% include 'payroll/tab-create.html' %}
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-2">
         <form ref="form" v-on:submit.prevent="onSubmit" action="/payroll/create" method="POST" class="form-default">
 

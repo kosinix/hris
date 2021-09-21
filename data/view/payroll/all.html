@@ -8,14 +8,14 @@
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                <a href="/payroll/create" class="btn btn-sm btn-outline-primary">Create Payroll</a>
+                <a href="/payroll/generate" class="btn btn-sm btn-outline-primary">Generate Payroll</a>
             </div>
         </div>
     </div>
     {% include 'parts/flash.html' %}
     
     {% if payrolls.length <= 0 %}
-        <p>None found. <a href="/payroll/create" class="btn btn-sm btn-outline-primary">Create Payroll</a></p>
+        <p>No payroll to show.</p>
     {% else %}
 
         <div class="d-flex justify-content-end">
@@ -32,14 +32,39 @@
                             {% set thId = 'name' %}
                             {% include 'parts/sorted-th.html' %}
                         </th>
-                        <th>#</th>
+                        <th>Count</th>
+                        <th width="10%" class="text-center">Status</th>
+                        <th width="1%" class="text-center">
+                            Assigned To
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for payroll in payrolls %}
                     <tr>
-                        <td><a href="/payroll/{{payroll._id}}">{{payroll.name}}</a></td>
-                        <td><a href="/payroll/{{payroll._id}}">{{payroll.count}}</a></td>
+                        <td>
+                            {{payroll.name}}
+                        </td>
+                        <td>{{payroll.count}}</td>
+                        <td class="text-center">
+                            <div>{{payroll.status|mapValue([{value: 1, text: 'HR Review'}, {value: 2, text: 'Accounting'}, {value: 3, text: 'Cashier'}, {value: 4, text: 'Released'}])}}</div>
+                            <div class="d-flex payroll-status status-{{payroll.status}}">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>    
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-end">
+                            {% if payroll.assignedUser %}
+                                <span title="Currently locked and edited by this user.">{% include 'parts/svg-lock.html' %}</span>
+                                <a class="ml-2" href="/payroll/{{payroll._id}}">{{payroll.assignedUser.username}}</a> 
+                            {% else %}
+                                <a href="/payroll/{{payroll._id}}">Edit</a> 
+                            {% endif %}
+                            </div>
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>

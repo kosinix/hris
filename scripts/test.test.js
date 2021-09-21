@@ -1,120 +1,78 @@
-
+/**
+ * Usage: node scripts/test.test.js
+ */
+//// Core modules
+const path = require('path');
 const util = require('util');
 
+//// External modules
+const ExcelJS = require('exceljs');
+const lodash = require('lodash');
+const pigura = require('pigura');
 
-let getExcelColumns = (stop = 54) => {
-    let excelColumnIndexes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
-    let excelColumnIndexes2 = []
-    let counter = excelColumnIndexes.length;
-    for (let a = 0; a < excelColumnIndexes.length; a++) {
-        let letter1 = excelColumnIndexes[a]
-        for (let b = 0; b < excelColumnIndexes.length; b++) {
-            let letter2 = excelColumnIndexes[b]
-            excelColumnIndexes2.push(`letter1}letter2}`)
-            counter++
-            if (counter >= stop) {
-                return excelColumnIndexes.concat(excelColumnIndexes2)
-            }
-        }
-    }
-    return excelColumnIndexes.concat(excelColumnIndexes2)
-}
-let excelColumns = getExcelColumns()
+//// Modules
+// const uid = require('../data/src/uid');
 
-let payroll = {
-    rows: [
-        [
-            {
-                value: 1  // A
-            },
-            {
-                value: 'Catering' // B
-            },
-            {
-                value: 'Cañete, Roland' // C
-            },
-            {
-                value: 'Staff' // D
-            },
-            {
-                value: 500.00 // E
-            },
-            {
-                value: 10 // F
-            },
-            {
-                value: 'days' // G
-            },
-            {
-                value: 6 // H
-            },
-            {
-                value: 'hrs' // I
-            },
-            {
-                value: 56 // J
-            },
-            {
-                value: 'mins' // K
-            },
-            { // L
-                value: {
-                    formula: '=F10*E10+H10*E10/8+J10*E10/8/60',
-                    _formula: 'rows[0][5]*rows[0][4]+rows[0][7]*rows[0][4]/8+rows[0][9]*rows[0][4]/8/60',
-                    _formula: (rows) => {
-                        return rows[0][5]._formula(rows)
-                    },
-                    result: 5433.33
-                }
-            },
-            { // M
-                value: {
-                    formula: '=L10*5%',
-                    _formula: 'rows[0][11]*0.05',
-                    result: 271.67
-                }
-            },
-            { // N
-                value: {
-                    formula: '=SUM(L10:M10)',
-                    _formula: 'rows[0][11]+rows[0][12]',
-                    result: 5705.00
-                }
-            },
-        ]
-    ]
-}
 
-function runCode(templateString, rows) {
-    args = ['rows', 'return ' + templateString];
-    return (Function.apply(null, args))(rows)
-}
+//// First things first
+//// Save full path of our root app directory and load config and credentials
+global.APP_DIR = path.resolve(__dirname + '/../').replace(/\\/g, '/'); // Turn back slash to slash for cross-platform compat
+global.ENV = lodash.get(process, 'env.NODE_ENV', 'dev')
 
-let plainRows = payroll.rows.map((row, rowIndex) => {
-    return row.map((cell, columnIndex) => {
-        let value = null
-        if (cell.value.formula) {
-            value = cell.value.result
-        } else if (cell.value) {
-            value = cell.value
-        }
-        return value
-    })
+const configLoader = new pigura.ConfigLoader({
+    configName: './configs/config.json',
+    appDir: APP_DIR,
+    env: ENV,
+    logging: true
 })
+global.CONFIG = configLoader.getConfig()
 
-payroll.rows = payroll.rows.map((row, rowIndex) => {
-    return row.map((cell, columnIndex) => {
-        let value = null
-        if (cell.value.formula) {
-            let formula = cell.value._formula
-            value = runCode(formula, plainRows)
-        } else if (cell.value) {
-            value = cell.value
-        }
-        return value
-    })
+const credLoader = new pigura.ConfigLoader({
+    configName: './credentials/credentials.json',
+    appDir: APP_DIR,
+    env: ENV,
+    logging: true
 })
+global.CRED = credLoader.getConfig()
 
-console.log(util.inspect(plainRows, true.length, 100))
-console.log(util.inspect(payroll, true.length, 100))
+    // const db = require('../data/src/db-install');
+
+
+    ; (async () => {
+        try {
+            let workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/payroll/template_cos_staff.xlsx`);
+
+            let letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+            let rows = []
+            workbook.eachSheet(function (worksheet, sheetId) {
+                console.log(sheetId, worksheet.name, worksheet.columns.length)
+                worksheet.columns.forEach(function (column) {
+                    // for (const property in column) {
+                    //     if (property[0] !== '_') console.log(`${property}: ${column[property]}`);
+                    // }
+                    // console.log(column.width, column.header)
+                })
+                // console.log(worksheet.columns[0])
+
+                worksheet.eachRow(function (row, rowNumber) {
+                    let cells = []
+                    row.eachCell({ includeEmpty: true }, function (cell, colNumber) {
+                        // cells.push(cell.value)
+                        if (letters[colNumber - 1] == 'W' && rowNumber === 21) {
+                            console.log(`${letters[colNumber - 1]}${rowNumber} = ${util.inspect(cell, true, 2)}`);
+                        }
+                    });
+                    // rows.push(cells)
+                });
+                // console.log(rows)
+            });
+
+        } catch (err) {
+            console.log(err)
+        } finally {
+            // db.main.close()
+        }
+    })()
+
 

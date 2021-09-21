@@ -1,5 +1,5 @@
 /**
- * Clear role collection and insert permissions
+ * Clear permissions collection and insert permissions
  * Usage: node scripts/install-permissions.js
  */
 //// Core modules

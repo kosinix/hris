@@ -31,5 +31,9 @@ env.addFilter('customFilter', function (array, filterObj) {
     return lodash.filter(array, filterObj)
 })
 
+env.addFilter('mapValue', function (value, list) {
+    return lodash.get(lodash.find(list, (o) => o.value === value), 'text', '')
+})
+
 //// Export
 module.exports = env;

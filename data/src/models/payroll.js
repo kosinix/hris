@@ -39,8 +39,8 @@ let schema = mongoose.Schema({
         }
     ],
     columns: [],
-    status: Number,
-    assignedTo: mongoose.Schema.Types.ObjectId,
+    status: Number, // 1 - HR, 2 - Accounting, 3 - Cashier, 4 - Released
+    assignedTo: {}
 }, { timestamps: true, typeKey: '$type' })
 
 //// Instance methods

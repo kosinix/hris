@@ -34,7 +34,7 @@
                         {% for cell in row %}
                         <td class="{{cell.classes}}">
                             <div style="min-height:60px">
-                                <div class="text-right">{{cell.value|format_date('D')}}</div>
+                                <div class="text-right"> <a href="/attendance/daily?date={{cell.value}}">{{cell.value|format_date('D')}}</a></div>
                                 <div>
                                     {% if cell.attendances %}
                                         {% for attendance in cell.attendances.splice(0, 10) %}

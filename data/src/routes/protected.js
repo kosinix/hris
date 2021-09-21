@@ -296,7 +296,7 @@ router.get('/users',  middlewares.requireAuthUser, async (req, res, next) => {
                     lastName: keys[0]
                 },
                 {
-                    email: keys[0]
+                    username: keys[0]
                 },
             ]
         }
@@ -309,9 +309,9 @@ router.get('/users',  middlewares.requireAuthUser, async (req, res, next) => {
             if(o.lastName){
                 full.push(o.lastName)
             }
-            if(o.email){
+            if(o.username){
                 full.push(' - ')
-                full.push(o.email)
+                full.push(o.username)
             }
             return {
                 id: o._id,

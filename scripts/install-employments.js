@@ -9,13 +9,10 @@ const process = require('process');
 
 //// External modules
 const csvParser = require('csv-parser')
-const csvStringify = require('csv-stringify')
 const lodash = require('lodash');
-const moment = require('moment');
 const pigura = require('pigura');
 
 //// Modules
-const passwordMan = require('../data/src/password-man');
 const utils = require('../data/src/utils');
 
 
@@ -168,18 +165,43 @@ const db = require('../data/src/db-install');
                     return 0;
                 });
 
-                addedFile = CONFIG.app.dir + '/scripts/install-data/employments-added.log'
-                ignoredFile = CONFIG.app.dir + '/scripts/install-data/employees-employments-ignored.log'
-                positionFile = CONFIG.app.dir + '/scripts/install-data/employees-positions2.log'
-                console.log(`${addedEmployments.length} employment(s) added. See "${addedFile}""`)
-                console.log(`${ignoreEmployees.length} employee(s) ignored as they are not found. See "${ignoredFile}""`)
-                console.log(`${positions.length} position(s) added. See "${positionFile}""`)
+                addedFile = `${CONFIG.app.dir}/logs/employments-added.log`
+                ignoredFile = `${CONFIG.app.dir}/logs/employments-ignored.log`
+                positionFile = `${CONFIG.app.dir}/logs/employments-positions.log`
+
+                try {
+                    fs.unlinkSync(addedFile)
+                    fs.unlinkSync(ignoredFile)
+                    fs.unlinkSync(positionFile)
+                } catch (_) { }
+
+
+                if (addedEmployments.length > 0) {
+                    fs.writeFileSync(addedFile, addedEmployments.join("\n"), { encoding: 'utf8' })
+                    console.log(`${addedEmployments.length} employee(s) added. See "${addedFile}"`)
+
+                } else {
+                    console.log(`${addedEmployments.length} employee(s) added.`)
+                }
+
+                if (ignoreEmployees.length > 0) {
+                    fs.writeFileSync(ignoredFile, ignoreEmployees.join("\n"), { encoding: 'utf8' })
+                    console.log(`${ignoreEmployees.length} employee(s) skipped as they are not found. See "${ignoredFile}"`)
+
+                } else {
+                    console.log(`${ignoreEmployees.length} employee(s) skipped.`)
+                }
+
+                if (positions.length > 0) {
+                    fs.writeFileSync(positionFile, positions.join("\n"), { encoding: 'utf8' })
+                    console.log(`${positions.length} position(s) listed. See "${positionFile}"`)
+
+                } else {
+                    console.log(`${positions.length} position(s) listed.`)
+                }
 
                 db.main.close();
 
-                fs.writeFileSync(addedFile, addedEmployments.join("\n"), { encoding: 'utf8' })
-                fs.writeFileSync(ignoredFile, ignoreEmployees.join("\n"), { encoding: 'utf8' })
-                fs.writeFileSync(positionFile, positions.join("\n"), { encoding: 'utf8' })
             });
 
     } catch (err) {

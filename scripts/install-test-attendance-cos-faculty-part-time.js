@@ -257,7 +257,7 @@ const db = require('../data/src/db-install');
         let insertedAttendances = await db.main.Attendance.insertMany(attendances)
         console.log(`Inserted ${insertedAttendances.length} attendances into ${employees.length} employees...`)
 
-        file = CONFIG.app.dir + '/scripts/logs/payroll-stf.log'
+        file = CONFIG.app.dir + '/logs/attendance-stf.log'
         fs.writeFileSync(file, logs.join(";\n"), { encoding: 'utf8' })
         console.log(`Log file "${file}"`)
 

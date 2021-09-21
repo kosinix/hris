@@ -76,12 +76,14 @@ const db = require('../data/src/db-install');
             total++
         }
         
-        let loginsFile = CONFIG.app.dir + '/scripts/install-data/logins.csv'
-        console.log(`Inserted ${total} users - See '${loginsFile}'`)
+        let logFile = `${CONFIG.app.dir}/logs/login-users.csv`
 
-        csvRows = csvRows.join("\n")
+        try {
+            fs.unlinkFile(logFile)
+        } catch (_) { }
 
-        fs.writeFileSync(loginsFile, csvRows, { encoding: 'utf8' })
+        console.log(`Inserted ${total} users - See '${logFile}'`)
+        fs.writeFileSync(logFile, csvRows.join("\n"), { encoding: 'utf8' })
 
     } catch (err) {
         console.log(err)

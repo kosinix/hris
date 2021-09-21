@@ -68,12 +68,15 @@ let adminsList = require('./install-data/users-list'); // Do not remove semi-col
             return user.save()
         })
         await Promise.all(promises)
-        csvRows = csvRows.join("\n")
-        let logFile = CONFIG.app.dir + '/scripts/install-data/logins-admin.csv'
-        fs.writeFileSync(logFile, csvRows, { encoding: 'utf8' })
-        console.log(`Inserted ${promises.length} users:`)
-        console.log(logs.join("\n"))
-        console.log(`Log saved to "${logFile}".`)
+
+        let logFile = `${CONFIG.app.dir}/logs/login-admins.csv`
+
+        try {
+            fs.unlinkFile(logFile)
+        } catch (_) { }
+
+        fs.writeFileSync(logFile, csvRows.join("\n"), { encoding: 'utf8' })
+        console.log(`Inserted ${promises.length} user(s). See "${logFile}"`)
 
     } catch (err) {
         console.log(err)

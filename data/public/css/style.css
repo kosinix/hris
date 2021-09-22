@@ -5,7 +5,6 @@ body {
     background: #F1F1F1;
 }
 body.body-public {
-    min-height: 1000px;
     background: hsla(95, 47%, 71%, 1);
     background: linear-gradient(135deg, hsla(95, 47%, 71%, 1) 0%, hsla(168, 41%, 50%, 1) 28%, hsla(184, 62%, 39%, 1) 44%, hsla(207, 66%, 43%, 1) 54%, hsla(211, 80%, 33%, 1) 100%);
 }
@@ -457,6 +456,9 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     display: block;
 }
 
+.login-height {
+    min-height: 1000px;
+}
 .login-form {
     background: #eeeeee;
     background: -moz-linear-gradient(top,  #eeeeee 0%, #eeeeee 100%);

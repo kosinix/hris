@@ -4,13 +4,13 @@
 <div class="container container-first height-medium">
     <div class="row">
         <div class="col-md-5 ml-auto mr-auto pt-5">
-            <div class="login-form">
-            <div class="text-center position-relative mb-4">
-                <img class="rotate" src="/images/logo-gear.png" alt="GSC Gear">
-                <img class="position-relative" src="/images/logo-inner.png" alt="GSC Logo">
-            </div>
+            <div class="login-form" id="vApp" v-cloak>
+                <div class="text-center position-relative mb-4">
+                    <img class="rotate" src="/images/logo-gear.png" alt="GSC Gear">
+                    <img class="position-relative" width="100" src="/images/logo-inner.png" alt="GSC Logo">
+                </div>
                 <h1 class="text-center h4 mb-4">HR Information System</h1>
-                <div id="vApp" v-cloak>
+                <div>
                     {% include 'parts/flash.html' %}
                     <form ref="form" v-on:submit.prevent="onSubmit" action="/login" method="POST" novalidate>
                         <div class="form-group">

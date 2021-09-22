@@ -177,8 +177,8 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
         let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
         let undertimeView = lodash.get(req, 'query.undertime') == 1 ? true : false
 
-        let startMoment = moment.utc(start)
-        let endMoment = moment.utc(end)
+        let startMoment = moment(start).startOf('day')
+        let endMoment = moment(end).endOf('day')
         let momentNow = moment()
 
         let attendances = await db.main.Attendance.find({

@@ -34,7 +34,7 @@ const createShift = (start, end, gracePeriod, settings) => {
         start: start.hour * 60 + start.minute,
         end: end.hour * 60 + end.minute,
         grace: gracePeriod.hour * 60 + gracePeriod.minute,
-        flexible: settings.hour,
+        flexible: settings.flexible,
         maxHours: settings.maxHours,
         maxMinutes: settings.maxHours * 60, // Derived property. Depends on maxHours
     }
@@ -163,13 +163,14 @@ const calcTimeRecord = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
     }
 }
 
-const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480) => {
+const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, shifts) => {
 
     // Default govt shift
-    let shifts = []
-    shifts.push(createShift({ hour: 8, minute: 0 }, { hour: 12, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4 }))
-    shifts.push(createShift({ hour: 13, minute: 0 }, { hour: 17, minute: 0 }, { hour: 0, minute: 0 }, { maxHours: 4 }))
-
+    if (!shifts) {
+        shifts = []
+        shifts.push(createShift({ hour: 8, minute: 0 }, { hour: 12, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4, flexible: false }))
+        shifts.push(createShift({ hour: 13, minute: 0 }, { hour: 17, minute: 0 }, { hour: 0, minute: 0 }, { maxHours: 4, flexible: false }))
+    }
 
     // travelPoints 480 minutes = 8 hours 
     if (null === attendance) return null
@@ -193,41 +194,68 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480) =>
             if (log.mode === 1) { // in
                 momentIn = moment(log.dateTime)
                 startMinutes = momentToMinutes(momentIn)
+
+                if (startMinutes === null) break // Something went wrong
+
                 shiftCurrent = getNextShift(startMinutes, shifts)
 
-                if (shiftCurrent instanceof Error) break
+                if (shiftCurrent instanceof Error) break // No more next shift
+                if (shiftCurrent === null) break // Something went wrong
 
-                if (startMinutes <= shiftCurrent.start + shiftCurrent.grace) { // late but graced
-                    startMinutes = shiftCurrent.start // set to shift start
+                if (startMinutes <= shiftCurrent.start + shiftCurrent.grace) { // Late but graced
+                    startMinutes = shiftCurrent.start // Set to shift start
                 }
+
+                // console.log(`shift ${shiftCurrent.start} to ${shiftCurrent.end} IN  ${startMinutes}`)
 
             } else if (log.mode === 0) { // out
 
-                if (startMinutes === null) break
-                if (shiftCurrent === null) break
-                if (shiftCurrent instanceof Error) break
+                if (shiftCurrent instanceof Error) break // No more next shift
+                if (shiftCurrent === null) break // Something went wrong
 
                 endMinutes = momentToMinutes(moment(log.dateTime))
-                if (endMinutes < shiftCurrent.start) break // Logging out before shift starts!
 
-                if (endMinutes > shiftCurrent.end) { // Forgot logout on before shift
-                    // let minutesWorked = shiftCurrent.end - startMinutes
-                    // minutes += minutesWorked
-                    // shiftCurrent = getNextShift(endMinutes, shifts)
-                    // startMinutes = shiftCurrent.start
-                    // if (shiftCurrent instanceof Error) break
-                    console.log('Invalid attendance')
-                    break
+                let minutesWorked = 0
+
+                // Different conditions
+                if (endMinutes < shiftCurrent.start) { // Invalid. Logged out before current shift starts! 
+
+                    console.log('Logging out before shift starts!')
+
+                } else if (endMinutes >= shiftCurrent.start && endMinutes <= shiftCurrent.end) { // Logged out within current shift
+                    
+                    minutesWorked = endMinutes - startMinutes
+
+                } else if (endMinutes > shiftCurrent.end) { // Logged out after current shift
+
+                    // Check if logged out on next shift
+                    let shiftNext = getNextShift(endMinutes, shifts)
+
+                    if (shiftNext instanceof Error) { // No more next shift
+                        
+                        minutesWorked = shiftCurrent.end - startMinutes // Remove excess and use shiftCurrent.end
+
+                    } else {
+
+                        if (endMinutes < shiftNext.start) { // Logged out after current and before next shift (eg. logged out on lunch break period)
+
+                            minutesWorked = shiftCurrent.end - startMinutes // Remove excess and use shiftCurrent.end
+
+                        } else if (endMinutes >= shiftNext.start && endMinutes <= shiftNext.end) { // Logged out within NEXT shift (forgot to logout and login)
+                            // Get current shift time worked
+                            minutesWorked = shiftCurrent.end - startMinutes // Remove excess and use shiftCurrent.end
+                            // Add next shift time worked
+                            minutesWorked += endMinutes - shiftNext.start
+                        } else {
+                            // Nothing to compute
+                        }
+
+                    }
+
+
                 }
 
-                if (endMinutes > shiftCurrent.end) {
-                    endMinutes = shiftCurrent.end // Not counted outshide shift
-                }
-
-                let minutesWorked = endMinutes - startMinutes
-                if (minutesWorked > shiftCurrent.maxMinutes) {
-                    minutesWorked = shiftCurrent.maxMinutes
-                }
+                // console.log(`shift ${shiftCurrent.start} to ${shiftCurrent.end} OUT ${endMinutes} = ${minutesWorked}`)
 
                 // Attach
                 log.minutesWorked = minutesWorked
@@ -289,31 +317,30 @@ const getDtrMonthlyView = (month, year, attendances, useDaysInMonth = false) => 
 
 const getDtrTable = (startMoment, endMoment, attendances) => {
 
-    // Turn array of attendances into an object with date as keys: "2020-12-31"
-    attendances = lodash.mapKeys(attendances, (a) => {
-        return moment(a.createdAt).format('YYYY-MM-DD')
-    })
-
-    let days = []
-    for (let m = startMoment.clone(); m.diff(endMoment, 'days') <= 0; m.add(1, 'days')) {
+    return attendances.map((attendance) => {
+        let m = moment(attendance.createdAt)
         let date = m.format('YYYY-MM-DD')
         let year = m.format('YYYY')
         let month = m.format('MM')
         let day = m.format('DD')
         let weekDay = m.format('ddd')
-        let attendance = attendances[date] || null
         let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 
-        days.push({
+        return {
             date: date,
             year: year,
             month: month,
             weekDay: weekDay,
             day: day,
             dtr: dtr,
-            attendance: attendance
-        })
-    }
+            attendance: attendance || null
+        }
+    })
+
+    // Turn array of attendances into an object with date as keys: "2020-12-31"
+    let days = lodash.mapKeys(attendances, (a) => {
+        return a.date
+    })
 
     return days
 }

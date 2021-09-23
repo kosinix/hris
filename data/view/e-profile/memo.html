@@ -4,22 +4,22 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h2">All Groups</h1>
+            <h1 class="h3">Office Issuances (Memo)</h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                <a href="/group/create" class="btn btn-sm btn-outline-primary">Add Group</a>
+                {# <a href="/e-profile/dtr" class="btn btn-sm btn-outline-primary">Back</a> #}
             </div>
         </div>
     </div>
+
     {% include 'parts/flash.html' %}
-    
-    {% if groups.length <= 0 %}
-        <p>None found.</p>
+    {% if memos.length <= 0 %}
+        <p>No memo found.</p>
     {% else %}
         <div class="d-flex justify-content-end">
             <div class=" pb-3">
-                {% set url = '/group/all' %}
+                {% set url = '/memo/all' %}
                 {% include 'parts/form-per-page.html' %}
             </div>
         </div>
@@ -27,23 +27,28 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
+                        <th width="15%">
+                            {% set thId = 'number' %}
+                            {% set thLabel = 'Memo No.' %}
+                            {% include 'parts/sorted-th.html' %}
+                            {% set thLabel = '' %}
+                        </th>
                         <th>
-                            {% set thId = 'name' %}
+                            {% set thId = 'subject' %}
                             {% include 'parts/sorted-th.html' %}
                         </th>
-                        <th>{% set thId = 'description' %}
-                            {% include 'parts/sorted-th.html' %}</th>
-
-                        <th>{% set thId = 'parentId' %}
-                        {% include 'parts/sorted-th.html' %}</th>
+                        <th width="15%">
+                            {% set thId = 'date' %}
+                            {% include 'parts/sorted-th.html' %}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
-                {% for group in groups %}
+                {% for memo in memos %}
                     <tr>
-                        <td><a href="/group/{{group._id}}">{{group.name}}</a></td>
-                        <td>{{group.description}}</td>
-                        <td><a href="/group/{{group.parent._id}}">{{group.parent.name}}</a></td>
+                        <td>{{memo.number}}</td>
+                        <td><a href="/e-profile/memo/{{memo._id}}">{{memo.subject}}</a></td>
+                        <td>{{memo.date|format_date('MMM DD, YYYY')}}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -58,5 +63,8 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
 {% endblock %}
 

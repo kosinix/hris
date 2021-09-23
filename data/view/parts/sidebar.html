@@ -49,12 +49,18 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/memo/])}}" href="/e-profile/memo">
+                        Office Issuances
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/account\/password/])}}" href="/e-profile/account/password">
                         Account Settings
                     </a>
                 </li>
             </ul>
         </li>
+        
     </ul>
     {% else %}
     <ul class="nav flex-column mb-2">
@@ -118,6 +124,14 @@
                     </a>
                 </li>
             </ul> #}
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/memo\/all/, r/^\/memo\/([a-f\d]{24})/])}}" href="/memo/all">
+                <svg style="width:16px;height:16px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M6,2A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6M6,4H13V9H18V20H6V4M8,12V14H16V12H8M8,16V18H13V16H8Z" />
+                </svg>
+                Office Issuances
+            </a>
         </li>
         <li class="nav-item">
             <a class="nav-link {{urlPath|active_class([r/^\/scanner\/all/, r/^\/scanner\//])}}" href="/scanner/all">

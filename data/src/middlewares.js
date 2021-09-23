@@ -210,14 +210,14 @@ module.exports = {
             next(err);
         }
     },
-    getGroup: async (req, res, next) => {
+    getMemo: async (req, res, next) => {
         try {
-            let groupId = req.params.groupId || ''
-            let group = await db.main.Group.findById(groupId);
-            if (!group) {
-                return res.render('error.html', { error: "Sorry, group not found." })
+            let memoId = req.params.memoId || ''
+            let memo = await db.main.Memo.findById(memoId);
+            if (!memo) {
+                return res.render('error.html', { error: "Sorry, memo not found." })
             }
-            res.group = group
+            res.memo = memo
             next();
         } catch (err) {
             next(err);

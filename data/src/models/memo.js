@@ -6,16 +6,19 @@ const mongoose = require('mongoose');
 //// Modules
 
 let schema = mongoose.Schema({
-    name: {
+    number: {
+        $type: Number,
+    },
+    subject: {
         $type: String,
         trim: true,
     },
-    description: {
+    url: {
         $type: String,
         trim: true,
     },
-    parentId: {
-        $type: mongoose.Schema.Types.ObjectId,
+    date: {
+        $type: Date
     },
 }, {timestamps: true, typeKey: '$type'})
 

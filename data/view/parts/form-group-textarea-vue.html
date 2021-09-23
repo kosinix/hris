@@ -6,6 +6,6 @@
     </label>
     <div>
         <textarea v-bind:name="{{name}}" v-bind:id="{{name}}" v-model="{% if vModel %}{{vModel}}{% else %}{{name}}{% endif %}" class="form-control" rows="5"></textarea>
-        <small class="invalid-feedback">${getError('{{name}}')}</small>
+        <small class="invalid-feedback">${getError({{name}})}</small>
     </div>
 </div>

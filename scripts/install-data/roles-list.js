@@ -50,6 +50,13 @@ const ROLES = [
             'read_attendance',
             'update_attendance',
             'delete_attendance',
+
+            // Memos
+            'read_all_memo',
+            'create_memo',
+            'read_memo',
+            'update_memo',
+            'delete_memo',
         ]
     },
     {
@@ -65,7 +72,7 @@ const ROLES = [
 
             // Payroll statuses
             'payroll_status_2',
-            
+
         ]
     },
     {
@@ -73,7 +80,7 @@ const ROLES = [
         name: 'Cashier',
         description: 'Can view payroll and disburse.',
         permissions: [
-           
+
             // Payrolls
             'read_all_payroll',
             'read_payroll',
@@ -82,7 +89,7 @@ const ROLES = [
             // Payroll statuses
             'payroll_status_3',
             'payroll_status_4',
-          
+
         ]
     },
     {

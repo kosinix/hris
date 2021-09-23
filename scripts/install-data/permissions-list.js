@@ -31,12 +31,12 @@ module.exports = [
     'payroll_status_3',
     'payroll_status_4',
 
-    // Groups
-    'read_all_group',
-    'create_group',
-    'read_group',
-    'update_group',
-    'delete_group',
+    // Memos
+    'read_all_memo',
+    'create_memo',
+    'read_memo',
+    'update_memo',
+    'delete_memo',
 
     // Scanners
     'read_all_scanner',

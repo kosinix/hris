@@ -9,11 +9,20 @@ jQuery(document).ready(function ($) {
             setCookie('hideNav', 'false');
         }
     })
-    $('.nav-employee a').on('click', function () {
-        $body.addClass('hide-menu');
-        setCookie('hideNav', 'true');
-
+    
+    $('#sidebar').on('click', '.nav-expander', function (e) {
+        e.preventDefault()
+        e.stopPropagation()
+        var $navItem = $(this).parents('.nav-item')
+        $navItem.toggleClass('expanded')
     })
 
+    $('#sidebar').on('click', '.nav-employee a', function (e) {
+        console.log(e.isPropagationStopped())
+        if(e.isPropagationStopped()) return false
+        $body.addClass('hide-menu');
+        setCookie('hideNav', 'true');
+    })
+    
 });
 

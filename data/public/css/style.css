@@ -31,11 +31,6 @@ body, pre {
 }
 
 /*
- * Sidebar
- */
-
-
-/*
  * Navbar
  */
 
@@ -324,6 +319,10 @@ div.focusable:focus-within  {
     font-weight: normal;
     margin-bottom: 0;
 }
+
+/*
+ * Sidebar
+ */
 .sidebar {
     background-image: linear-gradient(180deg,#2799a3,transparent);
     background-color: #2573b5;
@@ -413,6 +412,47 @@ div.focusable:focus-within  {
     display: inline-block;
 }
 
+.sidebar > .nav > .nav-item > .nav-link {
+    display: flex;
+    align-items: center;
+}
+.sidebar > .nav > .nav-item > .nav-link > svg:first-child {
+    margin-right: 3px;
+}
+.sidebar > .nav > .nav-item .nav-expander {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    border-left: 1px solid rgba(255, 255, 255, .1);
+    background: none;
+    outline: 0;
+}
+.sidebar > .nav > .nav-item .nav-expander > svg path {
+    fill: #fff;
+}
+.sidebar > .nav > .nav-item .nav-expander > svg:first-child {
+    display: block;
+}
+.sidebar > .nav > .nav-item .nav-expander > svg:last-child {
+    display: none;
+}
+.sidebar > .nav > .nav-item.expanded .nav-expander > svg:first-child {
+    display: none;
+}
+.sidebar > .nav > .nav-item.expanded .nav-expander > svg:last-child {
+    display: block;
+}
+/* Submenu */
+.sidebar > .nav > .nav-item > .nav {
+    display: none;
+}
+.sidebar > .nav > .nav-item.expanded > .nav {
+    display: block;
+}
+
+/* DTR */
 .table-dtr tr.selected td{
     background: #a1f8b4;
 }

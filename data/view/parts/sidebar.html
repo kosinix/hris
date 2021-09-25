@@ -1,4 +1,4 @@
-<div class="sidebar">
+<div id="sidebar" class="sidebar">
     <div class="d-flex p-3 align-items-center brand">
         <div class="mr-2">
         {% if user.roles and user.roles.includes('employee') %}
@@ -20,12 +20,20 @@
     </div>
     {% if user.roles and user.roles.includes('employee') %}
     <ul class="nav flex-column mb-2 nav-employee">
-        <li class="nav-item">
+        <li class="nav-item {{urlPath|active_class([r/^\/e-profile\/(.)+/], 'expanded')}}">
             <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/(.)+/])}}" href="/e-profile/home">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M22 17V16.5C22 15.12 20.88 14 19.5 14S17 15.12 17 16.5V17C16.45 17 16 17.45 16 18V22C16 22.55 16.45 23 17 23H22C22.55 23 23 22.55 23 22V18C23 17.45 22.55 17 22 17M21 17H18V16.5C18 15.67 18.67 15 19.5 15S21 15.67 21 16.5V17M8 8C8 5.79 9.79 4 12 4S16 5.79 16 8 14.21 12 12 12 8 10.21 8 8M14 20H4V18C4 15.79 7.58 14 12 14C13.27 14 14.46 14.15 15.53 14.41C15.32 14.82 15.15 15.25 15.07 15.71C14.42 16.26 14 17.08 14 18V20Z" />
                 </svg>
-                My E-Profile
+                <span>My E-Profile</span>
+                <button class="nav-expander" type="button">
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
+                    </svg>
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z" />
+                    </svg>
+                </button>
             </a>
             <ul class="nav flex-column">
                 <li class="nav-item">
@@ -64,13 +72,18 @@
     </ul>
     {% else %}
     <ul class="nav flex-column mb-2">
-        <li class="nav-item">
+        <li class="nav-item {{urlPath|active_class([r/^\/employee\/(.)+/], 'expanded')}}" id="nav-item-employees">
             <a class="nav-link {{urlPath|active_class([r/^\/employee\/(.)+/])}}" href="/employee/all">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,5.5A3.5,3.5 0 0,1 15.5,9A3.5,3.5 0 0,1 12,12.5A3.5,3.5 0 0,1 8.5,9A3.5,3.5 0 0,1 12,5.5M5,8C5.56,8 6.08,8.15 6.53,8.42C6.38,9.85 6.8,11.27 7.66,12.38C7.16,13.34 6.16,14 5,14A3,3 0 0,1 2,11A3,3 0 0,1 5,8M19,8A3,3 0 0,1 22,11A3,3 0 0,1 19,14C17.84,14 16.84,13.34 16.34,12.38C17.2,11.27 17.62,9.85 17.47,8.42C17.92,8.15 18.44,8 19,8M5.5,18.25C5.5,16.18 8.41,14.5 12,14.5C15.59,14.5 18.5,16.18 18.5,18.25V20H5.5V18.25M0,20V18.5C0,17.11 1.89,15.94 4.45,15.6C3.86,16.28 3.5,17.22 3.5,18.25V20H0M24,20H20.5V18.25C20.5,17.22 20.14,16.28 19.55,15.6C22.11,15.94 24,17.11 24,18.5V20Z" /></svg>
                 <span>Employees</span>
-                {# <svg class="nav-expand" style="width:16px;height:16px" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M7,10L12,15L17,10H7Z" />
-                </svg> #}
+                <button class="nav-expander" type="button">
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
+                    </svg>
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
+                    </svg>
+                </button>
             </a>
             <ul class="nav flex-column">
                 <li class="nav-item">
@@ -90,12 +103,20 @@
                 </li>
             </ul>
         </li>
-        <li class="nav-item">
+        <li class="nav-item {{urlPath|active_class([r/^\/payroll\/(.)+/], 'expanded')}}" id="nav-item-payroll">
             <a class="nav-link {{urlPath|active_class([r/^\/payroll\/(.)+/])}}" href="/payroll/all">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M18,15H16V17H18M18,11H16V13H18M20,19H12V17H14V15H12V13H14V11H12V9H20M10,7H8V5H10M10,11H8V9H10M10,15H8V13H10M10,19H8V17H10M6,7H4V5H6M6,11H4V9H6M6,15H4V13H6M6,19H4V17H6M12,7V3H2V21H22V7H12Z" />
                 </svg>
-                Payroll
+                <span>Payroll</span>
+                <button class="nav-expander" type="button">
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
+                    </svg>
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
+                    </svg>
+                </button>
             </a>
             <ul class="nav flex-column">
                 <li class="nav-item">
@@ -110,38 +131,38 @@
                 </li>
             </ul>
         </li>
-        <li class="nav-item">
+        <li class="nav-item {{urlPath|active_class([r/^\/attendance\/(.)+/], 'expanded')}}" id="nav-item-attendance">
             <a class="nav-link {{urlPath|active_class([r/^\/attendance\/monthly/, r/^\/attendance\//])}}" href="/attendance/monthly">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19Z" />
                 </svg>
-                Attendance
+                <span>Attendance</span>
             </a>
-            {# <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link {{urlPath|active_class([r/^\/attendance\/all/, r/^\/attendance\/([a-f\d]{24})/])}}" href="/entity/all">
-                        All Attendance
-                    </a>
-                </li>
-            </ul> #}
         </li>
-        <li class="nav-item">
+        <li class="nav-item {{urlPath|active_class([r/^\/memo\/(.)+/], 'expanded')}}" id="nav-item-memo">
             <a class="nav-link {{urlPath|active_class([r/^\/memo\/all/, r/^\/memo\/([a-f\d]{24})/])}}" href="/memo/all">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M6,2A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6M6,4H13V9H18V20H6V4M8,12V14H16V12H8M8,16V18H13V16H8Z" />
                 </svg>
-                Office Issuances
+                <span>Office Issuances</span>
             </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item {{urlPath|active_class([r/^\/scanner\/(.)+/], 'expanded')}}" id="nav-item-scanners">
             <a class="nav-link {{urlPath|active_class([r/^\/scanner\/all/, r/^\/scanner\//])}}" href="/scanner/all">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
                 </svg>
-                Scanners
+                <span>Scanners</span>
+                <button class="nav-expander" type="button">
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
+                    </svg>
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
+                    </svg>
+                </button>
             </a>
             <ul class="nav flex-column">
-                
                 <li class="nav-item">
                     <a class="nav-link {{urlPath|active_class([r/^\/scanner\/create/, r/^\/entity\/([a-f\d]{24})/])}}" href="/scanner/create">
                         Create
@@ -149,35 +170,50 @@
                 </li>
             </ul>
         </li>
-        <li class="nav-item">
+        <li class="nav-item {{urlPath|active_class([r/^\/hdf\/(.)+/], 'expanded')}}" id="nav-item-clinic">
             <a class="nav-link {{urlPath|active_class([r/^\/hdf\/all/, r/^\/hdf\//])}}" href="/hdf/all">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M11 9C11 10.66 9.66 12 8 12C6.34 12 5 10.66 5 9C5 7.34 6.34 6 8 6C9.66 6 11 7.34 11 9M14 20H2V18C2 15.79 4.69 14 8 14C11.31 14 14 15.79 14 18M22 12V14H13V12M22 8V10H13V8M22 4V6H13V4Z" />
+                    <path fill="currentColor" d="M10,3L8,5V7H5C3.85,7 3.12,8 3,9L2,19C1.88,20 2.54,21 4,21H20C21.46,21 22.12,20 22,19L21,9C20.88,8 20.06,7 19,7H16V5L14,3H10M10,5H14V7H10V5M11,10H13V13H16V15H13V18H11V15H8V13H11V10Z" />
                 </svg>
-                Health Declarations
+                <span>Clinic</span>
+                <button class="nav-expander" type="button">
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
+                    </svg>
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
+                    </svg>
+                </button>
             </a>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/hdf\/all/, r/^\/hdf\//])}}" href="/hdf/all">
+                        Health Declaration
+                    </a>
+                </li>
+            </ul>
         </li>
     </ul>
     
     
     
-    {# <ul class="nav flex-column mb-2">
-        <li class="nav-item">
-            <a class="nav-link {{urlPath|active_class([r/^\/admin\/(.)+/])}}" href="/admin/all">
+    <ul class="nav flex-column mb-2">
+        <li class="nav-item {{urlPath|active_class([r/^\/user\/(.)+/], 'expanded')}}" id="nav-item-users">
+            <a class="nav-link {{urlPath|active_class([r/^\/user\/(.)+/])}}" href="/user/all">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M22 17V16.5C22 15.12 20.88 14 19.5 14S17 15.12 17 16.5V17C16.45 17 16 17.45 16 18V22C16 22.55 16.45 23 17 23H22C22.55 23 23 22.55 23 22V18C23 17.45 22.55 17 22 17M21 17H18V16.5C18 15.67 18.67 15 19.5 15S21 15.67 21 16.5V17M8 8C8 5.79 9.79 4 12 4S16 5.79 16 8 14.21 12 12 12 8 10.21 8 8M14 20H4V18C4 15.79 7.58 14 12 14C13.27 14 14.46 14.15 15.53 14.41C15.32 14.82 15.15 15.25 15.07 15.71C14.42 16.26 14 17.08 14 18V20Z" />
                 </svg>
-                Access
+                <span>Users</span>
             </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item {{urlPath|active_class([r/^\/reports\/(.)+/], 'expanded')}}" id="nav-item-reports">
             <a class="nav-link {{urlPath|active_class([r/^\/reports\/(.)+/])}}" href="/reports/all">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M22 17V16.5C22 15.12 20.88 14 19.5 14S17 15.12 17 16.5V17C16.45 17 16 17.45 16 18V22C16 22.55 16.45 23 17 23H22C22.55 23 23 22.55 23 22V18C23 17.45 22.55 17 22 17M21 17H18V16.5C18 15.67 18.67 15 19.5 15S21 15.67 21 16.5V17M8 8C8 5.79 9.79 4 12 4S16 5.79 16 8 14.21 12 12 12 8 10.21 8 8M14 20H4V18C4 15.79 7.58 14 12 14C13.27 14 14.46 14.15 15.53 14.41C15.32 14.82 15.15 15.25 15.07 15.71C14.42 16.26 14 17.08 14 18V20Z" />
+                    <path fill="currentColor" d="M11,2V22C5.9,21.5 2,17.2 2,12C2,6.8 5.9,2.5 11,2M13,2V11H22C21.5,6.2 17.8,2.5 13,2M13,13V22C17.7,21.5 21.5,17.8 22,13H13Z" />
                 </svg>
-                Reports
+                <span>Reports</span>
             </a>
         </li>
-    </ul> #}
+    </ul>
     {% endif %}
 </div>

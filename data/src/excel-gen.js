@@ -360,7 +360,7 @@ let templateCos = async (payroll) => {
                         activeRowIndexes.push(y + startRowIndex)
                     }
                 }
-                
+
                 // account for excel data row starting index
                 let range = [start + startRowIndex, end + startRowIndex]
 
@@ -1749,7 +1749,7 @@ let templatePds = async (employee) => {
 
 let templatePermanent = async (payroll) => {
     let workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/payroll/template_permanent.xlsx`);
+    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/payroll/template_permanent2.xlsx`);
     let slex = new Slex(workbook)
 
     let worksheet = await workbook.getWorksheet('Permanent')
@@ -1759,328 +1759,427 @@ let templatePermanent = async (payroll) => {
     if (worksheet) {
 
         // Set Print Area for a sheet
-        worksheet.pageSetup.printArea = `A1:AM${startRowIndex + payroll.rows.length + 12}`;
+        // worksheet.pageSetup.printArea = `A1:AM${startRowIndex + payroll.rows.length + 12}`;
 
         slex.setSheet(worksheet)
-
-        let rowCount = payroll.rows.length
-
-        worksheet.duplicateRow(startRowIndex, rowCount - 1, true);
+        
+        // worksheet.duplicateRow(startRowIndex, rowCount - 1 + (pageLength * pages), true);
 
         slex.getCell('A2')
             .value(`Salary for the period ${moment(payroll.dateStart).format('MMMM DD')} - ${moment(payroll.dateEnd).format('DD, YYYY')}`)
 
         let numbering = 0
-        payroll.rows.forEach((row, rowIndex) => {
+        payroll.rows.filter(r => r.type === 1).slice(0, 58).forEach((row, rowIndex) => {
+            numbering++
 
             let curRowIndex = startRowIndex + rowIndex
+
             let wsRow = worksheet.getRow(curRowIndex)
 
-            if (row.type === 3) {
+            
 
-                wsRow.eachCell(function (cell, colNumber) {
-                    cell.value = ''
-                });
+            // let attendance = payrollJs.getCellValue(row, 'attendance', payrollJs.formulas, payroll.columns)
 
-                slex.mergeCells(`A${curRowIndex}:B${curRowIndex}`)
-                    .value(row.name)
+            //=F10*E10+H10*E10/8+J10*E10/8/60
+            // let amount = payrollJs.amountWorked(lodash.get(row, 'employment.salary', 0), lodash.get(row, 'employment.salaryType', 0), lodash.get(row, 'timeRecord.totalMinutes', 0))
 
-            } else if (row.type === 1) {
 
-                numbering++
-                // let attendance = payrollJs.getCellValue(row, 'attendance', payrollJs.formulas, payroll.columns)
+            let grossPayAllowance = payrollJs.getCellValue(row, 'grossPayAllowance', payrollJs.formulas, payroll.columns)
 
-                //=F10*E10+H10*E10/8+J10*E10/8/60
-                // let amount = payrollJs.amountWorked(lodash.get(row, 'employment.salary', 0), lodash.get(row, 'employment.salaryType', 0), lodash.get(row, 'timeRecord.totalMinutes', 0))
+            console.log(`A${curRowIndex}`, numbering)
+            slex.getCell(`A${curRowIndex}`)
+                .value(numbering)
 
-                let grossPayAllowance = payrollJs.getCellValue(row, 'grossPayAllowance', payrollJs.formulas, payroll.columns)
-                slex.getCell(`A${curRowIndex}`)
-                    .value(numbering)
+                .getCell(`B${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'name', payrollJs.formulas, payroll.columns))
+                .getCell(`C${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'position', payrollJs.formulas, payroll.columns))
+                .getCell(`D${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'basePay', payrollJs.formulas, payroll.columns))
+                .getCell(`E${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'peraAca', payrollJs.formulas, payroll.columns))
+                .getCell(`F${curRowIndex}`)
+                .value({
+                    formula: `=D${curRowIndex}+E${curRowIndex}`,
+                    result: parseFloat(grossPayAllowance.toFixed(2))
+                })
+                .getCell(`G${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'tardiness', payrollJs.formulas, payroll.columns))
+                .getCell(`H${curRowIndex}`)
+                .value({
+                    formula: `=F${curRowIndex}-G${curRowIndex}`,
+                    result: parseFloat(payrollJs.getCellValue(row, 'grossPayAllowance', payrollJs.formulas, payroll.columns).toFixed(2))
+                })
+                .getCell(`I${curRowIndex}`)
+                .value({
+                    formula: `=D${curRowIndex}*9%`,
+                    result: parseFloat(payrollJs.getCellValue(row, 'rlipPs9', payrollJs.formulas, payroll.columns).toFixed(2))
+                })
+                .getCell(`J${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'emergencyLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`K${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'eal', payrollJs.formulas, payroll.columns))
+                .getCell(`L${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'consoLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`M${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'ouliPremium', payrollJs.formulas, payroll.columns))
+                .getCell(`N${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'policyOuliLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`O${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'regularPolicyLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`P${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'gfal', payrollJs.formulas, payroll.columns))
+                .getCell(`Q${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'mpl', payrollJs.formulas, payroll.columns))
+                .getCell(`R${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'cpl', payrollJs.formulas, payroll.columns))
+                .getCell(`S${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'help', payrollJs.formulas, payroll.columns))
+                .getCell(`T${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'medicare', payrollJs.formulas, payroll.columns))
+                .getCell(`U${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'pagibigContribution', payrollJs.formulas, payroll.columns))
+                .getCell(`V${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'mplLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`W${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'calamityLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`X${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'withholdingTax', payrollJs.formulas, payroll.columns))
+                .getCell(`Y${curRowIndex}`)
+                .value({
+                    formula: `=SUM(J${curRowIndex}:X${curRowIndex})+I${curRowIndex}`,
+                    result: parseFloat(payrollJs.getCellValue(row, 'totalMandatoryDeductions', payrollJs.formulas, payroll.columns).toFixed(2))
+                })
+                .getCell(`Z${curRowIndex}`)
+                .value({
+                    formula: `=F${curRowIndex}-Y${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'netAfterTotalMandatoryDeductions', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AC${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'teachersScholars', payrollJs.formulas, payroll.columns))
+                .getCell(`AD${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'ffaLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`AG${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'citySavingsBank', payrollJs.formulas, payroll.columns))
+                .getCell(`AH${curRowIndex}`)
+                .value({
+                    formula: `=SUM(AC${curRowIndex}:AG${curRowIndex})`,
+                    result: payrollJs.getCellValue(row, 'totalNonMandatoryDeductions', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AI${curRowIndex}`)
+                .value({
+                    formula: `=A${curRowIndex}`,
+                    result: numbering
+                })
+                .getCell(`AJ${curRowIndex}`)
+                .value({
+                    formula: `=Z${curRowIndex}-AH${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'netPay', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AK${curRowIndex}`)
+                .value('')
+                .getCell(`AL${curRowIndex}`)
+                .value('')
+                .getCell(`AM${curRowIndex}`)
+                .value('')
+                .getCell(`AN${curRowIndex}`)
+                .value({
+                    formula: `=AK${curRowIndex}+AL${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'totalQuincena', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AO${curRowIndex}`)
+                .value({
+                    formula: `=AJ${curRowIndex}-AN${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'variance', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AP${curRowIndex}`)
+                .value({
+                    formula: `=Y${curRowIndex}+AH${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'totalDeductions', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AS${curRowIndex}`)
+                .value({
+                    formula: `=Y${curRowIndex}+AH${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'totalDeductions', payrollJs.formulas, payroll.columns)
+                })
 
-                    .getCell(`B${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'name', payrollJs.formulas, payroll.columns))
-                    .getCell(`C${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'position', payrollJs.formulas, payroll.columns))
-                    .getCell(`D${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'basePay', payrollJs.formulas, payroll.columns))
-                    .getCell(`E${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'peraAca', payrollJs.formulas, payroll.columns))
-                    .getCell(`F${curRowIndex}`)
-                    .value({
-                        formula: `=D${curRowIndex}+E${curRowIndex}`,
-                        result: parseFloat(grossPayAllowance.toFixed(2))
-                    })
-                    .getCell(`G${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'tardiness', payrollJs.formulas, payroll.columns))
-                    .getCell(`H${curRowIndex}`)
-                    .value({
-                        formula: `=F${curRowIndex}-G${curRowIndex}`,
-                        result: parseFloat(payrollJs.getCellValue(row, 'grossPayAllowance', payrollJs.formulas, payroll.columns).toFixed(2))
-                    })
-                    .getCell(`I${curRowIndex}`)
-                    .value({
-                        formula: `=D${curRowIndex}*9%`,
-                        result: parseFloat(payrollJs.getCellValue(row, 'rlipPs9', payrollJs.formulas, payroll.columns).toFixed(2))
-                    })
-                    .getCell(`J${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'emergencyLoan', payrollJs.formulas, payroll.columns))
-                    .getCell(`K${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'eal', payrollJs.formulas, payroll.columns))
-                    .getCell(`L${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'consoLoan', payrollJs.formulas, payroll.columns))
-                    .getCell(`M${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'ouliPremium', payrollJs.formulas, payroll.columns))
-                    .getCell(`N${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'policyOuliLoan', payrollJs.formulas, payroll.columns))
-                    .getCell(`O${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'regularPolicyLoan', payrollJs.formulas, payroll.columns))
-                    .getCell(`P${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'gfal', payrollJs.formulas, payroll.columns))
-                    .getCell(`Q${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'mpl', payrollJs.formulas, payroll.columns))
-                    .getCell(`R${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'cpl', payrollJs.formulas, payroll.columns))
-                    .getCell(`S${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'help', payrollJs.formulas, payroll.columns))
-                    .getCell(`T${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'medicare', payrollJs.formulas, payroll.columns))
-                    .getCell(`U${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'pagibigContribution', payrollJs.formulas, payroll.columns))
-                    .getCell(`V${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'mplLoan', payrollJs.formulas, payroll.columns))
-                    .getCell(`W${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'calamityLoan', payrollJs.formulas, payroll.columns))
-                    .getCell(`X${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'withholdingTax', payrollJs.formulas, payroll.columns))
-                    .getCell(`Y${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(J${curRowIndex}:X${curRowIndex})+I${curRowIndex}`,
-                        result: parseFloat(payrollJs.getCellValue(row, 'totalMandatoryDeductions', payrollJs.formulas, payroll.columns).toFixed(2))
-                    })
-                    .getCell(`Z${curRowIndex}`)
-                    .value({
-                        formula: `=F${curRowIndex}-Y${curRowIndex}`,
-                        result: payrollJs.getCellValue(row, 'netAfterTotalMandatoryDeductions', payrollJs.formulas, payroll.columns)
-                    })
-                    .getCell(`AC${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'teachersScholars', payrollJs.formulas, payroll.columns))
-                    .getCell(`AD${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'ffaLoan', payrollJs.formulas, payroll.columns))
-                    .getCell(`AG${curRowIndex}`)
-                    .value(payrollJs.getCellValue(row, 'citySavingsBank', payrollJs.formulas, payroll.columns))
-                    .getCell(`AH${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(AC${curRowIndex}:AG${curRowIndex})`,
-                        result: payrollJs.getCellValue(row, 'totalNonMandatoryDeductions', payrollJs.formulas, payroll.columns)
-                    })
-                    .getCell(`AI${curRowIndex}`)
-                    .value({
-                        formula: `=A${curRowIndex}`,
-                        result: numbering
-                    })
-                    .getCell(`AJ${curRowIndex}`)
-                    .value({
-                        formula: `=Z${curRowIndex}-AH${curRowIndex}`,
-                        result: payrollJs.getCellValue(row, 'netPay', payrollJs.formulas, payroll.columns)
-                    })
-                    .getCell(`AK${curRowIndex}`)
-                    .value('')
-                    .getCell(`AL${curRowIndex}`)
-                    .value('')
-                    .getCell(`AM${curRowIndex}`)
-                    .value('')
-                    .getCell(`AN${curRowIndex}`)
-                    .value({
-                        formula: `=AK${curRowIndex}+AL${curRowIndex}`,
-                        result: payrollJs.getCellValue(row, 'totalQuincena', payrollJs.formulas, payroll.columns)
-                    })
-                    .getCell(`AO${curRowIndex}`)
-                    .value({
-                        formula: `=AJ${curRowIndex}-AN${curRowIndex}`,
-                        result: payrollJs.getCellValue(row, 'variance', payrollJs.formulas, payroll.columns)
-                    })
-                    .getCell(`AP${curRowIndex}`)
-                    .value({
-                        formula: `=Y${curRowIndex}+AH${curRowIndex}`,
-                        result: payrollJs.getCellValue(row, 'totalDeductions', payrollJs.formulas, payroll.columns)
-                    })
-                    .getCell(`AS${curRowIndex}`)
-                    .value({
-                        formula: `=Y${curRowIndex}+AH${curRowIndex}`,
-                        result: payrollJs.getCellValue(row, 'totalDeductions', payrollJs.formulas, payroll.columns)
-                    })
 
-            } else if (row.type === 2) {
-                wsRow.eachCell(function (cell, colNumber) {
-                    cell.value = ''
-                });
-                try {
-                    worksheet.unMergeCells(`A${curRowIndex}:C${curRowIndex}`)
-                    worksheet.mergeCells(`A${curRowIndex}:C${curRowIndex}`)
-                } catch (err) { }
-                worksheet.getCell(`A${curRowIndex}`).font = {
-                    name: 'Arial',
-                    size: 12,
-                    bold: true,
-                }
-                worksheet.getCell(`A${curRowIndex}`).alignment = {
-                    horizontal: 'left'
-                }
-                worksheet.getCell(`A${curRowIndex}`).value = 'Subtotal'
-
-                let start = 0
-                // Start from before current row
-                // Until a non row.type === 1 is found
-                for (let y = rowIndex - 1; y >= 0; y--) {
-                    let row = payroll.rows[y]
-                    if (row.type !== 1) {
-                        start = y + 1
-                        break
-                    }
-                }
-                let end = rowIndex // rowIndex - 1 is actual end index because of Array.slice
-
-                // account for excel data row starting index
-                let range = [start + startRowIndex, end + startRowIndex]
-
-                slex.getCell(`L${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(L${range[0]}:L${range[1]})`,
-                        result: payrollJs.getSubTotal('amountWorked', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`M${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(M${range[0]}:M${range[1]})`,
-                        result: payrollJs.getSubTotal('5Premium', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`N${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(N${range[0]}:N${range[1]})`,
-                        result: payrollJs.getSubTotal('grossPay', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`O${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(O${range[0]}:O${range[1]})`,
-                        result: payrollJs.getSubTotal('tax3', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`P${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(P${range[0]}:P${range[1]})`,
-                        result: payrollJs.getSubTotal('tax10', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`Q${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(Q${range[0]}:Q${range[1]})`,
-                        result: payrollJs.getSubTotal('totalTax', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`R${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(R${range[0]}:R${range[1]})`,
-                        result: payrollJs.getSubTotal('contributionSss', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`S${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(S${range[0]}:S${range[1]})`,
-                        result: payrollJs.getSubTotal('ecSss', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`T${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(T${range[0]}:T${range[1]})`,
-                        result: payrollJs.getSubTotal('totalSss', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`U${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(U${range[0]}:U${range[1]})`,
-                        result: payrollJs.getSubTotal('totalDeductions', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`V${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(V${range[0]}:V${range[1]})`,
-                        result: payrollJs.getSubTotal('netPay', rowIndex, payroll, payrollJs.formulas)
-                    })
-            } else if (row.type === 4) {
-                wsRow.eachCell(function (cell, colNumber) {
-                    cell.value = ''
-                });
-                try {
-                    worksheet.unMergeCells(`A${curRowIndex}:C${curRowIndex}`)
-                    worksheet.mergeCells(`A${curRowIndex}:C${curRowIndex}`)
-                } catch (err) { }
-                worksheet.getCell(`A${curRowIndex}`).font = {
-                    name: 'Arial',
-                    size: 12,
-                    bold: true,
-                }
-                worksheet.getCell(`A${curRowIndex}`).alignment = {
-                    horizontal: 'left'
-                }
-                worksheet.getCell(`A${curRowIndex}`).value = 'GRAND TOTAL > > > > > >'
-
-                let start = 0
-                let end = rowIndex - 1// rowIndex - 1 is actual end index because of Array.slice
-
-                // account for excel data row starting index
-                let range = [start + startRowIndex, end + startRowIndex]
-
-                slex.getCell(`D${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(D${range[0]}:D${range[1]})`,
-                        result: payrollJs.getGrandTotal('basePay', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`E${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(E${range[0]}:E${range[1]})`,
-                        result: payrollJs.getGrandTotal('peraAca', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`F${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(F${range[0]}:F${range[1]})`,
-                        result: payrollJs.getGrandTotal('grossPayAllowance', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`G${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(G${range[0]}:G${range[1]})`,
-                        result: payrollJs.getGrandTotal('tardiness', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`H${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(H${range[0]}:H${range[1]})`,
-                        result: payrollJs.getGrandTotal('grossPay', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`I${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(I${range[0]}:I${range[1]})`,
-                        result: payrollJs.getGrandTotal('rlipPs9', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`Y${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(Y${range[0]}:Y${range[1]})`,
-                        result: payrollJs.getGrandTotal('totalMandatoryDeductions', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`Z${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(Z${range[0]}:Z${range[1]})`,
-                        result: payrollJs.getGrandTotal('netAfterTotalMandatoryDeductions', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`AH${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(AH${range[0]}:AH${range[1]})`,
-                        result: payrollJs.getGrandTotal('totalNonMandatoryDeductions', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`AJ${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(AJ${range[0]}:AJ${range[1]})`,
-                        result: payrollJs.getGrandTotal('netPay', rowIndex, payroll, payrollJs.formulas)
-                    })
-                slex.getCell(`AN${curRowIndex}`)
-                    .value({
-                        formula: `=SUM(AN${range[0]}:AN${range[1]})`,
-                        result: payrollJs.getGrandTotal('totalQuincena', rowIndex, payroll, payrollJs.formulas)
-                    })
-            }
         })
+        startRowIndex = 81
+        payroll.rows.filter(r => r.type === 1).slice(58, 110).forEach((row, rowIndex) => {
+            numbering++
+
+            let curRowIndex = startRowIndex + rowIndex
+
+            let wsRow = worksheet.getRow(curRowIndex)
+
+            
+
+            // let attendance = payrollJs.getCellValue(row, 'attendance', payrollJs.formulas, payroll.columns)
+
+            //=F10*E10+H10*E10/8+J10*E10/8/60
+            // let amount = payrollJs.amountWorked(lodash.get(row, 'employment.salary', 0), lodash.get(row, 'employment.salaryType', 0), lodash.get(row, 'timeRecord.totalMinutes', 0))
 
 
+            let grossPayAllowance = payrollJs.getCellValue(row, 'grossPayAllowance', payrollJs.formulas, payroll.columns)
+
+            console.log(`A${curRowIndex}`, numbering)
+            slex.getCell(`A${curRowIndex}`)
+                .value(numbering)
+
+                .getCell(`B${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'name', payrollJs.formulas, payroll.columns))
+                .getCell(`C${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'position', payrollJs.formulas, payroll.columns))
+                .getCell(`D${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'basePay', payrollJs.formulas, payroll.columns))
+                .getCell(`E${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'peraAca', payrollJs.formulas, payroll.columns))
+                .getCell(`F${curRowIndex}`)
+                .value({
+                    formula: `=D${curRowIndex}+E${curRowIndex}`,
+                    result: parseFloat(grossPayAllowance.toFixed(2))
+                })
+                .getCell(`G${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'tardiness', payrollJs.formulas, payroll.columns))
+                .getCell(`H${curRowIndex}`)
+                .value({
+                    formula: `=F${curRowIndex}-G${curRowIndex}`,
+                    result: parseFloat(payrollJs.getCellValue(row, 'grossPayAllowance', payrollJs.formulas, payroll.columns).toFixed(2))
+                })
+                .getCell(`I${curRowIndex}`)
+                .value({
+                    formula: `=D${curRowIndex}*9%`,
+                    result: parseFloat(payrollJs.getCellValue(row, 'rlipPs9', payrollJs.formulas, payroll.columns).toFixed(2))
+                })
+                .getCell(`J${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'emergencyLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`K${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'eal', payrollJs.formulas, payroll.columns))
+                .getCell(`L${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'consoLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`M${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'ouliPremium', payrollJs.formulas, payroll.columns))
+                .getCell(`N${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'policyOuliLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`O${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'regularPolicyLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`P${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'gfal', payrollJs.formulas, payroll.columns))
+                .getCell(`Q${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'mpl', payrollJs.formulas, payroll.columns))
+                .getCell(`R${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'cpl', payrollJs.formulas, payroll.columns))
+                .getCell(`S${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'help', payrollJs.formulas, payroll.columns))
+                .getCell(`T${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'medicare', payrollJs.formulas, payroll.columns))
+                .getCell(`U${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'pagibigContribution', payrollJs.formulas, payroll.columns))
+                .getCell(`V${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'mplLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`W${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'calamityLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`X${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'withholdingTax', payrollJs.formulas, payroll.columns))
+                .getCell(`Y${curRowIndex}`)
+                .value({
+                    formula: `=SUM(J${curRowIndex}:X${curRowIndex})+I${curRowIndex}`,
+                    result: parseFloat(payrollJs.getCellValue(row, 'totalMandatoryDeductions', payrollJs.formulas, payroll.columns).toFixed(2))
+                })
+                .getCell(`Z${curRowIndex}`)
+                .value({
+                    formula: `=F${curRowIndex}-Y${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'netAfterTotalMandatoryDeductions', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AC${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'teachersScholars', payrollJs.formulas, payroll.columns))
+                .getCell(`AD${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'ffaLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`AG${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'citySavingsBank', payrollJs.formulas, payroll.columns))
+                .getCell(`AH${curRowIndex}`)
+                .value({
+                    formula: `=SUM(AC${curRowIndex}:AG${curRowIndex})`,
+                    result: payrollJs.getCellValue(row, 'totalNonMandatoryDeductions', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AI${curRowIndex}`)
+                .value({
+                    formula: `=A${curRowIndex}`,
+                    result: numbering
+                })
+                .getCell(`AJ${curRowIndex}`)
+                .value({
+                    formula: `=Z${curRowIndex}-AH${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'netPay', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AK${curRowIndex}`)
+                .value('')
+                .getCell(`AL${curRowIndex}`)
+                .value('')
+                .getCell(`AM${curRowIndex}`)
+                .value('')
+                .getCell(`AN${curRowIndex}`)
+                .value({
+                    formula: `=AK${curRowIndex}+AL${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'totalQuincena', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AO${curRowIndex}`)
+                .value({
+                    formula: `=AJ${curRowIndex}-AN${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'variance', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AP${curRowIndex}`)
+                .value({
+                    formula: `=Y${curRowIndex}+AH${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'totalDeductions', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AS${curRowIndex}`)
+                .value({
+                    formula: `=Y${curRowIndex}+AH${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'totalDeductions', payrollJs.formulas, payroll.columns)
+                })
+
+
+        })
+        startRowIndex = 155
+        numbering = 0;
+        payroll.rows.filter(r => r.type === 1).slice(110).forEach((row, rowIndex) => {
+            numbering++
+
+            let curRowIndex = startRowIndex + rowIndex
+
+            let wsRow = worksheet.getRow(curRowIndex)
+
+            
+
+            // let attendance = payrollJs.getCellValue(row, 'attendance', payrollJs.formulas, payroll.columns)
+
+            //=F10*E10+H10*E10/8+J10*E10/8/60
+            // let amount = payrollJs.amountWorked(lodash.get(row, 'employment.salary', 0), lodash.get(row, 'employment.salaryType', 0), lodash.get(row, 'timeRecord.totalMinutes', 0))
+
+
+            let grossPayAllowance = payrollJs.getCellValue(row, 'grossPayAllowance', payrollJs.formulas, payroll.columns)
+
+            console.log(`A${curRowIndex}`, numbering)
+            slex.getCell(`A${curRowIndex}`)
+                .value(numbering)
+
+                .getCell(`B${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'name', payrollJs.formulas, payroll.columns))
+                .getCell(`C${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'position', payrollJs.formulas, payroll.columns))
+                .getCell(`D${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'basePay', payrollJs.formulas, payroll.columns))
+                .getCell(`E${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'peraAca', payrollJs.formulas, payroll.columns))
+                .getCell(`F${curRowIndex}`)
+                .value({
+                    formula: `=D${curRowIndex}+E${curRowIndex}`,
+                    result: parseFloat(grossPayAllowance.toFixed(2))
+                })
+                .getCell(`G${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'tardiness', payrollJs.formulas, payroll.columns))
+                .getCell(`H${curRowIndex}`)
+                .value({
+                    formula: `=F${curRowIndex}-G${curRowIndex}`,
+                    result: parseFloat(payrollJs.getCellValue(row, 'grossPayAllowance', payrollJs.formulas, payroll.columns).toFixed(2))
+                })
+                .getCell(`I${curRowIndex}`)
+                .value({
+                    formula: `=D${curRowIndex}*9%`,
+                    result: parseFloat(payrollJs.getCellValue(row, 'rlipPs9', payrollJs.formulas, payroll.columns).toFixed(2))
+                })
+                .getCell(`J${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'emergencyLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`K${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'eal', payrollJs.formulas, payroll.columns))
+                .getCell(`L${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'consoLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`M${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'ouliPremium', payrollJs.formulas, payroll.columns))
+                .getCell(`N${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'policyOuliLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`O${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'regularPolicyLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`P${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'gfal', payrollJs.formulas, payroll.columns))
+                .getCell(`Q${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'mpl', payrollJs.formulas, payroll.columns))
+                .getCell(`R${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'cpl', payrollJs.formulas, payroll.columns))
+                .getCell(`S${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'help', payrollJs.formulas, payroll.columns))
+                .getCell(`T${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'medicare', payrollJs.formulas, payroll.columns))
+                .getCell(`U${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'pagibigContribution', payrollJs.formulas, payroll.columns))
+                .getCell(`V${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'mplLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`W${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'calamityLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`X${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'withholdingTax', payrollJs.formulas, payroll.columns))
+                .getCell(`Y${curRowIndex}`)
+                .value({
+                    formula: `=SUM(J${curRowIndex}:X${curRowIndex})+I${curRowIndex}`,
+                    result: parseFloat(payrollJs.getCellValue(row, 'totalMandatoryDeductions', payrollJs.formulas, payroll.columns).toFixed(2))
+                })
+                .getCell(`Z${curRowIndex}`)
+                .value({
+                    formula: `=F${curRowIndex}-Y${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'netAfterTotalMandatoryDeductions', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AC${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'teachersScholars', payrollJs.formulas, payroll.columns))
+                .getCell(`AD${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'ffaLoan', payrollJs.formulas, payroll.columns))
+                .getCell(`AG${curRowIndex}`)
+                .value(payrollJs.getCellValue(row, 'citySavingsBank', payrollJs.formulas, payroll.columns))
+                .getCell(`AH${curRowIndex}`)
+                .value({
+                    formula: `=SUM(AC${curRowIndex}:AG${curRowIndex})`,
+                    result: payrollJs.getCellValue(row, 'totalNonMandatoryDeductions', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AI${curRowIndex}`)
+                .value({
+                    formula: `=A${curRowIndex}`,
+                    result: numbering
+                })
+                .getCell(`AJ${curRowIndex}`)
+                .value({
+                    formula: `=Z${curRowIndex}-AH${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'netPay', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AK${curRowIndex}`)
+                .value('')
+                .getCell(`AL${curRowIndex}`)
+                .value('')
+                .getCell(`AM${curRowIndex}`)
+                .value('')
+                .getCell(`AN${curRowIndex}`)
+                .value({
+                    formula: `=AK${curRowIndex}+AL${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'totalQuincena', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AO${curRowIndex}`)
+                .value({
+                    formula: `=AJ${curRowIndex}-AN${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'variance', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AP${curRowIndex}`)
+                .value({
+                    formula: `=Y${curRowIndex}+AH${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'totalDeductions', payrollJs.formulas, payroll.columns)
+                })
+                .getCell(`AS${curRowIndex}`)
+                .value({
+                    formula: `=Y${curRowIndex}+AH${curRowIndex}`,
+                    result: payrollJs.getCellValue(row, 'totalDeductions', payrollJs.formulas, payroll.columns)
+                })
+
+
+        })
     }
 
     return workbook

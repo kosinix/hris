@@ -50,12 +50,12 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance',
             },
             // Turn array employees into field employee
             // Add field employee
-            { 
-                "$addFields": { 
-                    "employee": { 
-                        $arrayElemAt: ["$employees", 0] 
-                    } 
-                } 
+            {
+                "$addFields": {
+                    "employee": {
+                        $arrayElemAt: ["$employees", 0]
+                    }
+                }
             },
             {
                 $project: {
@@ -64,6 +64,7 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance',
             },
         ])
 
+        // Group by object with keys "YYYY-MM-DD" holding an array
         attendances = lodash.groupBy(attendances, (attendance) => {
             return moment(attendance.createdAt).format('YYYY-MM-DD')
         })
@@ -144,12 +145,12 @@ router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', '
             },
             // Turn array employees into field employee
             // Add field employee
-            { 
-                "$addFields": { 
-                    "employee": { 
-                        $arrayElemAt: ["$employees", 0] 
-                    } 
-                } 
+            {
+                "$addFields": {
+                    "employee": {
+                        $arrayElemAt: ["$employees", 0]
+                    }
+                }
             },
             {
                 $project: {
@@ -221,6 +222,62 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
             endMoment: endMoment,
             // matrix: kalendaryo.getMatrix(momentNow, 0)
         });
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment.toObject()
+        let attendance = res.attendance.toObject()
+
+        res.render('attendance/edit.html', {
+            flash: flash.get(req, 'attendance'),
+            employee: employee,
+            employment: employment,
+            attendance: attendance,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment.toObject()
+        let attendance = res.attendance.toObject()
+
+        let body = req.body
+        let patch = {}
+        lodash.set(patch, 'attendanceType', lodash.get(body, 'attendanceType'))
+        lodash.set(patch, 'log0', lodash.get(body, 'log0'))
+        lodash.set(patch, 'log1', lodash.get(body, 'log1'))
+        lodash.set(patch, 'log2', lodash.get(body, 'log2'))
+        lodash.set(patch, 'log3', lodash.get(body, 'log3'))
+
+
+        if (patch.attendanceType === 'wfh') {
+            attendance.wfh = true
+            attendance.onTravel = false
+        } else if (patch.attendanceType === 'travel') {
+            attendance.onTravel = true
+            attendance.wfh = false
+        } else {
+            attendance.wfh = false
+            attendance.onTravel = false
+        }
+
+        attendance.logs = attendance.logs.map((log, i) => {
+            let time = patch[`log${i}`].split(':')
+            let mDate = moment(attendance.createdAt).hour(parseInt(time[0])).minute(parseInt(time[1]))
+            log.dateTime = mDate.toDate()
+            return log
+        })
+
+        await db.main.Attendance.updateOne({ _id: attendance._id }, attendance)
+        flash.ok(req, 'attendance', `Attendance changed.`)
+        res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}?start=${moment(attendance.createdAt).format('YYYY-MM-DD')}&end=${moment(attendance.createdAt).format('YYYY-MM-DD')}`)
     } catch (err) {
         next(err);
     }

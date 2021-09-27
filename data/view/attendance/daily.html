@@ -35,7 +35,12 @@
                 {% for attendance in attendances %}
                     <tr>
                         <td class="text-center">{{loop.index}}</td>
-                        <td>{{attendance.employee.firstName}} {{attendance.employee.lastName}} {{attendance.employee.suffix}}</td>
+                        <td>
+                         <a href="/attendance/employee/{{attendance.employeeId}}/employment/{{attendance.employmentId}}?start={{attendance.createdAt|format_date('YYYY-MM-DD')}}&amp;end={{attendance.createdAt|format_date('YYYY-MM-DD')}}">
+                            {{attendance.employee.firstName}} {{attendance.employee.lastName}} {{attendance.employee.suffix}}
+                        </a>
+                            
+                        </td>
                         <td class="text-center">{% if attendance.employee.gender == 'M' %}✓{% endif %}</td>
                         <td class="text-center">{% if attendance.employee.gender == 'F' %}✓{% endif %}</td>
                         <td>{{attendance.logs[0].dateTime|default(true, '')|format_date('hh:mm')}}</td>

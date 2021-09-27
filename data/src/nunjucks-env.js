@@ -35,5 +35,12 @@ env.addFilter('mapValue', function (value, list) {
     return lodash.get(lodash.find(list, (o) => o.value === value), 'text', '')
 })
 
+env.addFilter('generateArray', function (value, offset = 0) {
+    return Array.from(Array(value).keys()).slice(offset)
+})
+env.addFilter('padStart', function (value, length = 2, pads = '0') {
+    return String(value).padStart(length, pads)
+})
+
 //// Export
 module.exports = env;

@@ -1,0 +1,57 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">User: {{user.username}} </h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/user/{{user._id}}/edit" class="btn btn-sm btn-outline-primary">Edit</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <p>Name: <u>{{user.firstName|capitalize}}</u> <u>{{user.middleName|capitalize}}</u> <u>{{user.lastName|capitalize}}</u></p>
+        <p>Email: {{user.email}}</p>
+        <p>Active Account: {{user.active}}</p>
+        <p>Roles: {{user.roles|join(', ')}}</p>
+    </div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+        },
+        validations: {
+            
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

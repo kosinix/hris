@@ -51,18 +51,6 @@ let antiCsrfCheck = async (req, res, next) => {
     }
 }
 
-let getUser = async (req, res, next) => {
-    try {
-        let userId = req.params.userId || ''
-        let user = await db.main.User.findById(userId);
-        if (!user) {
-            return res.render('error.html', { error: "Sorry, user not found." })
-        }
-        next();
-    } catch (err) {
-        next(err);
-    }
-}
 
 let handleExpressUploadMagic = async (req, res, next) => {
     try {
@@ -314,15 +302,14 @@ module.exports = {
             next(err);
         }
     },
-    // TODO: Check code
-    getAdmin: async (req, res, next) => {
+    getAttendance: async (req, res, next) => {
         try {
-            let employeeId = req.params.employeeId || ''
-            let employee = await db.main.User.findById(employeeId);
-            if (!employee) {
-                return res.render('error.html', { error: "Sorry, admin not found." })
+            let attendanceId = req.params.attendanceId || ''
+            let attendance = await db.main.Attendance.findById(attendanceId);
+            if (!attendance) {
+                return res.render('error.html', { error: "Sorry, attendance not found." })
             }
-            res.employee = employee
+            res.attendance = attendance
             next();
         } catch (err) {
             next(err);
@@ -341,7 +328,19 @@ module.exports = {
             next(err);
         }
     },
-    getUser: getUser,
+    getUser: async (req, res, next) => {
+        try {
+            let userId = req.params.userId || ''
+            let user = await db.main.User.findById(userId);
+            if (!user) {
+                return res.render('error.html', { error: "Sorry, user not found." })
+            }
+            res.user = user
+            next();
+        } catch (err) {
+            next(err);
+        }
+    },
     handleExpressUploadMagic: handleExpressUploadMagic,
     requireAuthUser: requireAuthUser,
     requireAuthScanner: requireAuthScanner, // TODO: @deprecated

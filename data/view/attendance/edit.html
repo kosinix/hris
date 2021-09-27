@@ -1,0 +1,133 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <div>
+                <h1>Attendance</h1>
+                <p class="mb-0 pl-1"></p>
+            </div>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}?start={{attendance.createdAt|format_date('YYYY-MM-DD')}}&amp;end={{attendance.createdAt|format_date('YYYY-MM-DD')}}" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3">
+        <h1 class="mt-2">
+            {{employee.lastName}},
+            {{employee.firstName}}
+        </h1>
+        <h2 class="h5 mb-4">
+            {{attendance.createdAt|format_date('MMM DD, YYYY')}}
+        </h2>
+
+        <form id="vApp" v-cloak ref="form" v-on:submit.prevent="onSubmit" action="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/{{attendance._id}}/edit" method="POST" class="form-default">
+            <div class="table-responsive">
+                <table class="table table-dtr">
+                    <tr>
+                        <th rowspan="2" width="5%"></th>
+                        <th class="text-center" rowspan="2"></th>
+                        <th class="text-center" rowspan="2">Day</th>
+                        <th class="text-center" colspan="2">AM</th>
+                        <th class="text-center" colspan="2">PM</th>
+                       
+                    </tr>
+                    <tr>
+                        <th>Arrival</th>
+                        <th>Departure</th>
+                        
+                        <th>Arrival</th>
+                        <th>Departure</th>
+
+                   
+                    </tr>
+                    <tr>
+                        <td class="text-center p-1">
+                            <select name="attendanceType" id="attendanceType">
+                                <option value="normal">Normal</option>
+                                <option value="wfh">WFH</option>
+                                <option value="travel">On Travel</option>
+                            </select>
+                        </td>
+                        <td class="text-center">{{attendance.createdAt|format_date('ddd')}}</td>
+                        <td class="text-center">
+                            {{attendance.createdAt|format_date('DD')}}
+                        </td>
+                        {% if attendance.onTravel %}
+                            <td colspan="6">On Travel</td>
+                        {% else %}
+
+                            {% for log in attendance.logs %}
+                                <td>
+                                    <div class="d-flex">
+                                        <input type="time" v-model="log{{loop.index0}}" name="log{{loop.index0}}">
+                                    </div>
+                                </td>
+                            {% endfor %}
+                            
+                            
+                        {% endif %}
+                    </tr>
+                  
+                </table>
+            </div>
+
+            <div class="text-right">
+                <button class="btn btn-primary btn-sm">Change Time Log</button>
+            </div>
+        </form>
+
+        <div class="form-row pt-3 pb-3">
+            <div class="col-md-12">
+                {# <a href="/employee/employment/{{employee._id}}" class="btn btn-primary">Back to Employee</a> #}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            attendance: {{attendance|default({}, true)|stringify|safe}},
+            log0: '',
+            log1: '',
+            log2: '',
+            log3: '',
+        },
+        validations: {
+            
+        },
+        created: function(){
+            var me = this;
+            for(var x = 0; x < me.attendance.logs.length; x++){
+                me['log' + x] = moment(me.attendance.logs[x].dateTime).format('HH:mm')
+            }
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

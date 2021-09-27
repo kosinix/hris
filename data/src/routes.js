@@ -14,10 +14,10 @@ router.use(require('./routes/e-profile'));
 router.use(require('./routes/employee'));
 router.use(require('./routes/memo'));
 router.use(require('./routes/payroll'));
-// router.use(require('./routes/admin'));
 router.use(require('./routes/attendance'));
 router.use(require('./routes/application'));
 router.use(require('./routes/scanner'));
+router.use(require('./routes/user'));
 // router.use(require('./routes/reports'));
 
 // 404 Page

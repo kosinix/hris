@@ -32,7 +32,19 @@ module.exports = [
         "middleName" : "A",
         "lastName" : "Pillora",
         "email" : "hrmo@gsc.edu.ph",
-        "username" : "gsc.hrmo",
+        "username" : "gsc.hrmo.pillora",
+        "active" : true,
+        permissions: [],
+    },
+    {
+        "roles" : [
+            "hrmo"
+        ],
+        "firstName" : "Dan Christian",
+        "middleName" : "G",
+        "lastName" : "Gellada",
+        "email" : "hrmo@gsc.edu.ph",
+        "username" : "gsc.hrmo.gellada",
         "active" : true,
         permissions: [],
     },

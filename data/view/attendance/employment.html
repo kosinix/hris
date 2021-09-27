@@ -7,12 +7,16 @@
     {# {% include 'parts/employee-profile-photo.html' %} #}
     {# {% include 'attendance/tabs-calendar.html' %} #}
     <div class="tab-content pt-3 pb-2 pl-3 pr-3">
-        <h1 class="mt-2 mb-4">
+        <h1 class="mt-2">
+            {{employee.lastName}},
+            {{employee.firstName}}
+        </h1>
+        <h2 class="h5 mb-4">
             {{startMoment|format_date('MMM DD, YYYY')}}
             {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
                 to {{endMoment|format_date('MMM DD, YYYY')}}
             {% endif %}
-        </h1>
+        </h2>
 
         <div class="table-responsive">
             <table class="table table-dtr">
@@ -44,7 +48,9 @@
                 {% set attendance = day.attendance %}
                 <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
                     <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
-                    <td class="text-center">{{day.day}}</td>
+                    <td class="text-center">
+                        <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/{{attendance._id}}/edit">{{day.day}}</a>
+                    </td>
                     {% if attendance.onTravel %}
                         <td colspan="6">On Travel</td>
                     {% else %}
@@ -102,52 +108,7 @@
                 </tr>
             </table>
         </div>
-
-        {# <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    {% for row in matrix %}
-                        {% if loop.index0 === 0 %}
-                        <tr>
-                            {% for col in row %}
-                                <th>
-                                    <div class="d-flex align-items-start justify-content-center" style="min-width:100px;">
-                                        <div>{{col}}</div>
-                                    </div>
-                                </th>
-                            {% endfor %}
-                        </tr>
-                        {% endif %}
-                    {% endfor %}
-                </thead>
-                <tbody>
-                    {% for row in matrix %}
-                        {% if loop.index0 > 0 %}
-                        <tr>
-                            {% for col in row %}
-                                <td>
-                                    <div class="d-flex align-items-start justify-content-center flex-wrap" style="min-width:100px; min-height: 100px">
-                                        <div>
-                                            <a href="#" class="h5">{{col|format_date('D')}}</a>
-                                        </div>
-                                        <ul style="width: 100%">
-                                        {% for log in attendances[col|format_date('YYYY-MM-DD')].logs %}
-                                            {% if log.mode === 1 %}
-                                                <li class="text-success">{{log.dateTime|format_date('hh:mm A')}}</li>
-                                            {% elif log.mode === 0 %}
-                                                <li class="text-info">{{log.dateTime|format_date('hh:mm A')}}</li>
-                                            {% endif %}
-                                        {% endfor %}
-                                        </ul>
-                                    </div>
-                                </td>
-                            {% endfor %}
-                        </tr>
-                        {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div> #}
+      
         <div class="form-row pt-3 pb-3">
             <div class="col-md-12">
                 {# <a href="/employee/employment/{{employee._id}}" class="btn btn-primary">Back to Employee</a> #}

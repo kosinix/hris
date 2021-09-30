@@ -9,9 +9,9 @@
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
         {% if employee.user %}
-            <p>Username: <em>{{employee.user.email}} </em></p>
+            <p>Username: <em>{{employee.user.username}} </em></p>
             <p>Password: <em>****</em></p>
-            <form onsubmit="return confirm('This will generate a new random password for this user. Continue?');" action="/employee/user/{{employee._id}}/password" method="POST" class="form-default">
+            <form onsubmit="return confirm('This will generate a new password. {{employee.firstName}} wont be able to login using his/her old password. Continue?');" action="/employee/user/{{employee._id}}/password" method="POST" class="form-default">
                 <p><button class="btn btn-primary btn-sm">Reset Password</button></p>
             </form>
         {% else %}

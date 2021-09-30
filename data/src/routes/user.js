@@ -15,6 +15,7 @@ const qr = require('qr-image')
 const db = require('../db');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
+const passwordMan = require('../password-man');
 const s3 = require('../aws-s3');
 
 // Router
@@ -86,7 +87,15 @@ router.get('/user/all', middlewares.guardRoute(['read_all_user', 'create_user', 
 router.get('/user/create', middlewares.guardRoute(['create_user']), async (req, res, next) => {
     try {
 
-        res.render('user/create.html', {});
+        let roles = await db.main.Role.find()
+        let permissions = await db.main.Role.find()
+        let password = passwordMan.randomString(10)
+        // return res.send(roles)
+        res.render('user/create.html', {
+            roles: roles,
+            permissions: permissions,
+            password: password,
+        });
     } catch (err) {
         next(err);
     }
@@ -94,38 +103,25 @@ router.get('/user/create', middlewares.guardRoute(['create_user']), async (req, 
 router.post('/user/create', middlewares.guardRoute(['create_user']), async (req, res, next) => {
     try {
         let body = req.body
+        // return res.send(body)
         let patch = {}
         lodash.set(patch, 'firstName', lodash.get(body, 'firstName'))
         lodash.set(patch, 'middleName', lodash.get(body, 'middleName'))
         lodash.set(patch, 'lastName', lodash.get(body, 'lastName'))
-        lodash.set(patch, 'suffix', lodash.get(body, 'suffix'))
-        lodash.set(patch, 'birthDate', lodash.get(body, 'birthDate'))
-        lodash.set(patch, 'gender', lodash.get(body, 'gender'))
-        // lodash.set(patch, 'addresses.0._id', db.mongoose.Types.ObjectId())
-        // lodash.set(patch, 'addresses.0.unit', lodash.get(body, 'unit1'))
-        // lodash.set(patch, 'addresses.0.brgyDistrict', lodash.get(body, 'brgyDistrict1'))
-        // lodash.set(patch, 'addresses.0.cityMun', lodash.get(body, 'cityMun1'))
-        // lodash.set(patch, 'addresses.0.province', lodash.get(body, 'province1'))
-        // lodash.set(patch, 'addresses.0.region', lodash.get(body, 'region1'))
-        // lodash.set(patch, 'addresses.1._id', db.mongoose.Types.ObjectId())
-        // lodash.set(patch, 'addresses.1.unit', lodash.get(body, 'unit2'))
-        // lodash.set(patch, 'addresses.1.brgyDistrict', lodash.get(body, 'brgyDistrict2'))
-        // lodash.set(patch, 'addresses.1.cityMun', lodash.get(body, 'cityMun2'))
-        // lodash.set(patch, 'addresses.1.province', lodash.get(body, 'province2'))
-        // lodash.set(patch, 'addresses.1.region', lodash.get(body, 'region2'))
-        // lodash.set(patch, 'addressPermanent', lodash.get(patch, 'addresses.0._id'))
-        // lodash.set(patch, 'addressPresent', lodash.get(patch, 'addresses.1._id'))
-        // if(body.addressSame === 'true'){
-        //     patch.addresses.splice(1,1) // Remove second array
-        //     lodash.set(patch, 'addressPresent', lodash.get(patch, 'addresses.0._id'))
-        // }
+        lodash.set(patch, 'username', lodash.get(body, 'username'))
+        lodash.set(patch, 'active', lodash.get(body, 'active'))
+        lodash.set(patch, 'roles', lodash.get(body, 'roles'))
 
-        // TODO: Check duplicate
+        let password = lodash.get(body, 'password')
+        let salt = passwordMan.randomString(16)
+        let passwordHash = passwordMan.hashPassword(password, salt)
+        lodash.set(patch, 'passwordHash', passwordHash)
+        lodash.set(patch, 'salt', salt)
 
-        let person = new db.main.Person(patch)
-        await person.save()
-        flash.ok(req, 'user', `Added ${person.firstName} ${person.lastName}.`)
-        res.redirect(`/user/address/${person._id}`)
+        let user = await db.main.User.create(patch)
+
+        flash.ok(req, 'user', `Added "${user.username}"".`)
+        res.redirect(`/user/${user._id}`)
     } catch (err) {
         next(err);
     }

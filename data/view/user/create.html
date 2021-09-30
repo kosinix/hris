@@ -3,10 +3,23 @@
 {% block body %}
 <div class="col-md-12">
     {% include 'parts/flash.html' %}
-    {% set pageTitle = 'Add Admin User' %}
-    {% include 'parts/header-main.html' %}
+  
 
-    <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/resident/create" method="POST" class="form-default">
+    <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/user/create" method="POST" class="form-default">
+        
+
+        <h3>Login Info</h3>
+        {% set name = 'username' %}
+        {% include 'parts/form-group-text.html' %}
+
+        {% set name = 'password' %}
+        {% include 'parts/form-group-text.html' %}
+
+        {% set name = 'active' %}
+        {% set options = [{value:'true', text:'Yes'}, {value:'false', text:'No'}] %}
+        {% include 'parts/form-group-select.html' %}
+
+
         <h3>Personal Info</h3>
         {% set name = 'firstName' %}
         {% include 'parts/form-group-text.html' %}
@@ -17,19 +30,22 @@
         {% set name = 'lastName' %}
         {% include 'parts/form-group-text.html' %}
 
-        <h3>Login Info</h3>
-        {% set name = 'email' %}
-        {% include 'parts/form-group-text.html' %}
-
-        {% set name = 'password' %}
-        {% include 'parts/form-group-text.html' %}
-
-        {% set name = 'active' %}
-        {% set options = [{value:'true', text:'Yes'}, {value:'false', text:'No'}] %}
-        {% include 'parts/form-group-select.html' %}
-
         <h3>Role and Permissions</h3>
-
+        <div class="form-group">
+            <label for="roles">Roles</label>
+            <div>
+                {% for role in roles %}
+                <div class="form-check">
+                    <input v-model="roles" name="roles" class="form-check-input" type="checkbox" value="{{role.key}}" id="{{role.key}}">
+                    <label class="form-check-label" for="{{role.key}}">
+                        {{role.name}}
+                    </label>
+                </div>
+                {% endfor %}
+              
+                <small class="invalid-feedback">${getError('roles')}</small>
+            </div>
+        </div>
         <div class="form-row pt-3 pb-3">
             <div class="col-md-12">
                 <button class="btn btn-primary">Add</button>
@@ -48,54 +64,40 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
-            window.VuePhAddress.mixin,
-            window.VuePhAddress.mixinRegions,
-            window.VuePhAddress.mixinPresentAddress,
-            window.VuePhAddress.mixinPermanentAddress,
+            VuePhAddress.mixin
         ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
         data: {
+            username: '',
+            password: '{{password}}',
             firstName: '',
             middleName: '',
             lastName: '',
-            suffix: '',
-            gender: 'M',
-            civilStatus: 'Single',
-            birthDate: '',
-            // region1: '06',
-            // province1: '0679',
-            // cityMun1: '067901',
-            // brgyDistrict1: '',
-            // unit1: '',
-            // addressSame: false
+            active: 'true',
+            roles: [],
         },
         validations: {
+            username: {
+                required: window.validators.required
+            },
+            password: {
+                required: window.validators.required
+            },
             firstName: {
                 required: window.validators.required
             },
-            middleName: {
-                required: window.validators.required
-            },
+            
             lastName: {
                 required: window.validators.required
             },
-            gender: {
+            active: {
                 required: window.validators.required
             },
-            civilStatus: {
+            roles: {
                 required: window.validators.required
             },
-            birthDate: {
-                required: window.validators.required
-            },
-            // region1: {
-            //     required: window.validators.required
-            // },
-            // cityMun1: {
-            //     required: window.validators.required
-            // },
-            // brgyDistrict1: {
-            //     required: window.validators.required
-            // },
         },
         methods: {
             onSubmit: function(){

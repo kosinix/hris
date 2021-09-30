@@ -4,6 +4,7 @@
 const express = require('express')
 const flash = require('kisapmata')
 const lodash = require('lodash')
+const qr = require('qr-image')
 
 //// Modules
 const db = require('../db')
@@ -80,6 +81,50 @@ router.get('/logout', async (req, res, next) => {
         res.clearCookie(CONFIG.session.name, CONFIG.session.cookie);
 
         res.redirect('/login');
+    } catch (err) {
+        next(err);
+    }
+});
+
+
+router.get('/register',  async (req, res, next) => {
+    try {
+        // console.log(req.session)
+        let ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
+        res.render('register.html', {
+            flash: flash.get(req, 'login'),
+            ip: ip,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/register-qr',  async (req, res, next) => {
+    try {
+        let body = req.body 
+        let code = lodash.get(body, 'code')
+
+        let qrData = `${CONFIG.app.url}/register-user/${code}`
+        // qrData = Buffer.from(qrData).toString('base64')
+        console.log(qrData)
+
+        qrData = qr.imageSync(qrData, { size: 5, type: 'png' }).toString('base64')
+
+        res.render('register-qr.html', {
+            qr: qrData
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/register-qr',  async (req, res, next) => {
+    try {
+        // console.log(req.session)
+        let ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
+        res.render('register-qr.html', {
+            flash: flash.get(req, 'login'),
+            ip: ip,
+        });
     } catch (err) {
         next(err);
     }

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap');
+
 a {
     color: #025aa5;
 }
@@ -6,7 +8,7 @@ body {
 }
 body.body-public {
     background: hsla(95, 47%, 71%, 1);
-    background: linear-gradient(135deg, hsla(95, 47%, 71%, 1) 0%, hsla(168, 41%, 50%, 1) 28%, hsla(184, 62%, 39%, 1) 44%, hsla(207, 66%, 43%, 1) 54%, hsla(211, 80%, 33%, 1) 100%);
+    background: linear-gradient(135deg, hsla(95, 47%, 71%, 1) 0%, hsla(168, 41%, 50%, 1) 28%, hsla(184, 62%, 39%, 1) 44%, rgb(37, 117, 182) 54%, hsla(211, 80%, 33%, 1) 100%);
 }
 body, pre {
     color: #4b4b4b;
@@ -463,6 +465,72 @@ div.focusable:focus-within  {
 .table-dtr th,
 .table-dtr td {
     padding: 2px 5px;
+}
+
+.register {
+    font-family: 'Poppins', sans-serif;
+}
+
+.register .steps {
+    margin:0 20px;
+}
+
+.register .steps .step .number{
+    background: #115195;
+    border-radius: 100%;
+    text-align: center;
+    color: #fff;
+    width: 100px;
+    height: 100px;
+    text-transform: uppercase;
+    line-height: 1;
+    margin-right: 18px;
+    float: left;
+}
+
+.register .steps .step .number div:first-child{
+    color: #b0d893;
+    margin-top: 20px;
+    margin-bottom: 0;
+    font-size: 22px;
+}
+.register .steps .step .number div:last-child{
+    font-size: 44px;
+}
+
+.register .exit,
+.register .steps .step .desc .h5{
+    color: #115195;
+    font-size: 33px;
+    font-weight: bold;
+    margin-bottom: 5px0;
+}
+.register .steps .step .desc p{
+    color: #2699a2;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+
+.carousel-regis  {
+    padding-bottom: 60px;
+}
+.carousel-regis .carousel-indicators {
+    /* bottom: auto;
+    top: 0; */
+}
+.carousel-regis .carousel-indicators li {
+    width: 30px;
+    height: 30px;
+    box-sizing: border-box;
+    border-radius: 100%;
+    background: #4bb29e;
+}
+.carousel-regis .carousel-indicators li.active{
+    background: #115195
+}
+.carousel-regis svg path {
+    fill: #155a9e
 }
 
 /* Show/hide password field */

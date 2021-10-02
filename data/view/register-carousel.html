@@ -1,0 +1,91 @@
+<div id="carousel-regis" class="carousel-regis carousel slide" data-ride="carousel" data-interval="false">
+    <ol class="carousel-indicators">
+        <li data-target="#carousel-regis" data-slide-to="0" class="active"></li>
+        <li data-target="#carousel-regis" data-slide-to="1"></li>
+        <li data-target="#carousel-regis" data-slide-to="2"></li>
+    </ol>
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <div class="steps">
+                <div class="step">
+                    <div class="number">
+                        <div>Step</div>
+                        <div>01</div>
+                    </div>
+                    <div class="desc">
+                        <h1 class="h5">SCAN YOUR ID</h1>
+                        <p class="mb-0">Hover your GSC ID over the ID scanner.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 mb-5">
+                <img src="/images/rfid.png" style="max-width:100%" alt="rfid">
+            </div>
+                <p class="text-center mb-5 alt ml-4 mr-4">This will associate your ID card into our system <br>in a contact-less way.</p>
+
+            {# <p>We need this to associate your card's ID number with you.</p> #}
+        </div>
+        <div class="carousel-item ">
+            <div class="steps">
+                <div class="step">
+                    <div class="number">
+                        <div>Step</div>
+                        <div>02</div>
+                    </div>
+                    <div class="desc">
+                        <h1 class="h5">SCAN QR</h1>
+                        <p>Scan the generated QR Code using your phone.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-5 mb-5">
+                <img v-if="qr" style="max-width: 100%" v-bind:src="'data:image/png;base64, '+qr" alt="QR">
+                <div v-else>
+                    <svg style="width:124px;height:124px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M6,2H18V8H18V8L14,12L18,16V16H18V22H6V16H6V16L10,12L6,8V8H6V2M16,16.5L12,12.5L8,16.5V20H16V16.5M12,11.5L16,7.5V4H8V7.5L12,11.5M10,6H14V6.75L12,8.75L10,6.75V6Z" />
+                    </svg>
+                    <p>Please wait....</p>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-item ">
+            <div class="steps">
+                <div class="step">
+                    <div class="number">
+                        <div>Step</div>
+                        <div>03</div>
+                    </div>
+                    <div class="desc">
+                        <h1 class="h5">Fill-up Form</h1>
+                        <p>Finish the registration on the form that showed up on our phone.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-5 mb-5">
+                <svg style="width:124px;height:124px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M17,19V5H7V19H17M17,1A2,2 0 0,1 19,3V21A2,2 0 0,1 17,23H7C5.89,23 5,22.1 5,21V3C5,1.89 5.89,1 7,1H17M9,7H15V9H9V7M9,11H13V13H9V11Z" />
+                </svg>
+                <svg style="width:124px;height:124px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M20.71,7.04C20.37,7.38 20.04,7.71 20.03,8.04C20,8.36 20.34,8.69 20.66,9C21.14,9.5 21.61,9.95 21.59,10.44C21.57,10.93 21.06,11.44 20.55,11.94L16.42,16.08L15,14.66L19.25,10.42L18.29,9.46L16.87,10.87L13.12,7.12L16.96,3.29C17.35,2.9 18,2.9 18.37,3.29L20.71,5.63C21.1,6 21.1,6.65 20.71,7.04M3,17.25L12.56,7.68L16.31,11.43L6.75,21H3V17.25Z" />
+                </svg>
+            </div>
+        </div>
+        <div class="carousel-item ">
+            <div class="steps">
+                <div class="step">
+                    <div class="number" style="background: red">
+                        <div>Error</div>
+                        <div>X</div>
+                    </div>
+                    <div class="desc">
+                        <h1 class="h5">Error</h1>
+                        <p id="error">${error}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-5 mb-5">
+                
+            </div>
+        </div>
+    </div>
+</div>

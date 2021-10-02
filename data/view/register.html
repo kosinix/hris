@@ -13,76 +13,9 @@
 
                 <h1 class="text-center h4 mb-5">HRIS Employee Registration</h1>
 
-                
-
-                <div>
-                    <div id="carousel-regis" class="carousel-regis carousel slide" data-ride="carousel" data-interval="false">
-                        <ol class="carousel-indicators">
-                            <li data-target="#carousel-regis" data-slide-to="0" class="active"></li>
-                            <li data-target="#carousel-regis" data-slide-to="1"></li>
-                            <li data-target="#carousel-regis" data-slide-to="2"></li>
-                        </ol>
-                        <div class="carousel-inner">
-                            <div class="carousel-item ">
-                                <div class="steps">
-                                    <div class="step">
-                                        <div class="number">
-                                            <div>Step</div>
-                                            <div>01</div>
-                                        </div>
-                                        <div class="desc">
-                                            <h1 class="h5">SCAN YOUR ID</h1>
-                                            <p>Hover your GSC ID over the ID scanner.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mt-5 mb-5">
-                                    <img src="/images/rfid.png" style="max-width:100%" alt="rfid">
-                                </div>
-                                {# <p>We need this to associate your card's ID number with you.</p> #}
-                            </div>
-                            <div class="carousel-item ">
-                                <div class="steps">
-                                    <div class="step">
-                                        <div class="number">
-                                            <div>Step</div>
-                                            <div>02</div>
-                                        </div>
-                                        <div class="desc">
-                                            <h1 class="h5">SCAN QR</h1>
-                                            <p>Scan the generated QR Code using your phone.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="text-center mt-5 mb-5">
-                                    <svg style="width:124px;height:124px" viewBox="0 0 24 24">
-                                        <path fill="currentColor" d="M4,4H10V10H4V4M20,4V10H14V4H20M14,15H16V13H14V11H16V13H18V11H20V13H18V15H20V18H18V20H16V18H13V20H11V16H14V15M16,15V18H18V15H16M4,20V14H10V20H4M6,6V8H8V6H6M16,6V8H18V6H16M6,16V18H8V16H6M4,11H6V13H4V11M9,11H13V15H11V13H9V11M11,6H13V10H11V6M2,2V6H0V2A2,2 0 0,1 2,0H6V2H2M22,0A2,2 0 0,1 24,2V6H22V2H18V0H22M2,18V22H6V24H2A2,2 0 0,1 0,22V18H2M22,22V18H24V22A2,2 0 0,1 22,24H18V22H22Z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="carousel-item active">
-                                <div class="steps">
-                                    <div class="step">
-                                        <div class="number">
-                                            <div>Step</div>
-                                            <div>03</div>
-                                        </div>
-                                        <div class="desc">
-                                            <h1 class="h5">Fill-up Form</h1>
-                                            <p>Your phone will redirect you to our online registration form. Continue setting-up your account online.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="text-center mt-5 mb-5">
-                                    <svg style="width:124px;height:124px" viewBox="0 0 24 24">
-                                        <path fill="currentColor" d="M11 20.1L19.2 11.9C19.7 11.4 20.3 11.1 21 11.1C21.7 11.1 22.3 11.4 22.8 11.9L23 12.1V4C23 2.9 22.1 2 21 2H3C1.9 2 1 2.9 1 4V20C1 21.1 1.9 22 3 22H11V20.1M3 4H21V7H3V4M21 13.1C20.9 13.1 20.7 13.2 20.6 13.3L19.6 14.3L21.7 16.4L22.7 15.4C22.9 15.2 22.9 14.8 22.7 14.6L21.4 13.3C21.3 13.2 21.2 13.1 21 13.1M19.1 14.9L13 20.9V23H15.1L21.2 16.9L19.1 14.9Z" />
-                                    </svg>
-                                    <h1 class="h5 mt-5 exit">Done</h1>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <form id="vApp" v-cloak ref="form" class="mt-5 text-center" v-on:submit.prevent="onSubmit" action="/register-qr" method="POST" novalidate>
+                <div id="vApp" v-cloak>
+                    {% include 'register-carousel.html' %}
+                    <form ref="form" class="mt-5 text-center" v-on:submit.prevent="onSubmit" action="/register" method="POST" novalidate>
                         <div class="form-group" style="position:relative; overflow:hidden">
                             <div style="position:absolute; left:0; right:0; top:0; bottom:0; background:#eeeeee; z-index:1; opacity:1"></div>
                             <label for="code">Code</label>
@@ -100,34 +33,105 @@
 <script src="{{app.url}}/js/jquery.min.js"></script>
 <script src="{{app.url}}/js/popper.min.js"></script>
 <script src="{{app.url}}/js/bootstrap.min.js"></script>
+<script src="{{app.url}}/js/axios.min.js"></script>
 {{ super() }}
 <script>
+    jQuery('body').on('click', function(){
+        document.getElementById("code").focus();
+    })
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
-        mixins: [
-            window.vuelidate.validationMixin,
-            window.vuelidateExtendMixin,
-        ],
         data: {
-            code: '0560714430'
+            code: '',
+            error: '',
+            qr: '',
+            registrationFormId: '',
+            cancelTokenSource: null
         },
-        validations: {
-            
+        mounted: function(){
+            document.getElementById("code").focus();
         },
         methods: {
-            
+            focus: function(){
+                setTimeout(function() {
+                    document.getElementById("code").focus();
+                }, 10);
+            },
             onSubmit: function(){
                 var me = this;
-                me.$v.$touch()
-                if (me.$v.$error) {
-                    alert('Please correct the errors to continue.')
-                } else {
-                    me.$nextTick(function() {
-                        me.$refs.form.submit();
-                    });
+               
+                me.error = ''
+                me.qr = ''
+                me.registrationFormId = ''
+
+                me.$nextTick(function() {
+                    axios.post('/register', {code: me.code}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
+                        {# console.log(response); #}
+                        me.qr = response.data.qr
+                        me.registrationFormId = response.data.registrationForm._id
+                        jQuery('#carousel-regis').carousel(1)
+                        me.checkIfQrScanned()
+
+                    }).catch(function (error) {
+                        if (error.response) {
+                            // Request made, server responded with a status code outside of 2xx
+                            // console.error(error.response.status)
+                            console.error(error.response.data)
+                            me.error = error.response.data
+                            jQuery('#carousel-regis').carousel(3)
+                            jQuery('#carousel-regis .carousel-indicators').hide()
+                            var t = setTimeout(function(){
+                                clearTimeout(t)
+                                jQuery('#carousel-regis').carousel(0)
+                                jQuery('#carousel-regis .carousel-indicators').show()
+                            }, 3000)
+                        } else if (error.request) {
+                            console.error('The request was made but no response was received');
+                        } else {
+                            console.error('Error', 'Something happened in setting up the request that triggered an Error.', error.message);
+                        }
+                    }).then(function () {
+                        // always executed
+                        me.code = ''
+                    })
+                });
+            },
+            checkIfQrScanned: function(){
+                var me = this;
+                // Only one request at a time
+                if(me.cancelTokenSource){
+                    me.cancelTokenSource.cancel('Canceled by the client.');
                 }
-            }
+
+                me.cancelTokenSource = axios.CancelToken.source();
+
+                axios.get('/register-long-poll/' + me.registrationFormId, {
+                    cancelToken: me.cancelTokenSource.token
+                }).then(function (response) {
+                    // handle success
+                    // console.log(response);
+                    jQuery('#carousel-regis').carousel(2)
+                    var t = setTimeout(function(){
+                        clearTimeout(t)
+                        jQuery('#carousel-regis').carousel(0)
+                    }, 5000)
+                }).catch(function (error) {
+                    if (axios.isCancel(error)) {
+                        console.log('Request canceled', error.message);
+                    } else if (error.response) {
+                        // Request made, server responded with a status code outside of 2xx
+                        // console.error(error.response.status)
+                        if(error.response.status == 408){
+                            jQuery('#carousel-regis').carousel(0)
+                        }
+                    } else if (error.request) {
+                        console.error('The request was made but no response was received');
+                    } else {
+                        console.error('Error', 'Something happened in setting up the request that triggered an Error.', error.message);
+                    }
+                })
+            },
         }
     });
 </script>

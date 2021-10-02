@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap');
 
 a {
     color: #025aa5;
@@ -509,6 +508,10 @@ div.focusable:focus-within  {
     color: #2699a2;
     font-weight: 500;
     font-size: 16px;
+}
+.register .steps .step .desc p.alt,
+.register p.alt {
+    color: #115195;
 }
 
 

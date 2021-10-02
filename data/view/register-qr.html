@@ -1,7 +1,7 @@
 {% extends "document-public.html" %}
 
 {% block body %}
-<div class="container container-first height-medium">
+<div class="container container-first height-medium register">
     <div class="row">
         <div class="col-md-6 ml-auto mr-auto pt-5 login-height">
             <div class="login-form">
@@ -12,22 +12,19 @@
                 </div>
 
                 <h1 class="text-center h4 mb-5">HRIS Employee Registration</h1>
+                
 
                 <div>
-                    <p class="h1 mb-3">Step 2</p>
-                    <p class="mb-4">Scan the generated QR Code with your phone.</p>
-                    <img style="max-width: 100%" src="data:image/png;base64, {{qr|safe}}" alt="QR">
+                    {% include 'register-carousel.html' %}
+                    <form id="vApp" v-cloak ref="form" class="mt-5 text-center" v-on:submit.prevent="onSubmit" action="/register" method="GET" novalidate>
+                        <div class="form-group" style="position:relative; overflow:hidden">
+                            <div style="position:absolute; left:0; right:0; top:0; bottom:0; background:#eeeeee; z-index:1; opacity:1"></div>
+                            <label for="code">Code</label>
+                            <input style="outline: none" v-on:blur="focus" v-model="code" name="code" id="code" type="text" class="form-control">
+                            <br>
+                        </div>
+                    </form>
                 </div>
-
-                <form ref="form" class="mt-5 text-center" v-on:submit.prevent="onSubmit" action="/scanner/{{scanner.uid}}/scan" method="POST" novalidate>
-                    <div class="form-group" style="position:relative; overflow:hidden">
-                        <div style="position:absolute; left:0; right:0; top:0; bottom:0; background:#fff; z-index:1; opacity:1"></div>
-                        <label for="code">Code</label>
-                        <input style="outline: none" v-on:blur="focus" v-model="code" name="code" id="code" type="text" class="form-control">
-                        <br>
-                    </div>
-                </form>
-
             </div>
         </div>
     </div>
@@ -37,33 +34,61 @@
 <script src="{{app.url}}/js/jquery.min.js"></script>
 <script src="{{app.url}}/js/popper.min.js"></script>
 <script src="{{app.url}}/js/bootstrap.min.js"></script>
+<script src="{{app.url}}/js/axios.min.js"></script>
 {{ super() }}
 <script>
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
-        mixins: [
-            window.vuelidate.validationMixin,
-            window.vuelidateExtendMixin,
-        ],
+        
         data: {
-            
+            code: ''
         },
-        validations: {
-            
+        mounted: function(){
+            document.getElementById("code").focus();
+            jQuery('#carousel-regis').carousel(1)
+            this.checkIfQrScanned()
         },
         methods: {
-            
+            checkIfQrScanned: function(){
+                var me = this;
+                axios.get('/register-long-poll/{{registrationForm._id}}').then(function (response) {
+                    // handle success
+                    console.log(response);
+                    jQuery('#carousel-regis').carousel(2)
+                }).catch(function (error) {
+                    // handle error
+                    if (error.response) {
+                        // The request was made and the server responded with a status code
+                        // that falls out of the range of 2xx
+                        if(error.response.status == 408){
+                            me.checkIfQrScanned()
+                        }
+                    } else if (error.request) {
+                        // The request was made but no response was received
+                        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+                        // http.ClientRequest in node.js
+                        console.error('The request was made but no response was received');
+                    } else {
+                        // Something happened in setting up the request that triggered an Error
+                        console.log('Error', 'Something happened in setting up the request that triggered an Error.', error.message);
+                    }
+                }).then(function () {
+                    // always executed
+                    // console.log('alwaysnic');
+                });
+            },
+            focus: function(){
+                setTimeout(function() {
+                    document.getElementById("code").focus();
+                }, 10);
+            },
             onSubmit: function(){
                 var me = this;
-                me.$v.$touch()
-                if (me.$v.$error) {
-                    alert('Please correct the errors to continue.')
-                } else {
-                    me.$nextTick(function() {
-                        me.$refs.form.submit();
-                    });
-                }
+               
+                me.$nextTick(function() {
+                    me.$refs.form.submit();
+                });
             }
         }
     });

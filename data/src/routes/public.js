@@ -55,14 +55,14 @@ router.post('/login', async (req, res, next) => {
         let antiCsrfToken = await passwordMan.randomStringAsync(16)
         lodash.set(req, 'session.acsrf', antiCsrfToken);
 
-        if(user.roles.includes('employee')){
+        if (user.roles.includes('employee')) {
             return res.redirect('/e-profile/home')
         }
-        if(user.roles.includes('checker')){
+        if (user.roles.includes('checker')) {
             let scanner = await db.main.Scanner.findOne({
                 userId: user._id
             })
-            if(scanner){
+            if (scanner) {
                 return res.redirect(`${CONFIG.app.url}/scanner/${scanner.uid}/scan`)
             }
         }
@@ -87,7 +87,7 @@ router.get('/logout', async (req, res, next) => {
 });
 
 
-router.get('/register',  async (req, res, next) => {
+router.get('/register', async (req, res, next) => {
     try {
         // console.log(req.session)
         let ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
@@ -99,32 +99,102 @@ router.get('/register',  async (req, res, next) => {
         next(err);
     }
 });
-router.post('/register-qr',  async (req, res, next) => {
+router.post('/register', async (req, res, next) => {
     try {
-        let body = req.body 
+        let body = req.body
         let code = lodash.get(body, 'code')
 
-        let qrData = `${CONFIG.app.url}/register-user/${code}`
-        // qrData = Buffer.from(qrData).toString('base64')
-        console.log(qrData)
-
+        let registrationForm = await db.main.RegistrationForm.findOne({
+            uid: code,
+        })
+        if(!registrationForm){
+            registrationForm = await db.main.RegistrationForm.create({
+                uid: code,
+            })
+        } else {
+            if(registrationForm.finished){
+                throw new Error('You are already registered. Please proceed to the login page.')
+            }
+        }
+        let qrData = `${CONFIG.app.url}/register/${registrationForm._id}`
         qrData = qr.imageSync(qrData, { size: 5, type: 'png' }).toString('base64')
 
-        res.render('register-qr.html', {
-            qr: qrData
-        });
+        let payload = {
+            qr: qrData,
+            registrationForm: registrationForm.toObject()
+        }
+
+        if(req.xhr){
+            return res.send(payload)
+        }
+        res.render('register-qr.html', payload);
+    } catch (err) {
+        if(req.xhr){
+            return res.status(500).send(err.message)
+        }
+        next(err);
+    }
+});
+
+router.get('/register/:registrationFormId', async (req, res, next) => {
+    try {
+        let registrationFormId = lodash.get(req, 'params.registrationFormId')
+        let registrationForm = await db.main.RegistrationForm.findById(registrationFormId)
+        if(!registrationForm){
+            throw new Error('Form not found.')
+        } else {
+            if(registrationForm.finished){
+                throw new Error('You are already registered.')
+            }
+        }
+        registrationForm.started = true
+        await registrationForm.save()
+        res.send('form here...')
     } catch (err) {
         next(err);
     }
 });
-router.get('/register-qr',  async (req, res, next) => {
+
+router.get('/register-long-poll/:registrationFormId', async (req, res, next) => {
     try {
-        // console.log(req.session)
-        let ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
-        res.render('register-qr.html', {
-            flash: flash.get(req, 'login'),
-            ip: ip,
-        });
+        let registrationFormId = lodash.get(req, 'params.registrationFormId')
+
+        let x = 0
+        let maxTime = 30000 * 1 // 1 minutes
+        // let maxTime = 10000
+        let intervals = 5000 // 1 secs
+        let maxX = maxTime / intervals // 12 steps
+
+        let longPoll = () => {
+            x++
+            console.log(`${x} of ${maxX}`);
+
+            db.main.RegistrationForm.findById(registrationFormId).then((r) => {
+                if(r.started){
+                    clearInterval(intervalObj)
+                    console.log('r', r)
+                    res.send('done')
+                }
+            }).catch(function (error) {
+                // handle error
+                console.log(error);
+                clearInterval(intervalObj)
+            }).then(function () {
+                // always executed
+                // clearInterval(intervalObj)
+                // console.log('always executed');
+            });
+
+            if (x >= maxX) { // Prevent infinite loop
+                clearInterval(intervalObj)
+                res.status(408).send('Long poll loop maxed out.')
+            }
+        }
+
+        // Call first at 0 seconds
+        longPoll()
+        // Call every 5 secs
+        let intervalObj = setInterval(longPoll, intervals)
     } catch (err) {
         next(err);
     }

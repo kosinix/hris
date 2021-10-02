@@ -160,7 +160,7 @@ router.get('/register-long-poll/:registrationFormId', async (req, res, next) => 
         let registrationFormId = lodash.get(req, 'params.registrationFormId')
 
         let x = 0
-        let maxTime = 30000 * 1 // 1 minutes
+        let maxTime = 60000 * 1 // 1 minutes
         // let maxTime = 10000
         let intervals = 5000 // 1 secs
         let maxX = maxTime / intervals // 12 steps

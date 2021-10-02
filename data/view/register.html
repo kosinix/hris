@@ -4,7 +4,7 @@
 <div class="container container-first height-medium register">
     <div class="row">
         <div class="col-md-6 ml-auto mr-auto pt-5 login-height">
-            <div class="login-form">
+            <div id="vApp" v-cloak class="login-form">
 
                 <div class="text-center position-relative mb-4">
                     <img class="rotate" src="/images/logo-gear.png" alt="GSC Gear">
@@ -13,7 +13,7 @@
 
                 <h1 class="text-center h4 mb-5">HRIS Employee Registration</h1>
 
-                <div id="vApp" v-cloak>
+                <div>
                     {% include 'register-carousel.html' %}
                     <form ref="form" class="mt-5 text-center" v-on:submit.prevent="onSubmit" action="/register" method="POST" novalidate>
                         <div class="form-group" style="position:relative; overflow:hidden">

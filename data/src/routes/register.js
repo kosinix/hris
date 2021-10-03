@@ -13,6 +13,26 @@ const middlewares = require('../middlewares');
 // Router
 let router = express.Router()
 
+
+router.get('/register/:registrationFormId', async (req, res, next) => {
+    try {
+        let registrationFormId = lodash.get(req, 'params.registrationFormId')
+        let registrationForm = await db.main.RegistrationForm.findById(registrationFormId)
+        if(!registrationForm){
+            throw new Error('Form not found.')
+        } else {
+            if(registrationForm.finished){
+                throw new Error('You are already registered.')
+            }
+        }
+        registrationForm.started = true
+        await registrationForm.save()
+        res.send('form here...')
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.use('/register', middlewares.requireAuthUser)
 router.use('/register', middlewares.guardRoute(['read_all_user', 'create_user', 'read_user', 'update_user', 'delete_user']))
 
@@ -62,24 +82,7 @@ router.post('/register', async (req, res, next) => {
     }
 });
 
-router.get('/register/:registrationFormId', async (req, res, next) => {
-    try {
-        let registrationFormId = lodash.get(req, 'params.registrationFormId')
-        let registrationForm = await db.main.RegistrationForm.findById(registrationFormId)
-        if(!registrationForm){
-            throw new Error('Form not found.')
-        } else {
-            if(registrationForm.finished){
-                throw new Error('You are already registered.')
-            }
-        }
-        registrationForm.started = true
-        await registrationForm.save()
-        res.send('form here...')
-    } catch (err) {
-        next(err);
-    }
-});
+
 
 router.get('/register/long-poll/:registrationFormId', async (req, res, next) => {
     try {

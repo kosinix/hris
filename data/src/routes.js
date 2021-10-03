@@ -8,6 +8,7 @@ const express = require('express');
 // Routes
 let router = express.Router();
 router.use(require('./routes/public'));
+router.use(require('./routes/register'));
 router.use(require('./routes/protected'));
 router.use(require('./routes/hdf'));
 router.use(require('./routes/e-profile'));

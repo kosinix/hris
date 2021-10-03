@@ -64,13 +64,13 @@
                 me.error = ''
                 me.qr = ''
                 me.registrationFormId = ''
+                jQuery('#carousel-regis').carousel(1)
 
                 me.$nextTick(function() {
                     axios.post('/register', {code: me.code}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
                         {# console.log(response); #}
                         me.qr = response.data.qr
                         me.registrationFormId = response.data.registrationForm._id
-                        jQuery('#carousel-regis').carousel(1)
                         me.checkIfQrScanned()
 
                     }).catch(function (error) {
@@ -106,7 +106,7 @@
 
                 me.cancelTokenSource = axios.CancelToken.source();
 
-                axios.get('/register-long-poll/' + me.registrationFormId, {
+                axios.get('/register/long-poll/' + me.registrationFormId, {
                     cancelToken: me.cancelTokenSource.token
                 }).then(function (response) {
                     // handle success

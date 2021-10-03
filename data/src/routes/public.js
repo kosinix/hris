@@ -30,7 +30,7 @@ router.post('/login', async (req, res, next) => {
         let post = req.body;
 
         let username = lodash.get(post, 'username', '');
-        let password = lodash.get(post, 'password', '');
+        let password = lodash.trim(lodash.get(post, 'password', ''))
 
         // Find admin
         let user = await db.main.User.findOne({ username: username });

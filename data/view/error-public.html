@@ -1,0 +1,20 @@
+{% extends "document-public.html" %}
+
+{% block body %}
+<div class="container container-first height-medium">
+    <div class="row">
+        <div class="col-md-5 ml-auto mr-auto pt-5 login-height">
+            <div class="login-form">
+                <div class="text-center position-relative mb-4">
+                    <img class="rotate" src="/images/logo-gear.png" alt="GSC Gear">
+                    <img class="position-relative" width="100" src="/images/logo-inner.png" alt="GSC Logo">
+                </div>
+                <h1 class="text-center h4 mb-4">Error</h1>
+                <div>
+                    <div class="alert alert-danger">{{error}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

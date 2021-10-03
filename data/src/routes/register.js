@@ -2,6 +2,7 @@
 
 //// External modules
 const express = require('express')
+const fileUpload = require('express-fileupload')
 const flash = require('kisapmata')
 const lodash = require('lodash')
 const qr = require('qr-image')
@@ -9,6 +10,7 @@ const qr = require('qr-image')
 //// Modules
 const db = require('../db')
 const middlewares = require('../middlewares');
+const passwordMan = require('../password-man');
 
 // Router
 let router = express.Router()
@@ -18,20 +20,67 @@ router.get('/register/:registrationFormId', async (req, res, next) => {
     try {
         let registrationFormId = lodash.get(req, 'params.registrationFormId')
         let registrationForm = await db.main.RegistrationForm.findById(registrationFormId)
-        if(!registrationForm){
+        if (!registrationForm) {
             throw new Error('Form not found.')
         } else {
-            if(registrationForm.finished){
+            if (registrationForm.finished) {
                 throw new Error('You are already registered.')
             }
         }
         registrationForm.started = true
         await registrationForm.save()
-        res.send('form here...')
+        res.render('register-user.html', {
+            flash: flash.get(req, 'register'),
+            registrationForm: registrationForm
+        });
     } catch (err) {
         next(err);
     }
 });
+
+router.post('/register/:registrationFormId', fileUpload(), middlewares.handleExpressUploadMagic, async (req, res, next) => {
+    try {
+        let registrationFormId = lodash.get(req, 'params.registrationFormId')
+        let registrationForm = await db.main.RegistrationForm.findById(registrationFormId)
+        if (!registrationForm) {
+            throw new Error('Form not found.')
+        } else {
+            if (registrationForm.finished) {
+                throw new Error('You are already registered.')
+            }
+        }
+        registrationForm.finished = true
+        await registrationForm.save()
+
+        let employmentId = lodash.get(req, 'body.employmentId')
+        let employment = await db.main.Employment.findById(employmentId).lean()
+        let employee = null
+        if (employment) {
+            employee = await db.main.Employee.findOne({ _id: employment.employeeId })
+            employment.employee = employee.toObject()
+        }
+        let userA = await db.main.User.findById(employment.employee.userId)
+        if(!userA){
+            throw new Error('You dont have an account.')
+        }
+        let password = passwordMan.randomString(8)
+        userA.passwordHash = passwordMan.hashPassword(password, userA.salt)
+        employee.uid = registrationForm.uid
+        await employee.save()
+        await userA.save()
+
+        res.render('registered.html', {
+            employment: employment,
+            employee: employment.employee,
+            registrationForm: registrationForm,
+            user: userA,
+            password: password,
+        })
+    } catch (err) {
+        next(err);
+    }
+});
+
 
 router.use('/register', middlewares.requireAuthUser)
 router.use('/register', middlewares.guardRoute(['read_all_user', 'create_user', 'read_user', 'update_user', 'delete_user']))
@@ -53,12 +102,12 @@ router.post('/register', async (req, res, next) => {
         let registrationForm = await db.main.RegistrationForm.findOne({
             uid: code,
         })
-        if(!registrationForm){
+        if (!registrationForm) {
             registrationForm = await db.main.RegistrationForm.create({
                 uid: code,
             })
         } else {
-            if(registrationForm.finished){
+            if (registrationForm.finished) {
                 throw new Error('You are already registered. Please proceed to the login page.')
             }
         }
@@ -70,12 +119,12 @@ router.post('/register', async (req, res, next) => {
             registrationForm: registrationForm.toObject()
         }
 
-        if(req.xhr){
+        if (req.xhr) {
             return res.send(payload)
         }
         res.render('register-qr.html', payload);
     } catch (err) {
-        if(req.xhr){
+        if (req.xhr) {
             return res.status(500).send(err.message)
         }
         next(err);
@@ -99,7 +148,7 @@ router.get('/register/long-poll/:registrationFormId', async (req, res, next) => 
             console.log(`${x} of ${maxX}`);
 
             db.main.RegistrationForm.findById(registrationFormId).then((r) => {
-                if(r.started){
+                if (r.started) {
                     clearInterval(intervalObj)
                     console.log('r', r)
                     res.send('done')

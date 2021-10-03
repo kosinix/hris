@@ -137,6 +137,9 @@ app.use(function (error, req, res, next) {
         if (/^\/api\//.test(req.originalUrl)) {
             return res.status(500).send('API error...');
         }
+        if (/^\/register\//.test(req.originalUrl)) {
+            return res.status(500).render('error-public.html', {error: error.message});
+        }
 
         // Anything that is not catched
         res.status(500).render('error.html', {error: error.message});

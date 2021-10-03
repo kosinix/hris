@@ -18,15 +18,15 @@ let router = express.Router()
 router.get('/', middlewares.requireAuthUser, async (req, res, next) => {
     try {
         let user = res.user.toObject()
-        
-        if(user.roles.includes('employee')){
+
+        if (user.roles.includes('employee')) {
             return res.redirect('/e-profile/home')
         }
-        if(user.roles.includes('checker')){
+        if (user.roles.includes('checker')) {
             let scanner = await db.main.Scanner.findOne({
                 userId: user._id
             })
-            if(scanner){
+            if (scanner) {
                 return res.redirect(`${CONFIG.app.url}/scanner/${scanner.uid}/scan`)
             }
         }
@@ -98,7 +98,7 @@ router.get('/file-getter/:bucket/:prefix/:key', async (req, res, next) => {
     }
 });
 
-router.get('/address',  middlewares.requireAuthUser, async (req, res, next) => {
+router.get('/address', middlewares.requireAuthUser, async (req, res, next) => {
     try {
         let search = lodash.get(req, 'query.s', '');
         let keys = search.split(',')
@@ -113,61 +113,61 @@ router.get('/address',  middlewares.requireAuthUser, async (req, res, next) => {
         let query = {
             level: 'Bgy'
         }
-        if(keys.length === 0){
+        if (keys.length === 0) {
 
         }
-        if(keys.length === 1){
+        if (keys.length === 1) {
 
             query = {
                 $or: [
                     {
                         $and: [
-                            {name: keys[0]},
-                            {level: 'Bgy'},
+                            { name: keys[0] },
+                            { level: 'Bgy' },
                         ]
                     },
                     {
                         $and: [
-                            {cityMunName: keys[0]},
-                            {level: 'Bgy'},
+                            { cityMunName: keys[0] },
+                            { level: 'Bgy' },
                         ]
                     },
                     {
                         $and: [
-                            {provName: keys[0]},
-                            {level: 'Bgy'},
+                            { provName: keys[0] },
+                            { level: 'Bgy' },
                         ]
                     }
                 ]
             }
 
-            if(keys[0].source.match(/([\w]+ city)/i)){
+            if (keys[0].source.match(/([\w]+ city)/i)) {
                 let custom = keys[0].source.replace(/ city/i, '')
                 custom = `City of ${custom}`
                 query.$or.push({
                     $and: [
-                        {cityMunName: new RegExp(custom, 'i')},
-                        {level: 'Bgy'},
+                        { cityMunName: new RegExp(custom, 'i') },
+                        { level: 'Bgy' },
                     ]
                 })
             }
 
-        } else if (keys.length === 2){
+        } else if (keys.length === 2) {
             query = {
                 $or: [
                     {
                         $and: [
-                            {name: keys[0]},
-                            {level: 'Bgy'},
-                            {cityMunName: keys[1]}
+                            { name: keys[0] },
+                            { level: 'Bgy' },
+                            { cityMunName: keys[1] }
                         ],
                     },
                     {
                         $and: [
 
-                            {level: 'Bgy'},
-                            {cityMunName: keys[0]},
-                            {provName: keys[1]}
+                            { level: 'Bgy' },
+                            { cityMunName: keys[0] },
+                            { provName: keys[1] }
                         ],
                     },
                 ]
@@ -177,17 +177,17 @@ router.get('/address',  middlewares.requireAuthUser, async (req, res, next) => {
                 $or: [
                     {
                         $and: [
-                            {name: keys[0]},
-                            {level: 'Bgy'},
-                            {cityMunName: keys[1]},
-                            {provName: keys[2]},
+                            { name: keys[0] },
+                            { level: 'Bgy' },
+                            { cityMunName: keys[1] },
+                            { provName: keys[2] },
                         ],
                     },
                     {
                         $and: [
-                            {name: keys[0]},
-                            {level: 'Bgy'},
-                            {cityMunName: keys[1]},
+                            { name: keys[0] },
+                            { level: 'Bgy' },
+                            { cityMunName: keys[1] },
                         ],
                     },
                 ]
@@ -196,12 +196,12 @@ router.get('/address',  middlewares.requireAuthUser, async (req, res, next) => {
         // console.log(util.inspect(query, false, null, true /* enable colors */))
         // raw ops
         let addresses = await db.main.Address.collection.find(query).limit(10).toArray()
-        addresses = lodash.map(addresses, (o)=>{
+        addresses = lodash.map(addresses, (o) => {
             let full = [o.name]
-            if(o.cityMunName){
+            if (o.cityMunName) {
                 full.push(o.cityMunName)
             }
-            if(o.provName){
+            if (o.provName) {
                 full.push(o.provName)
             }
             return {
@@ -210,15 +210,16 @@ router.get('/address',  middlewares.requireAuthUser, async (req, res, next) => {
             }
         })
         return res.send(addresses)
-        
+
     } catch (err) {
         next(err);
     }
 });
 
-router.get('/employee',  middlewares.requireAuthUser, async (req, res, next) => {
+router.get('/employee', middlewares.requireAuthUser, async (req, res, next) => {
     try {
         let search = lodash.get(req, 'query.s', '');
+        let showSalary = lodash.get(req, 'query.salary', 1);
         let keys = search.split(' ')
         keys = lodash.map(keys, (o) => {
             o = lodash.trim(o)
@@ -236,7 +237,7 @@ router.get('/employee',  middlewares.requireAuthUser, async (req, res, next) => 
                 },
             ]
         }
-        
+
         // console.log(util.inspect(query, false, null, true /* enable colors */))
         // raw ops
         // let employees = await db.main.Employee.collection.find(query).limit(10).toArray()
@@ -255,28 +256,33 @@ router.get('/employee',  middlewares.requireAuthUser, async (req, res, next) => 
 
         let employees = await db.main.Employee.aggregate(aggr)
         let ret = []
-        employees.forEach((employee, i)=>{
+        employees.forEach((employee, i) => {
             let full = [employee.firstName]
-            if(employee.lastName){
+            if (employee.lastName) {
                 full.push(employee.lastName)
             }
             full = full.join(' ')
-            employee.employments.forEach((employment, i)=>{
+
+            employee.employments.forEach((employment, i) => {
+                let final = `${full} - ${employment.position}`
+                if (showSalary == 1) {
+                    final += ` (${employment.salary})`
+                }
                 ret.push({
                     id: employment._id,
-                    name: `${full} - ${employment.position} (${employment.salary})`
+                    name: final
                 })
             })
         })
-        
+
         return res.send(ret)
-        
+
     } catch (err) {
         next(err);
     }
 });
 
-router.get('/users',  middlewares.requireAuthUser, async (req, res, next) => {
+router.get('/users', middlewares.requireAuthUser, async (req, res, next) => {
     try {
         let search = lodash.get(req, 'query.s', '');
         let keys = search.split(' ')
@@ -300,16 +306,16 @@ router.get('/users',  middlewares.requireAuthUser, async (req, res, next) => {
                 },
             ]
         }
-        
+
         console.log(util.inspect(query, false, null, true /* enable colors */))
         // raw ops
         let users = await db.main.User.collection.find(query).limit(10).toArray()
-        users = lodash.map(users, (o)=>{
+        users = lodash.map(users, (o) => {
             let full = [o.firstName]
-            if(o.lastName){
+            if (o.lastName) {
                 full.push(o.lastName)
             }
-            if(o.username){
+            if (o.username) {
                 full.push(' - ')
                 full.push(o.username)
             }
@@ -319,7 +325,7 @@ router.get('/users',  middlewares.requireAuthUser, async (req, res, next) => {
             }
         })
         return res.send(users)
-        
+
     } catch (err) {
         next(err);
     }

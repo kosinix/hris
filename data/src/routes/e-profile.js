@@ -800,7 +800,7 @@ router.post('/e-profile/account/password', middlewares.guardRoute(['use_employee
         let user = res.user
         let body = lodash.get(req, 'body')
 
-        let password = lodash.get(body, 'oldPassword')
+        let password = lodash.trim(lodash.get(body, 'oldPassword'))
 
         // Check password
         let passwordHash = passwordMan.hashPassword(password, user.salt);

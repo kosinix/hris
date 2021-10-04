@@ -86,4 +86,67 @@ router.get('/logout', async (req, res, next) => {
     }
 });
 
+// TODO: Remove when done
+router.get('/query/employment', async (req, res, next) => {
+    try {
+        let search = lodash.get(req, 'query.s', '');
+        let keys = search.split(' ')
+        keys = lodash.map(keys, (o) => {
+            o = lodash.trim(o)
+            return new RegExp(o, "i")
+        })
+        // console.log(keys)
+        // Our address returned starts from bgy level
+        let query = {
+            $or: [
+                {
+                    firstName: keys[0]
+                },
+                {
+                    lastName: keys[0]
+                },
+            ]
+        }
+
+        // console.log(util.inspect(query, false, null, true /* enable colors */))
+        // raw ops
+        // let employees = await db.main.Employee.collection.find(query).limit(10).toArray()
+        let aggr = []
+        aggr.push({ $match: query })
+        aggr.push({ $limit: 10 })
+        aggr.push({
+            $lookup:
+            {
+                from: "employments",
+                localField: "_id",
+                foreignField: "employeeId",
+                as: "employments"
+            }
+        })
+
+        let employees = await db.main.Employee.aggregate(aggr)
+        let ret = []
+        employees.forEach((employee, i) => {
+            let full = [employee.firstName]
+            if (employee.lastName) {
+                full.push(employee.lastName)
+            }
+            full = full.join(' ')
+
+            employee.employments.forEach((employment, i) => {
+                let final = `${full} - ${employment.position}`
+               
+                ret.push({
+                    id: employment._id,
+                    name: final
+                })
+            })
+        })
+
+        return res.send(ret)
+
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

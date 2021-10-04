@@ -83,7 +83,7 @@ router.post('/register/:registrationFormId', fileUpload(), middlewares.handleExp
 
 
 router.use('/register', middlewares.requireAuthUser)
-router.use('/register', middlewares.guardRoute(['read_all_user', 'create_user', 'read_user', 'update_user', 'delete_user']))
+router.use('/register', middlewares.guardRoute(['use_scanner']))
 
 router.get('/register', async (req, res, next) => {
     try {

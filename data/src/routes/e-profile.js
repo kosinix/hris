@@ -230,11 +230,12 @@ router.get('/e-profile/dtr/print/:employmentId', middlewares.guardRoute(['use_em
 
         let days = new Array(31)
         days = days.fill(1).map((v, i) => {
-            let attendance = attendances[`${year}-${month}-${String(v + i).padStart(2, '0')}`] || null
+            let key = momentNow.clone().startOf('month').date(v+i).format('YYYY-MM-DD')
+            let attendance = attendances[key] || null
             let dtr = dtrHelper.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 
             return {
-                date: `${year}-${month}-${String(v + i).padStart(2, '0')}`,
+                date: key,
                 year: year,
                 month: month,
                 day: v + i,
@@ -242,7 +243,6 @@ router.get('/e-profile/dtr/print/:employmentId', middlewares.guardRoute(['use_em
                 attendance: attendance
             }
         })
-        let qrCodeSvg = qr.imageSync(employee.uid, { size: 10, type: 'png' })
 
         res.render('e-profile/dtr-print.html', {
             shared: false,
@@ -251,7 +251,6 @@ router.get('/e-profile/dtr/print/:employmentId', middlewares.guardRoute(['use_em
             attendances: attendances,
             employee: employee,
             employment: employment,
-            qrCodeSvg: qrCodeSvg.toString('base64'),
             title: `DTR-${momentNow.format('YYYY-MM')}-${employee.lastName}`
         });
     } catch (err) {
@@ -351,11 +350,12 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
 
         let days = new Array(31)
         days = days.fill(1).map((v, i) => {
-            let attendance = attendances[`${year}-${month}-${String(v + i).padStart(2, '0')}`] || null
+            let key = momentNow.clone().startOf('month').date(v+i).format('YYYY-MM-DD')
+            let attendance = attendances[key] || null
             let dtr = dtrHelper.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 
             return {
-                date: `${year}-${month}-${String(v + i).padStart(2, '0')}`,
+                date: key,
                 year: year,
                 month: month,
                 day: v + i,
@@ -363,7 +363,6 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
                 attendance: attendance
             }
         })
-        let qrCodeSvg = qr.imageSync(employee.uid, { size: 10, type: 'png' })
 
         res.render('e-profile/dtr-print.html', {
             shared: true,
@@ -372,7 +371,6 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
             attendances: attendances,
             employee: employee,
             employment: employment,
-            qrCodeSvg: qrCodeSvg.toString('base64'),
             title: `DTR-${momentNow.format('YYYY-MM')}-${employee.lastName}`
         });
     } catch (err) {

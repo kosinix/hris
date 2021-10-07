@@ -630,9 +630,9 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'personal.tin', lodash.get(body, 'tin'))
         lodash.set(patch, 'personal.pagibig', lodash.get(body, 'pagibig'))
         lodash.set(patch, 'personal.agencyEmployeeNumber', lodash.get(body, 'agencyEmployeeNumber'))
-        lodash.set(patch, 'personal.citizenship', lodash.get(body, 'citizenship'))
-        lodash.set(patch, 'personal.citizenshipCountry', lodash.get(body, 'citizenshipCountry'))
-        lodash.set(patch, 'personal.citizenshipSource', lodash.get(body, 'citizenshipSource'))
+        lodash.set(patch, 'personal.citizenship', lodash.get(body, 'citizenship', []))
+        lodash.set(patch, 'personal.citizenshipCountry', lodash.get(body, 'citizenshipCountry', ''))
+        lodash.set(patch, 'personal.citizenshipSource', lodash.get(body, 'citizenshipSource', []))
 
         lodash.set(patch, 'personal.spouse.lastName', lodash.get(body, 'spouse.lastName'))
         lodash.set(patch, 'personal.spouse.firstName', lodash.get(body, 'spouse.firstName'))
@@ -644,8 +644,8 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'personal.spouse.businessAddress', lodash.get(body, 'spouse.businessAddress'))
         lodash.set(patch, 'personal.spouse.phone', lodash.get(body, 'spouse.phone'))
 
-        lodash.set(patch, 'personal.children', lodash.get(body, 'children'))
-        lodash.set(patch, 'personal.schools', lodash.get(body, 'schools'))
+        lodash.set(patch, 'personal.children', lodash.get(body, 'children', []))
+        lodash.set(patch, 'personal.schools', lodash.get(body, 'schools', []))
 
         lodash.set(patch, 'personal.father.lastName', lodash.get(body, 'father.lastName'))
         lodash.set(patch, 'personal.father.firstName', lodash.get(body, 'father.firstName'))

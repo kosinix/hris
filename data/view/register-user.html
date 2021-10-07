@@ -30,7 +30,16 @@
                                 <small class="invalid-feedback">${getError('employmentId')}</small>
                             </div>
                         </div>
-                        <div class="alert alert-warning">By clicking Register, I certify that the ID I scanned and the name above belongs to me.</div>
+
+                        <div class="form-group">
+                            <label for="photo">Photo</label>
+                            <div>
+                                <input v-on:change="onFileChange" accept="image/*;capture=camera" name="photo" id="photo" ref="file_photo" type="file" class="form-control">
+                                <small class="invalid-feedback">${getError('filesLength')}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">By clicking Register, I certify that the ID I scanned and the name above, and photo belongs to me.</div>
                         <div class="form-group">
                             <button class="btn btn-primary btn-full-width">Register</button>
                         </div>
@@ -67,10 +76,15 @@
         },
         data: {
             employmentId: '',
+            photo: '',
             pending: false,
+            filesLength: undefined,
         },
         validations: {
             employmentId: {
+                required: window.validators.required
+            },
+            filesLength: {
                 required: window.validators.required
             },
         },
@@ -78,13 +92,18 @@
             
         },
         methods: {
+            onFileChange(event){
+                this.filesLength = (event.target.files.length > 0) ? true : undefined
+            },
             dataSource: function(input) {
                 return '/query/employment?s=' + input
             },
             onSubmit: function(){
                 var me = this;
                 me.$v.$touch()
+                console.log()
                 if (me.$v.$error) {
+
                     alert('Please correct the errors to continue.')
                 } else {
                     jQuery('#modal-consent').modal('show')

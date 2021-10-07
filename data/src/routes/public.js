@@ -20,6 +20,7 @@ router.get('/login', async (req, res, next) => {
         res.render('login.html', {
             flash: flash.get(req, 'login'),
             ip: ip,
+            username: lodash.get(req, 'query.username', ''),
         });
     } catch (err) {
         next(err);

@@ -723,7 +723,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D15:F15');
     cell = sheet.getCell('D15')
-    slex.setCell(cell).value(`${employee.personal.birthPlace}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.birthPlace','')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     sheet.getRow(4).height = 21.75
     sheet.getRow(6).height = 1
@@ -936,7 +936,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D22:F23');
     cell = sheet.getCell('D22')
-    slex.setCell(cell).value(`${employee.personal.height}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.height','')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     // weight
     cell = sheet.getCell('A24')
@@ -948,7 +948,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D24:F24');
     cell = sheet.getCell('D24')
-    slex.setCell(cell).value(`${employee.personal.weight}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.weight','')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     // blood
     sheet.mergeCells('A25:A26');
@@ -961,7 +961,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D25:F26');
     cell = sheet.getCell('D25')
-    slex.setCell(cell).value(`${employee.personal.bloodType}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.bloodType','')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     // gsis
     sheet.mergeCells('A27:A28');
@@ -974,7 +974,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D27:F28');
     cell = sheet.getCell('D27')
-    slex.setCell(cell).value(`${employee.personal.gsis}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.gsis','')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     // pagibig
     sheet.mergeCells('A29:A30');
@@ -987,7 +987,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D29:F30');
     cell = sheet.getCell('D29')
-    slex.setCell(cell).value(`${employee.personal.pagibig}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.pagibig','')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     // philhealth
     cell = sheet.getCell('A31')
@@ -999,7 +999,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D31:F31');
     cell = sheet.getCell('D31')
-    slex.setCell(cell).value(`${employee.personal.philHealth}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.philHealth','')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     // sss
     cell = sheet.getCell('A32')
@@ -1011,7 +1011,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D32:F32');
     cell = sheet.getCell('D32')
-    slex.setCell(cell).value(`${employee.personal.sss}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.sss','')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     // tin
     cell = sheet.getCell('A33')
@@ -1023,7 +1023,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D33:F33');
     cell = sheet.getCell('D33')
-    slex.setCell(cell).value(`${employee.personal.tin}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.tin','')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     // agency emp
     cell = sheet.getCell('A34')
@@ -1035,7 +1035,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D34:F34');
     cell = sheet.getCell('D34')
-    slex.setCell(cell).value(`${employee.personal.agencyEmployeeNumber}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.agencyEmployeeNumber','')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     // telephone
     sheet.mergeCells('G32:H32');
@@ -1083,7 +1083,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D36:H36');
     cell = sheet.getCell('D36')
-    slex.setCell(cell).value(`${employee.personal.spouse.lastName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.spouse.lastName', '')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     sheet.mergeCells('B37:C37');
     cell = sheet.getCell('B37')
@@ -1091,7 +1091,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D37:F37');
     cell = sheet.getCell('D37')
-    slex.setCell(cell).value(`${employee.personal.spouse.firstName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.spouse.firstName', '')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     //
     sheet.mergeCells('G37:H37');
@@ -1099,7 +1099,7 @@ let templatePds = async (employee) => {
     cell.value = {
         'richText': [
             { 'font': { 'size': 7, 'color': colors.black, 'name': 'Arial Narrow', 'family': 2, 'scheme': 'none' }, 'text': 'NAME EXTENSION (JR., SR)' },
-            { 'font': { 'bold': true, 'size': 9, 'color': colors.black, 'name': 'Arial', 'scheme': 'none' }, 'text': `\n${employee.personal.spouse.suffix}` },
+            { 'font': { 'bold': true, 'size': 9, 'color': colors.black, 'name': 'Arial', 'scheme': 'none' }, 'text': `\n${lodash.get(employee, 'personal.spouse.suffix', '')}` },
         ]
     };
     slex.setCell(cell).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(7).bgFill('00C0C0C0').border('', 'thin', '', '')
@@ -1110,7 +1110,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D38:H38');
     cell = sheet.getCell('D38')
-    slex.setCell(cell).value(`${employee.personal.spouse.middleName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.spouse.middleName', '')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     sheet.mergeCells('I36:L36');
     cell = sheet.getCell('I36')
@@ -1157,7 +1157,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D39:H39');
     cell = sheet.getCell('D39')
-    slex.setCell(cell).value(`${employee.personal.spouse.occupation}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.spouse.occupation', '')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     //
     cell = sheet.getCell('A40')
@@ -1169,7 +1169,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D40:H40');
     cell = sheet.getCell('D40')
-    slex.setCell(cell).value(`${employee.personal.spouse.employerOrBusinessName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.spouse.employerOrBusinessName', '')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     //
     cell = sheet.getCell('A41')
@@ -1181,7 +1181,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D41:H41');
     cell = sheet.getCell('D41')
-    slex.setCell(cell).value(`${employee.personal.spouse.businessAddress}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.spouse.businessAddress', '')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     //
     cell = sheet.getCell('A42')
@@ -1193,7 +1193,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D42:H42');
     cell = sheet.getCell('D42')
-    slex.setCell(cell).value(`${employee.personal.spouse.phone}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.spouse.phone', '')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
 
     // 
@@ -1209,7 +1209,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D43:H43');
     cell = sheet.getCell('D43')
-    slex.setCell(cell).value(`${employee.personal.father.lastName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.father.lastName', '')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     sheet.mergeCells('B44:C44');
     cell = sheet.getCell('B44')
@@ -1217,14 +1217,14 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D44:F44');
     cell = sheet.getCell('D44')
-    slex.setCell(cell).value(`${employee.personal.father.firstName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.father.firstName', '')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     sheet.mergeCells('G44:H44');
     cell = sheet.getCell('G44')
     cell.value = {
         'richText': [
             { 'font': { 'size': 7, 'color': colors.black, 'name': 'Arial Narrow', 'family': 2, 'scheme': 'none' }, 'text': 'NAME EXTENSION (JR., SR)' },
-            { 'font': { 'bold': true, 'size': 9, 'color': colors.black, 'name': 'Arial', 'scheme': 'none' }, 'text': `\n${employee.personal.father.suffix}` },
+            { 'font': { 'bold': true, 'size': 9, 'color': colors.black, 'name': 'Arial', 'scheme': 'none' }, 'text': `\n${lodash.get(employee, 'personal.father.suffix', '')}` },
         ]
     };
     slex.setCell(cell).align('top').align('left').wrapText(true).font('Arial Narrow').fontSize(7).bgFill('00C0C0C0').border('', 'thin', '', '')
@@ -1235,7 +1235,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D45:H45');
     cell = sheet.getCell('D45')
-    slex.setCell(cell).value(`${employee.personal.father.middleName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.father.middleName', '')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     // 
     cell = sheet.getCell('A46')
@@ -1254,7 +1254,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D47:H47');
     cell = sheet.getCell('D47')
-    slex.setCell(cell).value(`${employee.personal.mother.lastName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.mother.lastName', '')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     sheet.mergeCells('B48:C48');
     cell = sheet.getCell('B48')
@@ -1262,7 +1262,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D48:H48');
     cell = sheet.getCell('D48')
-    slex.setCell(cell).value(`${employee.personal.mother.firstName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.mother.firstName', '')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     sheet.mergeCells('B49:C49');
     cell = sheet.getCell('B49')
@@ -1270,7 +1270,7 @@ let templatePds = async (employee) => {
 
     sheet.mergeCells('D49:H49');
     cell = sheet.getCell('D49')
-    slex.setCell(cell).value(`${employee.personal.mother.middleName}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
+    slex.setCell(cell).value(`${lodash.get(employee, 'personal.mother.middleName', '')}`).align('middle').align('left').font('Arial').fontSize(12).bold(true).border('thin', 'thin', 'thin', 'thin')
 
     // III. EDUCATION
     sheet.mergeCells('A50:N50');
@@ -1346,7 +1346,7 @@ let templatePds = async (employee) => {
         slex.setCell(cell).value(`${school.honors}`).align('middle').align('center').font('Arial').fontSize(10).bold(true).border('thin', 'thin', 'thin', 'thin')
     }
     for (let x = 0; x < 5; x++) {
-        let school = employee.personal.schools[x]
+        let school = lodash.get(employee, `personal.schools[${x}]`)
         if (lodash.get(school, 'level') === 'Elementary') {
             printSchool(54, school, 'ELEMENTARY')
         } else if (lodash.get(school, 'level') === 'Secondary') {
@@ -1762,7 +1762,7 @@ let templatePermanent = async (payroll) => {
         // worksheet.pageSetup.printArea = `A1:AM${startRowIndex + payroll.rows.length + 12}`;
 
         slex.setSheet(worksheet)
-        
+
         // worksheet.duplicateRow(startRowIndex, rowCount - 1 + (pageLength * pages), true);
 
         slex.getCell('A2')
@@ -1776,7 +1776,7 @@ let templatePermanent = async (payroll) => {
 
             let wsRow = worksheet.getRow(curRowIndex)
 
-            
+
 
             // let attendance = payrollJs.getCellValue(row, 'attendance', payrollJs.formulas, payroll.columns)
 
@@ -1913,7 +1913,7 @@ let templatePermanent = async (payroll) => {
 
             let wsRow = worksheet.getRow(curRowIndex)
 
-            
+
 
             // let attendance = payrollJs.getCellValue(row, 'attendance', payrollJs.formulas, payroll.columns)
 
@@ -2051,7 +2051,7 @@ let templatePermanent = async (payroll) => {
 
             let wsRow = worksheet.getRow(curRowIndex)
 
-            
+
 
             // let attendance = payrollJs.getCellValue(row, 'attendance', payrollJs.formulas, payroll.columns)
 

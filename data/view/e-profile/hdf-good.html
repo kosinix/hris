@@ -1,0 +1,129 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Individual Health Declaration Checklist</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                {# <a href="/e-profile/dtr" class="btn btn-sm btn-outline-primary">Back</a> #}
+            </div>
+        </div>
+    </div>
+
+    <div class=" mb-5">
+        <div class="alert alert-success">Health declaration saved.</div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            temperature: '',
+            firstName: '{{employee.firstName}}',
+            middleName: '{{employee.middleName}}',
+            lastName: '{{employee.lastName}}',
+            age: '{{employee.birthDate|age|default('', true)}}',
+            sex: '{{employee.gender}}',
+            civilStatus: '{{employee.civilStatus}}',
+            address: '{{employee.address}}',
+            contactNumber: '{{employee.mobileNumber}}',
+            department: '',
+            symptoms: [],
+            otherSymptoms: '',
+            visitedMedicalFacility: 'No',
+            visitedMedicalFacilityPurposes: [],
+            visitedMedicalFacilityPurposeOthers: '',
+            suspectedCovidPatient: 'No',
+            suspectedCovidPatientDetails: '',
+            sickFamilyMembers: 'No',
+            sickFamilyMembersDetails: '',
+        },
+        validations: {
+            temperature: {
+                required: window.validators.required
+            },
+            lastName: {
+                required: window.validators.required
+            },
+            middleName: {
+                required: window.validators.required
+            },
+            firstName: {
+                required: window.validators.required
+            },
+            age: {
+                required: window.validators.required
+            },
+            sex: {
+                required: window.validators.required
+            },
+            civilStatus: {
+                required: window.validators.required
+            },
+            address: {
+                required: window.validators.required
+            },
+            contactNumber: {
+                required: window.validators.required
+            },
+            department: {
+                required: window.validators.required
+            },
+            temperature: {
+                required: window.validators.required
+            },
+
+            otherSymptoms: {
+                required: window.validators.requiredIf(function(){
+                    return this.symptoms.indexOf('others')!==-1
+                })
+            },
+            visitedMedicalFacilityPurposes: {
+                required: window.validators.requiredIf(function(){
+                    return this.visitedMedicalFacility==='Yes'
+                })
+            },
+            visitedMedicalFacilityPurposeOthers: {
+                required: window.validators.requiredIf(function(){
+                    return this.visitedMedicalFacilityPurposes.indexOf('Others')!==-1
+                })
+            },
+            suspectedCovidPatientDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.suspectedCovidPatient==='Yes'
+                })
+            },
+            sickFamilyMembersDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.sickFamilyMembers==='Yes'
+                })
+            }
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

@@ -154,6 +154,34 @@ router.post('/e-profile/hdf', middlewares.guardRoute(['use_employee_profile']), 
             employeeId: employee._id,
             frm: body
         }
+
+        let check = false
+        if (!check) {
+            // Today attendance
+            let hd = await db.main.HealthDeclaration.findOne({
+                employeeId: employee._id,
+                createdAt: {
+                    $gte: moment().startOf('day').toDate(),
+                    $lt: moment().endOf('day').toDate(),
+                }
+            })
+            if (hd) {
+                throw new Error('Already submitted today.')
+            } else {
+
+                hd = new db.main.HealthDeclaration({
+                    employeeId: employee._id,
+                    data: body
+                })
+                await hd.save()
+                return res.render('e-profile/hdf-good.html', {
+                    momentNow: moment(),
+                    employee: employee,
+                    hd: hd,
+                });
+            }
+        }
+
         qrData = Buffer.from(JSON.stringify(qrData)).toString('base64')
 
         qrData = qr.imageSync(qrData, { size: 5, type: 'png' }).toString('base64')
@@ -230,7 +258,7 @@ router.get('/e-profile/dtr/print/:employmentId', middlewares.guardRoute(['use_em
 
         let days = new Array(31)
         days = days.fill(1).map((v, i) => {
-            let key = momentNow.clone().startOf('month').date(v+i).format('YYYY-MM-DD')
+            let key = momentNow.clone().startOf('month').date(v + i).format('YYYY-MM-DD')
             let attendance = attendances[key] || null
             let dtr = dtrHelper.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 
@@ -350,7 +378,7 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
 
         let days = new Array(31)
         days = days.fill(1).map((v, i) => {
-            let key = momentNow.clone().startOf('month').date(v+i).format('YYYY-MM-DD')
+            let key = momentNow.clone().startOf('month').date(v + i).format('YYYY-MM-DD')
             let attendance = attendances[key] || null
             let dtr = dtrHelper.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
 
@@ -559,7 +587,7 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
                 lodash.get(patch, 'addresses.0.village'),
                 lodash.get(address0, 'full'),
             )
-            
+
             lodash.set(patch, 'address', full)
             lodash.set(patch, 'addresses.0.full', lodash.get(address0, 'full'))
             lodash.set(patch, 'addresses.0.brgy', address0.name)

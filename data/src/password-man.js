@@ -28,10 +28,27 @@ module.exports = {
     genUsername: (firstName, lastName) => {
         let firstNames = firstName.split(' ')
         firstName = lodash.toLower(firstNames.shift())
-        if(firstName === 'ma.'){
+        if (firstName === 'ma.') {
             firstName = lodash.toLower(firstNames.shift()) // second name
         }
         lastName = lastName.replace(/ /g, '') // remove spaces for maam josephine "de asis"
-        return lodash.toLower(`${lastName}`)+'.'+lodash.toLower(`${firstName}`)
+        return lodash.toLower(`${lastName}`) + '.' + lodash.toLower(`${firstName}`)
+    },
+    genPassword: (length) => { // Guarantees 1 upper and 1 special char in a random string
+        const upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        const specialChars = `~!@#$%^&*()_+{}|:"<>?/;\][=-`
+
+        let bytes = crypto.randomBytes(length / 2);
+        let hex = bytes.toString('hex').split('') // convert to array
+
+        let randLocation = crypto.randomInt(0, hex.length)
+
+        hex[randLocation] = specialChars[crypto.randomInt(0, specialChars.length)]
+        let randLocation2 = crypto.randomInt(0, hex.length)
+        while (randLocation2 === randLocation) { // Do not overwrite character in randLocation
+            randLocation2 = crypto.randomInt(0, hex.length)
+        }
+        hex[randLocation2] = upperChars[crypto.randomInt(0, upperChars.length)]
+        return hex.join('')
     }
 }

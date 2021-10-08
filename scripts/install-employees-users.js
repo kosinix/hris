@@ -47,7 +47,7 @@ const db = require('../data/src/db-install');
         for(let x = 0; x < employees.length; x++){
 
             let o = employees[x]
-            let password = passwordMan.randomString(8)
+            let password = passwordMan.genPassword(8)
             let salt = passwordMan.randomString(16)
             let passwordHash = passwordMan.hashPassword(password, salt)
             let firstNames = o.firstName.split(' ')

@@ -116,3 +116,7 @@ scripts/install-data/import.txt
 
 # Temp excel file
 ~*.xlsx
+
+
+# scratch file
+scripts/scratch.js

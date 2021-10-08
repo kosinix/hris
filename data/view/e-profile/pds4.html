@@ -58,8 +58,13 @@
                         </div>
                         <div v-if="criminalCharge==='Yes'" class="col-md-12">
                             {% set name = "criminalChargeDetails" %}
-                            {% set label = "If Yes, give details" %}
+                            {% set label = "Status of Case(s)" %}
                             {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+
+                            {% set name = "criminalChargeDate" %}
+                            {% set label = "Date Filed" %}
+                            {% include 'parts/form-group-date.html' %}
                             {% set label = '' %}
                         </div>
                     </div>
@@ -272,6 +277,7 @@
             guiltyAdminDetails: '{{employee.personal.guiltyAdminDetails}}',
             criminalCharge: '{{employee.personal.criminalCharge}}',
             criminalChargeDetails: '{{employee.personal.criminalChargeDetails}}',
+            criminalChargeDate: '{{employee.personal.criminalChargeDate}}',
             convicted: '{{employee.personal.convicted}}',
             convictedDetails: '{{employee.personal.convictedDetails}}',
             problematicHistory: '{{employee.personal.problematicHistory}}',
@@ -304,6 +310,11 @@
                 })
             },
             criminalChargeDetails: {
+                required: window.validators.requiredIf(function(){
+                    return this.criminalCharge === 'Yes';
+                })
+            },
+            criminalChargeDate: {
                 required: window.validators.requiredIf(function(){
                     return this.criminalCharge === 'Yes';
                 })

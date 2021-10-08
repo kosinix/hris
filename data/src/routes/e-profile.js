@@ -779,6 +779,7 @@ router.post('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'personal.guiltyAdminDetails', lodash.get(body, 'guiltyAdminDetails'))
         lodash.set(patch, 'personal.criminalCharge', lodash.get(body, 'criminalCharge'))
         lodash.set(patch, 'personal.criminalChargeDetails', lodash.get(body, 'criminalChargeDetails'))
+        lodash.set(patch, 'personal.criminalChargeDate', lodash.get(body, 'criminalChargeDate'))
         lodash.set(patch, 'personal.convicted', lodash.get(body, 'convicted'))
         lodash.set(patch, 'personal.convictedDetails', lodash.get(body, 'convictedDetails'))
         lodash.set(patch, 'personal.problematicHistory', lodash.get(body, 'problematicHistory'))

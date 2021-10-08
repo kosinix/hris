@@ -229,6 +229,10 @@ const schema = new Schema({
             $type: String,
             trim: true,
         },
+        criminalChargeDate: {
+            $type: String,
+            trim: true,
+        },
         convicted: {
             $type: String,
             trim: true,

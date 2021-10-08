@@ -60,7 +60,7 @@
                 </div>
                 {# Work Exp #}
                 <div class="form-group focusable" tabindex="0">
-                    <h2 class="h5">VII.  Learning and Development (L&amp;D) Interventions/Training Programs Attended</h2>
+                    <h2 class="h5">VII.  Learning and Development (L&D) Interventions/Training Programs Attended</h2>
                     <p class="mb-4"><em>(Include private employment. Start from your recent work) Description of duties should be indicated in the attached Work Experience sheet.</em></p>
                     <div v-for="(training, index) in trainings">
                         <hr v-if="index > 0">
@@ -71,7 +71,7 @@
                             <div class="col-md-5">
                                 {% set name = "'trainings[' + index + '][title]'"|safe %}
                                 {% set vModel = 'training.title' %}
-                                {% set label = "Title of L&amp;D/Training" %}
+                                {% set label = "Title of L&D/Training" %}
                                 {% include 'parts/form-group-text-vue.html' %}
                                 {% set label = '' %}
                             </div>
@@ -114,7 +114,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="text-center" v-if="trainings.length < 12">
+                    <div class="text-center" v-if="trainings.length < 21">
                         <button type="button" v-on:click.prevent="addTraining" class="btn btn-sm btn-primary">Add Training</button>
                     </div> 
                 </div>
@@ -144,7 +144,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="text-center" v-if="extraCurriculars.length < 21">
+                    <div class="text-center" v-if="extraCurriculars.length < 7">
                         <button type="button" v-on:click.prevent="addExtraCurricular" class="btn btn-sm btn-primary">Add Info</button>
                     </div> 
                 </div>

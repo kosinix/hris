@@ -924,6 +924,27 @@ router.post('/e-profile/photo', middlewares.guardRoute(['use_employee_profile'])
     try {
         let employee = res.employee
 
+        // Delete files on AWS S3
+        const bucketName = CONFIG.aws.bucket1.name
+        const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
+        let photo = employee.profilePhoto
+        if (photo) {
+            await s3.deleteObjects({
+                Bucket: bucketName,
+                Delete: {
+                    Objects: [
+                        { Key: `${bucketKeyPrefix}${photo}` },
+                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                        { Key: `${bucketKeyPrefix}small-${photo}` },
+                        { Key: `${bucketKeyPrefix}medium-${photo}` },
+                        { Key: `${bucketKeyPrefix}large-${photo}` },
+                        { Key: `${bucketKeyPrefix}xlarge-${photo}` },
+                        { Key: `${bucketKeyPrefix}orig-${photo}` },
+                    ]
+                }
+            }).promise()
+        }
+
         employee.profilePhoto = lodash.get(req, 'saveList.photo[0]')
         await employee.save()
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} photo.`)

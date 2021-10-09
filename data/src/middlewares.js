@@ -454,7 +454,12 @@ module.exports = {
                     uid: code
                 }).lean()
                 if (!employee) {
-                    throw new Error('Employee not found from RFID.')
+                    // throw new Error()
+                    return res.render('scanner/error.html', {
+                        error: 'Sorry, ID card is not registered.',
+                        scanner: res.scanner,
+                        timeOut: 10
+                    })
                 }
 
                 // TODO: Allow choose employment for rfid

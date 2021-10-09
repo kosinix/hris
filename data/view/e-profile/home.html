@@ -1,15 +1,12 @@
 {% extends "document.html" %}
 
 {% block body %}
-<div class="col-md-12">
+<div class="col-md-12" style="background: #fff">
     <div class=" mb-5">
         <div style="max-width:500px" class=" ml-auto mr-auto" >
             <div class="text-center">
-                
-                
                 <div class="text-center pt-3 pb-3">
                     <div class="e-profile-photo ml-auto mr-auto">
-                        
                         {% if employee.profilePhoto %}
                             <div class="actual-pic">
                                 <a href="/e-profile/photo">   
@@ -31,10 +28,7 @@
                         {% endif %}
                     </div>
                 </div>
-                <h4 class="h3 mb-2">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
-                
-                <h3 class="mb-5 h6 font-italic">{{momentNow|format_date('dddd - MMM DD, YYYY')}}</h3>
-                <p class="mb-5">Place the code below in front of the scanner camera.</p>
+                <h4 class="h3 mb-3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
                 
                 <div id="carouselQr" style="background: #fff; padding: 15px 0;" class="carousel slide" data-wrap="false" data-interval="false" data-ride="carousel">
                     {% if carouselItems.length > 1 %}
@@ -47,10 +41,7 @@
                     <div class="carousel-inner">
                         {% for item in carouselItems %}
                             <div class="carousel-item {% if loop.index === 1 %}active{% endif %}">
-                                <p class="h4 pt-2">Employment QR</p>
-                                <img style="max-width: 100%" src="data:image/png;base64, {{item.data|safe}}" alt="QR">
-                                <p class="h5 pt-2 pb-3">{{item.title}}</p>
-                                <div class="text-center pb-5">
+                                <div class="text-center pb-4">
                                     <a href="/e-profile/dtr/{{item.employment._id}}" class="mt-3 btn btn-primary">
                                         <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                                             <path fill="currentColor" d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19Z" />
@@ -63,13 +54,17 @@
                                         </svg>
                                         <span>WFH</span>
                                     </a>
-                                    <a href="/e-profile/travel/{{item.employment._id}}" class="mt-3 btn btn-primary">
+                                    {# <a href="/e-profile/travel/{{item.employment._id}}" class="mt-3 btn btn-primary">
                                         <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                                             <path fill="currentColor" d="M3 13.5L11 2.03V13.5H3M12.5 13.5C13.85 9.75 13.67 4.71 12.5 1C17.26 2.54 20.9 8.4 20.96 13.5H12.5M21.1 17.08C20.69 17.72 20.21 18.27 19.65 18.74C19 18.45 18.42 18 17.96 17.5C16.47 19.43 13.46 19.43 11.97 17.5C10.5 19.43 7.47 19.43 6 17.5C5.5 18 4.95 18.45 4.3 18.74C3.16 17.8 2.3 16.46 2 15H21.94C21.78 15.75 21.5 16.44 21.1 17.08M20.96 23C19.9 23 18.9 22.75 17.96 22.25C16.12 23.25 13.81 23.25 11.97 22.25C10.13 23.25 7.82 23.25 6 22.25C4.77 22.94 3.36 23.05 2 23V21C3.41 21.05 4.77 20.9 6 20C7.74 21.25 10.21 21.25 11.97 20C13.74 21.25 16.2 21.25 17.96 20C19.17 20.9 20.54 21.05 21.94 21V23H20.96Z" />
                                         </svg>
                                         <span>On Travel</span>
-                                    </a>
+                                    </a> #}
                                 </div>
+                                <p class="h5 mb-4">Employment QR Code</p>
+                                <img style="max-width: 100%" src="data:image/png;base64, {{item.data|safe}}" alt="QR">
+                                <p class="h5 pt-2 pb-3">{{item.title}}</p>
+                                
                             </div>
                         {% endfor %}
                     </div>

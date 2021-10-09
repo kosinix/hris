@@ -961,7 +961,7 @@ router.get('/e-profile/photo/delete', middlewares.guardRoute(['use_employee_prof
         await db.main.Employee.updateOne({ _id: employee._id }, { profilePhoto: '' })
 
         flash.ok(req, 'employee', `"${employee.firstName} ${employee.lastName}" photo deleted.`)
-        res.redirect(`/e-profile/photo`);
+        res.redirect(`/e-profile/home`);
     } catch (err) {
         next(err);
     }

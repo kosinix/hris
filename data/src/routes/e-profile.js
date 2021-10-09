@@ -798,7 +798,7 @@ router.post('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'personal.pwdDetails', lodash.get(body, 'pwdDetails'))
         lodash.set(patch, 'personal.soloParent', lodash.get(body, 'soloParent'))
         lodash.set(patch, 'personal.soloParentDetails', lodash.get(body, 'soloParentDetails'))
-        lodash.set(patch, 'personal.references', lodash.get(body, 'references'))
+        lodash.set(patch, 'personal.references', lodash.get(body, 'references', []))
 
         await db.main.Employee.updateOne({ _id: employee._id }, patch)
 

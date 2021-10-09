@@ -10,7 +10,7 @@
                         {% if employee.profilePhoto %}
                             <div class="actual-pic">
                                 <a href="/e-profile/photo">   
-                                    <img style="min-height: 100px" src="{{employee.profilePhoto|s3_url('medium')}}" alt="{{employee.firstName|first}}. {{employee.lastName|first}}.">
+                                    <img style="min-height: 100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="{{employee.firstName|first}}. {{employee.lastName|first}}.">
                                 </a>
                             </div>
                         {% else %}

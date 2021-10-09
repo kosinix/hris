@@ -267,18 +267,21 @@ div.focusable:focus-within  {
 
 /*  */
 .e-profile-photo {
-    max-width: 200px;
+    max-width: 120px;
     text-align: center;
     position: relative;
 }
 .e-profile-photo .actual-pic{
-    overflow:hidden; 
-    max-width: 200px; 
+    overflow: hidden;
+    width: 120px;
     border-radius: 100%;
+    height: 120px;
+    display: flex;
+    align-items: center;
 }
 .e-profile-photo svg{
-    width:200px;
-    height:200px
+    width: 120px;
+    height: 120px;
 }
 
 /* Tabs */

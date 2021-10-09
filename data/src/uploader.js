@@ -32,7 +32,7 @@ const _imageSizes = [
                 .resize({
                     width: 30,
                     height: 30,
-                    fit: 'inside',
+                    fit: 'cover',
                     background: { r: 255, g: 255, b: 255, alpha: 1 }
                 })
                 .flatten()
@@ -56,7 +56,7 @@ const _imageSizes = [
                 .resize({
                     width: 120,
                     height: 120,
-                    fit: 'inside',
+                    fit: 'cover',
                     background: { r: 255, g: 255, b: 255, alpha: 1 }
                 })
                 .flatten()
@@ -80,7 +80,7 @@ const _imageSizes = [
                 .resize({
                     width: 200,
                     height: 200,
-                    fit: 'inside',
+                    fit: 'cover',
                     background: { r: 255, g: 255, b: 255, alpha: 1 }
                 })
                 .flatten()
@@ -104,7 +104,7 @@ const _imageSizes = [
                 .resize({
                     width: 1000,
                     height: 1000,
-                    fit: 'inside',
+                    fit: 'cover',
                     background: { r: 255, g: 255, b: 255, alpha: 1 }
                 })
                 .flatten()
@@ -139,7 +139,7 @@ const _imageSizes = [
                 .resize({
                     width: newWidth,
                     height: newHeight,
-                    fit: 'inside',
+                    fit: 'cover',
                     background: { r: 255, g: 255, b: 255, alpha: 1 }
                 })
                 .flatten()

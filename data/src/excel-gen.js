@@ -872,8 +872,10 @@ let templatePds = async (employee) => {
         slex.setSheet(worksheet)
 
         let offset = 6
-        for (x = 0; x < 7; x++) {
-            let voluntarywork = lodash.get(employee, `personal.voluntaryWorks[${x}]`)
+        let voluntaryworks = lodash.get(employee, `personal.voluntaryWorks`, [])
+        for (x = 0; x < voluntaryworks.length; x++) {
+            if (x >= 7) break
+            let voluntarywork = voluntaryworks[x]
             let row = offset + x
 
             slex.getCell(`A${row}`).value(`${lodash.get(voluntarywork, 'name', '')}`)
@@ -884,8 +886,10 @@ let templatePds = async (employee) => {
         }
         // 
         offset = 18
-        for (x = 0; x < 21; x++) {
-            let training = lodash.get(employee, `personal.trainings[${x}]`)
+        let trainings = lodash.get(employee, `personal.trainings`, [])
+        for (x = 0; x < trainings.length; x++) {
+            if (x >= 21) break
+            let training = trainings[x]
             let row = offset + x
 
             slex.getCell(`A${row}`).value(`${lodash.get(training, 'title', '')}`)
@@ -899,19 +903,22 @@ let templatePds = async (employee) => {
         // 
         offset = 42
         let extraCurriculars = lodash.get(employee, `personal.extraCurriculars`, []).filter(o => lodash.get(o, 'type') === 'skillHobbies')
-        for (let x = 0; x < 7; x++) {
+        for (let x = 0; x < extraCurriculars.length; x++) {
+            if (x >= 7) break // limit to 7
             let o = extraCurriculars[x]
             let row = offset + x
             slex.getCell(`A${row}`).value(`${lodash.get(o, 'detail', '')}`)
         }
         extraCurriculars = lodash.get(employee, `personal.extraCurriculars`, []).filter(o => lodash.get(o, 'type') === 'nonAcademic')
-        for (let x = 0; x < 7; x++) {
+        for (let x = 0; x < extraCurriculars.length; x++) {
+            if (x >= 7) break // limit to 7
             let o = extraCurriculars[x]
             let row = offset + x
             slex.getCell(`C${row}`).value(`${lodash.get(o, 'detail', '')}`)
         }
         extraCurriculars = lodash.get(employee, `personal.extraCurriculars`, []).filter(o => lodash.get(o, 'type') === 'organization')
-        for (let x = 0; x < 7; x++) {
+        for (let x = 0; x < extraCurriculars.length; x++) {
+            if (x >= 7) break // limit to 7
             let o = extraCurriculars[x]
             let row = offset + x
             slex.getCell(`I${row}`).value(`${lodash.get(o, 'detail', '')}`)
@@ -964,7 +971,7 @@ let templatePds = async (employee) => {
         slex.getCell('H25').value(tmpVar)
         tmpVar = (value === 'No') ? `[✓] No` : `[${'     '}] No`
         slex.getCell('J23').value(tmpVar)
-        
+
         value = lodash.get(employee, 'personal.problematicHistory', '')
         tmpVar = (value === 'Yes') ? `[✓] Yes` : `[${'     '}] Yes`
         slex.getCell('H27').value(tmpVar)
@@ -972,7 +979,7 @@ let templatePds = async (employee) => {
         slex.getCell('H29').value(tmpVar)
         tmpVar = (value === 'No') ? `[✓] No` : `[${'     '}] No`
         slex.getCell('J27').value(tmpVar)
-        
+
         value = lodash.get(employee, 'personal.electionCandidate', '')
         tmpVar = (value === 'Yes') ? `[✓] Yes` : `[${'     '}] Yes`
         slex.getCell('H31').value(tmpVar)
@@ -980,7 +987,7 @@ let templatePds = async (employee) => {
         slex.getCell('K32').value(tmpVar)
         tmpVar = (value === 'No') ? `[✓] No` : `[${'     '}] No`
         slex.getCell('J31').value(tmpVar)
-        
+
         value = lodash.get(employee, 'personal.electionResigned', '')
         tmpVar = (value === 'Yes') ? `[✓] Yes` : `[${'     '}] Yes`
         slex.getCell('H34').value(tmpVar)
@@ -988,7 +995,7 @@ let templatePds = async (employee) => {
         slex.getCell('K35').value(tmpVar)
         tmpVar = (value === 'No') ? `[✓] No` : `[${'     '}] No`
         slex.getCell('J34').value(tmpVar)
-        
+
         value = lodash.get(employee, 'personal.dualCitizen', '')
         tmpVar = (value === 'Yes') ? `[✓] Yes` : `[${'     '}] Yes`
         slex.getCell('H37').value(tmpVar)
@@ -996,7 +1003,7 @@ let templatePds = async (employee) => {
         slex.getCell('H39').value(tmpVar)
         tmpVar = (value === 'No') ? `[✓] No` : `[${'     '}] No`
         slex.getCell('J37').value(tmpVar)
-        
+
         value = lodash.get(employee, 'personal.indigenousGroup', '')
         tmpVar = (value === 'Yes') ? `[✓] Yes` : `[${'     '}] Yes`
         slex.getCell('H43').value(tmpVar)
@@ -1004,7 +1011,7 @@ let templatePds = async (employee) => {
         slex.getCell('L44').value(tmpVar)
         tmpVar = (value === 'No') ? `[✓] No` : `[${'     '}] No`
         slex.getCell('J43').value(tmpVar)
-        
+
         value = lodash.get(employee, 'personal.pwd', '')
         tmpVar = (value === 'Yes') ? `[✓] Yes` : `[${'     '}] Yes`
         slex.getCell('H45').value(tmpVar)
@@ -1012,7 +1019,7 @@ let templatePds = async (employee) => {
         slex.getCell('L46').value(tmpVar)
         tmpVar = (value === 'No') ? `[✓] No` : `[${'     '}] No`
         slex.getCell('J45').value(tmpVar)
-        
+
         value = lodash.get(employee, 'personal.soloParent', '')
         tmpVar = (value === 'Yes') ? `[✓] Yes` : `[${'     '}] Yes`
         slex.getCell('H47').value(tmpVar)
@@ -1023,7 +1030,8 @@ let templatePds = async (employee) => {
 
         offset = 52
         let references = lodash.get(employee, `personal.references`, [])
-        for (let x = 0; x < 3; x++) {
+        for (let x = 0; x < references.length; x++) {
+            if (x >= 3) break // limit to 3
             let o = references[x]
             let row = offset + x
             slex.getCell(`A${row}`).value(`${lodash.get(o, 'name', '')}`)

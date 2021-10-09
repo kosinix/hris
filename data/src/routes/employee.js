@@ -489,6 +489,46 @@ router.post('/employee/photo/:employeeId', middlewares.guardRoute(['create_emplo
         next(err);
     }
 });
+router.get('/employee/photo/:employeeId/delete', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+
+        // Delete files on AWS S3
+        const bucketName = CONFIG.aws.bucket1.name
+        const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
+
+        let promises = []
+
+        let photo = employee.profilePhoto
+        if (photo) {
+            let promise = s3.deleteObjects({
+                Bucket: bucketName,
+                Delete: {
+                    Objects: [
+                        { Key: `${bucketKeyPrefix}${photo}` },
+                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                        { Key: `${bucketKeyPrefix}small-${photo}` },
+                        { Key: `${bucketKeyPrefix}medium-${photo}` },
+                        { Key: `${bucketKeyPrefix}large-${photo}` },
+                        { Key: `${bucketKeyPrefix}xlarge-${photo}` },
+                        { Key: `${bucketKeyPrefix}orig-${photo}` },
+                    ]
+                }
+            }).promise()
+
+            promises.push(promise)
+        }
+
+        await Promise.all(promises)
+        await db.main.Employee.updateOne({ _id: employee._id }, { profilePhoto: '' })
+
+        flash.ok(req, 'employee', `"${employee.firstName} ${employee.lastName}" photo deleted.`)
+        res.redirect(`/employee/photo/${employee._id}`);
+    } catch (err) {
+        next(err);
+    }
+});
 
 
 router.get('/employee/id-card/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
@@ -723,6 +763,8 @@ router.get('/employee/delete/:employeeId', middlewares.guardRoute(['delete_emplo
     }
 });
 
+
+
 // List
 router.get('/employee/list', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
     try {
@@ -885,7 +927,7 @@ router.post('/employee/list/:employeeListId/update', middlewares.guardRoute(['re
 
         employeeList.name = lodash.get(req, 'body.name')
         employeeList.tags = lodash.get(req, 'body.tags', [])
-        if(!employeeList.tags){
+        if (!employeeList.tags) {
             employeeList.tags = []
         } else {
             employeeList.tags = employeeList.tags.split(',')

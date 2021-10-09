@@ -69,16 +69,43 @@ body, pre {
 /* Forms */
 /* Login */
 .form-login {
+    font-family: 'Poppins', sans-serif;
     background: #fefefe;
     border-radius: 5px;
-    box-shadow: 0 0 3px #ccc;
+    box-shadow: 0 0 3px #aed892;
     overflow: hidden;
+}
+.form-login .h2 {
+    color: #115195;
+    font-size: 33px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.form-login .h3 {
+    color: #2699a2;
+    font-weight: 500;
+    font-size: 18px;
 }
 .form-header {
     padding: 25px;
     color: #ffffff;
     background: #2573b5;
     background: linear-gradient(45deg,  #2573b5 0%,#2799a3 100%);
+}
+
+
+.wiggle {
+    display: inline-block;
+    animation: wiggle 10s infinite;
+    animation-delay: 5s;
+}
+
+@keyframes wiggle {
+    0% { transform:translate(0,0) rotate(0deg);}
+    25% { transform:translate(30px,0) rotate(5deg); }
+    50% { transform:translate(30px,0) rotate(5deg); }
+    75% { transform:translate(0,0) rotate(0deg);}
+    100% { transform:translate(0,0) rotate(0deg);}
 }
 
 .form-body {
@@ -521,7 +548,7 @@ div.focusable:focus-within  {
     color: #115195;
     font-size: 33px;
     font-weight: bold;
-    margin-bottom: 5px0;
+    margin-bottom: 5px;
 }
 .register .steps .step .desc p{
     color: #2699a2;

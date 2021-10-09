@@ -1,21 +1,32 @@
-{% extends "document-camera.html" %}
+{% extends "document-public.html" %}
 
 {% block body %}
-<div id="vApp" v-cloak class="scanner scanner-white d-flex justify-content-center">
-    <div class="scan-bar-title d-flex justify-content-center align-items-center">
-        <h1 class="h6 mb-0">Scanner: {{scanner.name}}</h1>
-    </div>
-    <form ref="form" class="mt-5 text-center" v-on:submit.prevent="onSubmit" action="/scanner/{{scanner.uid}}/scan" method="POST" novalidate>
-        <h2 class="h1">Ready to Scan</h2>
-        <p>Hover your ID on the card scanner</p>
-        <img src="/images/rfid.png" alt="">
-        <div class="form-group" style="position:relative; overflow:hidden">
-            <div style="position:absolute; left:0; right:0; top:0; bottom:0; background:#fff; z-index:1; opacity:1"></div>
-            <label for="code">Code</label>
-            <input style="outline: none" v-on:blur="focus" v-model="code" name="code" id="code" type="text" class="form-control">
-            <br>
+<div class="col-md-6 ml-auto mr-auto mt-5 mb-5">
+    <div id="vApp" v-cloak>
+        <div class="form-login">
+            <div class="form-header">
+                <h1 class="h6 mb-0">Scanner: {{scanner.name}}</h1>
+            </div>
+            <div class="form-body text-center">
+                {# <div class="text-center position-relative mb-3">
+                    <img class="rotate" src="/images/logo-gear.png" alt="GSC Gear">
+                    <img class="position-relative" width="100" src="/images/logo-inner.png" alt="GSC Logo">
+                </div> #}
+                <form ref="form" class=" text-center" v-on:submit.prevent="onSubmit" action="/scanner/{{scanner.uid}}/scan" method="POST" novalidate>
+                    <h2 class="h2 mb-3">READY TO SCAN</h2>
+
+                    <img class="mb-3 wiggle" src="/images/rfid.png" style="max-width:100%" alt="rfid">
+                    <p class=" h3">Hover your ID card on the scanner</p>
+                    <div class="form-group" style="position:relative; overflow:hidden">
+                        <div style="position:absolute; left:0; right:0; top:0; bottom:0; background:#fff; z-index:1; opacity:1"></div>
+                        <label for="code">Code</label>
+                        <input style="outline: none" v-on:blur="focus" v-model="code" name="code" id="code" type="text" class="form-control">
+                        <br>
+                    </div>
+                </form>
+            </div>
         </div>
-    </form>
+    </div>
 </div>
 {% endblock %}
 {% block scripts %}

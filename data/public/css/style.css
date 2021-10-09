@@ -265,6 +265,22 @@ div.focusable:focus-within  {
     display: inline-block;
 }
 
+/*  */
+.e-profile-photo {
+    max-width: 200px;
+    text-align: center;
+    position: relative;
+}
+.e-profile-photo .actual-pic{
+    overflow:hidden; 
+    max-width: 200px; 
+    border-radius: 100%;
+}
+.e-profile-photo svg{
+    width:200px;
+    height:200px
+}
+
 /* Tabs */
 .tab-content {
     background: #ffffff;

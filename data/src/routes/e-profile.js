@@ -2,6 +2,7 @@
 
 //// External modules
 const express = require('express')
+const fileUpload = require('express-fileupload')
 const flash = require('kisapmata')
 const lodash = require('lodash')
 const moment = require('moment');
@@ -16,6 +17,7 @@ const middlewares = require('../middlewares');
 const passwordMan = require('../password-man');
 const paginator = require('../paginator');
 const suffixes = require('../suffixes');
+const s3 = require('../aws-s3');
 
 // Router
 let router = express.Router()
@@ -906,4 +908,62 @@ router.get('/e-profile/memo/:memoId', middlewares.guardRoute(['use_employee_prof
     }
 });
 
+// 
+router.get('/e-profile/photo', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee
+
+        res.render('e-profile/photo.html', {
+            employee: employee.toObject()
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e-profile/photo', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, fileUpload(), middlewares.handleExpressUploadMagic, async (req, res, next) => {
+    try {
+        let employee = res.employee
+
+        employee.profilePhoto = lodash.get(req, 'saveList.photo[0]')
+        await employee.save()
+        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} photo.`)
+        res.redirect(`/e-profile/home`);
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/e-profile/photo/delete', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, fileUpload(), middlewares.handleExpressUploadMagic, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        // Delete files on AWS S3
+        const bucketName = CONFIG.aws.bucket1.name
+        const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
+
+        let photo = employee.profilePhoto
+        if (photo) {
+            await s3.deleteObjects({
+                Bucket: bucketName,
+                Delete: {
+                    Objects: [
+                        { Key: `${bucketKeyPrefix}${photo}` },
+                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                        { Key: `${bucketKeyPrefix}small-${photo}` },
+                        { Key: `${bucketKeyPrefix}medium-${photo}` },
+                        { Key: `${bucketKeyPrefix}large-${photo}` },
+                        { Key: `${bucketKeyPrefix}xlarge-${photo}` },
+                        { Key: `${bucketKeyPrefix}orig-${photo}` },
+                    ]
+                }
+            }).promise()
+        }
+
+        await db.main.Employee.updateOne({ _id: employee._id }, { profilePhoto: '' })
+
+        flash.ok(req, 'employee', `"${employee.firstName} ${employee.lastName}" photo deleted.`)
+        res.redirect(`/e-profile/photo`);
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

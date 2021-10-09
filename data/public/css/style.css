@@ -7,7 +7,7 @@ body {
 }
 body.body-public {
     background: hsla(95, 47%, 71%, 1);
-    background: linear-gradient(135deg, hsla(95, 47%, 71%, 1) 0%, hsla(168, 41%, 50%, 1) 28%, hsla(184, 62%, 39%, 1) 44%, rgb(37, 117, 182) 54%, hsla(211, 80%, 33%, 1) 100%);
+    background: linear-gradient(135deg, hsla(95, 47%, 71%, 1) 0%, hsla(168, 41%, 50%, 1) 28%, hsla(184, 62%, 39%, 1) 44%, rgb(37, 117, 182) 54%, hsla(211, 80%, 33%, 1) 100%) fixed;
 }
 body, pre {
     color: #4b4b4b;
@@ -586,9 +586,7 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     display: block;
 }
 
-.login-height {
-    min-height: 1000px;
-}
+
 .login-form {
     background: #eeeeee;
     background: -moz-linear-gradient(top,  #eeeeee 0%, #eeeeee 100%);

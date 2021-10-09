@@ -734,9 +734,9 @@ router.post('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']),
         let body = lodash.get(req, 'body')
         // return res.send(body)
 
-        lodash.set(patch, 'personal.voluntaryWorks', lodash.get(body, 'voluntaryWorks'))
-        lodash.set(patch, 'personal.trainings', lodash.get(body, 'trainings'))
-        lodash.set(patch, 'personal.extraCurriculars', lodash.get(body, 'extraCurriculars'))
+        lodash.set(patch, 'personal.voluntaryWorks', lodash.get(body, 'voluntaryWorks', []))
+        lodash.set(patch, 'personal.trainings', lodash.get(body, 'trainings', []))
+        lodash.set(patch, 'personal.extraCurriculars', lodash.get(body, 'extraCurriculars', []))
 
         await db.main.Employee.updateOne({ _id: employee._id }, patch)
 

@@ -78,8 +78,8 @@
         var destW = 320;
         var destH = 240;
         console.log(settings, destW / aspectRatio, destH * aspectRatio)
-        Webcam.set('dest_width', destW);
-        Webcam.set('dest_height', Math.round(destH * aspectRatio));
+        Webcam.set('dest_height', destW);
+        Webcam.set('dest_width', Math.round(destH * aspectRatio));
         // take snapshot and get image data
         Webcam.snap(function(data_uri) {
             // display results in page

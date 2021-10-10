@@ -40,7 +40,7 @@
                         </div> #}
                         <div class="text-center p-2">
                             <div id="webcam" style=" margin: auto"></div>
-                            <input class="m-2" type=button value="Take Snapshot" onClick="take_snapshot()">
+                            <button type="button" class="btn btn-light  btn-sm m-2" v-on:click="snap">Take Photo</button>
                             <div id="results">Your captured image will appear here...</div>
                         </div>
                         
@@ -71,23 +71,7 @@
     jQuery('#modal-consent').on('click', '#btn-consent', function(){
         jQuery('form').submit()
     })
-    function take_snapshot() {
-        var videoTrack = Webcam.stream.getVideoTracks()[0];
-        var settings = videoTrack.getSettings();
-        var aspectRatio = Math.round(settings.width / settings.height)
-        var destW = 320;
-        var destH = 240;
-        console.log(settings, destW / aspectRatio, destH * aspectRatio)
-        Webcam.set('dest_height', destW);
-        Webcam.set('dest_width', Math.round(destH * aspectRatio));
-        // take snapshot and get image data
-        Webcam.snap(function(data_uri) {
-            // display results in page
-            document.getElementById('results').innerHTML = 
-                '<h2>Here is your image:'+ destW + 'x' +Math.round(destH * aspectRatio) +'</h2>' + 
-                '<img src="'+data_uri+'"/>';
-        });
-    }
+    
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
@@ -122,9 +106,30 @@
                 flip_horiz: true
             });
             Webcam.attach( '#webcam' );
-            
         },
         methods: {
+            snap: function(){
+                var videoTrack = Webcam.stream.getVideoTracks()[0];
+                var settings = videoTrack.getSettings();
+                var aspectRatio = Math.round(settings.width / settings.height)
+                var destW = 320;
+                var destH = 240;
+
+                if (settings.height <= settings.width) { // landscape
+                    Webcam.set('dest_width', destW);
+                    Webcam.set('dest_height', Math.round(destH * aspectRatio));
+                } else { // portrait
+                    Webcam.set('dest_height', destW);
+                    Webcam.set('dest_width', Math.round(destH * aspectRatio));
+                }
+                // take snapshot and get image data
+                Webcam.snap(function(data_uri) {
+                    // display results in page
+                    document.getElementById('results').innerHTML = 
+                        '<h2>Here is your image:'+ destW + 'x' +Math.round(destH * aspectRatio) +'</h2>' + 
+                        '<img src="'+data_uri+'"/>';
+                });
+            },
             onFileChange(event){
                 this.filesLength = (event.target.files.length > 0) ? true : undefined
             },

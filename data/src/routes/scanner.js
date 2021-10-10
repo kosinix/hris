@@ -222,17 +222,20 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
         } else if (scanData.dataType === 'qr') { // QR
 
             if (scanData.qrData.type === 2) { // attendance
+                if(scanner.verification === 'auto'){
+                    return res.redirect(`/scanner/${scanner.uid}/no-verify?code=${scanData.code}`)
+                }
                 return res.render('scanner/verify.html', {
                     scanner: scanner,
-                    employee: employee,
-                    employment: employment,
+                    employee: scanData.employee,
+                    employment: scanData.employment,
                     code: scanData.code
                 })
             } else if (scanData.qrData.type === 3) { // healthdec
                 return res.render('scanner/verify-hdf.html', {
                     scanner: scanner,
-                    employee: employee,
-                    employment: employment,
+                    employee: scanData.employee,
+                    employment: scanData.employment,
                     qrData: scanData.qrData,
                     code: scanData.code
                 })

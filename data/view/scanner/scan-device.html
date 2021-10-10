@@ -15,8 +15,15 @@
                 <form ref="form" class=" text-center" v-on:submit.prevent="onSubmit" action="/scanner/{{scanner.uid}}/scan" method="POST" novalidate>
                     <h2 class="h2 mb-3">READY TO SCAN</h2>
 
-                    <img class="mb-3 wiggle" src="/images/rfid.png" style="max-width:100%" alt="rfid">
-                    <p class=" h3">Hover your ID card on the scanner</p>
+                    {% if scanner.device === 'rfid' %}
+                        <img class="mb-3 fx-wiggle" src="/images/rfid.png" style="max-width:100%" alt="rfid">
+                        <p class=" h3">Hover your ID card on the scanner</p>
+
+                    {% else %}
+                        <img class="mb-3 fx-scan" src="/images/qr-reader.png" style="max-width:100%" alt="rfid">
+                        <p class=" h3 pt-3">Place your QR code in front of the device</p>
+
+                    {% endif %}
                     <div class="form-group" style="position:relative; overflow:hidden">
                         <div style="position:absolute; left:0; right:0; top:0; bottom:0; background:#fff; z-index:1; opacity:1"></div>
                         <label for="code">Code</label>

@@ -84,7 +84,7 @@
         Webcam.snap(function(data_uri) {
             // display results in page
             document.getElementById('results').innerHTML = 
-                '<h2>Here is your image:'+ destW +'x' +Math.round(destH * aspectRatio) +'</h2>' + 
+                '<h2>Here is your image:'+ destW + 'x' +Math.round(destH * aspectRatio) +'</h2>' + 
                 '<img src="'+data_uri+'"/>';
         });
     }

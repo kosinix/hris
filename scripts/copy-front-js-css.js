@@ -120,6 +120,10 @@ const files = [
         src: `${APP_DIR}/node_modules/money-math/money.js`,
         dest: `${APP_DIR}/data/public/js/money.js`,
     },
+    {
+        src: `${APP_DIR}/node_modules/webcamjs/webcam.min.js`,
+        dest: `${APP_DIR}/data/public/js/webcam.min.js`,
+    },
 ]
 files.forEach((o)=>{
     fs.copyFile(o.src, o.dest, (err) => {

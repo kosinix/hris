@@ -14,6 +14,12 @@ const schema = new Schema({
     uid: {
         $type: String,
     },
+    photo: {
+        $type: String,
+    },
+    email: {
+        $type: String,
+    },
     started: {
         $type: Boolean,
         default: false

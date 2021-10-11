@@ -3,52 +3,122 @@
 {% block body %}
 <div class="container container-first height-medium">
     <div class="row">
-        <div class="col-md-5 ml-auto mr-auto pt-5 login-height">
-            <div class="login-form" id="vApp" v-cloak>
+        <div class="col-md-5 ml-auto mr-auto">
+            <div class="login-form mt-5 mb-5" id="vApp" v-cloak>
                 <div class="text-center position-relative mb-4">
                     <img width="100" src="/images/logo.png" alt="GSC Gear">
                 </div>
-                <h1 class="text-center h4 mb-4">HRIS Registration</h1>
+                <h1 class="text-center h5 mb-4">HRIS Contactless Registration</h1>
                 <div>
                     {% include 'parts/flash.html' %}
                     <form ref="form" v-on:submit.prevent="onSubmit" action="/register/{{registrationForm._id}}" method="POST" novalidate>
                         
-                        <div class="form-group">
-                            <label for="employmentId">Select Your Name</label>
-                            <div>
-                                <autocomplete v-model="employmentId"
-                                    name="employmentId"
-                                    initial-value="{{''}}"
-                                    initial-display="{{''}}"
-                                    placeholder="Start typing your name..."
-                                    :source="dataSource"
-                                    input-class="form-control"
-                                    :request-headers="headers"
-                                    v-on:selected="onSelect"
-                                    >
-                                </autocomplete>
-                                <small class="invalid-feedback">${getError('employmentId')}</small>
-                            </div>
-                        </div>
+                        <div id="carousel-register-user" data-interval="false" class="carousel slide">
+                            <div class="carousel-inner">
+                                <div class="carousel-item active" style="height: 400px">
+                                    <div class="form-group pb-5 mb-5">
+                                        <label for="employmentId">Select Your Name</label>
+                                        <div>
+                                            <autocomplete ref="autocom" v-model="employmentId"
+                                                name="employmentId"
+                                                initial-value="{{''}}"
+                                                initial-display="{{''}}"
+                                                placeholder="Start typing your name..."
+                                                :source="dataSource"
+                                                input-class="form-control"
+                                                :request-headers="headers"
+                                                v-on:selected="onSelect"
+                                                >
+                                            </autocomplete>
+                                            <small class="invalid-feedback">${getError('employmentId')}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="carousel-item" style="height: 400px">
+                                    <div class="form-group">
+                                        <label for="photo">Take Your Selfie Photo</label>
+                                        <div class="text-center p-2">
+                                            <div class="capture-area text-center" style="position: relative">
+                                                <div id="webcam" style="margin: auto"></div>
+                                                <div v-if="photo" class="fx-expand" id="snapShot" style="margin: auto;position: absolute;top: 0;left: 0;background: #eeeeee;width: 100%;height: 100%;"> <img v-bind:src="photo" alt=""> </div>
+                                            </div>
+                                            <div class="m-2">
+                                                <button v-if="photo==''" type="button" class="btn btn-light btn-sm" v-on:click="webcamSnap"> 
+                                                    <span>Snap Photo </span>
+                                                    <svg style="width:18px;height:18px" viewBox="0 0 24 24">
+                                                        <path fill="#444" d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
+                                                    </svg>
+                                                </button>
+                                                <button v-else v-on:click="webcamRetake" class="btn btn-sm btn-light text-danger" type="button">
+                                                    <span>Retake</span>
+                                                    <svg style="width:18px;height:18px" viewBox="0 0 24 24">
+                                                        <path fill="#444" d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" v-model="photo" name="photo">
+                                        <small class="invalid-feedback">${getError('photo')}</small>
+                                    </div>
+                                </div>
+                                {#  #}
+                                <div class="carousel-item" style="height: 400px">
+                                    <div class="form-group">
+                                        <label for="email">Provide Your Email</label>
+                                        <div>
+                                            <input type="email" v-model="email" name="email" id="email" class="form-control">
+                                            <small class="invalid-feedback">${getError('email')}</small>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-info">We will send your username and password to this email.</div>
 
-                        {# <div class="form-group">
-                            <label for="photo">Photo</label>
-                            <div>
-                                <input v-on:change="onFileChange" accept="image/*;capture=camera" name="photo" id="photo" ref="file_photo" type="file" class="form-control">
-                                <small class="invalid-feedback">${getError('filesLength')}</small>
+                                </div>
+                                <div class="carousel-item" style="height: 400px">
+                                    <h6 class="h5 text-center mt-4 mb-3">Review Submission</h6>
+                                    <div class="d-flex mb-3">
+                                        <span class="mr-3">Name:</span> 
+                                        <strong>${employeeName}</strong>
+                                    </div>
+                                    <div class="d-flex mb-3">
+                                        <span class="mr-3">Photo:</span>
+                                        <img width="200px" v-bind:src="photo" alt="">
+                                    </div>
+                                    <div class="d-flex mb-3">
+                                        <span class="mr-3">Email:</span> 
+                                        <strong>${email}</strong>
+                                    </div>
+                                    <div class="alert alert-warning">By clicking Register, I certify that the ID I scanned, the name above, the photo, and email, belongs to me.</div>
+                                </div>
+                                <div class="carousel-item">
+                                    <h6 class="h5 text-center mt-4 mb-3">Done!</h6>
+                                    <div class="alert alert-success text-center">Your registration was submitted successfully.</div>
+                                    <div class="alert alert-info text-center">Once our verification process is completed, you will receive a username and password on this email: <strong>${email}</strong>
+                                    <br>Thank you for using our contactless registration form!</div>
+                                   
+                                    <div class="text-center p-5">
+                                        <a href="/" class="btn btn-success btn-sm">Go to HRIS Home Page</a>
+                                    </div>
+                                    <p class="text-center">Did you encounter problems? Or do you have questions? You can reach us at any of these channels:</p>
+                                    <ul>
+                                        <li>Email us: <em><a href="mailto:mis@gsc.edu.ph">mis@gsc.edu.ph</a></em></li>
+                                        <li>Chat with our programmer: <em><a href="https://m.me/nico.amarilla.3511">Nico Amarilla</a></em></li>
+                                        <li>Call our MIS Director: <em><a href="tel:+639975518770">Reiner Jun Alminaza</a></em></li>
+                                    </ul>
+                                </div>
+                                
                             </div>
-                        </div> #}
-                        <div class="text-center p-2">
-                            <div id="webcam" style=" margin: auto"></div>
-                            <button type="button" class="btn btn-light  btn-sm m-2" v-on:click="snap">Take Photo</button>
-                            <div id="results">Your captured image will appear here...</div>
+                            {# <ol class="carousel-indicators pt-2 pb-2">
+                                <li data-target="#carousel-register-user" data-slide-to="0" class="active"></li>
+                                <li data-target="#carousel-register-user" data-slide-to="1"></li>
+                                <li data-target="#carousel-register-user" data-slide-to="2"></li>
+                                <li data-target="#carousel-register-user" data-slide-to="3"></li>
+                            </ol> #}
                         </div>
-                        
-
-                    {#  #}
-                        <div class="alert alert-warning">By clicking Register, I certify that the ID I scanned and the name above, and photo belongs to me.</div>
-                        <div class="form-group">
-                            <button class="btn btn-primary btn-full-width">Register</button>
+                        <div class="d-flex justify-content-between mt-3">
+                            <button v-on:click="prev" v-if="page >= 1 && page <= 3" class="btn btn-light flex-fill" type="button" >Back</button>
+                            <button v-on:click="next" v-if="page >= 0 && page <= 1" class="btn btn-primary flex-fill" type="button" >Next</button>
+                            <button v-on:click="next" v-if="page == 2" class="btn btn-primary flex-fill" type="button" >Review</button>
+                            <button v-on:click="submit" v-if="page == 3" class="btn btn-primary flex-fill" type="button" >Register</button>
                         </div>
                     </form>
                 </div>
@@ -64,13 +134,12 @@
 <script src="{{app.url}}/js/popper.min.js"></script>
 <script src="{{app.url}}/js/bootstrap.min.js"></script>
 <script src="{{app.url}}/js/vuejs-auto-complete.js"></script>
-<script src="{{app.url}}/js/vue-ph-address.js"></script>
+<script src="{{app.url}}/js/vuejs-auto-complete-extend.js"></script>
 <script src="{{app.url}}/js/webcam.min.js"></script>
+<script src="{{app.url}}/js/axios.min.js"></script>
 
 <script>
-    jQuery('#modal-consent').on('click', '#btn-consent', function(){
-        jQuery('form').submit()
-    })
+    
     
     var vApp = new Vue({
         el: '#vApp',
@@ -78,37 +147,93 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
-            VuePhAddress.mixin,
+            window.vueJsAutoCompleteExtendMixin,
         ],
         components: {
             'autocomplete': window["vuejs-autocomplete"]
         },
         data: {
+            page: 0,
+            totalSlides: 4, 
             employmentId: '',
+            employeeName: '',
             photo: '',
+            email: '',
+            webcamStarted: false,
             pending: false,
             filesLength: undefined,
         },
         validations: {
-            employmentId: {
-                required: window.validators.required
-            },
-            {# filesLength: {
-                required: window.validators.required
-            }, #}
+            
         },
         mounted: function(){
-            Webcam.set({
-                width: 320,
-                height: 240,
-                image_format: 'jpeg',
-                jpeg_quality: 90,
-                flip_horiz: true
-            });
-            Webcam.attach( '#webcam' );
+        },
+        watch: {
+            page: function (newPage, oldPage) {
+                var me = this
+                jQuery('#carousel-register-user').carousel(newPage)
+                if(newPage === 0) {
+                    
+                } else if(newPage === 1) {
+                    if(!me.webcamStarted){
+                        me.webcamStarted = true
+                        me.webcamStart()
+                    }
+                } else if(oldPage === 1 && newPage === 2) {
+                    me.webcamStop()
+                    me.webcamStarted = false
+                }
+            }
         },
         methods: {
-            snap: function(){
+            
+            next: function(){
+                var me = this;
+                if (me.page === 0 && !me.employmentId) {
+                    alert('Please select your name.')
+                    return
+                }
+                if (me.page === 1 && !me.photo) {
+                    alert('Please take your selfie photo. Let us know its really you.')
+                    return
+                }
+                if (me.page === 2) {
+                    if(!me.email){
+                        alert('Please provide your email. We will send your username and password to it.')
+                        return
+                    } else {
+                        if(!me.validateEmail(me.email)){
+                            alert('Please provide a valid email.')
+                            return
+                        }
+                    }
+                }
+
+                if(me.page < me.totalSlides){
+                    me.page += 1;
+                }
+            },
+            prev: function(){
+                var me = this;
+                if(me.page > 0){
+                    me.page -= 1;
+                }
+            },
+            webcamStart: function(){
+                Webcam.set({
+                    width: 320,
+                    height: 240,
+                    image_format: 'jpeg',
+                    jpeg_quality: 90,
+                    flip_horiz: true
+                });
+                Webcam.attach( '#webcam' );
+            },
+            webcamStop: function(){
+                Webcam.reset();
+            },
+            webcamSnap: function(){
+                var me = this
                 var videoTrack = Webcam.stream.getVideoTracks()[0];
                 var settings = videoTrack.getSettings();
                 var aspectRatio = Math.round(settings.width / settings.height)
@@ -123,34 +248,79 @@
                     Webcam.set('dest_width', Math.round(destH * aspectRatio));
                 }
                 // take snapshot and get image data
-                Webcam.snap(function(data_uri) {
-                    // display results in page
-                    document.getElementById('results').innerHTML = 
-                        '<h2>Here is your image:'+ destW + 'x' +Math.round(destH * aspectRatio) +'</h2>' + 
-                        '<img src="'+data_uri+'"/>';
+                Webcam.snap(function(imageData) {
+                    me.photo = imageData
+                    Webcam.freeze()
                 });
+            },
+            webcamRetake: function(){
+                var me = this;
+                me.photo = ''
+                Webcam.unfreeze()
             },
             onFileChange(event){
                 this.filesLength = (event.target.files.length > 0) ? true : undefined
             },
-            dataSource: function(input) {
-                return '/query/employment?s=' + input
+            submit: function(){
+                var me = this;
+                jQuery('#vAppModalConsent').modal('show')
             },
             onSubmit: function(){
                 var me = this;
-                me.$v.$touch()
-                console.log()
-                if (me.$v.$error) {
 
-                    alert('Please correct the errors to continue.')
-                } else {
-                    jQuery('#modal-consent').modal('show')
-                    me.$nextTick(function() {
-                        {# me.$refs.form.submit(); #}
-                    });
+                let body = {
+                    employmentId: me.employmentId,
+                    photo: me.photo,
+                    email: me.email,
                 }
-            }
+                jQuery('#vAppModalConsent').modal('hide')
+
+                axios.post('/register/{{registrationForm._id}}', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
+                    me.page = 4
+                }).catch(function (error) {
+                    if (error.response) {
+                        // Request made, server responded with a status code outside of 2xx
+                        // console.error(error.response.status)
+                        console.error(error.response.data)
+                        alert(error.response.data)
+                    } else if (error.request) {
+                        console.error('The request was made but no response was received');
+                    } else {
+                        console.error('Error', 'Something happened in setting up the request that triggered an Error.', error.message);
+                    }
+                }).then(function () {
+                    // always executed
+                    me.code = ''
+                })
+            },
+            validateEmail: function(email){
+                var re = /\S+@\S+\.\S+/;
+                return re.test(email);
+            },
+            // vuejs autocomplete
+            onSelect: function(o){
+                this.employeeName = o.display
+            },
+            dataSource: function(input) {
+                return '/query/employment?s=' + input
+            },
         }
     });
+
+    var vAppModalConsent = new Vue({
+        el: '#vAppModalConsent',
+        delimiters: ["${", "}"],
+        mixins: [
+      
+        ],
+        data: {
+            
+        },
+        methods: {
+            submit: function(){
+                vApp.onSubmit()
+            }
+        }
+    })
 </script>
 {% endblock %}

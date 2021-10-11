@@ -24,7 +24,7 @@ router.get('/register/:registrationFormId', async (req, res, next) => {
             throw new Error('Form not found.')
         } else {
             if (registrationForm.finished) {
-                throw new Error('You are already registered.')
+                throw new Error('You are already registered. Please proceed to the login page.')
             }
         }
         registrationForm.started = true
@@ -46,9 +46,12 @@ router.post('/register/:registrationFormId', fileUpload(), middlewares.handleExp
             throw new Error('Form not found.')
         } else {
             if (registrationForm.finished) {
-                throw new Error('You are already registered.')
+                throw new Error('You are already registered. Please proceed to the login page.')
             }
         }
+
+        registrationForm.photo = lodash.get(req, 'body.photo', '')
+        registrationForm.email = lodash.get(req, 'body.email', '')
         registrationForm.finished = true
         await registrationForm.save()
 
@@ -60,23 +63,32 @@ router.post('/register/:registrationFormId', fileUpload(), middlewares.handleExp
             employment.employee = employee.toObject()
         }
         let userA = await db.main.User.findById(employment.employee.userId)
-        if(!userA){
+        if (!userA) {
             throw new Error('You dont have an account.')
         }
-        let password = passwordMan.randomString(8)
-        userA.passwordHash = passwordMan.hashPassword(password, userA.salt)
-        employee.uid = registrationForm.uid
-        await employee.save()
-        await userA.save()
+        // let password = passwordMan.genPassword(8)
+        // userA.passwordHash = passwordMan.hashPassword(password, userA.salt)
+        // await userA.save()
 
-        res.render('registered.html', {
+        // Associate
+        employee.uid = registrationForm.uid // ID card number
+        await employee.save()
+
+        let data = {
             employment: employment,
             employee: employment.employee,
             registrationForm: registrationForm,
             user: userA,
             password: password,
-        })
+        }
+        if (req.xhr) {
+            return res.send(data)
+        }
+        res.render('register-user.html', data)
     } catch (err) {
+        if (req.xhr) {
+            return res.status(500).send(err.message)
+        }
         next(err);
     }
 });

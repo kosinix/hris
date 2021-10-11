@@ -13,7 +13,7 @@
                     {% include 'parts/flash.html' %}
                     <form ref="form" v-on:submit.prevent="onSubmit" action="/register/{{registrationForm._id}}" method="POST" novalidate>
                         
-                        <div id="carousel-register-user" data-interval="false" class="carousel slide">
+                        <div id="carousel-register-user" data-interval="false" class="carousel slide carousel-register-user">
                             <div class="carousel-inner">
                                 <div class="carousel-item active" style="height: 400px">
                                     <div class="form-group pb-5 mb-5">
@@ -34,13 +34,17 @@
                                         </div>
                                     </div>
                                 </div>
+                                {#  #}
+
                                 <div class="carousel-item" style="height: 400px">
                                     <div class="form-group">
                                         <label for="photo">Take Your Selfie Photo</label>
                                         <div class="text-center p-2">
                                             <div class="capture-area text-center" style="position: relative">
-                                                <div id="webcam" style="margin: auto"></div>
-                                                <div v-if="photo" class="fx-expand" id="snapShot" style="margin: auto;position: absolute;top: 0;left: 0;background: #eeeeee;width: 100%;height: 100%;"> <img v-bind:src="photo" alt=""> </div>
+                                                <div id="webcam" class="webcam"></div>
+                                                <div v-if="photo" class="fx-expand snap-shot d-flex justify-content-center align-items-center" id="snapShot"> 
+                                                    <img v-bind:src="photo" alt="Pic"> 
+                                                </div>
                                             </div>
                                             <div class="m-2">
                                                 <button v-if="photo==''" type="button" class="btn btn-light btn-sm" v-on:click="webcamSnap"> 
@@ -62,6 +66,7 @@
                                     </div>
                                 </div>
                                 {#  #}
+                                
                                 <div class="carousel-item" style="height: 400px">
                                     <div class="form-group">
                                         <label for="email">Provide Your Email</label>
@@ -73,6 +78,8 @@
                                     <div class="alert alert-info">We will send your username and password to this email.</div>
 
                                 </div>
+                                {#  #}
+
                                 <div class="carousel-item" style="height: 400px">
                                     <h6 class="h5 text-center mt-4 mb-3">Review Submission</h6>
                                     <div class="d-flex mb-3">
@@ -89,6 +96,8 @@
                                     </div>
                                     <div class="alert alert-warning">By clicking Register, I certify that the ID I scanned, the name above, the photo, and email, belongs to me.</div>
                                 </div>
+                                {#  #}
+
                                 <div class="carousel-item">
                                     <h6 class="h5 text-center mt-4 mb-3">Done!</h6>
                                     <div class="alert alert-success text-center">Your registration was submitted successfully.</div>
@@ -105,7 +114,6 @@
                                         <li>Call our MIS Director: <em><a href="tel:+639975518770">Reiner Jun Alminaza</a></em></li>
                                     </ul>
                                 </div>
-                                
                             </div>
                             {# <ol class="carousel-indicators pt-2 pb-2">
                                 <li data-target="#carousel-register-user" data-slide-to="0" class="active"></li>
@@ -167,6 +175,7 @@
             
         },
         mounted: function(){
+            this.page = 1
         },
         watch: {
             page: function (newPage, oldPage) {

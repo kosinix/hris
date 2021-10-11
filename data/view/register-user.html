@@ -15,7 +15,7 @@
                         
                         <div id="carousel-register-user" data-interval="false" class="carousel slide carousel-register-user">
                             <div class="carousel-inner">
-                                <div class="carousel-item active" style="height: 400px">
+                                <div class="carousel-item active">
                                     <div class="form-group pb-5 mb-5">
                                         <label for="employmentId">Select Your Name</label>
                                         <div>
@@ -47,7 +47,7 @@
                                                 </div>
                                             </div>
                                             <div class="m-2">
-                                                <button v-if="photo==''" type="button" class="btn btn-light btn-sm" v-on:click="webcamSnap"> 
+                                                <button id="webcamSnap" v-if="photo==''" type="button" class="btn btn-light btn-sm" v-on:click="webcamSnap"> 
                                                     <span>Snap Photo </span>
                                                     <svg style="width:18px;height:18px" viewBox="0 0 24 24">
                                                         <path fill="#444" d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
@@ -125,7 +125,7 @@
                         <div class="d-flex justify-content-between mt-3">
                             <button v-on:click="prev" v-if="page >= 1 && page <= 3" class="btn btn-light flex-fill" type="button" >Back</button>
                             <button v-on:click="next" v-if="page >= 0 && page <= 1" class="btn btn-primary flex-fill" type="button" >Next</button>
-                            <button v-on:click="next" v-if="page == 2" class="btn btn-primary flex-fill" type="button" >Review</button>
+                            <button v-on:click="next" v-if="page == 2" class="btn btn-primary flex-fill" type="button">Review</button>
                             <button v-on:click="submit" v-if="page == 3" class="btn btn-primary flex-fill" type="button" >Register</button>
                         </div>
                     </form>
@@ -181,11 +181,12 @@
                 var me = this
                 jQuery('#carousel-register-user').carousel(newPage)
                 if(newPage === 0) {
-                    
+                    jQuery('.autocomplete .form-control').focus()
                 } else if(newPage === 1) {
                     if(!me.webcamStarted){
                         me.webcamStarted = true
                         me.webcamStart()
+                        jQuery('#webcamSnap').focus()
                     }
                 } else if(oldPage === 1 && newPage === 2) {
                     me.webcamStop()
@@ -275,7 +276,7 @@
             },
             onSubmit: function(){
                 var me = this;
-
+console.log('submit')
                 let body = {
                     employmentId: me.employmentId,
                     photo: me.photo,

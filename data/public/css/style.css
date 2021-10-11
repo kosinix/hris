@@ -147,6 +147,9 @@ body, pre {
     width: 100%;
     height: 100%;
 }
+.carousel-register-user .capture-area .snap-shot img{
+    height: 100%;
+}
 
 .form-body {
     padding: 25px;

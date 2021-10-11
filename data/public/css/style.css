@@ -124,7 +124,6 @@ body, pre {
 }
 
 .fx-expand {
-    display: inline-block;
     animation: expand 0.1s ease-in 1;
     /* animation-delay: 5s; */
 }

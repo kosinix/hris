@@ -138,7 +138,7 @@ body, pre {
     margin: 0 auto;
 }
 .carousel-register-user .capture-area .webcam canvas{
-    position: absolute !important;
+    display: none;
 }
 .carousel-register-user .capture-area .snap-shot {
     margin: auto;

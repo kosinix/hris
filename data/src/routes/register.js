@@ -78,8 +78,8 @@ router.post('/register/:registrationFormId', fileUpload(), middlewares.handleExp
             employment: employment,
             employee: employment.employee,
             registrationForm: registrationForm,
-            user: userA,
-            password: password,
+            // user: userA,
+            // password: password,
         }
         if (req.xhr) {
             return res.send(data)

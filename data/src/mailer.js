@@ -39,10 +39,11 @@ const templates = {
             username: templateVars.username,
             password: templateVars.password,
             loginUrl: templateVars.loginUrl,
-            baseUrl: `${CONFIG.app.url}`
+            baseUrl: `${CONFIG.app.url}`,
+            previewText: `Greetings ${templateVars.firstName}! These are the login credentials for your HRIS account...`
         }
         let mailOptions = {
-            from: 'mis@gsc.edu.ph',
+            from: 'GSC MIS <mis@gsc.edu.ph>',
             to: templateVars.to,
             subject: 'HRIS Account',
             text: nunjucksEnv.render('emails/verified.txt', data),

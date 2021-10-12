@@ -139,10 +139,7 @@ p {
         width: 100%;
         max-width: 100%;
     }
-
-    .logo {
-        padding-left: 50px;
-    }
+   
 }
 	</style>
 </head>
@@ -150,6 +147,7 @@ p {
 {# <!-- Preheader text. Visible in inbox preview, not in email body. --> #}
 <div style="display: none; max-height: 0px; overflow: hidden;">
     <!-- Preheader message here -->
+    {{previewText}}
 </div>
 
 {# <!-- Hack to manage presentation of preheader text. (https://litmus.com/blog/the-little-known-preview-text-hack-you-may-want-to-use-in-every-email) --> #}

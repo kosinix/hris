@@ -12,8 +12,8 @@ const nodemailer = require('nodemailer');
 //// Modules
 const nunjucksEnv = require('./nunjucks-env')
 
-
-const mail = nodemailer.createTransport({
+// Gmail
+const transport = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: CRED.gmail.username,
@@ -21,13 +21,24 @@ const mail = nodemailer.createTransport({
     }
 });
 
+// AWS
+const transport2 = nodemailer.createTransport({
+    host: 'email-smtp.ap-southeast-1.amazonaws.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+        user: CRED.aws.ses.smtp.username,
+        pass: CRED.aws.ses.smtp.password
+    }
+});
+
 const templates = {
     verified: async (templateVars) => {
         let data = {
-            firstName: templateVars.firstName, 
-            username: templateVars.username, 
-            password: templateVars.password, 
-            loginUrl: templateVars.loginUrl, 
+            firstName: templateVars.firstName,
+            username: templateVars.username,
+            password: templateVars.password,
+            loginUrl: templateVars.loginUrl,
             baseUrl: `${CONFIG.app.url}`
         }
         let mailOptions = {
@@ -37,7 +48,7 @@ const templates = {
             text: nunjucksEnv.render('emails/verified.txt', data),
             html: nunjucksEnv.render('emails/verified.html', data),
         }
-        let info = await mail.sendMail(mailOptions)
+        let info = await transport2.sendMail(mailOptions)
         // console.log(info.response)
         return info
     }

@@ -87,6 +87,14 @@ router.get('/logout', async (req, res, next) => {
     }
 });
 
+router.get('/data-privacy', async (req, res, next) => {
+    try {
+        res.render('data-privacy.html');
+    } catch (err) {
+        next(err);
+    }
+});
+
 // TODO: Remove when done
 router.get('/query/employment', async (req, res, next) => {
     try {

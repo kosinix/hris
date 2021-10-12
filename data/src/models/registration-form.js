@@ -2,8 +2,6 @@
 
 //// External modules
 const mongoose = require('mongoose');
-const lodash = require('lodash');
-const uuid = require('uuid');
 
 //// Modules
 const uid = require('../uid');
@@ -11,22 +9,20 @@ const uid = require('../uid');
 const Schema = mongoose.Schema;
 
 const schema = new Schema({
+    status: {
+        $type: String, // '', started, finished, verified
+    },
     uid: {
         $type: String,
+    },
+    employmentId: {
+        $type: mongoose.Schema.Types.ObjectId,
     },
     photo: {
         $type: String,
     },
     email: {
         $type: String,
-    },
-    started: {
-        $type: Boolean,
-        default: false
-    },
-    finished: {
-        $type: Boolean,
-        default: false
     },
 }, {timestamps: true, typeKey: '$type'})
 

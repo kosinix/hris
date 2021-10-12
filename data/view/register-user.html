@@ -12,7 +12,7 @@
                 <div>
                     {% include 'parts/flash.html' %}
                     <form ref="form" v-on:submit.prevent="onSubmit" action="/register/{{registrationForm._id}}" method="POST" novalidate>
-                        
+                        <div v-if="pending" class="cover wait"></div>
                         <div id="carousel-register-user" data-interval="false" class="carousel slide carousel-register-user">
                             <div class="carousel-inner">
                                 <div class="carousel-item active">
@@ -276,7 +276,7 @@
             },
             onSubmit: function(){
                 var me = this;
-console.log('submit')
+                me.pending = true;
                 let body = {
                     employmentId: me.employmentId,
                     photo: me.photo,
@@ -299,7 +299,7 @@ console.log('submit')
                     }
                 }).then(function () {
                     // always executed
-                    me.code = ''
+                    me.pending = false
                 })
             },
             validateEmail: function(email){

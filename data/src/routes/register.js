@@ -23,11 +23,11 @@ router.get('/register/:registrationFormId', async (req, res, next) => {
         if (!registrationForm) {
             throw new Error('Form not found.')
         } else {
-            if (registrationForm.finished) {
+            if (registrationForm.status === 'finished') {
                 throw new Error('You are already registered. Please proceed to the login page.')
             }
         }
-        registrationForm.started = true
+        registrationForm.status = 'started'
         await registrationForm.save()
         res.render('register-user.html', {
             flash: flash.get(req, 'register'),
@@ -45,17 +45,18 @@ router.post('/register/:registrationFormId', fileUpload(), middlewares.handleExp
         if (!registrationForm) {
             throw new Error('Form not found.')
         } else {
-            if (registrationForm.finished) {
+            if (registrationForm.status === 'finished') {
                 throw new Error('You are already registered. Please proceed to the login page.')
             }
         }
 
+        registrationForm.employmentId = lodash.get(req, 'body.employmentId')
         registrationForm.photo = lodash.get(req, 'body.photo', '')
         registrationForm.email = lodash.get(req, 'body.email', '')
-        registrationForm.finished = true
+        registrationForm.status = 'finished'
         await registrationForm.save()
 
-        let employmentId = lodash.get(req, 'body.employmentId')
+        let employmentId = registrationForm.employmentId 
         let employment = await db.main.Employment.findById(employmentId).lean()
         let employee = null
         if (employment) {
@@ -64,7 +65,7 @@ router.post('/register/:registrationFormId', fileUpload(), middlewares.handleExp
         }
         let userA = await db.main.User.findById(employment.employee.userId)
         if (!userA) {
-            throw new Error('You dont have an account.')
+            throw new Error('You dont have an user account.')
         }
         // let password = passwordMan.genPassword(8)
         // userA.passwordHash = passwordMan.hashPassword(password, userA.salt)
@@ -119,7 +120,7 @@ router.post('/register', async (req, res, next) => {
                 uid: code,
             })
         } else {
-            if (registrationForm.finished) {
+            if (registrationForm.status === 'finished') {
                 throw new Error('You are already registered. Please proceed to the login page.')
             }
         }
@@ -160,7 +161,7 @@ router.get('/register/long-poll/:registrationFormId', async (req, res, next) => 
             console.log(`${x} of ${maxX}`);
 
             db.main.RegistrationForm.findById(registrationFormId).then((r) => {
-                if (r.started) {
+                if (r.status === 'started') {
                     clearInterval(intervalObj)
                     console.log('r', r)
                     res.send('done')

@@ -1,0 +1,89 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">All Registrations <em>({{pagination.totalDocs}})</em></h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                {# <a href="/registration/create" class="btn btn-sm btn-outline-primary">Add Employee</a> #}
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    
+    {% if registrations.length <= 0 %}
+        <p>None found.</p>
+    {% else %}
+        
+        <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+            <div class="d-flex justify-content-end">
+                <div class=" pb-3 align-self-center pr-3">
+                    Per page:
+                </div>
+                <div class=" pb-3">
+                    {% set url = '/registration/all' %}
+                    {% include 'parts/form-per-page.html' %}
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>
+                                {% set thId = 'lastName' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                {% set thId = 'firstName' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                Position
+                            </th>
+                            <th>
+                                Card ID
+                            </th>
+                            <th>
+                                {% set thId = 'email' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                Photo
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for registration in registrations %}
+                        <tr>
+                            <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
+                            <td>{{registration.employee.lastName}}</td>
+                            <td>{{registration.employee.firstName}}</td>
+                            <td>{{registration.employment.position}}</td>
+                            <td>{{registration.uid}}</td>
+                            <td>{{registration.email}}</td>
+                            <td><img width="100px" src="{{registration.photo}}" alt=""></td>
+                            <td><a href="/registration/approve/{{registration._id}}" class="btn btn-sm btn-success">Approve</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="row">
+                
+            </div>
+            <div class="row">
+                <div class="col-md-12 text-center text-md-left pt-3 pb-5">
+                    {% include "parts/pagination.html" %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

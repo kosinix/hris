@@ -15,6 +15,9 @@ let router = express.Router()
 
 router.get('/login', async (req, res, next) => {
     try {
+        if(lodash.get(req, 'session.authUserId')){
+            return res.redirect(`/`)
+        }
         // console.log(req.session)
         let ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
         res.render('login.html', {

@@ -1,0 +1,18 @@
+Greetings {{firstName}}!
+
+Welcome to HRIS. Your login credentials are:
+
+* Username: {{username}}
+* Password: {{password}}
+
+You can now start using your ID card for logging-in and logging-out. Just hover it on one of our scanners.
+You can view your Daily Time Record (DTR) in your HRIS account.
+
+Login: {{loginUrl}}
+
+Did you encounter any problems? Or do you have questions? 
+You can reach us at any of these channels:
+
+Write to us: mis@gsc.edu.ph
+Call us: +639975518770 - Reiner Jun Alminaza - MIS Director
+Chat with us: https://m.me/nico.amarilla.3511 - Nico Amarilla - Programmer

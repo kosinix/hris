@@ -271,6 +271,41 @@ module.exports = {
             next(err);
         }
     },
+    getRegistration: async (req, res, next) => {
+        try {
+            let registrationId = req.params.registrationId || ''
+            let registration = await db.main.RegistrationForm.findById(registrationId).lean()
+            if (!registration) {
+                throw new Error("Sorry, registration not found.")
+            }
+    
+            let employment = await db.main.Employment.findById(registration.employmentId).lean()
+            if (!employment) {
+                throw new Error("Sorry, employment not found.")
+            }
+            
+            let employee = await db.main.Employee.findById(employment.employeeId).lean()
+            if (!employee) {
+                throw new Error("Sorry, employee not found.")
+            }
+
+            let userAccount = await db.main.User.findById(employee.userId).lean()
+            if (!userAccount) {
+                throw new Error('You dont have an user account.')
+            }
+        
+
+
+            registration.employment = employment
+            registration.employee = employee
+            registration.userAccount = userAccount
+
+            res.registration = registration
+            next();
+        } catch (err) {
+            next(err);
+        }
+    },
     getEmployment: async (req, res, next) => {
         try {
             let employmentId = req.params.employmentId || ''

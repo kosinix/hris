@@ -38,6 +38,7 @@
     "money-math": "^2.5.2",
     "mongoose": "^5.12.9",
     "nanoid": "^3.1.23",
+    "nodemailer": "^6.7.0",
     "nodemon": "^2.0.7",
     "nunjucks": "^3.2.3",
     "nunjucks-filters": "github:kosinix/nunjucks-filters",

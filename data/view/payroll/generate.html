@@ -37,28 +37,15 @@
             {% set label = '' %}
 
             <div class="form-group">
-                <label for="dateStart">Shifting Schedule *</label>
+                <label for="workSchedule">Work Schedule *</label>
                 <div class="d-flex">
-                    <div>
-                        <input name="dateStart" v-on:change="updateName" id="dateStart" v-model="dateStart" type="date" class="form-control">
-                        <small class="invalid-feedback">${getError('dateStart')}</small>
-                    </div>
-                    <div class="align-self-center pl-2 pr-2"> to </div>
-                    <div>
-                        <input name="dateEnd" v-on:change="updateName" id="dateEnd" v-model="dateEnd" type="date" class="form-control">
-                        <small class="invalid-feedback">${getError('dateEnd')}</small>
-                    </div>
-                </div>
-                <div class="d-flex">
-                    <div>
-                        <input name="dateStart" v-on:change="updateName" id="dateStart" v-model="dateStart" type="date" class="form-control">
-                        <small class="invalid-feedback">${getError('dateStart')}</small>
-                    </div>
-                    <div class="align-self-center pl-2 pr-2"> to </div>
-                    <div>
-                        <input name="dateEnd" v-on:change="updateName" id="dateEnd" v-model="dateEnd" type="date" class="form-control">
-                        <small class="invalid-feedback">${getError('dateEnd')}</small>
-                    </div>
+                    <select v-model="workSchedule" name="workSchedule" id="workSchedule" class="form-control">
+                        <option value=""></option>
+                        {% for workSchedule in workSchedules %}
+                            <option value="{{workSchedule._id}}">{{workSchedule.name}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('workSchedule')}</small>
                 </div>
             </div>
 
@@ -85,6 +72,8 @@
             name: '',
             dateStart: '',
             dateEnd: '',
+            workSchedule: '',
+            workSchedules: {{workSchedules|stringify|safe}},
         },
         validations: {
             name: {
@@ -96,12 +85,16 @@
             dateEnd: {
                 required: window.validators.required
             },
+            workSchedule: {
+                required: window.validators.required
+            },
         },
         mounted: function(){
             var me = this;
             setTimeout(function(){
                 me.updateName()
-            }, 1000)
+                me.workSchedule = _.get(me.workSchedules, '[0]._id', '')
+            }, 500)
             
         },
         methods: {

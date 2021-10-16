@@ -41,7 +41,7 @@ main.Role = main.model('Role', require('./models/role'));
 main.Scanner = main.model('Scanner', require('./models/scanner'));
 main.Share = main.model('Share', require('./models/share'));
 main.User = main.model('User', require('./models/user'));
-main.WorkingHour = main.model('User', require('./models/user'));
+main.WorkSchedule = main.model('WorkSchedule', require('./models/work-schedule'));
 
 
 module.exports = {

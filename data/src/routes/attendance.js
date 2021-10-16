@@ -283,4 +283,86 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
     }
 });
 
+router.get('/attendance/schedule/all', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
+    try {
+        let schedules = await db.main.WorkSchedule.find().lean()
+        schedules = schedules.map((o) => {
+            o.timeSegments = o.timeSegments.map((t) => {
+                t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
+                t.end = moment().startOf('day').minutes(t.end).format('hh:mm A')
+                return t
+            })
+            return o
+        })
+
+        res.render('attendance/schedule.html', {
+            flash: flash.get(req, 'schedule'),
+            schedules: schedules,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/attendance/schedule/create', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
+    try {
+
+        res.render('attendance/schedule-create.html', {
+            flash: flash.get(req, 'schedule'),
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/schedule/create', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
+    try {
+
+        let name = lodash.get(req, 'body.name')
+        let timeSegments = lodash.get(req, 'body.timeSegments', [])
+        if (timeSegments.length <= 0) {
+            let err = new Error('No time segments.')
+            err.type = 'flash'
+            throw err
+        }
+
+        let errors = []
+        timeSegments.forEach((timeSegment, i) => {
+            let momentStart = moment.utc(timeSegment.start, 'HH:mm')
+            let momentEnd = moment.utc(timeSegment.end, 'HH:mm')
+            if (!momentStart.isValid()) {
+                errors.push(`Start time for segment #${i + 1} is invalid.`)
+            }
+            if (!momentEnd.isValid()) {
+                errors.push(`End time for segment #${i + 1} is invalid.`)
+            }
+        })
+        if (errors.length > 0) {
+            let err = new Error(`${errors.join(' ')}`)
+            err.type = 'flash'
+            throw err
+        }
+        timeSegments = timeSegments.map((timeSegment, i) => {
+            timeSegment.start = moment.utc(timeSegment.start, 'HH:mm').hours() * 60 + moment.utc(timeSegment.start, 'HH:mm').minutes()
+            timeSegment.end = moment.utc(timeSegment.end, 'HH:mm').hours() * 60 + moment.utc(timeSegment.end, 'HH:mm').minutes()
+            timeSegment.grace = (lodash.toNumber(lodash.get(timeSegment, 'grace', 0)))
+            timeSegment.maxHours = (timeSegment.end - timeSegment.start) / 60
+            timeSegment.flexible = false
+            return timeSegment
+        })
+        let patch = {
+            name: name,
+            timeSegments: timeSegments
+        }
+        let workSchedule = await db.main.WorkSchedule.create(patch)
+        return res.send(workSchedule)
+        res.render('attendance/schedule-create.html', {
+            flash: flash.get(req, 'schedule'),
+        });
+    } catch (err) {
+        if (err.type === 'flash') {
+            flash.error(req, 'schedule', `Error: ${err.message}`)
+            return res.redirect('/attendance/schedule/create')
+        }
+        next(err);
+    }
+});
 module.exports = router;

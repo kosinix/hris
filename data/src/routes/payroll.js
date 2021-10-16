@@ -112,7 +112,17 @@ router.get('/payroll/create', middlewares.guardRoute(['create_payroll']), async 
 router.get('/payroll/generate', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
     try {
 
-        res.render('payroll/generate.html');
+        let workSchedules = await db.main.WorkSchedule.find().lean()
+        workSchedules = workSchedules.map((o) => {
+            let start = moment().startOf('day').minutes(o.timeSegments[0].start).format('hh:mm A')
+            let end = moment().startOf('day').minutes(o.timeSegments.pop().end).format('hh:mm A')
+            o.name = `${o.name} - ${start} to ${end}`
+            return o
+        })
+        let data = {
+            workSchedules: workSchedules
+        }
+        res.render('payroll/generate.html', data);
     } catch (err) {
         next(err);
     }
@@ -250,6 +260,12 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
         lodash.set(patch, 'name', lodash.get(body, 'name'))
         lodash.set(patch, 'dateStart', lodash.get(body, 'dateStart'))
         lodash.set(patch, 'dateEnd', lodash.get(body, 'dateEnd'))
+        lodash.set(patch, 'workSchedule', lodash.get(body, 'workSchedule'))
+        let workSchedule = await db.main.WorkSchedule.findById(patch.workSchedule).lean()
+        let timeSegments = null
+        if(workSchedule){
+            timeSegments = workSchedule.timeSegments
+        }
 
         let profiles = [
             ['Permanent Faculty and Staff', 'permanent'],
@@ -316,7 +332,7 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
                 let travelPoints = 480
                 for (let a = 0; a < _attendances.length; a++) {
                     let attendance = _attendances[a] // daily
-                    let dtr = dtrHelper.calcDailyAttendance(attendance, hoursPerDay, travelPoints)
+                    let dtr = dtrHelper.calcDailyAttendance(attendance, hoursPerDay, travelPoints, timeSegments)
                     totalMinutes += dtr.totalMinutes
                     totalMinutesUnderTime += dtr.underTimeTotalMinutes
                     _attendances[a].dtr = dtr
@@ -467,16 +483,16 @@ router.get('/payroll/:payrollId/status', middlewares.guardRoute(['read_payroll',
             }
 
             let target = ''
-            if(status == 1){
+            if (status == 1) {
                 target = ' to HR'
-            } else if(status == 2){
+            } else if (status == 2) {
                 target = ' to Accounting'
-            } else if(status == 3){
+            } else if (status == 3) {
                 target = ' to Cashier'
-            } else if(status == 4){
+            } else if (status == 4) {
                 target = ' set to released'
             }
-                
+
             payroll.assignedTo = null
             payroll.status = status
             await db.main.Payroll.updateOne({ _id: payroll._id }, payroll)

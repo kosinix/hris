@@ -1,0 +1,125 @@
+{% extends "document.html" %}
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">Work Schedules</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/attendance/schedule/all" class="btn btn-sm btn-outline-primary">Back </a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+        
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/attendance/schedule/create" method="POST" class="form-default">
+            {% set name = 'name' %}
+            {% include 'parts/form-group-text.html' %}
+
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <tr>
+                        <th width="5%">Time Segment</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Grace Period</th>
+                        <th></th>
+                    </tr>
+                    <tr v-for="(timeSegment, i) in timeSegments">
+                        <td>#${i+1}</td>
+                        <td><input v-model="timeSegment.start" type="time" id="" v-bind:name="'timeSegments[' +i+ '][start]'" class="form-control"></td>
+                        <td><input v-model="timeSegment.end" type="time" id="" v-bind:name="'timeSegments[' +i+ '][end]'" class="form-control"></td>
+                        <td><input v-model="timeSegment.grace" step="1" placeholder="minutes" type="number" id="" v-bind:name="'timeSegments[' +i+ '][grace]'" class="form-control"></td>
+                        <td><button v-if="i > 0" v-on:click="deleteTimeSegment(i)" class="btn btn-sm btn-danger" type="button">X</button></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="text-center">
+                <button v-on:click.prevent="addTimeSegment" class="btn btn-sm btn-success" type="button">Add Time Segment</button>
+            </div>
+            <hr>
+            <div class="form-group d-flex justify-content-between">
+                <a class="btn btn-outline-primary" href="/attendance/schedule/all">Cancel</a>
+                <button class="btn btn-primary">Save Schedule</button>
+            </div>
+        </form>
+    </div>
+</div>
+{# {% include 'parts/vue-timepicker.vue' %} #}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            name: '',
+            timeSegments: []
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+        },
+        mounted: function(){
+            var me = this
+            {# me.timeSegments.push({
+                start: '08:00',
+                end: '12:00',
+                grace: 15,
+                maxHours: 4,
+                flexible: false
+            })
+            me.timeSegments.push({
+                start: '13:00',
+                end: '17:00',
+                grace: 0,
+                maxHours: 4,
+                flexible: false
+            }) #}
+        },
+        methods: {
+            addTimeSegment: function(){
+                var me = this;
+                me.timeSegments.push({
+                    start: '',
+                    end: '',
+                    grace: null,
+                    maxHours: 4,
+                    flexible: false
+                })
+            },
+            deleteTimeSegment: function(i){
+                var me = this;
+                if(confirm('Remove time segment?')){
+                    Vue.delete(me.timeSegments, i)
+                }
+            },
+            toHtmlTime: function(hours, mins){
+                return String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0')
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

@@ -72,20 +72,7 @@
         },
         mounted: function(){
             var me = this
-            {# me.timeSegments.push({
-                start: '08:00',
-                end: '12:00',
-                grace: 15,
-                maxHours: 4,
-                flexible: false
-            })
-            me.timeSegments.push({
-                start: '13:00',
-                end: '17:00',
-                grace: 0,
-                maxHours: 4,
-                flexible: false
-            }) #}
+            me.addTimeSegment()
         },
         methods: {
             addTimeSegment: function(){

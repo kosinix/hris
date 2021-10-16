@@ -353,10 +353,8 @@ router.post('/attendance/schedule/create', middlewares.guardRoute(['read_all_att
             timeSegments: timeSegments
         }
         let workSchedule = await db.main.WorkSchedule.create(patch)
-        return res.send(workSchedule)
-        res.render('attendance/schedule-create.html', {
-            flash: flash.get(req, 'schedule'),
-        });
+        flash.ok(req, 'schedule', `Work schedule created.`)
+        return res.redirect('/attendance/schedule/all')
     } catch (err) {
         if (err.type === 'flash') {
             flash.error(req, 'schedule', `Error: ${err.message}`)

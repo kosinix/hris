@@ -50,10 +50,6 @@
                                 {% include 'parts/sorted-th.html' %}
                             </th>
                             <th>
-                                {% set thId = 'middleName' %}
-                                {% include 'parts/sorted-th.html' %}
-                            </th>
-                            <th>
                                 {% set thId = 'email' %}
                                 {% include 'parts/sorted-th.html' %}
                             </th>
@@ -74,7 +70,6 @@
                             <td><a href="/user/{{user._id}}">{{user.username}}</a></td>
                             <td><a href="/user/{{user._id}}">{{user.lastName}}</a></td>
                             <td><a href="/user/{{user._id}}">{{user.firstName}}</a></td>
-                            <td><a href="/user/{{user._id}}">{{user.middleName}}</a></td>
                             <td><a href="/user/{{user._id}}">{{user.email}}</a></td>
                             <td><a href="/user/{{user._id}}">{{user.active}}</a></td>
                             <td><a href="/user/{{user._id}}">{{user.roles|join(', ')}}</a></td>

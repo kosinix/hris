@@ -108,6 +108,7 @@ router.post('/user/create', middlewares.guardRoute(['create_user']), async (req,
         lodash.set(patch, 'firstName', lodash.get(body, 'firstName'))
         lodash.set(patch, 'middleName', lodash.get(body, 'middleName'))
         lodash.set(patch, 'lastName', lodash.get(body, 'lastName'))
+        lodash.set(patch, 'email', lodash.get(body, 'email'))
         lodash.set(patch, 'username', lodash.get(body, 'username'))
         lodash.set(patch, 'active', lodash.get(body, 'active'))
         lodash.set(patch, 'roles', lodash.get(body, 'roles'))

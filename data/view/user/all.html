@@ -23,7 +23,7 @@
         {# {% include 'user/user-tabs.html' %} #}
         
         <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
-            <div class="d-flex justify-content-end">
+            {# <div class="d-flex justify-content-end">
                 <div class=" pb-3 align-self-center pr-3">
                     Per page:
                 </div>
@@ -31,7 +31,7 @@
                     {% set url = '/user/all' %}
                     {% include 'parts/form-per-page.html' %}
                 </div>
-            </div>
+            </div> #}
             <div class="table-responsive">
                 <table class="table table-sm table-striped">
                     <thead>
@@ -67,12 +67,12 @@
                     {% for user in users %}
                         <tr>
                             <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
-                            <td><a href="/user/{{user._id}}">{{user.username}}</a></td>
-                            <td><a href="/user/{{user._id}}">{{user.lastName}}</a></td>
-                            <td><a href="/user/{{user._id}}">{{user.firstName}}</a></td>
-                            <td><a href="/user/{{user._id}}">{{user.email}}</a></td>
-                            <td><a href="/user/{{user._id}}">{{user.active}}</a></td>
-                            <td><a href="/user/{{user._id}}">{{user.roles|join(', ')}}</a></td>
+                            <td><a href="/user/{{user._id}}/edit">{{user.username}}</a></td>
+                            <td>{{user.lastName}}</td>
+                            <td>{{user.firstName}}</td>
+                            <td>{{user.email}}</td>
+                            <td>{{user.active}}</td>
+                            <td>{{user.roles|join(', ')}}</td>
                         </tr>
                     {% endfor %}
                     </tbody>

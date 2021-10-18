@@ -139,4 +139,55 @@ router.get('/user/:userId', middlewares.guardRoute(['read_user']), middlewares.g
         next(err);
     }
 });
+
+
+router.get('/user/:userId/edit', middlewares.guardRoute(['read_user']), middlewares.getUser, async (req, res, next) => {
+    try {
+        let user = res.user.toObject()
+
+        let roles = await db.main.Role.find().lean()
+        let permissions = await db.main.Permission.find().lean()
+        let password = passwordMan.randomString(10)
+        // return res.send(roles)
+        res.render('user/edit.html', {
+            user: user,
+            roles: roles,
+            permissions: permissions,
+            password: password,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/user/:userId/edit', middlewares.guardRoute(['read_user']), middlewares.getUser, async (req, res, next) => {
+    try {
+        let user = res.user.toObject()
+
+        let body = req.body
+        // return res.send(body)
+        let patch = {}
+        lodash.set(patch, 'firstName', lodash.get(body, 'firstName'))
+        lodash.set(patch, 'middleName', lodash.get(body, 'middleName'))
+        lodash.set(patch, 'lastName', lodash.get(body, 'lastName'))
+        lodash.set(patch, 'email', lodash.get(body, 'email'))
+        lodash.set(patch, 'username', lodash.get(body, 'username'))
+        lodash.set(patch, 'active', lodash.get(body, 'active'))
+        lodash.set(patch, 'roles', lodash.get(body, 'roles'))
+
+        let password = lodash.get(body, 'password')
+        if (password) {
+            let salt = user.salt
+            let passwordHash = passwordMan.hashPassword(password, salt)
+            lodash.set(patch, 'passwordHash', passwordHash)
+            lodash.set(patch, 'salt', salt)
+        }
+
+        await db.main.User.updateOne({ _id: user._id }, patch)
+
+        flash.ok(req, 'user', `Updated "${user.username}"".`)
+        res.redirect(`/user/all`)
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

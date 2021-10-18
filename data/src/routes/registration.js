@@ -39,7 +39,7 @@ router.get('/registration/all', middlewares.guardRoute(['read_all_employee', 're
         lodash.set(req, 'session.pagination.perPage', perPage)
 
         let query = {
-            status: 'finished'
+            // status: 'finished'
         }
         let projection = {}
 

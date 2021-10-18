@@ -20,7 +20,7 @@
     {% else %}
         
         <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
-            <div class="d-flex justify-content-end">
+            {# <div class="d-flex justify-content-end">
                 <div class=" pb-3 align-self-center pr-3">
                     Per page:
                 </div>
@@ -28,7 +28,7 @@
                     {% set url = '/registration/all' %}
                     {% include 'parts/form-per-page.html' %}
                 </div>
-            </div>
+            </div> #}
             <div class="table-responsive">
                 <table class="table table-sm table-striped">
                     <thead>
@@ -55,7 +55,10 @@
                             <th>
                                 Photo
                             </th>
-                            <th></th>
+                            <th>
+                                {% set thId = 'status' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -68,7 +71,13 @@
                             <td>{{registration.uid}}</td>
                             <td>{{registration.email}}</td>
                             <td><img width="100px" src="{{registration.photo}}" alt=""></td>
-                            <td><a href="/registration/approve/{{registration._id}}" class="btn btn-sm btn-success">Approve</a></td>
+                            <td>
+                                {% if registration.status === 'verified'%}
+                                    <span class="text-success"><em>Verified</em></span>
+                                {% else %}
+                                    <a href="/registration/approve/{{registration._id}}" class="btn btn-sm btn-success">Approve</a>
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                     </tbody>

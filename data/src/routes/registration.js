@@ -72,12 +72,12 @@ router.get('/registration/all', middlewares.guardRoute(['read_all_employee', 're
         let registrations = await db.main.RegistrationForm.aggregate(aggr)
 
         let promises = registrations.map((o) => {
-            return db.main.Employment.findOne({ _id: o.employmentId })
+            return db.main.Employment.findOne({ _id: lodash.get(o, 'employmentId') })
         })
         let employments = await Promise.all(promises)
 
         promises = employments.map((o) => {
-            return db.main.Employee.findOne({ _id: o.employeeId })
+            return db.main.Employee.findOne({ _id: lodash.get(o, 'employeeId') })
         })
         let employees = await Promise.all(promises)
 

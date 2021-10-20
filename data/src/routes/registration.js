@@ -104,6 +104,7 @@ router.get('/registration/all', middlewares.guardRoute(['read_all_employee', 're
     }
 });
 
+// check email look
 router.get('/registration/email', middlewares.guardRoute(['create_employee']), async (req, res, next) => {
     try {
 
@@ -148,5 +149,26 @@ router.get('/registration/approve/:registrationId', middlewares.guardRoute(['cre
     }
 });
 
+router.get('/registration/create', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+    try {
+        // let registrationFormId = lodash.get(req, 'params.registrationFormId')
+        // let registrationForm = await db.main.RegistrationForm.findById(registrationFormId)
+        // if (!registrationForm) {
+        //     throw new Error('Form not found.')
+        // } else {
+        //     if (registrationForm.status === 'finished') {
+        //         throw new Error('You are already registered. Please proceed to the login page.')
+        //     }
+        // }
+        // registrationForm.status = 'started'
+        // await registrationForm.save()
+        res.render('registration/create.html', {
+            flash: flash.get(req, 'register'),
+            // registrationForm: registrationForm
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 
 module.exports = router;

@@ -1,0 +1,115 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">Add </h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/registration/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/user/create" method="POST" class="form-default">
+            {% set name = 'uid' %}
+            {% set label = 'RFID Number' %}
+            {% include 'parts/form-group-text.html' %}
+            {% set label = '' %}
+
+            <div class="form-group pb-5 mb-5">
+                <label for="employmentId">Select Your Name</label>
+                <div>
+                    <autocomplete ref="autocom" v-model="employmentId"
+                        name="employmentId"
+                        initial-value="{{''}}"
+                        initial-display="{{''}}"
+                        placeholder="Start typing your name..."
+                        :source="dataSource"
+                        input-class="form-control"
+                        :request-headers="headers"
+                        v-on:selected="onSelect"
+                        >
+                    </autocomplete>
+                    <small class="invalid-feedback">${getError('employmentId')}</small>
+                </div>
+            </div>
+
+            {% set name = 'email' %}
+            {% include 'parts/form-group-text.html' %}
+
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">Add</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vuejs-auto-complete.js"></script>
+<script src="{{app.url}}/js/vuejs-auto-complete-extend.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            window.vueJsAutoCompleteExtendMixin,
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        data: {
+            uid: '',
+            employmentId: '',
+            employeeName: '',
+            email: '',
+            pending: false,
+        },
+        validations: {
+            uid: {
+                required: window.validators.required
+            },
+            employmentId: {
+                required: window.validators.required
+            },
+            email: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            },
+            validateEmail: function(email){
+                var re = /\S+@\S+\.\S+/;
+                return re.test(email);
+            },
+            // vuejs autocomplete
+            onSelect: function(o){
+                this.employeeName = o.display
+            },
+            dataSource: function(input) {
+                return '/query/employment?s=' + input
+            },
+        }
+    });
+</script>
+{% endblock %}
+

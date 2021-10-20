@@ -127,6 +127,11 @@ router.get('/registration/approve/:registrationId', middlewares.guardRoute(['cre
             passwordHash: passwordHash
         })
 
+        // Associate
+        await db.main.Employee.updateOne({ _id: registration.employee._id }, {
+            uid: registration.uid // ID card number
+        })
+
         let data = {
             to: registration.email,
             firstName: registration.employee.firstName,
@@ -151,21 +156,38 @@ router.get('/registration/approve/:registrationId', middlewares.guardRoute(['cre
 
 router.get('/registration/create', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
     try {
-        // let registrationFormId = lodash.get(req, 'params.registrationFormId')
-        // let registrationForm = await db.main.RegistrationForm.findById(registrationFormId)
-        // if (!registrationForm) {
-        //     throw new Error('Form not found.')
-        // } else {
-        //     if (registrationForm.status === 'finished') {
-        //         throw new Error('You are already registered. Please proceed to the login page.')
-        //     }
-        // }
-        // registrationForm.status = 'started'
-        // await registrationForm.save()
         res.render('registration/create.html', {
             flash: flash.get(req, 'register'),
-            // registrationForm: registrationForm
         });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/registration/create', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+    try {
+        let code = lodash.get(req, 'body.uid')
+        let email = lodash.get(req, 'body.email')
+        let employmentId = lodash.get(req, 'body.employmentId')
+
+        let registrationForm = await db.main.RegistrationForm.findOne({
+            uid: code,
+        })
+        if (!registrationForm) {
+            registrationForm = await db.main.RegistrationForm.create({
+                uid: code,
+                employmentId: employmentId,
+                email: email,
+                photo: '',
+                status: 'finished',
+            })
+        } else {
+            if (registrationForm.status === 'finished') {
+                throw new Error('You are already registered. Please proceed to the login page.')
+            }
+        }
+
+        flash.ok(req, 'registration', 'Added manually.')
+        return res.redirect('/registration/all')
     } catch (err) {
         next(err);
     }

@@ -67,13 +67,6 @@ router.post('/register/:registrationFormId', fileUpload(), middlewares.handleExp
         if (!userA) {
             throw new Error('You dont have an user account.')
         }
-        // let password = passwordMan.genPassword(8)
-        // userA.passwordHash = passwordMan.hashPassword(password, userA.salt)
-        // await userA.save()
-
-        // Associate
-        employee.uid = registrationForm.uid // ID card number
-        await employee.save()
 
         let data = {
             employment: employment,

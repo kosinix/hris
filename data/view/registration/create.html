@@ -15,7 +15,7 @@
     {% include 'parts/flash.html' %}
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/user/create" method="POST" class="form-default">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/registration/create" method="POST" class="form-default">
             {% set name = 'uid' %}
             {% set label = 'RFID Number' %}
             {% include 'parts/form-group-text.html' %}
@@ -88,6 +88,11 @@
         methods: {
             onSubmit: function(){
                 var me = this;
+                if(!me.validateEmail(me.email)){
+                    alert('Please provide a valid email.')
+                    return
+                }
+
                 me.$v.$touch()
                 if (me.$v.$error) {
                     alert('Please correct the errors to continue.')

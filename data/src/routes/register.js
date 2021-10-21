@@ -26,6 +26,9 @@ router.get('/register/:registrationFormId', async (req, res, next) => {
             if (registrationForm.status === 'finished') {
                 throw new Error('You are already registered. Please proceed to the login page.')
             }
+            if (registrationForm.status === 'verified') {
+                throw new Error('You are already verified. Please open your email.')
+            }
         }
         registrationForm.status = 'started'
         await registrationForm.save()
@@ -47,6 +50,9 @@ router.post('/register/:registrationFormId', fileUpload(), middlewares.handleExp
         } else {
             if (registrationForm.status === 'finished') {
                 throw new Error('You are already registered. Please proceed to the login page.')
+            }
+            if (registrationForm.status === 'verified') {
+                throw new Error('You are already verified. Please open your email.')
             }
         }
 
@@ -115,6 +121,9 @@ router.post('/register', async (req, res, next) => {
         } else {
             if (registrationForm.status === 'finished') {
                 throw new Error('You are already registered. Please proceed to the login page.')
+            }
+            if (registrationForm.status === 'verified') {
+                throw new Error('You are already verified. Please open your email.')
             }
         }
         let qrData = `${CONFIG.app.url}/register/${registrationForm._id}`

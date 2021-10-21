@@ -184,6 +184,9 @@ router.post('/registration/create', middlewares.guardRoute(['read_all_employee',
             if (registrationForm.status === 'finished') {
                 throw new Error('You are already registered. Please proceed to the login page.')
             }
+            if (registrationForm.status === 'verified') {
+                throw new Error('You are already verified. Please open your email.')
+            }
         }
 
         flash.ok(req, 'registration', 'Added manually.')

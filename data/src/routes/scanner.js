@@ -266,6 +266,8 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
             if(scanner.verification === 'auto'){
 
                 let log = await attendanceLog(scanData, scanner)
+
+                scanData.employee.profilePhoto = `/file-getter/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/medium-${scanData.employee.profilePhoto}`
                 return res.send({
                     scanner: scanner,
                     log: log,

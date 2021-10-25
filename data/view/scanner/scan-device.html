@@ -55,6 +55,7 @@
             webcamPhotoSnapper: null,
             webcamLoaded: false,
             photo: '',
+            profilePhoto: '',
             time: '',
             error: '',
             errorCountdown: '',
@@ -123,7 +124,6 @@
                         utterThis.voice = _.find(voices, function(v){
                             return v.name.includes('Microsoft Zira')
                         });
-                        {# console.log(utterThis.voice) #}
                         utterThis.pitch = 1;
                         utterThis.rate = 1;
                         synth.cancel();
@@ -251,9 +251,11 @@
                     var gender = _.get(data, 'employee.gender')
                     var firstName = _.get(data, 'employee.firstName')
                     var lastName = _.get(data, 'employee.lastName')
+                    var profilePhoto = _.get(data, 'employee.profilePhoto')
                     if(log){
                         me.time = moment(log.dateTime).format('hh:mm A');
                         me.name = firstName + ' ' + lastName;
+                        me.profilePhoto = profilePhoto;
                         var morning = moment(log.dateTime).format('A') === 'AM' ? true : false;
                         var message = '';
                         var salute = '';
@@ -297,9 +299,7 @@
                     }
                 }).then(function () {
                     // always executed
-                    {# setTimeout(function(){ #}
-                        me.pending = false;
-                    {# }, 2000) #}
+                    me.pending = false;
                 })
             }
         }

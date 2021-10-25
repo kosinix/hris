@@ -69,6 +69,10 @@
                 </div>
                 <div class="alert alert-info">Returning to scanner in ${returnCountdown}...</div>
                 <img v-if="photo" style="max-width: 100%" v-bind:src="photo" alt="photo">
+                <div v-else>
+                    <img v-if="profilePhoto" v-bind:src="profilePhoto" alt="profilePhoto">
+                </div>
+
             </div>
         </div>
         {# 3 #}

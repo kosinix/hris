@@ -120,8 +120,10 @@
                 try {
                     if(this.voicesReady){
                         var utterThis = new SpeechSynthesisUtterance(words);
-                        utterThis.voice = voices[1];
-                        console.log(voices)
+                        utterThis.voice = _.find(voices, function(v){
+                            return v.name.includes('Microsoft Zira')
+                        });
+                        {# console.log(utterThis.voice) #}
                         utterThis.pitch = 1;
                         utterThis.rate = 1;
                         synth.cancel();

@@ -39,6 +39,9 @@
     var reload = function(){
         window.location.reload(false); 
     }
+    var voices = []
+    var synth = window.speechSynthesis;
+
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
@@ -59,10 +62,12 @@
             name: '',
             returnTimer: null,
             returnCountdown: 0,
+            voicesReady: false,
         },
         validations: {
 
         },
+        
         mounted: function(){
             var me = this;
 
@@ -72,7 +77,15 @@
                 me.webcamLoaded = true
             })
            
-                        me.hambal('hello')
+            var timer3 = setInterval(function(){
+                voices = synth.getVoices();
+                console.log('synth.getVoices();');
+
+                if(voices.length > 0){
+                    clearInterval(timer3)
+                    me.voicesReady = true;
+                }
+            }, 100)
 
         },
         watch: {
@@ -103,19 +116,19 @@
             }
         },
         methods: {
-            hambal: function(words = 'Place your card near the scanner.'){
+            hambal: function(words){
                 try {
-                    var synth = window.speechSynthesis;
-                    var voices = synth.getVoices();
-                    var utterThis = new SpeechSynthesisUtterance(words);
-                    utterThis.voice = voices[1];
-                    console.log(voices)
-                    utterThis.pitch = 1;
-                    utterThis.rate = 1;
-                    synth.cancel();
-                    synth.speak(utterThis);
+                    if(this.voicesReady){
+                        var utterThis = new SpeechSynthesisUtterance(words);
+                        utterThis.voice = voices[1];
+                        console.log(voices)
+                        utterThis.pitch = 1;
+                        utterThis.rate = 1;
+                        synth.cancel();
+                        synth.speak(utterThis);
+                    }
                 } catch (err){
-                    
+                    console.error(err)
                 }
             },
             reloadOnIdle: function(){

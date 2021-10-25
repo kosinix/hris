@@ -9,6 +9,7 @@ const moment = require('moment')
 
 //// Modules
 const db = require('./db')
+const AppError = require('./errors').AppError
 const passwordMan = require('./password-man')
 const uploader = require('./uploader')
 
@@ -489,9 +490,7 @@ module.exports = {
                     uid: code
                 }).lean()
                 if (!employee) {
-                    // throw new Error()
-                    return res.render('scanner/error.html', {
-                        error: 'Sorry, ID card is not registered.',
+                    throw new AppError('Sorry, ID card is not registered.', {
                         scanner: res.scanner,
                         timeOut: 10
                     })
@@ -502,7 +501,10 @@ module.exports = {
                     employeeId: employee._id
                 }).lean()
                 if (!employment) {
-                    throw new Error('Employment not found from RFID.')
+                    throw new AppError('Employment not found from RFID.', {
+                        scanner: res.scanner,
+                        timeOut: 10
+                    })
                 }
 
                 res.scanData = {

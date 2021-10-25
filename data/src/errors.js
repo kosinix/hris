@@ -83,9 +83,19 @@ let normalizeError = function (error) {
 
 };
 
+// Custom error for web app
+class AppError extends Error {
+    constructor(message, data = {}) {
+        super(message)
+        this.name = this.constructor.name
+        this.msg = message // res.send omits error.message so we put it here
+        this.data = data
+    }
+}
 
 // Export
 module.exports = {
-    normalizeError: normalizeError
+    AppError: AppError,
+    normalizeError: normalizeError,
 };
 

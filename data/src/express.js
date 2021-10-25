@@ -127,13 +127,16 @@ app.use(function (error, req, res, next) {
             logger.error(err);
         });
 
+        if (req.xhr) { // response when req was ajax
+            console.log(error)
+            let httpStatus = lodash.get(error, 'data.httpStatus', 400)
+            return res.status(httpStatus).json(error)
+        }
 
         error = errors.normalizeError(error);
         logger.error(req.originalUrl)
         logger.error(error)
-        if (req.xhr) { // response when req was ajax
-            return res.status(400).send(error.message)
-        }
+        
         if (/^\/api\//.test(req.originalUrl)) {
             return res.status(500).send('API error...');
         }

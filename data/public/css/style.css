@@ -30,6 +30,30 @@ body, pre {
     top: 0;
     bottom: 0;
 }
+div[data-pending="true"]:before {
+    background: #fff;
+    opacity: 0.9;
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+}
+div[data-pending="true"]:after {
+    content: "Processing...";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    z-index: 1;
+    text-align: center;
+    color: #222;
+    background: #fff;
+    font-size: 18px;
+    font-style: italic;
+} 
 
 /*
  * Navbar
@@ -689,6 +713,63 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
 }
 
 /* Scanner */
+.scanner-rfid {
+    font-family: 'Poppins', sans-serif;
+    background: #fff;
+    box-shadow: 0 0 5px #222;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+}
+.scanner-rfid .step {
+    display: flex;
+}
+.scanner-rfid .step .number {
+    background: #115195;
+    border-radius: 100%;
+    text-align: center;
+    color: #fff;
+    width: 100px;
+    height: 100px;
+    text-transform: uppercase;
+    line-height: 1;
+    margin-right: 18px;
+}
+.scanner-rfid .step .number div:first-child {
+    color: #b0d893;
+    padding-top: 20px;
+    margin-bottom: 0;
+    font-size: 22px;
+}
+.scanner-rfid .step .number div:last-child {
+    font-size: 44px;
+}
+
+.scanner-rfid .step .desc .h5{
+    color: #115195;
+    font-size: 33px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.scanner-rfid .step .desc p{
+    color: #2699a2;
+    font-weight: 500;
+    font-size: 16px;
+}
+.scanner-rfid p.alt {
+    color: #115195;
+}
+.scanner-rfid .scan-data .h5 {
+    color: #115195;
+    font-size: 33px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.scanner-rfid .scan-data .h5 span {
+    color: #2699a2;
+}
+
+
 .scanner {
     overflow:hidden; 
     position:absolute; 
@@ -766,6 +847,29 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     -webkit-animation:spin 50s linear infinite;
     -moz-animation:spin 50s linear infinite;
     animation:spin 50s linear infinite;
+}
+
+
+.logo-rotating {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+.logo-gear {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100px;
+    height: 100px;
+    margin:-50px 0 0 -50px;
+}
+.logo-inner {
+    position: relative;
+}
+.logo-gear[data-play="true"] {
+    -webkit-animation:spin 10s linear infinite;
+    -moz-animation:spin 10s linear infinite;
+    animation:spin 10s linear infinite;
 }
 @-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
 @-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }

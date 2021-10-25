@@ -5,13 +5,61 @@ const express = require('express')
 const flash = require('kisapmata')
 const lodash = require('lodash')
 const moment = require('moment')
+const qr = require('qr-image')
 
 //// Modules
+const AppError = require('../errors').AppError
 const db = require('../db');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
-const passwordMan = require('../password-man');
 
+let attendanceLog = async (scanData, scanner) => {
+     // Today attendance
+     let attendance = await db.main.Attendance.findOne({
+        employeeId: scanData.employee._id,
+        employmentId: scanData.employment._id,
+        createdAt: {
+            $gte: moment().startOf('day').toDate(),
+            $lt: moment().endOf('day').toDate(),
+        }
+    })
+    if (!attendance) {
+        attendance = new db.main.Attendance({
+            employeeId: scanData.employee._id,
+            employmentId: scanData.employment._id,
+            onTravel: false,
+            logs: [
+                {
+                    scannerId: scanner._id,
+                    dateTime: moment().toDate(),
+                    mode: 1 // in
+                }
+            ]
+        })
+    } else {
+        if (!attendance.logs.length) {
+            throw new AppError('Bad attendance data.') // should have at least 1 log
+        }
+        let lastLog = attendance.logs[attendance.logs.length - 1]
+
+        // Throttle to avoid double scan
+        let waitTime = 5
+        let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
+        if (diff < waitTime) {
+            throw new AppError(`You have already logged. Please wait ${5 - diff} minute(s) and try again.`)
+        }
+
+        let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0
+
+        attendance.logs.push({
+            scannerId: scanner._id,
+            dateTime: moment().toDate(),
+            mode: mode
+        })
+    }
+    await attendance.save()
+    return attendance.logs[attendance.logs.length - 1]
+}
 
 // Router
 let router = express.Router()
@@ -166,12 +214,17 @@ router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']),
         if (!scanner.active) {
             throw new Error('Scanner has been disabled.')
         }
+
+        let qrData = `WIFI:S:HRIS Hotspot Smart;T:WPA;P:gsc-mis-hris`
+        qrData = qr.imageSync(qrData, { size: 5, type: 'png' }).toString('base64')
+
         let template = 'scanner/scan.html'
         if (scanner.device === 'qrCodeDevice' || scanner.device === 'rfid') {
             template = 'scanner/scan-device.html'
         }
         res.render(template, {
-            scanner: scanner
+            qrData: qrData,
+            scanner: scanner,
         })
     } catch (err) {
         res.render('scanner/error.html', {
@@ -211,14 +264,28 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
         if (scanData.dataType === 'rfid') {
 
             if(scanner.verification === 'auto'){
-                return res.redirect(`/scanner/${scanner.uid}/no-verify?code=${scanData.code}`)
+
+                let log = await attendanceLog(scanData, scanner)
+                return res.send({
+                    scanner: scanner,
+                    log: log,
+                    employee: scanData.employee,
+                    employment: scanData.employment,
+                    code: scanData.code
+                })
+
             }
-            return res.render('scanner/verify.html', {
+            let data = {
                 scanner: scanner,
                 employee: scanData.employee,
                 employment: scanData.employment,
                 code: scanData.code
-            })
+            }
+
+            if(req.xhr){
+                return res.send(data)
+            }
+            return res.render('scanner/verify.html', data)
         } else if (scanData.dataType === 'qr') { // QR
 
             if (scanData.qrData.type === 2) { // attendance
@@ -247,10 +314,7 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
 
 
     } catch (err) {
-        res.render('scanner/error.html', {
-            error: err.message,
-            scanner: scanner,
-        })
+        next(err)
     }
 });
 
@@ -319,50 +383,7 @@ router.get('/scanner/:scannerUid/no-verify', middlewares.guardRoute(['use_scanne
     try {
         let scanData = res.scanData
 
-        // Today attendance
-        let attendance = await db.main.Attendance.findOne({
-            employeeId: scanData.employee._id,
-            employmentId: scanData.employment._id,
-            createdAt: {
-                $gte: moment().startOf('day').toDate(),
-                $lt: moment().endOf('day').toDate(),
-            }
-        })
-        if (!attendance) {
-            attendance = new db.main.Attendance({
-                employeeId: scanData.employee._id,
-                employmentId: scanData.employment._id,
-                onTravel: false,
-                logs: [
-                    {
-                        scannerId: scanner._id,
-                        dateTime: moment().toDate(),
-                        mode: 1 // in
-                    }
-                ]
-            })
-        } else {
-            if (!attendance.logs.length) {
-                throw new Error('Bad attendance data.') // should have at least 1 log
-            }
-            let lastLog = attendance.logs[attendance.logs.length - 1]
-
-            // Throttle to avoid double scan
-            let waitTime = 5
-            let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
-            if (diff < waitTime) {
-                throw new Error(`You have already logged. Please wait ${5 - diff} minute(s) and try again.`)
-            }
-
-            let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0
-
-            attendance.logs.push({
-                scannerId: scanner._id,
-                dateTime: moment().toDate(),
-                mode: mode
-            })
-        }
-        await attendance.save()
+        await attendanceLog(scanData, scanner)
 
         return res.redirect(`/scanner/${scanner.uid}/check-in?code=${scanData.code}`)
     } catch (err) {

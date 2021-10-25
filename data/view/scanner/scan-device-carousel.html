@@ -1,0 +1,83 @@
+<div id="carousel-scan" class="carousel-scan carousel slide" data-ride="carousel" data-touch="false" data-interval="false">
+    {# <ol class="carousel-indicators">
+        <li data-target="#carousel-scan" data-slide-to="0" class="active"></li>
+        <li data-target="#carousel-scan" data-slide-to="1"></li>
+        <li data-target="#carousel-scan" data-slide-to="2"></li>
+    </ol> #}
+    <div class="carousel-inner p-3">
+        {# 0 #}
+        <div class="carousel-item active">
+            <div class="text-center">
+                <div class="d-flex text-left justify-content-center">
+                    <div class="step">
+                        <div class="number">
+                            <div>Step</div>
+                            <div>01</div>
+                        </div>
+                        <div class="desc">
+                            <h1 class="h5">SCAN YOUR ID</h1>
+                            <p class="mb-0">Place your GSC ID near the scanner.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-5 mb-5">
+                    <img src="/images/rfid.png" style="max-width:100%" alt="rfid">
+                </div>
+                {# <div class="text-center scan-data">
+                    <h5 class="h5 mb-0"><span>Name:</span> ${name}</h5>
+                    <h5 class="h5"><span>Time:</span> ${time}</h5>
+                </div> #}
+            </div>
+        </div>
+        {# 1 #}
+        <div class="carousel-item ">
+            <div class="text-center">
+                <div class="d-flex text-left justify-content-center">
+                    <div class="step">
+                        <div class="number">
+                            <div>Step</div>
+                            <div>02</div>
+                        </div>
+                        <div class="desc">
+                            <h1 class="h5">TAKE A SELFIE</h1>
+                            <p class="mb-0">Scan your ID again when you're ready.</p>
+                        </div>
+                    </div>
+                </div>
+                <video id="webcam-feed"></video>
+                <canvas id="webcam-snapshot"></canvas>
+            </div>
+        </div>
+        {# 2 #}
+        <div class="carousel-item ">
+            <div class="text-center">
+                <div class="d-flex text-left justify-content-center">
+                    <div class="step">
+                        <div class="number">
+                            <div>Step</div>
+                            <div>03</div>
+                        </div>
+                        <div class="desc">
+                            <h1 class="h5">Done!</h1>
+                            <p class="mb-0">Please write your time in the logsheet as it appears on HRIS.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center scan-data">
+                    <h5 class="h5 mb-0"><span>Name:</span> ${name}</h5>
+                    <h5 class="h5"><span>Time:</span> ${time}</h5>
+                </div>
+                <div class="alert alert-info">Returning to scanner in ${returnCountdown}...</div>
+                <img v-if="photo" style="max-width: 100%" v-bind:src="photo" alt="photo">
+            </div>
+        </div>
+        {# 3 #}
+        <div class="carousel-item ">
+            <div class="text-center">
+                <h1>Error</h1>
+                <div class="alert alert-danger">${error}</div>
+                <div class="alert alert-warning">Returning to scanner in ${returnCountdown} second(s).</div>
+            </div>
+        </div>
+    </div>
+</div>

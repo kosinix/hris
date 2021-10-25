@@ -72,6 +72,8 @@
                 me.webcamLoaded = true
             })
            
+                        me.hambal('hello')
+
         },
         watch: {
             code: function(newCode, oldCode){
@@ -107,6 +109,7 @@
                     var voices = synth.getVoices();
                     var utterThis = new SpeechSynthesisUtterance(words);
                     utterThis.voice = voices[1];
+                    console.log(voices)
                     utterThis.pitch = 1;
                     utterThis.rate = 1;
                     synth.cancel();

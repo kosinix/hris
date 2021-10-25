@@ -48,14 +48,15 @@
             pending: false,
             page: 0,
             code: '',
+            useWebcam: false,
             webcamPhotoSnapper: null,
             webcamLoaded: false,
             photo: '',
             time: '',
             error: '',
             errorCountdown: '',
-            time: '08:00 AM',
-            name: 'Nico Amarilla',
+            time: '',
+            name: '',
             returnTimer: null,
             returnCountdown: 0,
         },
@@ -87,7 +88,7 @@
 
                     me.webcamStart();
 
-                } else if(oldPage === 1 && newPage === 2) {
+                } else if(newPage === 2) {
                     me.webcamSnap();
 
                     me.log()
@@ -165,6 +166,12 @@
                     ).then(function(webcamPhotoSnapper){
                         me.pending = false
                         me.webcamPhotoSnapper = webcamPhotoSnapper
+                    }).catch(function(err){
+                        me.page = 3;
+                        me.error = err.message + '. Please check if you have a webcam.';
+                        me.returnBalik(7);
+                    }).then(function(){
+                        me.pending = false
                     })
                 }
             },
@@ -198,8 +205,12 @@
                 document.getElementById("code").select();
                 var before = me.page;
                 var after = me.page + 1;
-                if(after === 2){
-                    if(!me.webcamLoaded){
+                if(after === 1){
+                    if(!me.useWebcam){
+                        after = 2
+                    }
+                } else if(after === 2){
+                    if(!me.webcamLoaded && me.useWebcam){
                         return
                     }
                 } else if(after === 3){
@@ -220,9 +231,12 @@
 
                     var log = _.get(data, 'log')
                     var gender = _.get(data, 'employee.gender')
+                    var firstName = _.get(data, 'employee.firstName')
+                    var lastName = _.get(data, 'employee.lastName')
                     if(log){
-                        me.time = moment(log.dateTime).format('hh:mm A')
-                        var morning = moment(log.dateTime).format('A') === 'AM' ? true : false
+                        me.time = moment(log.dateTime).format('hh:mm A');
+                        me.name = firstName + ' ' + lastName;
+                        var morning = moment(log.dateTime).format('A') === 'AM' ? true : false;
                         var message = '';
                         var salute = '';
                         if(gender === 'M') {

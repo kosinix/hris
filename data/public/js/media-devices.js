@@ -142,5 +142,6 @@ MediaDevicesPresets.createWebcamPhotoSnapper = function (videoEl, canvasEl, opti
         }
     }).catch(function (err) {
         console.log(err.name + ": " + err.message);
+        throw err
     });
 }

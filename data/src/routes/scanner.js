@@ -14,8 +14,8 @@ const middlewares = require('../middlewares');
 const paginator = require('../paginator');
 
 let attendanceLog = async (scanData, scanner) => {
-     // Today attendance
-     let attendance = await db.main.Attendance.findOne({
+    // Today attendance
+    let attendance = await db.main.Attendance.findOne({
         employeeId: scanData.employee._id,
         employmentId: scanData.employment._id,
         createdAt: {
@@ -263,52 +263,20 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
 
         if (scanData.dataType === 'rfid') {
 
-            if(scanner.verification === 'auto'){
+            let log = await attendanceLog(scanData, scanner)
 
-                let log = await attendanceLog(scanData, scanner)
-
-                scanData.employee.profilePhoto = `/file-getter/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/medium-${scanData.employee.profilePhoto}`
-                return res.send({
-                    scanner: scanner,
-                    log: log,
-                    employee: scanData.employee,
-                    employment: scanData.employment,
-                    code: scanData.code
-                })
-
+            if(scanData.employee.profilePhoto){
+                scanData.employee.profilePhoto = `/file-getter/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/small-${scanData.employee.profilePhoto}`
             }
-            let data = {
+            // setTimeout(function () {
+            res.send({
                 scanner: scanner,
+                log: log,
                 employee: scanData.employee,
                 employment: scanData.employment,
                 code: scanData.code
-            }
-
-            if(req.xhr){
-                return res.send(data)
-            }
-            return res.render('scanner/verify.html', data)
-        } else if (scanData.dataType === 'qr') { // QR
-
-            if (scanData.qrData.type === 2) { // attendance
-                if(scanner.verification === 'auto'){
-                    return res.redirect(`/scanner/${scanner.uid}/no-verify?code=${scanData.code}`)
-                }
-                return res.render('scanner/verify.html', {
-                    scanner: scanner,
-                    employee: scanData.employee,
-                    employment: scanData.employment,
-                    code: scanData.code
-                })
-            } else if (scanData.qrData.type === 3) { // healthdec
-                return res.render('scanner/verify-hdf.html', {
-                    scanner: scanner,
-                    employee: scanData.employee,
-                    employment: scanData.employment,
-                    qrData: scanData.qrData,
-                    code: scanData.code
-                })
-            }
+            })
+            // }, 1000)
 
         } else {
             throw new Error(`Invalid scan data type.`)

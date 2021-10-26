@@ -42,7 +42,7 @@ div[data-pending="true"]:before {
     z-index: 1;
 }
 div[data-pending="true"]:after {
-    content: "Processing...";
+    content: "Processing... Please wait...";
     position: absolute;
     left: 0;
     right: 0;

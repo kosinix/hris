@@ -36,6 +36,7 @@
 <script>
     var timer = null
     var timer2 = null
+    var returnTimer = null
     var reload = function(){
         window.location.reload(false); 
     }
@@ -56,12 +57,10 @@
             webcamLoaded: false,
             photo: '',
             profilePhoto: '',
-            time: '',
             error: '',
             errorCountdown: '',
             time: '',
             name: '',
-            returnTimer: null,
             returnCountdown: 0,
             voicesReady: false,
         },
@@ -78,9 +77,9 @@
                 me.webcamLoaded = true
             })
            
+            // Voices
             var timer3 = setInterval(function(){
                 voices = synth.getVoices();
-                console.log('synth.getVoices();');
 
                 if(voices.length > 0){
                     clearInterval(timer3)
@@ -117,6 +116,20 @@
             }
         },
         methods: {
+            reset: function(){
+                var me = this;
+
+                me.page = 0;
+                me.code = '';
+                me.photo = '';
+                me.profilePhoto = '';
+                me.time = '';
+                me.name = '';
+                
+                if(returnTimer){
+                    clearInterval(returnTimer);
+                }
+            },
             hambal: function(words){
                 try {
                     if(this.voicesReady){
@@ -139,36 +152,21 @@
                 }
                 timer = setTimeout(reload, 60000)
             },
-            returnOnDugay: function(){
-                var me = this;
-                if(timer2){
-                    clearTimeout(timer2);
-                }
-                timer2 = setTimeout(function(){
-                    me.page = 0
-                }, 10000)
-            },
             returnBalik: function(delay){
                 var me = this;
-                if(me.returnTimer){
-                    clearInterval(me.returnTimer);
+                if(returnTimer){
+                    clearInterval(returnTimer);
                 }
                 me.returnCountdown = delay;
-                me.returnTimer = setInterval(function(){
+                returnTimer = setInterval(function(){
                     me.returnCountdown -= 1;
                     if(me.returnCountdown <= 0){
-                        clearInterval(me.returnTimer);
+                        clearInterval(returnTimer);
                         me.page = 0;
                     }
                 }, 1000)
             },
-            reset: function(){
-                var me = this;
-                me.page = 0;
-                me.code = '';
-                me.photo = '';
-                
-            },
+            
             focus: function(){
                 setTimeout(function() {
                     document.getElementById("code").focus();
@@ -186,8 +184,23 @@
                         me.webcamPhotoSnapper = webcamPhotoSnapper
                     }).catch(function(err){
                         me.page = 3;
-                        me.error = err.message + '. Please check if you have a webcam.';
-                        me.returnBalik(7);
+                        me.error = err.message;
+
+                        if (err.name == "NotFoundError" || err.name == "DevicesNotFoundError") {
+                            //required track is missing 
+                            me.error += '. Please check if you have a webcam.';
+
+                        } else if (err.name == "NotReadableError" || err.name == "TrackStartError") {
+                            //webcam or mic are already in use 
+                            me.error += '. Please close the other app that is using the webcam.';
+                      
+                        } else if (err.name == "NotAllowedError" || err.name == "PermissionDeniedError") {
+                            //permission denied in browser 
+                            me.error += '. Please allow the browser to use the webcam.';
+                            
+                        }
+
+                        me.returnBalik(10);
                     }).then(function(){
                         me.pending = false
                     })
@@ -215,7 +228,7 @@
             onSubmit: function(){
                 var me = this;
                 var code = me.code 
-                if(!_.trim(me.code)){
+                if(!_.trim(me.code) || me.pending){
                     return
                 }
                 
@@ -241,6 +254,7 @@
                 var me = this;
                 var body = {
                     code: me.code,
+                    photo: me.photo
                 }
                 me.pending = true
                 axios.post('/scanner/{{scanner.uid}}/scan', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {

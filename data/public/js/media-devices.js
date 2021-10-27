@@ -137,7 +137,7 @@ MediaDevicesPresets.createWebcamPhotoSnapper = function (videoEl, canvasEl, opti
                 } else {
                     context.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
                 }
-                return canvasEl.toDataURL(); // imageBase64Data
+                return canvasEl.toDataURL('image/jpeg', 0.6); // imageBase64Data
             }
         }
     }).catch(function (err) {

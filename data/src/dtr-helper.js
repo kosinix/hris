@@ -223,7 +223,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
                     console.log('Logging out before shift starts!')
 
                 } else if (endMinutes >= shiftCurrent.start && endMinutes <= shiftCurrent.end) { // Logged out within current shift
-                    
+
                     minutesWorked = endMinutes - startMinutes
 
                 } else if (endMinutes > shiftCurrent.end) { // Logged out after current shift
@@ -232,7 +232,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
                     let shiftNext = getNextShift(endMinutes, shifts)
 
                     if (shiftNext instanceof Error) { // No more next shift
-                        
+
                         minutesWorked = shiftCurrent.end - startMinutes // Remove excess and use shiftCurrent.end
 
                     } else {
@@ -277,14 +277,21 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
 
 }
 
-const getDtrMonthlyView = (month, year, attendances, useDaysInMonth = false) => {
+const getDtrMonthlyView = (month, year, attendances, useDaysInMonth = false, workSchedule) => {
 
     let momentNow = moment().year(year).month(month)
+
+    attendances = attendances.map(a => {
+        a.workSchedule = workSchedule
+        return a
+    })
 
     // Turn array of attendances into an object with date as keys: "2020-12-31"
     attendances = lodash.mapKeys(attendances, (a) => {
         return moment(a.createdAt).format('YYYY-MM-DD')
     })
+
+
 
     // Array containing 1 - x
     let max = (useDaysInMonth) ? momentNow.daysInMonth() : 31
@@ -380,7 +387,58 @@ let compute = {
     }
 }
 
+const logAttendance = async (db, employee, employment, waitTime = 5) => {
+    // Today attendance
+    let attendance = await db.main.Attendance.findOne({
+        employeeId: employee._id,
+        employmentId: employment._id,
+        createdAt: {
+            $gte: moment().startOf('day').toDate(),
+            $lt: moment().endOf('day').toDate(),
+        }
+    }).lean()
+    if (!attendance) {
+        attendance = await db.main.Attendance.create({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            onTravel: false,
+            logs: [
+                {
+                    scannerId: null,
+                    dateTime: moment().toDate(),
+                    mode: 1 // in
+                }
+            ]
+        })
+    } else {
+        if (attendance.logs.length >= 4) {
+            throw new Error('Max scans already.') // Max 4 log
+        }
+        if (attendance.logs.length <= 0) {
+            throw new Error('Bad attendance data.') // should have at least 1 log
+        }
+        let lastLog = attendance.logs[attendance.logs.length - 1]
+
+        // Throttle to avoid double scan
+        let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
+        if (diff < waitTime) {
+            throw new Error(`You have already logged. Please wait ${5 - diff} minute(s) and try again.`)
+        }
+
+        let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0
+
+        attendance.logs.push({
+            scannerId: null,
+            dateTime: moment().toDate(),
+            mode: mode
+        })
+    }
+    // await attendance.save()
+    await db.main.Attendance.updateOne({ _id: attendance._id }, attendance)
+    return attendance.logs[attendance.logs.length - 1]
+}
 module.exports = {
+    logAttendance: logAttendance,
     compute: compute,
     calcDailyAttendance: calcDailyAttendance,
     calcTimeRecord: calcTimeRecord, //@deprecated. Use getTimeBreakdown

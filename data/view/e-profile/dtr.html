@@ -15,7 +15,7 @@
         </div>
     </div>
     <div class=" mb-5">
-        <div style="max-width:500px" class=" ml-auto mr-auto" >
+        <div id="vApp" v-cloak style="max-width: 600px" class=" ml-auto mr-auto" >
             <div class="text-center">
                 <div class="text-center pt-3 pb-3">
                     <div class="e-profile-photo ml-auto mr-auto">
@@ -63,7 +63,8 @@
                     </tr>
                     {% for dtrDay in dtrDays %}
                     {% set attendance = dtrDay.attendance %}
-                    <tr class="{% if dtrDay.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if dtrDay.dtr.undertime === true %} undertime {% endif %}">
+                    {% set currentDay = dtrDay.date === momentNow|format_date('YYYY-MM-DD') %}
+                    <tr class="{% if currentDay %} selected {% endif %} {% if dtrDay.dtr.undertime === true %} undertime {% endif %}">
                         <td class="text-center">{{loop.index}}</td>
                         {% if attendance.onTravel %}
                             <td>On Travel</td>
@@ -80,9 +81,35 @@
                             <td></td>
                             <td></td>
                         {% else %}
-                            <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                            <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                            <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                            <td>
+                                {% if attendance.logs[0].dateTime %} 
+                                {{attendance.logs[0].dateTime|format_date('hh:mm A')}} 
+                                {% endif %}
+                            </td>
+                            <td>
+                            
+                                {% if attendance.logs[1].dateTime %} 
+                                    {{attendance.logs[1].dateTime|format_date('hh:mm A')}} 
+                                {% endif %}
+
+                                {% if attendance.logs[0] and not attendance.logs[1] and currentDay %} 
+                                    <form action="/e-profile/dtr/{{employment._id}}/logs" method="POST">
+                                        <button class="btn btn-sm btn-light">Time-Out</button>
+                                    </form>
+                                {% endif %}
+                            
+                            </td>
+                            <td>
+
+                                {% if attendance.logs[2].dateTime %} 
+                                    {{attendance.logs[2].dateTime|format_date('hh:mm A')}} 
+                                {% endif %}
+                                {% if attendance.logs[1].dateTime and not attendance.logs[2] and currentDay %} 
+                                    <form action="/e-profile/dtr/{{employment._id}}/logs" method="POST">
+                                        <button class="btn btn-sm btn-light">Time-In</button>
+                                    </form>
+                                {% endif %}
+                            </td>
                             <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                             <td>
                                 {% if dtrDay.dtr.underMinutes %}
@@ -108,22 +135,53 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
 <script>
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
-        mixins: [
-            window.vuelidate.validationMixin,
-            window.vuelidateExtendMixin,
-        ],
+        mixins: [],
         data: {
-            name: '',
-            type: 1,
+            pending: false
         },
-        validations: {
-            
-        },
+        validations: {},
         methods: {
+            lunchOut: function(){
+                var me = this;
+
+                me.pending = true;
+                var body = {
+
+                };
+                axios.post('/e-profile/dtr/{{employment._id}}/logs', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
+                    var data = _.get(response, 'data')
+                    console.log(data)
+                    
+                }).catch(function (error) {
+                    if (error.response) {
+                        // Request made, server responded with a status code outside of 2xx
+                        // console.error(error.response.status)
+                        var err = error.response.data;
+                       console.error(err)
+
+                    } else if (error.request) {
+                        var msg = 'The request was made but no response was received'
+                        console.error(msg);
+
+                    } else {
+                        var msg = 'Something happened in setting up the request that triggered an Error.'
+                        console.error(msg, error.message);
+
+                    }
+                }).then(function () {
+                    // always executed
+                    me.pending = false;
+                })
+            },
+            lunchIn: function(){
+                console.log('vvv')
+
+            },
             onSubmit: function(){
                 var me = this;
                 me.$v.$touch()

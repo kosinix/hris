@@ -220,10 +220,12 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
                 $gte: momentNow.clone().startOf('month').toDate(),
                 $lt: momentNow.clone().endOf('month').toDate(),
             }
-        })
+        }).lean()
 
-        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances)
-        // return res.send(days)
+        let workSchedule = await db.main.WorkSchedule.findOne()
+
+        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false, workSchedule)
+        // return res.send(dtrDays)
         res.render('e-profile/dtr.html', {
             momentNow: momentNow,
             attendances: attendances,
@@ -231,6 +233,23 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
             employment: employment,
             dtrDays: dtrDays,
         });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+
+        let log = await dtrHelper.logAttendance(db, employee, employment, 0) 
+        let data = {
+            log: log
+        }
+        if(req.xhr){
+            return res.send(data)
+        }
+        res.redirect(`/e-profile/dtr/${employment._id}`)
     } catch (err) {
         next(err);
     }

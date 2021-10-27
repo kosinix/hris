@@ -37,6 +37,9 @@ let attendanceLog = async (scanData, scanner) => {
             ]
         })
     } else {
+        if (attendance.logs.length >= 4) {
+            throw new AppError('Max scans already.') // Max 4 log
+        }
         if (!attendance.logs.length) {
             throw new AppError('Bad attendance data.') // should have at least 1 log
         }

@@ -14,6 +14,9 @@ let schema = mongoose.Schema({
     },
     onTravel: Boolean,
     wfh: Boolean,
+    workScheduleId: {
+        $type: mongoose.Schema.Types.ObjectId
+    },
     logs: [
         {
             scannerId: mongoose.Schema.Types.ObjectId,

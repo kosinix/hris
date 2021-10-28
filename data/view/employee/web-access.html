@@ -19,7 +19,17 @@
             <p class="alert alert-info"><em>Employee does not have an HRIS web access account yet.</em></p>
             {% set name = 'username' %}
             {% set label = 'Username *' %}
-            {% include 'parts/form-group-text.html' %}
+            <div class="form-group">
+                <label v-bind:for="{{name}}">
+                    {% if label %}
+                        {{label}}
+                    {% endif %}
+                </label>
+                <div>
+                    <input readonly v-bind:name="{{name}}" v-bind:id="{{name}}" v-model="{% if vModel %}{{vModel}}{% else %}{{name}}{% endif %}" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError({{name}})}</small>
+                </div>
+            </div>
             {% set label = '' %}
 
             {% set name = 'password' %}

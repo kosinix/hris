@@ -61,18 +61,31 @@
                                 {% set thId = 'roles' %}
                                 {% include 'parts/sorted-th.html' %}
                             </th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                     {% for user in users %}
                         <tr>
                             <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
-                            <td><a href="/user/{{user._id}}/edit">{{user.username}}</a></td>
+                            <td><a href="/user/{{user._id}}">{{user.username}}</a></td>
                             <td>{{user.lastName}}</td>
                             <td>{{user.firstName}}</td>
                             <td>{{user.email}}</td>
                             <td>{{user.active}}</td>
                             <td>{{user.roles|join(', ')}}</td>
+                            <td>
+                                <a href="/user/{{user._id}}/edit">
+                                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                                        <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
+                                    </svg>
+                                </a>
+                            </td>
+                            <td><a href="/user/{{user._id}}/password">
+                                <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M22,18V22H18V19H15V16H12L9.74,13.74C9.19,13.91 8.61,14 8,14A6,6 0 0,1 2,8A6,6 0 0,1 8,2A6,6 0 0,1 14,8C14,8.61 13.91,9.19 13.74,9.74L22,18M7,5A2,2 0 0,0 5,7A2,2 0 0,0 7,9A2,2 0 0,0 9,7A2,2 0 0,0 7,5Z" />
+</svg>
+                            </a></td>
                         </tr>
                     {% endfor %}
                     </tbody>

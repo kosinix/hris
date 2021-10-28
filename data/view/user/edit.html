@@ -4,7 +4,7 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h2">Edit User {{user.username}}</h1>
+            <h1 class="h2">Edit User {{userO.username}}</h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
@@ -15,15 +15,10 @@
     {% include 'parts/flash.html' %}
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/user/{{user._id}}/edit" method="POST" class="form-default">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/user/{{userO._id}}/edit" method="POST" class="form-default">
             <h3 class="h4">Login Info</h3>
             {% set name = 'username' %}
             {% include 'parts/form-group-text.html' %}
-
-            {% set name = 'password' %}
-            {% set label = 'New Password. Leave blank to retain existing password.' %}
-            {% include 'parts/form-group-text.html' %}
-            {% set label = '' %}
 
             {% set name = 'active' %}
             {% set options = [{value:'true', text:'Yes'}, {value:'false', text:'No'}] %}
@@ -83,14 +78,14 @@
             'autocomplete': window["vuejs-autocomplete"]
         },
         data: {
-            username: '{{user.username}}',
+            username: '{{userO.username}}',
             password: '',
-            firstName: '{{user.firstName}}',
-            middleName: '{{user.middleName}}',
-            lastName: '{{user.lastName}}',
-            email: '{{user.email}}',
-            active: '{{user.active}}',
-            roles: {{user.roles|default([], true)|stringify|safe}},
+            firstName: '{{userO.firstName}}',
+            middleName: '{{userO.middleName}}',
+            lastName: '{{userO.lastName}}',
+            email: '{{userO.email}}',
+            active: '{{userO.active}}',
+            roles: {{userO.roles|default([], true)|stringify|safe}},
         },
         validations: {
             username: {

@@ -52,6 +52,26 @@ const templates = {
         let info = await transport2.sendMail(mailOptions)
         // console.log(info.response)
         return info
+    },
+    changePassword: async (templateVars) => {
+        let data = {
+            firstName: templateVars.firstName,
+            username: templateVars.username,
+            password: templateVars.password,
+            loginUrl: templateVars.loginUrl,
+            baseUrl: `${CONFIG.app.url}`,
+            previewText: `Greetings ${templateVars.firstName}! These are the login credentials for your HRIS admin account...`
+        }
+        let mailOptions = {
+            from: 'GSC MIS <mis@gsc.edu.ph>',
+            to: templateVars.to,
+            subject: 'HRIS Admin Account',
+            text: nunjucksEnv.render('emails/change-password.txt', data),
+            html: nunjucksEnv.render('emails/change-password.html', data),
+        }
+        let info = await transport2.sendMail(mailOptions)
+        // console.log(info.response)
+        return info
     }
 }
 
@@ -59,6 +79,8 @@ module.exports = {
     send: async (templateName, templateVars) => {
         if (templateName === 'verified.html') {
             return await templates.verified(templateVars)
+        } else if (templateName === 'change-password.html') {
+            return await templates.changePassword(templateVars)
         } else {
             throw new Error(`Template ${templateName} not found.`)
         }

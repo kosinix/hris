@@ -27,7 +27,7 @@ let router = express.Router()
 
 router.use('/registration', middlewares.requireAuthUser)
 
-router.get('/registration/all', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+router.get('/registration/all', middlewares.guardRoute(['read_all_user', 'read_user']), async (req, res, next) => {
     try {
         let page = parseInt(lodash.get(req, 'query.page', 1))
         let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
@@ -105,7 +105,7 @@ router.get('/registration/all', middlewares.guardRoute(['read_all_employee', 're
 });
 
 // check email look
-router.get('/registration/email', middlewares.guardRoute(['create_employee']), async (req, res, next) => {
+router.get('/registration/email', middlewares.guardRoute(['create_user']), async (req, res, next) => {
     try {
 
         res.render('emails/verified.html', {
@@ -115,7 +115,7 @@ router.get('/registration/email', middlewares.guardRoute(['create_employee']), a
     }
 });
 
-router.get('/registration/approve/:registrationId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getRegistration, async (req, res, next) => {
+router.get('/registration/approve/:registrationId', middlewares.guardRoute(['create_user', 'update_user']), middlewares.getRegistration, async (req, res, next) => {
     try {
         let registration = res.registration
 
@@ -154,7 +154,7 @@ router.get('/registration/approve/:registrationId', middlewares.guardRoute(['cre
     }
 });
 
-router.get('/registration/create', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+router.get('/registration/create', middlewares.guardRoute(['read_all_user', 'read_user']), async (req, res, next) => {
     try {
         res.render('registration/create.html', {
             flash: flash.get(req, 'register'),
@@ -163,7 +163,7 @@ router.get('/registration/create', middlewares.guardRoute(['read_all_employee', 
         next(err);
     }
 });
-router.post('/registration/create', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+router.post('/registration/create', middlewares.guardRoute(['read_all_user', 'read_user']), async (req, res, next) => {
     try {
         let code = lodash.get(req, 'body.uid')
         let email = lodash.get(req, 'body.email')

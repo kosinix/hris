@@ -85,9 +85,7 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance',
             }
         })
 
-        console.log(query)
         attendances = await db.main.Attendance.aggregate(aggr)
-
 
         // Group by object with keys "YYYY-MM-DD" holding an array
         attendances = lodash.groupBy(attendances, (attendance) => {

@@ -13,6 +13,7 @@ const qr = require('qr-image')
 
 //// Modules
 const db = require('../db');
+const mailer = require('../mailer');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
 const passwordMan = require('../password-man');
@@ -134,13 +135,71 @@ router.get('/user/:userId', middlewares.guardRoute(['read_user']), middlewares.g
 
         res.render('user/read.html', {
             flash: flash.get(req, 'user'),
-            user: user,
+            userO: user, // prevent conflict with global template var "user"
         });
     } catch (err) {
         next(err);
     }
 });
 
+router.get('/user/:userId/password', middlewares.guardRoute(['read_user']), middlewares.getUser, async (req, res, next) => {
+    try {
+        let user = res.user.toObject()
+        let password = await passwordMan.genPassword(10)
+
+        res.render('user/password.html', {
+            flash: flash.get(req, 'user'),
+            userO: user, // prevent conflict with global template var "user"
+            password: password,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/user/:userId/password', middlewares.guardRoute(['read_user']), middlewares.getUser, async (req, res, next) => {
+    try {
+        let user = res.user.toObject()
+
+        let body = req.body
+        // return res.send(body)
+
+        let patch = {}
+
+        let notify = lodash.get(body, 'notify')
+        let password = lodash.get(body, 'password')
+        if (password) {
+            let salt = user.salt
+            let passwordHash = passwordMan.hashPassword(password, salt)
+            lodash.set(patch, 'passwordHash', passwordHash)
+            lodash.set(patch, 'salt', salt)
+
+            await db.main.User.updateOne({ _id: user._id }, patch)
+
+            if (notify) {
+
+                let data = {
+                    to: user.email,
+                    firstName: user.firstName,
+                    username: user.username,
+                    password: password,
+                    loginUrl: `${CONFIG.app.url}/login?username=${user.username}`
+                }
+
+                let info = await mailer.send('change-password.html', data)
+                console.log(info)
+
+                flash.ok(req, 'user', `Updated "${user.username}" password and sent an email to ${user.email}`)
+            } else {
+                flash.ok(req, 'user', `Updated "${user.username}" password.`)
+            }
+        }
+
+
+        res.redirect(`/user/all`)
+    } catch (err) {
+        next(err);
+    }
+});
 
 router.get('/user/:userId/edit', middlewares.guardRoute(['read_user']), middlewares.getUser, async (req, res, next) => {
     try {
@@ -151,7 +210,7 @@ router.get('/user/:userId/edit', middlewares.guardRoute(['read_user']), middlewa
         let password = passwordMan.randomString(10)
         // return res.send(roles)
         res.render('user/edit.html', {
-            user: user,
+            userO: user, // prevent conflict with global template var "user"
             roles: roles,
             permissions: permissions,
             password: password,

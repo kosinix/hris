@@ -4,21 +4,21 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h2">User: {{user.username}} </h1>
+            <h1 class="h2">User: {{userO.username}} </h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                <a href="/user/{{user._id}}/edit" class="btn btn-sm btn-outline-primary">Edit</a>
+                <a href="/user/{{userO._id}}/edit" class="btn btn-sm btn-outline-primary">Edit</a>
             </div>
         </div>
     </div>
     {% include 'parts/flash.html' %}
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
-        <p>Name: <u>{{user.firstName|capitalize}}</u> <u>{{user.middleName|capitalize}}</u> <u>{{user.lastName|capitalize}}</u></p>
-        <p>Username: {{user.username}}</p>
-        <p>Active Account: {{user.active}}</p>
-        <p>Roles: {{user.roles|join(', ')}}</p>
+        <p>Name: <u>{{userO.firstName|capitalize}}</u> <u>{{userO.middleName|capitalize}}</u> <u>{{userO.lastName|capitalize}}</u></p>
+        <p>Username: {{userO.username}}</p>
+        <p>Active Account: {{userO.active}}</p>
+        <p>Roles: {{userO.roles|join(', ')}}</p>
     </div>
 
 </div>

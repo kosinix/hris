@@ -59,13 +59,18 @@
             </form>
 
 
+            {% if schedule.members.length > 0 %}
+                <div class="alert alert-info">Last applied to these employees:</div>
+            {% endif %}
+            
             <div class="table-responsive">
                 <table class="table table-sm table-striped">
                     {% for member in schedule.members %}
                         <tr>
                             <td width="1%">{{loop.index}}</td>
-                            <td width="10%"><a href="/{{member.employmentId}}">{{member.lastName}}</a></td>
+                            <td width="10%"><a href="/employee/employment/{{member.employeeId}}/{{member.employmentId}}">{{member.lastName}}</a></td>
                             <td>{{member.firstName}}</td>
+                            {# <td><a href="/attendance/schedule/{{schedule._id}}/members/{{member._id}}/delete" onclick="return confirm('Remove from list?')" class="text-danger">X</a></td> #}
                         </tr>
                     {% endfor %}
 

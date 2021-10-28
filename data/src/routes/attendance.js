@@ -29,40 +29,65 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance',
         let matrix = kalendaryo.getMatrix(mCalendar, 0)
         let attendances = kalendaryo.getDays(mCalendar, 0)
 
-        attendances = await db.main.Attendance.aggregate([
-            {
-                $match:
-                {
-                    createdAt: {
-                        $gte: mFirstDay.toDate(),
-                        $lte: mLastDay.toDate(),
-                    }
+        let query = {
+            createdAt: {
+                $gte: mFirstDay.toDate(),
+                $lte: mLastDay.toDate(),
+            }
+        }
+        // Mosqueda
+        if (res.user.roles.includes('campusdirectormosqueda')) {
+            let employmentIds = await db.main.Employment.find({
+                campus: 'mosqueda'
+            }).lean()
+            
+            employmentIds = employmentIds.map((e) => e._id)
+
+            query['employmentId'] = {
+                $in: employmentIds
+            }
+        }
+        // Baterna
+        if (res.user.roles.includes('campusdirectorbaterna')) {
+            let employmentIds = await db.main.Employment.find({
+                campus: 'baterna'
+            }).lean()
+            
+            employmentIds = employmentIds.map((e) => e._id)
+
+            query['employmentId'] = {
+                $in: employmentIds
+            }
+        }
+
+        let aggr = []
+        aggr.push({ $match: query })
+        aggr.push({
+            $lookup: {
+                from: "employees",
+                localField: "employeeId",
+                foreignField: "_id",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
                 }
-            },
-            {
-                $lookup:
-                {
-                    from: "employees",
-                    localField: "employeeId",
-                    foreignField: "_id",
-                    as: "employees"
-                }
-            },
-            // Turn array employees into field employee
-            // Add field employee
-            {
-                "$addFields": {
-                    "employee": {
-                        $arrayElemAt: ["$employees", 0]
-                    }
-                }
-            },
-            {
-                $project: {
-                    employees: 0,
-                }
-            },
-        ])
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+            }
+        })
+
+        console.log(query)
+        attendances = await db.main.Attendance.aggregate(aggr)
+
 
         // Group by object with keys "YYYY-MM-DD" holding an array
         attendances = lodash.groupBy(attendances, (attendance) => {
@@ -418,10 +443,42 @@ router.post('/attendance/schedule/:scheduleId/members', middlewares.guardRoute([
             return 0;
         })
 
+        let employmentIds = members.map((m) => m.employmentId)
+
+        let r = await db.main.Employment.updateMany({
+            _id: {
+                $in: employmentIds
+            }
+        }, {
+            workScheduleId: res.schedule._id
+        })
+        // return res.send(r) 
+
         res.schedule.members = members
         await res.schedule.save()
 
-        flash.ok(req, 'schedule', 'Added.')
+        flash.ok(req, 'schedule', 'Work scheduled applied to ' + members.length + ' employee(s).')
+        res.redirect(`/attendance/schedule/${res.schedule._id}`)
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/attendance/schedule/:scheduleId/members/:memberId/delete', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), middlewares.getSchedule, async (req, res, next) => {
+    try {
+        let memberId = lodash.get(req, 'params.memberId')
+
+        let member = ''
+        res.schedule.members = res.schedule.toObject().members.filter((m) => {
+            if (m._id.toString() === memberId) {
+                member = m.lastName + ', ' + m.firstName
+            }
+            return m._id.toString() !== memberId
+        })
+
+        await res.schedule.save()
+
+        flash.ok(req, 'schedule', `Removed ${member} from list.`)
         res.redirect(`/attendance/schedule/${res.schedule._id}`)
 
     } catch (err) {

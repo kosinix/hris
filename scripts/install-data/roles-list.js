@@ -120,7 +120,31 @@ const ROLES = [
             'update_hdf',
             'delete_hdf',
         ]
-    }
+    },
+    {
+        key: 'campusdirectormosqueda',
+        name: 'Campus Director Mosqueda',
+        description: 'Can view attendance.',
+        permissions: [
+           
+            // Attendance
+            'read_all_attendance',
+            'read_attendance',
+
+        ]
+    },
+    {
+        key: 'campusdirectorbaterna',
+        name: 'Campus Director Baterna',
+        description: 'Can view attendance.',
+        permissions: [
+           
+            // Attendance
+            'read_all_attendance',
+            'read_attendance',
+
+        ]
+    },
 ]
 
 module.exports = ROLES

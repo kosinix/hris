@@ -62,6 +62,9 @@ router.post('/login', async (req, res, next) => {
         if (user.roles.includes('employee')) {
             return res.redirect('/e-profile/home')
         }
+        if (user.roles.includes('campusdirectormosqueda') || user.roles.includes('campusdirectorbaterna')) {
+            return res.redirect('/attendance/monthly')
+        }
         if (user.roles.includes('checker')) {
             let scanner = await db.main.Scanner.findOne({
                 userId: user._id

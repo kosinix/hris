@@ -67,12 +67,11 @@
             {% set label = '' %}
 
             <div class="form-row pt-3 pb-3">
-                <div class="col-md-6 text-md-left">
-                    <a class="btn btn-link" href="/employee/employment/{{employee._id}}">Cancel</a>
-                    <button class="btn btn-primary">Update</button>
-                </div>
-                <div class="col-md-6 text-md-right">
-                    {# <a class="btn btn-danger" href="/employee/employment/{{employee._id}}/{{employment._id}}/delete">Delete</a> #}
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between">
+                        <a href="/employee/employment/{{employee._id}}" class="btn btn-light">Cancel</a>
+                        <button class="btn btn-primary">Update Employment</button>
+                    </div>
                 </div>
             </div>
 

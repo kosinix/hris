@@ -60,6 +60,9 @@ const schema = new Schema({
         $type: Boolean,
         default: true
     },
+    workScheduleId: {
+        $type: mongoose.Schema.Types.ObjectId,
+    },
     documents: [
         {
             type: {

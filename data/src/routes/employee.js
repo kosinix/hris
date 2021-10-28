@@ -246,20 +246,18 @@ router.get('/employee/employment/:employeeId/create', middlewares.guardRoute(['c
     try {
         let employee = res.employee.toObject()
 
-        let workingHoursList = [
-            {
-                text: '7-1PM',
-                value: '7-13'
-            },
-            {
-                text: '8-12NN 1-5PM',
-                value: '7-13'
+        let workSchedules = await db.main.WorkSchedule.find().lean()
+        workSchedules = workSchedules.map((w)=>{
+            return {
+                value: w._id,
+                text: w.name
             }
-        ]
+        })
+
         res.render('employee/employment-create.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
-            workingHoursList: workingHoursList,
+            workSchedules: workSchedules,
         });
     } catch (err) {
         next(err);
@@ -281,6 +279,7 @@ router.post('/employee/employment/:employeeId/create', middlewares.guardRoute(['
         lodash.set(patch, `salaryType`, lodash.get(body, 'salaryType'))
         lodash.set(patch, `fundSource`, lodash.get(body, 'fundSource'))
         lodash.set(patch, `sssDeduction`, lodash.get(body, 'sssDeduction'))
+        lodash.set(patch, `workScheduleId`, lodash.get(body, 'workScheduleId'))
 
         let employment = new db.main.Employment(patch)
         await employment.save()
@@ -298,10 +297,20 @@ router.get('/employee/employment/:employeeId/:employmentId', middlewares.guardRo
         let employee = res.employee.toObject()
         let employment = res.employment
 
+        let workSchedules = await db.main.WorkSchedule.find().lean()
+        workSchedules = workSchedules.map((w)=>{
+            return {
+                value: w._id,
+                text: w.name
+            }
+        })
+
+        // return res.send(workSchedules)
         res.render('employee/employment-update.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
             employment: employment.toObject(),
+            workSchedules: workSchedules,
         });
     } catch (err) {
         next(err);
@@ -323,6 +332,7 @@ router.post('/employee/employment/:employeeId/:employmentId', middlewares.guardR
         lodash.set(patch, `salaryType`, lodash.get(body, 'salaryType'))
         lodash.set(patch, `fundSource`, lodash.get(body, 'fundSource'))
         lodash.set(patch, `sssDeduction`, lodash.get(body, 'sssDeduction'))
+        lodash.set(patch, `workScheduleId`, lodash.get(body, 'workScheduleId'))
 
         await db.main.Employment.updateOne({ _id: employment._id }, patch)
 

@@ -553,4 +553,18 @@ module.exports = {
             next(err);
         }
     },
+    getSchedule: async (req, res, next) => {
+        try {
+            let scheduleId = lodash.get(req, 'params.scheduleId', '')
+            let schedule = await db.main.WorkSchedule.findById(scheduleId)
+            if (!schedule) {
+                throw new Error('Schedule not found.')
+            }
+            res.schedule = schedule
+
+            next();
+        } catch (err) {
+            next(err)
+        }
+    },
 }

@@ -8,7 +8,7 @@
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                <a href="/attendance/schedule/create" class="btn btn-sm btn-outline-primary">Create Schedule</a>
+                <a href="/attendance/schedule/all" class="btn btn-sm btn-outline-primary">Back</a>
             </div>
         </div>
     </div>
@@ -29,10 +29,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                    {% for schedule in schedules %}
                         <tr>
                             <td class="text-center" width="5%">{{loop.index}}</td>
-                            <td><a href="/attendance/schedule/{{schedule._id}}">{{schedule.name}}</a></td>
+                            <td>{{schedule.name}}</td>
                             <td>
                                 <ul>
                                     {% for segment in schedule.timeSegments %}
@@ -41,9 +40,37 @@
                                 </ul>
                             </td>
                         </tr>
-                    {% endfor %}
                     </tbody>
                 </table>
+
+
+            </div>
+
+            <form action="/attendance/schedule/{{schedule._id}}/members" method="POST" class="mb-3">
+                <div class="form-group">
+                    <label for="listIds">List</label>
+                    <select multiple name="listIds" id="listIds" class="form-control">
+                        {% for list in employeeLists %}
+                        <option value="{{list._id}}">{{list.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="btn btn-primary">Apply Work Schedule</button>
+            </form>
+
+
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    {% for member in schedule.members %}
+                        <tr>
+                            <td width="1%">{{loop.index}}</td>
+                            <td width="10%"><a href="/{{member.employmentId}}">{{member.lastName}}</a></td>
+                            <td>{{member.firstName}}</td>
+                        </tr>
+                    {% endfor %}
+
+                </table>
+                
             </div>
         </div>
     {% endif %}

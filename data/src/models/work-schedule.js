@@ -1,3 +1,11 @@
+/**
+ * Work schedules
+ * 
+ * Needed for computing minutes worked.
+ * 
+ * employment has one work schedule
+ * attendance has one work schedule
+ */
 //// Core modules
 
 //// External modules

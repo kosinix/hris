@@ -363,4 +363,69 @@ router.post('/attendance/schedule/create', middlewares.guardRoute(['read_all_att
         next(err);
     }
 });
+
+router.get('/attendance/schedule/:scheduleId', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), middlewares.getSchedule, async (req, res, next) => {
+    try {
+        let schedule = res.schedule.toObject()
+
+        schedule.timeSegments = schedule.timeSegments.map((t) => {
+            t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
+            t.end = moment().startOf('day').minutes(t.end).format('hh:mm A')
+            return t
+        })
+
+        let employeeLists = await db.main.EmployeeList.find({
+            tags: {
+                $in: ['Employment']
+            }
+        })
+
+        res.render('attendance/schedule-read.html', {
+            flash: flash.get(req, 'schedule'),
+            schedule: schedule,
+            employeeLists: employeeLists
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/schedule/:scheduleId/members', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), middlewares.getSchedule, async (req, res, next) => {
+    try {
+        let listIds = lodash.get(req, 'body.listIds', [])
+
+        let employeeListeds = await db.main.EmployeeList.find({
+            _id: {
+                $in: listIds
+            }
+        },
+            {
+                members: true
+            }).lean()
+        let members = []
+        employeeListeds.forEach((o) => {
+            o.members.forEach((m) => {
+                members.push(m)
+            })
+        })
+
+        members.sort((a, b) => {
+            if (a.lastName < b.lastName) {
+                return -1;
+            }
+            if (a.lastName > b.lastName) {
+                return 1;
+            }
+            return 0;
+        })
+
+        res.schedule.members = members
+        await res.schedule.save()
+
+        flash.ok(req, 'schedule', 'Added.')
+        res.redirect(`/attendance/schedule/${res.schedule._id}`)
+
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

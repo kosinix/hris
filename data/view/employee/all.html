@@ -81,7 +81,7 @@
                             <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
                             <td>
                                 {% if employee.profilePhoto %}
-                                <img src="{{employee.profilePhoto|s3_url('tiny')}}" alt="">
+                                <a href="/employee/employment/{{employee._id}}"><img src="{{employee.profilePhoto|s3_url('tiny')}}" alt=""></a>
                                 {% endif %}
                             </td>
                             <td><a href="/employee/employment/{{employee._id}}">{{employee.lastName}}</a></td>

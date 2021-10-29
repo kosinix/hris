@@ -1,10 +1,12 @@
 //// Core modules
+const url = require('url');
 
 //// External modules
 const express = require('express')
 const flash = require('kisapmata')
 const lodash = require('lodash')
 const qr = require('qr-image')
+const axios = require('axios')
 
 //// Modules
 const db = require('../db')
@@ -35,6 +37,24 @@ router.post('/login', async (req, res, next) => {
 
         let username = lodash.get(post, 'username', '');
         let password = lodash.trim(lodash.get(post, 'password', ''))
+        let recaptchaToken = lodash.trim(lodash.get(post, 'recaptchaToken', ''))
+
+        // Recaptcha
+        let params = new url.URLSearchParams({ 
+            secret: CRED.recaptchav3.secret,
+            response: recaptchaToken
+        });
+        let response = await axios.post(`https://www.google.com/recaptcha/api/siteverify`, params.toString(), { 
+            headers: { 
+                "Content-Type": "application/x-www-form-urlencoded" 
+            }
+        })
+        // console.log(response.config, response.data)
+        let score = lodash.get(response, 'data.score', 0.0)
+        if(score < 0.5){
+            throw new Error('Security error.')
+
+        }
 
         // Find admin
         let user = await db.main.User.findOne({ username: username });

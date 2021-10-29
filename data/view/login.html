@@ -27,8 +27,9 @@
                             </div>
                             <small class="invalid-feedback">${getError('password')}</small>
                         </div>
+                        <input type="hidden" name="recaptchaToken" v-model="recaptchaToken">
                         <div class="form-group">
-                            <button class="btn btn-primary btn-full-width">Login</button>
+                            <button v-bind:disabled="pending" class="btn btn-primary btn-full-width">Login</button>
                         </div>
                         {# <small class="note">Logging in from IP Address: {{ip}}</small> #}
                     </form>
@@ -40,6 +41,7 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
+<script src="https://www.google.com/recaptcha/api.js?render=6LcB1_scAAAAABxNHSvZ1gnl5ZpTKZCoWa_JcYkV"></script>
 <script>
     var vApp = new Vue({
         el: '#vApp',
@@ -49,9 +51,11 @@
             window.vuelidateExtendMixin,
         ],
         data: {
+            pending: false,
             username: '{{username}}',
             password: '',
-            passwordType: 'password'
+            passwordType: 'password',
+            recaptchaToken: '',
         },
         validations: {
             username: {
@@ -74,8 +78,14 @@
                 if (me.$v.$error) {
                     alert('Please correct the errors to continue.')
                 } else {
-                    me.$nextTick(function() {
-                        me.$refs.form.submit();
+                    me.pending = true;
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute('6LcB1_scAAAAABxNHSvZ1gnl5ZpTKZCoWa_JcYkV', {action: 'submit'}).then(function(token) {
+                            me.recaptchaToken = token;
+                            me.$nextTick(function() {
+                                me.$refs.form.submit();
+                            });
+                        });
                     });
                 }
             }

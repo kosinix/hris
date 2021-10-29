@@ -602,7 +602,7 @@ router.post('/employee/user/:employeeId', middlewares.guardRoute(['create_employ
         if (employeeUser) { // Assoc user
             // Check username avail
             let found = await db.main.User.findOne({
-                email: body.username,
+                username: body.username,
                 _id: {
                     $ne: employeeUser._id
                 }
@@ -621,7 +621,7 @@ router.post('/employee/user/:employeeId', middlewares.guardRoute(['create_employ
 
             // Check username avail
             let found = await db.main.User.findOne({
-                email: body.username,
+                username: body.username,
             })
             if (found) {
                 flash.error(req, 'employee', `Username "${body.username}" already exists. Please choose a different one.`)
@@ -635,7 +635,7 @@ router.post('/employee/user/:employeeId', middlewares.guardRoute(['create_employ
                 firstName: employee.firstName,
                 middleName: employee.middleName,
                 lastName: employee.lastName,
-                email: body.username,
+                username: body.username,
                 active: true,
                 permissions: [],
             });

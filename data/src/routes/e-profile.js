@@ -203,6 +203,19 @@ router.post('/e-profile/hdf', middlewares.guardRoute(['use_employee_profile']), 
     }
 });
 
+router.post('/e-profile/accept', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee
+
+        employee.acceptedDataPrivacy = true
+        await employee.save()
+
+        res.send('ok')
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()

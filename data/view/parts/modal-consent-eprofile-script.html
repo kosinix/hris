@@ -1,0 +1,31 @@
+<script>
+var vAppModalConsent = new Vue({
+    el: '#vAppModalConsent',
+    delimiters: ["${", "}"],
+    mixins: [],
+    data: {
+        pending: false,
+    },
+    mounted: function(){
+        {% if acceptedDataPrivacy === false %}
+        jQuery('#vAppModalConsent').modal('show')
+        {% endif %}
+    },
+    methods: {
+        submit: function(){
+            var me = this;
+
+            me.pending = true;
+            axios.post('/e-profile/accept', {}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
+
+                jQuery('#vAppModalConsent').modal('hide');
+
+            }).catch(function(err){
+
+            }).then(function(){
+                me.pending = false;
+            })
+        }
+    }
+})
+</script>

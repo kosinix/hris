@@ -407,6 +407,9 @@ module.exports = {
             }).lean()
             res.employee = employee
 
+            // Data privacy
+            res.locals.acceptedDataPrivacy = lodash.get(res, 'employee.acceptedDataPrivacy', false)
+
             next();
         } catch (err) {
             next(err)

@@ -42,9 +42,11 @@
                     <thead>
                         <tr>
                             <th></th>
-                            <th>
-                                {% set thId = 'lastName' %}
+                            <th width="1%">
+                                {% set thId = 'profilePhoto' %}
+                                {% set thLabel = ' ' %}
                                 {% include 'parts/sorted-th.html' %}
+                                {% set thLabel = '' %}
                             </th>
                             <th>
                                 {% set thId = 'firstName' %}
@@ -77,6 +79,11 @@
                     {% for employee in employees %}
                         <tr>
                             <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
+                            <td>
+                                {% if employee.profilePhoto %}
+                                <img src="{{employee.profilePhoto|s3_url('tiny')}}" alt="">
+                                {% endif %}
+                            </td>
                             <td><a href="/employee/employment/{{employee._id}}">{{employee.lastName}}</a></td>
                             <td><a href="/employee/employment/{{employee._id}}">{{employee.firstName}}</a></td>
                             <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].position}}</a></td>

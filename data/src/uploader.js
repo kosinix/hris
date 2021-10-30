@@ -102,8 +102,8 @@ const _imageSizes = [
             return sharp(srcFile)
                 .rotate() // Auto rotate based on device orientation
                 .resize({
-                    width: 1000,
-                    height: 1000,
+                    width: 600,
+                    height: 600,
                     fit: 'cover',
                     background: { r: 255, g: 255, b: 255, alpha: 1 }
                 })
@@ -121,8 +121,8 @@ const _imageSizes = [
             return `${baseName}.jpeg`
         },
         fx: async (srcFile, destFile) => {
-            let newWidth = 1500
-            let newHeight = 1500
+            let newWidth = 1000
+            let newHeight = 1000
             sharp.cache(false) // Disable unlink error due files not released
 
             let image = await sharp(srcFile);
@@ -149,6 +149,41 @@ const _imageSizes = [
         }
     }
 ]
+
+/**
+ * Turn data URL string into file object semi-compatible with req.files.x.file
+ * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs
+ * 
+ * @param {string} dataUrl Must be in this format: `data:[<mediatype>][;base64],<data>`
+ * @return {object} Object of req.files 
+ * @throws Error
+ * 
+ */
+let toReqFile = (dataUrl) => {
+
+    if (dataUrl.substring(0, 5) !== 'data:') {
+        throw new Error('Not a valid data URL.')
+    }
+
+    dataUrl = dataUrl.substring(5)
+    let parts = dataUrl.split(';base64,')
+    if (parts.length <= 1) {
+        throw new Error('Not a valid data URL.')
+    }
+
+    let mimeType = parts[0]
+    let base64EncodedData = parts[1]
+
+    let file = {}
+    file.name = crypto.randomBytes(16).toString('hex')
+    file.data = Buffer.from(base64EncodedData, 'base64')
+    file.mimetype = mimeType
+    file.encoding = ''// Not implemented
+    file.truncated = false // Not implemented
+    file.md5 = '' // Not implemented
+    file.mv = null // Not needed.
+    return file
+}
 
 /**
  * Move files into upload dir and rename it
@@ -213,7 +248,11 @@ let handleExpressUploadLocalAsync = async (files, uploadDir, allowedMimes = ["im
             let fileName = fxFileName(file, localPrefix)
             let destFile = path.join(uploadDir, fileName);
 
-            await file.mv(destFile);
+            if (file.mv) {
+                await file.mv(destFile);
+            } else {
+                await sharp(file.data).toFile(destFile)
+            }
 
             let mimeType = await fileGuesser.guess(destFile);
 
@@ -423,7 +462,7 @@ let generateSaveList = (imageVariants, uploadFields) => {
             } else {
                 lodash.each(imageVariants, (variant) => {
 
-                    if(variant.parentFile === file.filePath && variant.name==='orig'){
+                    if (variant.parentFile === file.filePath && variant.name === 'orig') {
                         saveList[fieldName].push(path.basename(variant.filePath))
                     }
                 });
@@ -477,11 +516,12 @@ let deleteUploadsAsync = async (uploadFields, imageVariants) => {
 
 //await ;
 module.exports = {
+    deleteUploadsAsync: deleteUploadsAsync,
     handleExpressUploadLocalAsync: handleExpressUploadLocalAsync,
-    resizeImagesAsync: resizeImagesAsync,
-    generateUploadList: generateUploadList,
     generateSaveList: generateSaveList,
+    generateUploadList: generateUploadList,
+    resizeImagesAsync: resizeImagesAsync,
+    toReqFile: toReqFile,
     uploadToS3Async: uploadToS3Async,
-    deleteUploadsAsync: deleteUploadsAsync
 }
 

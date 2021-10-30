@@ -52,6 +52,22 @@ let antiCsrfCheck = async (req, res, next) => {
     }
 }
 
+let dataUrlToReqFiles = (names = []) => {
+    return async (req, res, next) => {
+        try {
+
+            names.forEach((fieldName) => {
+                lodash.set(req, `files.${fieldName}`, [
+                    uploader.toReqFile(lodash.get(req, `body.${fieldName}`))
+                ])
+            })
+
+            next()
+        } catch (err) {
+            next(err)
+        }
+    }
+}
 
 let handleExpressUploadMagic = async (req, res, next) => {
     try {
@@ -279,12 +295,12 @@ module.exports = {
             if (!registration) {
                 throw new Error("Sorry, registration not found.")
             }
-    
+
             let employment = await db.main.Employment.findById(registration.employmentId).lean()
             if (!employment) {
                 throw new Error("Sorry, employment not found.")
             }
-            
+
             let employee = await db.main.Employee.findById(employment.employeeId).lean()
             if (!employee) {
                 throw new Error("Sorry, employee not found.")
@@ -294,7 +310,7 @@ module.exports = {
             if (!userAccount) {
                 throw new Error('You dont have an user account.')
             }
-        
+
 
 
             registration.employment = employment
@@ -377,6 +393,7 @@ module.exports = {
             next(err);
         }
     },
+    dataUrlToReqFiles: dataUrlToReqFiles,
     handleExpressUploadMagic: handleExpressUploadMagic,
     requireAuthUser: requireAuthUser,
     requireAuthScanner: requireAuthScanner, // TODO: @deprecated

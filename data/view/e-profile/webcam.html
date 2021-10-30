@@ -1,0 +1,137 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Photo</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/e-profile/home" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 ml-auto mr-auto">
+        {% include 'parts/flash.html' %}
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/webcam" method="POST" class="form-default">
+            <div class="text-center mb-3">
+                <div v-if="error" class="alert alert-danger">${error}</div>
+                <div v-else>
+                    <img class="fx-expand" v-if="photo" v-bind:src="photo" alt="photo">
+                    <div v-else style="position: relative">
+                        <div v-if="webcamLoaded" class="target-left"></div>
+                        <div v-if="webcamLoaded" class="target-right"></div>
+                        <video style="max-width:100%; height: auto;" id="webcam-feed"></video>
+                        <canvas id="webcam-snapshot" hidden></canvas>
+                    </div>
+                </div>
+
+                <br>
+                <input type="hidden" name="photo" v-model="photo">
+                <button v-if="!photo && webcamLoaded === true" v-on:click.prevent="webcamSnap" class="btn btn-primary"><svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
+                </svg></button>
+                <button v-if="photo" v-bind:disabled="pending" class="btn btn-primary">Save</button>
+            </div>
+
+            {# <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <a style="float:right" href="/e-profile/photo/delete" class="text-danger">Delete</a>
+                    <button class="btn btn-primary">Update Profile Photo</button>
+                </div>
+            </div> #}
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/media-devices.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            pending: false,
+            useWebcam: false,
+            webcamPhotoSnapper: null,
+            webcamLoaded: false,
+            photo: '',
+            error: '',
+        },
+        validations: {},
+        mounted: function(){
+            var me = this;
+
+            document.getElementById("webcam-feed").addEventListener('loadedmetadata', function(e){
+                me.webcamLoaded = true
+            })
+            me.webcamStart()
+        },
+        methods: {
+            webcamStart: function(){
+                var me = this
+                if(!me.webcamPhotoSnapper){
+                    me.pending = true
+                    MediaDevicesPresets.createWebcamPhotoSnapper(
+                        document.getElementById("webcam-feed"),
+                        document.getElementById("webcam-snapshot")
+                    ).then(function(webcamPhotoSnapper){
+                        me.pending = false
+                        me.webcamPhotoSnapper = webcamPhotoSnapper
+                    }).catch(function(err){
+                        me.error = err.message;
+
+                        if (err.name == "NotFoundError" || err.name == "DevicesNotFoundError") {
+                            //required track is missing 
+                            me.error += '. Please check if you have a webcam.';
+
+                        } else if (err.name == "NotReadableError" || err.name == "TrackStartError") {
+                            //webcam or mic are already in use 
+                            me.error += '. Please close the other app that is using the webcam.';
+                      
+                        } else if (err.name == "NotAllowedError" || err.name == "PermissionDeniedError") {
+                            //permission denied in browser 
+                            me.error += '. Please allow the browser to use the webcam.';
+                            
+                        }
+
+                    }).then(function(){
+                        me.pending = false
+                    })
+                }
+            },
+            webcamStop: function(){
+                var me = this
+                if(me.webcamPhotoSnapper){
+                    me.webcamPhotoSnapper.stop()
+                    me.webcamPhotoSnapper = null
+                }
+            },
+            webcamPause: function(){
+                var me = this
+                if(me.webcamPhotoSnapper){
+                    document.getElementById("webcam-feed").pause()
+                }
+            },
+            webcamSnap: function(){
+                var me = this
+                if(me.webcamPhotoSnapper){
+                    me.photo = me.webcamPhotoSnapper.snap()
+                }
+            },
+            onSubmit: function(){
+                var me = this;
+                
+                me.$nextTick(function() {
+                    me.$refs.form.submit();
+                    me.pending = true
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}
+

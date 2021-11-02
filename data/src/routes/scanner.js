@@ -236,8 +236,28 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
             })
             // }, 1000)
 
+        } else if(scanData.dataType === 'qr') {
+
+            let log = null
+            try {
+                log = await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id)
+            } catch (err) {
+                throw new AppError(err.message) // Format for xhr
+            }
+
+            if (scanData.employee.profilePhoto) {
+                scanData.employee.profilePhoto = `/file-getter/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/small-${scanData.employee.profilePhoto}`
+            }
+            // setTimeout(function () {
+            res.send({
+                scanner: scanner,
+                log: log,
+                employee: scanData.employee,
+                employment: scanData.employment,
+                code: scanData.code
+            })
         } else {
-            throw new Error(`Invalid scan data type.`)
+            throw new AppError(`Invalid scan data type.`)
         }
 
 

@@ -504,7 +504,7 @@ module.exports = {
             let employee = null
             let employment = null
 
-            if (res.scanner.device === 'rfid') { // Plain number
+            if (code.length === 10) { // Plain number
 
                 employee = await db.main.Employee.findOne({
                     uid: code
@@ -541,21 +541,21 @@ module.exports = {
                 try {
                     qrData = JSON.parse(qrData)
                 } catch (errr) {
-                    throw new Error('Invalid QR code.')
+                    throw new AppError('Invalid QR code.')
                 }
 
                 employee = await db.main.Employee.findOne({
                     _id: qrData.employeeId
                 }).lean()
                 if (!employee) {
-                    throw new Error('Employee not found from QR Code.')
+                    throw new AppError('Employee not found from QR Code.')
                 }
 
                 employment = await db.main.Employment.findOne({
                     _id: qrData.employmentId
                 }).lean()
                 if (!employment) {
-                    throw new Error('Employment not found from QR Code.')
+                    throw new AppError('Employment not found from QR Code.')
                 }
 
                 res.scanData = {

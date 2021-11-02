@@ -15,6 +15,7 @@
             </div>
         </div>
     </div>
+
     <div class="tab-content pt-3 pb-2 pl-3 pr-3">
         <h1 class="mt-2">
             {{employee.lastName}},
@@ -24,7 +25,10 @@
             {{attendance.createdAt|format_date('MMM DD, YYYY')}}
         </h2>
 
+
         <form id="vApp" v-cloak ref="form" v-on:submit.prevent="onSubmit" action="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/{{attendance._id}}/edit" method="POST" class="form-default">
+    {% include 'parts/flash.html' %}
+            
             <div class="table-responsive">
                 <table class="table table-dtr">
                     <tr>
@@ -46,10 +50,13 @@
                     </tr>
                     <tr>
                         <td class="text-center p-1">
-                            <select name="attendanceType" id="attendanceType">
+                            <select v-model="attendance.type" name="type" id="type">
                                 <option value="normal">Normal</option>
                                 <option value="wfh">WFH</option>
                                 <option value="travel">On Travel</option>
+                            </select>
+                            <select v-model="attendance.workScheduleId" name="workScheduleId" id="workScheduleId">
+                                <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.name}</option>
                             </select>
                         </td>
                         <td class="text-center">{{attendance.createdAt|format_date('ddd')}}</td>
@@ -100,6 +107,7 @@
         ],
         data: {
             attendance: {{attendance|default({}, true)|stringify|safe}},
+            workSchedules: {{workSchedules|default([], true)|stringify|safe}},
             log0: '',
             log1: '',
             log2: '',

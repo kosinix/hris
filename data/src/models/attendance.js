@@ -17,6 +17,10 @@ let schema = mongoose.Schema({
     workScheduleId: {
         $type: mongoose.Schema.Types.ObjectId
     },
+    type: {
+        $type: String,
+        default: 'normal', // wfh, travel
+    },
     logs: [
         {
             scannerId: mongoose.Schema.Types.ObjectId,

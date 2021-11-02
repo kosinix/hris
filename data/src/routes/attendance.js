@@ -40,7 +40,7 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance',
             let employmentIds = await db.main.Employment.find({
                 campus: 'mosqueda'
             }).lean()
-            
+
             employmentIds = employmentIds.map((e) => e._id)
 
             query['employmentId'] = {
@@ -52,7 +52,7 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance',
             let employmentIds = await db.main.Employment.find({
                 campus: 'baterna'
             }).lean()
-            
+
             employmentIds = employmentIds.map((e) => e._id)
 
             query['employmentId'] = {
@@ -212,9 +212,20 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
                 $gte: startMoment.toDate(),
                 $lte: endMoment.toDate(),
             }
-        })
+        }).lean()
 
-        let days = dtrHelper.getDtrTable(startMoment, endMoment, attendances, true)
+        for(let a = 0; a < attendances.length; a++){
+            let attendance = attendances[a] 
+            let workSchedule = await db.main.WorkSchedule.findById(
+                lodash.get(attendance, 'workScheduleId')
+            )
+
+            attendance.shifts = lodash.get(workSchedule, 'timeSegments')
+        }
+
+        // return res.send(attendances)
+
+        let days = dtrHelper.getDtrTable(startMoment, endMoment, attendances)
         let totalMinutes = 0
         let totalMinutesUnderTime = 0
         days.forEach((day) => {
@@ -254,12 +265,25 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance
         let employee = res.employee.toObject()
         let employment = res.employment.toObject()
         let attendance = res.attendance.toObject()
+        let workSchedules = await db.main.WorkSchedule.find().lean()
+
+        attendance = lodash.merge({
+            createdAt: '',
+            employeeId: '',
+            employmentId: '',
+            logs: [],
+            onTravel: false,
+            wfh: false,
+            type: 'normal',
+            workScheduleId: '',
+        }, attendance)
 
         res.render('attendance/edit.html', {
             flash: flash.get(req, 'attendance'),
             employee: employee,
             employment: employment,
             attendance: attendance,
+            workSchedules: workSchedules,
         });
     } catch (err) {
         next(err);
@@ -272,23 +296,26 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
         let attendance = res.attendance.toObject()
 
         let body = req.body
+
+        // return res.send(body)
         let patch = {}
-        lodash.set(patch, 'attendanceType', lodash.get(body, 'attendanceType'))
+        lodash.set(patch, 'type', lodash.get(body, 'type'))
+        lodash.set(patch, 'workScheduleId', lodash.get(body, 'workScheduleId'))
         lodash.set(patch, 'log0', lodash.get(body, 'log0'))
         lodash.set(patch, 'log1', lodash.get(body, 'log1'))
         lodash.set(patch, 'log2', lodash.get(body, 'log2'))
         lodash.set(patch, 'log3', lodash.get(body, 'log3'))
 
 
-        if (patch.attendanceType === 'wfh') {
+        attendance.type = patch.type
+        attendance.workScheduleId = patch.workScheduleId
+        attendance.onTravel = false
+        attendance.wfh = false
+
+        if (attendance.type === 'wfh') {
             attendance.wfh = true
-            attendance.onTravel = false
-        } else if (patch.attendanceType === 'travel') {
+        } else if (attendance.type === 'travel') {
             attendance.onTravel = true
-            attendance.wfh = false
-        } else {
-            attendance.wfh = false
-            attendance.onTravel = false
         }
 
         attendance.logs = attendance.logs.map((log, i) => {
@@ -300,7 +327,8 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
 
         await db.main.Attendance.updateOne({ _id: attendance._id }, attendance)
         flash.ok(req, 'attendance', `Attendance changed.`)
-        res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}?start=${moment(attendance.createdAt).format('YYYY-MM-DD')}&end=${moment(attendance.createdAt).format('YYYY-MM-DD')}`)
+        res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
+        // res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}?start=2021-11-02&end=2021-11-02`)
     } catch (err) {
         next(err);
     }

@@ -277,14 +277,9 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
 
 }
 
-const getDtrMonthlyView = (month, year, attendances, useDaysInMonth = false, workSchedule) => {
+const getDtrMonthlyView = (month, year, attendances, useDaysInMonth = false) => {
 
     let momentNow = moment().year(year).month(month)
-
-    attendances = attendances.map(a => {
-        a.workSchedule = workSchedule
-        return a
-    })
 
     // Turn array of attendances into an object with date as keys: "2020-12-31"
     attendances = lodash.mapKeys(attendances, (a) => {
@@ -305,7 +300,7 @@ const getDtrMonthlyView = (month, year, attendances, useDaysInMonth = false, wor
         let date = `${year}-${month}-${day}`
         let weekDay = moment(date).format('ddd')
         let attendance = attendances[date] || null
-        let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
+        let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, lodash.get(attendance, 'shifts'))
 
         return {
             date: date,
@@ -331,7 +326,7 @@ const getDtrTable = (startMoment, endMoment, attendances) => {
         let month = m.format('MM')
         let day = m.format('DD')
         let weekDay = m.format('ddd')
-        let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
+        let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, lodash.get(attendance, 'shifts'))
 
         return {
             date: date,

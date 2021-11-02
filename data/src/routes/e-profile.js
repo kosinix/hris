@@ -236,9 +236,16 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
             }
         }).lean()
 
-        let workSchedule = await db.main.WorkSchedule.findOne()
+        for(let a = 0; a < attendances.length; a++){
+            let attendance = attendances[a] 
+            let workSchedule = await db.main.WorkSchedule.findById(
+                lodash.get(attendance, 'workScheduleId')
+            )
 
-        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false, workSchedule)
+            attendance.shifts = lodash.get(workSchedule, 'timeSegments')
+        }
+
+        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
         // return res.send(dtrDays)
         res.render('e-profile/dtr.html', {
             momentNow: momentNow,

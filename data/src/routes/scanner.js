@@ -10,58 +10,9 @@ const qr = require('qr-image')
 //// Modules
 const AppError = require('../errors').AppError
 const db = require('../db');
+const dtrHelper = require('../dtr-helper');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
-
-let attendanceLog = async (scanData, scanner, waitTime = 15) => {
-    // Today attendance
-    let attendance = await db.main.Attendance.findOne({
-        employeeId: scanData.employee._id,
-        employmentId: scanData.employment._id,
-        createdAt: {
-            $gte: moment().startOf('day').toDate(),
-            $lt: moment().endOf('day').toDate(),
-        }
-    })
-    if (!attendance) {
-        attendance = new db.main.Attendance({
-            employeeId: scanData.employee._id,
-            employmentId: scanData.employment._id,
-            onTravel: false,
-            logs: [
-                {
-                    scannerId: scanner._id,
-                    dateTime: moment().toDate(),
-                    mode: 1 // in
-                }
-            ]
-        })
-    } else {
-        if (attendance.logs.length >= 4) {
-            throw new AppError('Max scans already.') // Max 4 log
-        }
-        if (!attendance.logs.length) {
-            throw new AppError('Bad attendance data.') // should have at least 1 log
-        }
-        let lastLog = attendance.logs[attendance.logs.length - 1]
-
-        // Throttle to avoid double scan
-        let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
-        if (diff < waitTime) {
-            throw new AppError(`You have already logged. Please wait ${waitTime - diff} minute(s) and try again later.`)
-        }
-
-        let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0
-
-        attendance.logs.push({
-            scannerId: scanner._id,
-            dateTime: moment().toDate(),
-            mode: mode
-        })
-    }
-    await attendance.save()
-    return attendance.logs[attendance.logs.length - 1]
-}
 
 // Router
 let router = express.Router()
@@ -265,9 +216,14 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
 
         if (scanData.dataType === 'rfid') {
 
-            let log = await attendanceLog(scanData, scanner)
+            let log = null
+            try {
+                log = await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id)
+            } catch (err) {
+                throw new AppError(err.message) // Format for xhr
+            }
 
-            if(scanData.employee.profilePhoto){
+            if (scanData.employee.profilePhoto) {
                 scanData.employee.profilePhoto = `/file-getter/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/small-${scanData.employee.profilePhoto}`
             }
             // setTimeout(function () {
@@ -355,7 +311,11 @@ router.get('/scanner/:scannerUid/no-verify', middlewares.guardRoute(['use_scanne
     try {
         let scanData = res.scanData
 
-        await attendanceLog(scanData, scanner)
+        try {
+            await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id)
+        } catch (err) {
+            throw new AppError(err.message) // Format for xhr
+        }
 
         return res.redirect(`/scanner/${scanner.uid}/check-in?code=${scanData.code}`)
     } catch (err) {

@@ -387,7 +387,7 @@ let compute = {
     }
 }
 
-const logAttendance = async (db, employee, employment, waitTime = 5) => {
+const logAttendance = async (db, employee, employment, scannerId, waitTime = 15) => {
     // Today attendance
     let attendance = await db.main.Attendance.findOne({
         employeeId: employee._id,
@@ -404,11 +404,12 @@ const logAttendance = async (db, employee, employment, waitTime = 5) => {
             onTravel: false,
             logs: [
                 {
-                    scannerId: null,
+                    scannerId: scannerId,
                     dateTime: moment().toDate(),
                     mode: 1 // in
                 }
-            ]
+            ],
+            workScheduleId: employment.workScheduleId
         })
     } else {
         if (attendance.logs.length >= 4) {
@@ -428,12 +429,11 @@ const logAttendance = async (db, employee, employment, waitTime = 5) => {
         let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0
 
         attendance.logs.push({
-            scannerId: null,
+            scannerId: scannerId,
             dateTime: moment().toDate(),
             mode: mode
         })
     }
-    // await attendance.save()
     await db.main.Attendance.updateOne({ _id: attendance._id }, attendance)
     return attendance.logs[attendance.logs.length - 1]
 }

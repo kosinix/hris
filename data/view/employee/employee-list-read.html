@@ -49,7 +49,7 @@
                     {% for member in employeeList.members %}
                         <tr>
                             <td>{{loop.index}}</td>
-                            <td>{{member.lastName}}, {{member.firstName}}</td>
+                            <td><a href="/employee/employment/{{member.employeeId}}">{{member.lastName}}, {{member.firstName}}</a></td>
                             <td>{{member.position}}</td>
                             <td class="text-center">
                                 <button v-on:click.prevent="deleteMember('{{member._id}}')" class="btn btn-sm btn-none text-danger">X</button>

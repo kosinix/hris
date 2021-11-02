@@ -93,7 +93,7 @@
                                 {% endif %}
 
                                 {% if attendance.logs[0] and not attendance.logs[1] and currentDay %} 
-                                    <form action="/e-profile/dtr/{{employment._id}}/logs" method="POST">
+                                    <form onsubmit="return confirm('Are you sure you want to time-out now?')" action="/e-profile/dtr/{{employment._id}}/logs" method="POST">
                                         <button class="btn btn-sm btn-light">Time-Out</button>
                                     </form>
                                 {% endif %}
@@ -105,7 +105,7 @@
                                     {{attendance.logs[2].dateTime|format_date('hh:mm A')}} 
                                 {% endif %}
                                 {% if attendance.logs[1].dateTime and not attendance.logs[2] and currentDay %} 
-                                    <form action="/e-profile/dtr/{{employment._id}}/logs" method="POST">
+                                    <form onsubmit="return confirm('Are you sure you want to time-in now?')"  action="/e-profile/dtr/{{employment._id}}/logs" method="POST">
                                         <button class="btn btn-sm btn-light">Time-In</button>
                                     </form>
                                 {% endif %}

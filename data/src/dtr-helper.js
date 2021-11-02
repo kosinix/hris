@@ -422,7 +422,7 @@ const logAttendance = async (db, employee, employment, waitTime = 5) => {
         // Throttle to avoid double scan
         let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
         if (diff < waitTime) {
-            throw new Error(`You have already logged. Please wait ${5 - diff} minute(s) and try again.`)
+            throw new Error(`You have already logged. Please wait ${waitTime - diff} minute(s) and try again later.`)
         }
 
         let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0

@@ -256,7 +256,7 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
         let employee = res.employee.toObject()
         let employment = res.employment
 
-        let log = await dtrHelper.logAttendance(db, employee, employment, 0)
+        let log = await dtrHelper.logAttendance(db, employee, employment, 15) // 15mins timeout
         let data = {
             log: log
         }

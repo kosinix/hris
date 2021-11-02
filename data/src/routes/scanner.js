@@ -13,7 +13,7 @@ const db = require('../db');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
 
-let attendanceLog = async (scanData, scanner) => {
+let attendanceLog = async (scanData, scanner, waitTime = 15) => {
     // Today attendance
     let attendance = await db.main.Attendance.findOne({
         employeeId: scanData.employee._id,
@@ -46,10 +46,9 @@ let attendanceLog = async (scanData, scanner) => {
         let lastLog = attendance.logs[attendance.logs.length - 1]
 
         // Throttle to avoid double scan
-        let waitTime = 5
         let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
         if (diff < waitTime) {
-            throw new AppError(`You have already logged. Please wait ${5 - diff} minute(s) and try again.`)
+            throw new AppError(`You have already logged. Please wait ${waitTime - diff} minute(s) and try again later.`)
         }
 
         let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0

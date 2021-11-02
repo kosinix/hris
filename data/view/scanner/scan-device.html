@@ -43,6 +43,7 @@
     var voices = []
     var synth = window.speechSynthesis;
 
+    
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
@@ -63,6 +64,7 @@
             name: '',
             returnCountdown: 0,
             voicesReady: false,
+            clock: '',
         },
         validations: {
 
@@ -86,6 +88,12 @@
                     me.voicesReady = true;
                 }
             }, 100)
+
+            var tick = function(){
+                me.clock = moment().format('h:mm:ss A')
+            }
+            tick();
+            setInterval(tick, 1000);
 
         },
         watch: {

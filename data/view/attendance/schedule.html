@@ -36,7 +36,12 @@
                             <td>
                                 <ul>
                                     {% for segment in schedule.timeSegments %}
-                                        <li>{{segment.start}} - {{segment.end}} <em>({{segment.maxHours}} hrs)</em></li>
+                                        <li>
+                                            {{segment.start}} - {{segment.end}} <em>({{segment.maxHours}} hrs)</em> 
+                                            
+
+                                            {% if segment.grace > 0 %} <em>with ({{segment.grace}} minutes grace)</em> {% endif %}
+                                        </li>
                                     {% endfor %}
                                 </ul>
                             </td>

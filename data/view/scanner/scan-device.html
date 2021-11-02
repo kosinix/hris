@@ -267,10 +267,13 @@
                     var lastName = _.get(data, 'employee.lastName')
                     var profilePhoto = _.get(data, 'employee.profilePhoto')
                     if(log){
-                        me.time = moment(log.dateTime).format('hh:mm A');
+                        var momentLogTime = moment(log.dateTime)
+                        me.time = momentLogTime.clone().format('hh:mm A');
                         me.name = firstName + ' ' + lastName;
                         me.profilePhoto = profilePhoto;
-                        var morning = moment(log.dateTime).format('A') === 'AM' ? true : false;
+                        var morning = momentLogTime.clone().format('A') === 'AM' ? true : false;
+                        var afternoon = momentLogTime.clone().format('A') === 'PM' ? true : false;
+                        var evening = momentLogTime.clone().hours() >= 18 ? true : false;
                         var message = '';
                         var salute = '';
                         if(gender === 'M') {
@@ -280,10 +283,12 @@
                         }
                         if(morning) {
                             message += 'Good morning'+salute+'!';
-                        } else {
+                        } else if(evening){
+                            message += 'Good evening'+salute+'!';
+                        } else if(afternoon) {
                             message += 'Good afternoon'+salute+'!';
                         }
-                        message += 'Your time is ' + moment(log.dateTime).format('hh:mm A')
+                        message += 'Your time is ' + momentLogTime.clone().format('hh:mm A')
                         me.hambal(message)
                     }
                     me.returnBalik(10)

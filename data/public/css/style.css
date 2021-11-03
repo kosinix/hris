@@ -34,20 +34,20 @@ div[data-pending="true"]:before {
     background: #fff;
     opacity: 0.9;
     content: "";
-    position: absolute;
+    position: fixed;
     left: 0;
     right: 0;
     top: 0;
     bottom: 0;
-    z-index: 1;
+    z-index: 99;
 }
 div[data-pending="true"]:after {
     content: "Processing... Please wait...";
-    position: absolute;
+    position: fixed;
     left: 0;
     right: 0;
     top: 50%;
-    z-index: 1;
+    z-index: 100;
     text-align: center;
     color: #222;
     background: #fff;

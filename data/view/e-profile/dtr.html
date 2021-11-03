@@ -15,7 +15,7 @@
         </div>
     </div>
     <div class=" mb-5">
-        <div id="vApp" v-cloak style="max-width: 600px" class=" ml-auto mr-auto" >
+        <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width: 600px" class="ml-auto mr-auto" >
             <div class="text-center">
                 <div class="text-center pt-3 pb-3">
                     <div class="e-profile-photo ml-auto mr-auto">
@@ -41,7 +41,20 @@
                     </div>
                 </div>
                 <h4 class="h3 mb-3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
-                <p class="text-left mt-5 mb-4"><em class="mr-2">For the month of:</em> <strong>{{momentNow|format_date('MMMM')}}</strong></p>
+                <p class="text-left mb-3"><em class="mr-2">Employment:</em> <strong>{{employment.position}}</strong></p>
+                <p class="text-left mb-3"><em class="mr-2">For the month of:</em> <strong>{{momentNow|format_date('MMMM')}}</strong></p>
+                <div class="text-left mb-4 d-flex align-items-center">
+                    <em class="mr-2">Work Schedule:</em>  
+                    <span v-if="!workScheduleEditable">${workSchedule.times}</span>
+                    <button v-if="!workScheduleEditable" v-on:click="workScheduleEdit" class="btn btn-sm btn-outline-success ml-2">Edit</button>
+
+                    <select v-if="workScheduleEditable" v-model="workScheduleId" name="workScheduleId" id="workScheduleId" class="form-control">
+                        <option value=""></option>
+                        <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.times}</option>
+                    </select>
+                    <button v-on:click="saveSchedule" v-if="workScheduleEditable" class="btn btn-sm btn-outline-success ml-2">Save</button>
+
+                </div>
             </div>
             <div class="table-responsive">
                 <table class="table table-dtr">
@@ -49,7 +62,12 @@
                         <th class="text-center" rowspan="2">Day</th>
                         <th class="text-center" colspan="2">AM</th>
                         <th class="text-center" colspan="2">PM</th>
-                        <th class="text-center" colspan="2">Undertime</th>
+                        <th class="text-center" colspan="2">
+                            <select style="border:0; font-weight:bold;"  v-model="totalTimeView" name="totalTimeView" id="totalTimeView">
+                                <option value="undertime">Undertime</option>
+                                <option value="time">Time</option>
+                            </select>
+                        </th>
                     </tr>
                     <tr>
                         <th>Arrival</th>
@@ -61,69 +79,72 @@
                         <th>Hours</th>
                         <th>Minutes</th>
                     </tr>
-                    {% for dtrDay in dtrDays %}
-                    {% set attendance = dtrDay.attendance %}
-                    {% set currentDay = dtrDay.date === momentNow|format_date('YYYY-MM-DD') %}
-                    <tr class="{% if currentDay %} selected {% endif %} {% if dtrDay.dtr.undertime === true %} undertime {% endif %}">
-                        <td class="text-center">{{loop.index}}</td>
-                        {% if attendance.onTravel %}
+                    <tr v-for="(dtrDay, index) in dtrDays" v-bind:class="getCssClass(dtrDay)">
+                        <td class="text-center">${index + 1}</td>
+                        <template v-if="_.get(dtrDay, 'attendance.type') === 'travel'">
                             <td>On Travel</td>
                             <td></td>
                             <td></td>
                             <td></td>
-                            <td></td>
-                            <td></td>
-                        {% elif attendance.wfh %}
+                            <td>
+                                ${dispHours(_.get(dtrDay, 'dtr'))}
+                            </td>
+                            <td>
+                                ${dispMins(_.get(dtrDay, 'dtr'))}
+                            </td>
+                        </template>
+                        <template v-else-if="_.get(dtrDay, 'attendance.type') === 'wfh'">
                             <td>WFH</td>
                             <td></td>
                             <td></td>
                             <td></td>
-                            <td></td>
-                            <td></td>
-                        {% else %}
                             <td>
-                                {% if attendance.logs[0].dateTime %} 
-                                {{attendance.logs[0].dateTime|format_date('hh:mm A')}} 
-                                {% endif %}
+                                ${dispHours(_.get(dtrDay, 'dtr'))}
                             </td>
                             <td>
-                            
-                                {% if attendance.logs[1].dateTime %} 
-                                    {{attendance.logs[1].dateTime|format_date('hh:mm A')}} 
-                                {% endif %}
+                                ${dispMins(_.get(dtrDay, 'dtr'))}
+                            </td>
+                        </template>
+                        <template v-else >
 
-                                {% if attendance.logs[0] and not attendance.logs[1] and currentDay %} 
-                                    <form onsubmit="return confirm('Are you sure you want to time-out now?')" action="/e-profile/dtr/{{employment._id}}/logs" method="POST">
-                                        <button class="btn btn-sm btn-light">Time-Out</button>
-                                    </form>
-                                {% endif %}
-                            
+                            <td>
+                                <div v-if="_.get(dtrDay, 'attendance.logs[0].dateTime')">
+                                    ${formatDate(_.get(dtrDay, 'attendance.logs[0].dateTime'), 'hh:mm A')}
+                                </div>
+                            </td>
+                            <td>
+                                <div v-if="_.get(dtrDay, 'attendance.logs[1].dateTime')">
+                                    ${formatDate(_.get(dtrDay, 'attendance.logs[1].dateTime'), 'hh:mm A')}
+                                </div>
+
+                                <div v-if="_.get(dtrDay, 'attendance.logs[0]') && !_.get(dtrDay, 'attendance.logs[1]')&& isCurrentDay(dtrDay)">
+                                    <button v-on:click="logTime" class="btn btn-sm btn-light">Time-Out</button>
+                                </div>
                             </td>
                             <td>
 
-                                {% if attendance.logs[2].dateTime %} 
-                                    {{attendance.logs[2].dateTime|format_date('hh:mm A')}} 
-                                {% endif %}
-                                {% if attendance.logs[1].dateTime and not attendance.logs[2] and currentDay %} 
-                                    <form onsubmit="return confirm('Are you sure you want to time-in now?')"  action="/e-profile/dtr/{{employment._id}}/logs" method="POST">
-                                        <button class="btn btn-sm btn-light">Time-In</button>
-                                    </form>
-                                {% endif %}
-                            </td>
-                            <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                            <td>
-                                {% if dtrDay.dtr.underMinutes %}
-                                    {{dtrDay.dtr.underHours}}
-                                {% endif %}
+                                <div v-if="_.get(dtrDay, 'attendance.logs[2].dateTime')">
+                                    ${formatDate(_.get(dtrDay, 'attendance.logs[2].dateTime'), 'hh:mm A')}
+                                </div>
+
+                                <div v-if="_.get(dtrDay, 'attendance.logs[1]') && !_.get(dtrDay, 'attendance.logs[2]')&& isCurrentDay(dtrDay)">
+                                    <button v-on:click="logTime" class="btn btn-sm btn-light">Time-In</button>
+                                </div>
+                                
                             </td>
                             <td>
-                                {% if dtrDay.dtr.underMinutes %}
-                                    {{dtrDay.dtr.underMinutes}}
-                                {% endif %}
+                                <div v-if="_.get(dtrDay, 'attendance.logs[3].dateTime')">
+                                    ${formatDate(_.get(dtrDay, 'attendance.logs[3].dateTime'), 'hh:mm A')}
+                                </div>
                             </td>
-                        {% endif %}
+                            <td>
+                                ${dispHours(_.get(dtrDay, 'dtr'))}
+                            </td>
+                            <td>
+                                ${dispMins(_.get(dtrDay, 'dtr'))}
+                            </td>
+                        </template>
                     </tr>
-                    {% endfor %}
                 </table>
             </div>
             <div class="text-center">
@@ -142,11 +163,107 @@
         delimiters: ["${", "}"],
         mixins: [],
         data: {
-            pending: false
+            pending: false,
+            pending: {{momentNow|format_date('YYYY-MM-DD')}},
+            workScheduleEditable: false,
+            totalTimeViewEditable: false,
+            workScheduleId: '{{employment.workScheduleId}}',
+            workSchedules: {{workSchedules|default([], true)|stringify|safe}},
+            dtrDays: {{dtrDays|default([], true)|stringify|safe}},
+            totalTimeView: 'undertime',
         },
         validations: {},
+        computed: {
+            workSchedule: function(){
+                var me = this;
+                return _.find(me.workSchedules, function(o){
+                    return me.workScheduleId === o._id
+                })
+            },
+        },
         methods: {
-            lunchOut: function(){
+            dispHours: function(dtr) {
+                var me = this;
+                var res = 0
+                if (me.totalTimeView == 'time') {
+                    res = _.get(dtr, 'renderedDays', 0) * 8 + _.get(dtr, 'renderedHours', 0);
+                } else {
+                    res = _.get(dtr, 'underDays', 0) * 8 + _.get(dtr, 'underHours', 0);
+                }
+                if (res === 0) return ''
+                return res
+            },
+            dispMins: function(dtr) {
+                var me = this;
+                var res = 0
+                if (me.totalTimeView == 'time') {
+                    res = _.get(dtr, 'renderedMinutes', 0);
+                } else {
+                    res = _.get(dtr, 'underMinutes', 0);
+                }
+                if (res === 0) return ''
+                return res
+            },
+            isCurrentDay: function(dtrDay){
+                return _.get(dtrDay, 'date') === moment().format('YYYY-MM-DD');
+            },
+            formatDate: function(date, format){
+                return moment(date).format(format);
+            },
+            getCssClass: function(dtrDay){
+                var me = this;
+                var dtrDayClass = [];
+                if(me.isCurrentDay(dtrDay)){
+                    dtrDayClass.push('selected');
+                }
+                if(_.get(dtrDay, 'dtr.undertime', false)){
+                    dtrDayClass.push('undertime');
+                }
+
+                return dtrDayClass.join(' ');
+            },
+            workScheduleEdit: function(){
+                this.workScheduleEditable = true;
+            },
+            totalTimeViewEdit: function(){
+                this.totalTimeViewEditable = true;
+            },
+            saveSchedule: function(){
+                var me = this;
+
+                me.pending = true;
+                var body = {
+                    workScheduleId: me.workScheduleId
+                };
+                axios.post('/e-profile/dtr/{{employment._id}}/change-sched', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
+                    var data = _.get(response, 'data')
+                    console.log(data)
+                    me.dtrDays = data
+                    
+                }).catch(function (error) {
+                    if (error.response) {
+                        // Request made, server responded with a status code outside of 2xx
+                        // console.error(error.response.status)
+                        var err = error.response.data;
+                       console.error(err)
+                       alert(err.msg)
+
+                    } else if (error.request) {
+                        var msg = 'The request was made but no response was received'
+                        console.error(msg);
+
+                    } else {
+                        var msg = 'Something happened in setting up the request that triggered an Error.'
+                        console.error(msg, error.message);
+
+                    }
+                }).then(function () {
+                    // always executed
+                    me.pending = false;
+                    me.workScheduleEditable = false;
+                })
+            },
+            logTime: function(){
                 var me = this;
 
                 me.pending = true;
@@ -156,6 +273,7 @@
                 axios.post('/e-profile/dtr/{{employment._id}}/logs', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
                     var data = _.get(response, 'data')
                     console.log(data)
+                    me.dtrDays = data
                     
                 }).catch(function (error) {
                     if (error.response) {
@@ -163,6 +281,7 @@
                         // console.error(error.response.status)
                         var err = error.response.data;
                        console.error(err)
+                       alert(err.msg)
 
                     } else if (error.request) {
                         var msg = 'The request was made but no response was received'
@@ -177,10 +296,6 @@
                     // always executed
                     me.pending = false;
                 })
-            },
-            lunchIn: function(){
-                console.log('vvv')
-
             },
             onSubmit: function(){
                 var me = this;

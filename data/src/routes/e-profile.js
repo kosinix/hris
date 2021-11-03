@@ -19,6 +19,7 @@ const passwordMan = require('../password-man');
 const paginator = require('../paginator');
 const suffixes = require('../suffixes');
 const s3 = require('../aws-s3');
+const { AppError } = require('../errors');
 
 // Router
 let router = express.Router()
@@ -236,14 +237,27 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
             }
         }).lean()
 
-        for(let a = 0; a < attendances.length; a++){
-            let attendance = attendances[a] 
+        for (let a = 0; a < attendances.length; a++) {
+            let attendance = attendances[a]
             let workSchedule = await db.main.WorkSchedule.findById(
                 lodash.get(attendance, 'workScheduleId')
             )
 
             attendance.shifts = lodash.get(workSchedule, 'timeSegments')
         }
+
+        let workSchedules = await db.main.WorkSchedule.find().lean()
+        workSchedules = workSchedules.map((o) => {
+            let times = []
+            o.timeSegments = o.timeSegments.map((t) => {
+                t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
+                t.end = moment().startOf('day').minutes(t.end).format('hh:mm A')
+                times.push(`${t.start} to ${t.end}`)
+                return t
+            })
+            o.times = times.join(", \n")
+            return o
+        })
 
         let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
         // return res.send(dtrDays)
@@ -253,26 +267,111 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
             employee: employee,
             employment: employment,
             dtrDays: dtrDays,
+            workSchedules: workSchedules,
         });
+
+        
     } catch (err) {
         next(err);
+    }
+});
+router.post('/e-profile/dtr/:employmentId/change-sched', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employmentId = res.employmentId
+        let employment = res.employment
+        let month = lodash.get(req, 'query.month', moment().format('MMM'))
+        let year = lodash.get(req, 'query.year', moment().format('YYYY'))
+        let momentNow = moment().year(year).month(month)
+
+
+        // Today attendance
+        let attendances = await db.main.Attendance.find({
+            employeeId: employee._id,
+            employmentId: employmentId,
+            createdAt: {
+                $gte: momentNow.clone().startOf('month').toDate(),
+                $lt: momentNow.clone().endOf('month').toDate(),
+            }
+        }).lean()
+
+        let ids = []
+        for (let a = 0; a < attendances.length; a++) {
+            let attendance = attendances[a]
+            ids.push(attendance._id.toString())
+            lodash.set(attendance, 'workScheduleId', req.body.workScheduleId)
+            let workSchedule = await db.main.WorkSchedule.findById(
+                lodash.get(attendance, 'workScheduleId')
+            )
+            attendance.shifts = lodash.get(workSchedule, 'timeSegments')
+        }
+
+        let r = await db.main.Attendance.updateMany({
+            _id: {
+                $in: ids
+            }
+        }, {
+            workScheduleId: req.body.workScheduleId
+        })
+        let r2 = await db.main.Employment.updateOne({
+            _id: employment._id
+        }, {
+            workScheduleId: req.body.workScheduleId
+        })
+
+        console.log({
+            _ids: {
+                $in: ids
+            },
+            r: r,
+            r2: r2,
+        })
+
+        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
+
+        res.send(dtrDays)
+    } catch (err) {
+        next(new AppError(err.message));
     }
 });
 router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
+        let employmentId = res.employmentId
         let employment = res.employment
-        
+        let month = lodash.get(req, 'query.month', moment().format('MMM'))
+        let year = lodash.get(req, 'query.year', moment().format('YYYY'))
+        let momentNow = moment().year(year).month(month)
+
+        // Log
         let log = await dtrHelper.logAttendance(db, employee, employment, null) // 15mins timeout
-        let data = {
-            log: log
+
+        // Today attendance
+        let attendances = await db.main.Attendance.find({
+            employeeId: employee._id,
+            employmentId: employmentId,
+            createdAt: {
+                $gte: momentNow.clone().startOf('month').toDate(),
+                $lt: momentNow.clone().endOf('month').toDate(),
+            }
+        }).lean()
+
+        for (let a = 0; a < attendances.length; a++) {
+            let attendance = attendances[a]
+            let workSchedule = await db.main.WorkSchedule.findById(
+                lodash.get(attendance, 'workScheduleId')
+            )
+            attendance.shifts = lodash.get(workSchedule, 'timeSegments')
         }
-        if (req.xhr) {
-            return res.send(data)
-        }
-        res.redirect(`/e-profile/dtr/${employment._id}`)
+
+        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
+
+        setTimeout(() => {
+            res.send(dtrDays)
+        }, 2000)
+
     } catch (err) {
-        next(err);
+        next(new AppError(err.message));
     }
 });
 router.get('/e-profile/dtr/print/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {

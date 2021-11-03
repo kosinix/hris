@@ -45,7 +45,7 @@
                 <p class="text-left mb-3"><em class="mr-2">For the month of:</em> <strong>{{momentNow|format_date('MMMM')}}</strong></p>
                 <div class="text-left mb-4 d-flex align-items-center">
                     <em class="mr-2">Work Schedule:</em>  
-                    <span v-if="!workScheduleEditable">${workSchedule.times}</span>
+                    <span v-if="!workScheduleEditable">${_.get(workSchedule, 'times')}</span>
                     <button v-if="!workScheduleEditable" v-on:click="workScheduleEdit" class="btn btn-sm btn-outline-success ml-2">Edit</button>
 
                     <select v-if="workScheduleEditable" v-model="workScheduleId" name="workScheduleId" id="workScheduleId" class="form-control">
@@ -164,7 +164,6 @@
         mixins: [],
         data: {
             pending: false,
-            pending: {{momentNow|format_date('YYYY-MM-DD')}},
             workScheduleEditable: false,
             totalTimeViewEditable: false,
             workScheduleId: '{{employment.workScheduleId}}',

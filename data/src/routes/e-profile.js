@@ -284,6 +284,10 @@ router.post('/e-profile/dtr/:employmentId/change-sched', middlewares.guardRoute(
         let year = lodash.get(req, 'query.year', moment().format('YYYY'))
         let momentNow = moment().year(year).month(month)
 
+        let workScheduleId = lodash.get(req, 'body.workScheduleId')
+        if(!workScheduleId){
+            throw new Error('No work schedule selected.')
+        }
 
         // Today attendance
         let attendances = await db.main.Attendance.find({
@@ -299,7 +303,7 @@ router.post('/e-profile/dtr/:employmentId/change-sched', middlewares.guardRoute(
         for (let a = 0; a < attendances.length; a++) {
             let attendance = attendances[a]
             ids.push(attendance._id.toString())
-            lodash.set(attendance, 'workScheduleId', req.body.workScheduleId)
+            lodash.set(attendance, 'workScheduleId', workScheduleId)
             let workSchedule = await db.main.WorkSchedule.findById(
                 lodash.get(attendance, 'workScheduleId')
             )
@@ -311,12 +315,12 @@ router.post('/e-profile/dtr/:employmentId/change-sched', middlewares.guardRoute(
                 $in: ids
             }
         }, {
-            workScheduleId: req.body.workScheduleId
+            workScheduleId: workScheduleId
         })
         let r2 = await db.main.Employment.updateOne({
             _id: employment._id
         }, {
-            workScheduleId: req.body.workScheduleId
+            workScheduleId: workScheduleId
         })
 
         console.log({

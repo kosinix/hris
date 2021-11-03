@@ -366,10 +366,7 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
 
         let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
 
-        setTimeout(() => {
-            res.send(dtrDays)
-        }, 2000)
-
+        res.send(dtrDays)
     } catch (err) {
         next(new AppError(err.message));
     }

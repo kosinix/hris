@@ -87,10 +87,10 @@
                             <td></td>
                             <td></td>
                             <td>
-                                ${dispHours(_.get(dtrDay, 'dtr'))}
+                                ${dispHours(dtrDay)}
                             </td>
                             <td>
-                                ${dispMins(_.get(dtrDay, 'dtr'))}
+                                ${dispMins(dtrDay)}
                             </td>
                         </template>
                         <template v-else-if="_.get(dtrDay, 'attendance.type') === 'wfh'">
@@ -99,10 +99,10 @@
                             <td></td>
                             <td></td>
                             <td>
-                                ${dispHours(_.get(dtrDay, 'dtr'))}
+                                ${dispHours(dtrDay)}
                             </td>
                             <td>
-                                ${dispMins(_.get(dtrDay, 'dtr'))}
+                                ${dispMins(dtrDay)}
                             </td>
                         </template>
                         <template v-else >
@@ -138,10 +138,10 @@
                                 </div>
                             </td>
                             <td>
-                                ${dispHours(_.get(dtrDay, 'dtr'))}
+                                ${dispHours(dtrDay)}
                             </td>
                             <td>
-                                ${dispMins(_.get(dtrDay, 'dtr'))}
+                                ${dispMins(dtrDay)}
                             </td>
                         </template>
                     </tr>
@@ -181,24 +181,32 @@
             },
         },
         methods: {
-            dispHours: function(dtr) {
+            dispHours: function(dtrDay) {
                 var me = this;
-                var res = 0
-                if (me.totalTimeView == 'time') {
-                    res = _.get(dtr, 'renderedDays', 0) * 8 + _.get(dtr, 'renderedHours', 0);
-                } else {
-                    res = _.get(dtr, 'underDays', 0) * 8 + _.get(dtr, 'underHours', 0);
+                var dtr = _.get(dtrDay, 'dtr');
+                var logs = _.get(dtrDay, 'attendance.logs', []);
+                var res = 0;
+                if (logs.length > 1){
+                    if (me.totalTimeView == 'time') {
+                        res = _.get(dtr, 'renderedDays', 0) * 8 + _.get(dtr, 'renderedHours', 0);
+                    } else {
+                        res = _.get(dtr, 'underDays', 0) * 8 + _.get(dtr, 'underHours', 0);
+                    }
                 }
                 if (res === 0) return ''
                 return res
             },
-            dispMins: function(dtr) {
+            dispMins: function(dtrDay) {
                 var me = this;
-                var res = 0
-                if (me.totalTimeView == 'time') {
-                    res = _.get(dtr, 'renderedMinutes', 0);
-                } else {
-                    res = _.get(dtr, 'underMinutes', 0);
+                var dtr = _.get(dtrDay, 'dtr');
+                var logs = _.get(dtrDay, 'attendance.logs', []);
+                var res = 0;
+                if (logs.length > 1){
+                    if (me.totalTimeView == 'time') {
+                        res = _.get(dtr, 'renderedMinutes', 0);
+                    } else {
+                        res = _.get(dtr, 'underMinutes', 0);
+                    }
                 }
                 if (res === 0) return ''
                 return res
@@ -264,6 +272,10 @@
             },
             logTime: function(){
                 var me = this;
+
+                if(!confirm('Are you sure?')){
+                    return ;
+                }
 
                 me.pending = true;
                 var body = {

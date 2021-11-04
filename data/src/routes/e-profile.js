@@ -626,6 +626,46 @@ router.get('/e-profile/travel/:employmentId', middlewares.guardRoute(['use_emplo
                 employmentId: employment._id,
                 onTravel: true,
                 wfh: false,
+                type: 'travel',
+                logs: [
+                ]
+            })
+        }
+        await attendance.save()
+
+        return res.redirect(`/e-profile/dtr/${employment._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+        let attendanceType = lodash.get(req, 'query.type')
+
+        if(!['wfh', 'travel'].includes(attendanceType)){
+            throw new Error('Invalid attendance type.')
+        }
+        // Today attendance
+        let attendance = await db.main.Attendance.findOne({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            createdAt: {
+                $gte: moment().startOf('day').toDate(),
+                $lt: moment().endOf('day').toDate(),
+            }
+        })
+        if (attendance) {
+            throw new Error('Already have attendance for today.')
+        } else {
+            attendance = new db.main.Attendance({
+                employeeId: employee._id,
+                employmentId: employment._id,
+                onTravel: true,
+                wfh: false,
+                type: attendanceType,
                 logs: [
                 ]
             })

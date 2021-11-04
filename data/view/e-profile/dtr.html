@@ -118,7 +118,7 @@
                                 </div>
 
                                 <div v-if="_.get(dtrDay, 'attendance.logs[0]') && !_.get(dtrDay, 'attendance.logs[1]')&& isCurrentDay(dtrDay)">
-                                    <button v-on:click="logTime" class="btn btn-sm btn-light">Time-Out</button>
+                                    <button v-on:click="logTime(0)" class="btn btn-sm btn-light">Time-Out</button>
                                 </div>
                             </td>
                             <td>
@@ -128,7 +128,7 @@
                                 </div>
 
                                 <div v-if="_.get(dtrDay, 'attendance.logs[1]') && !_.get(dtrDay, 'attendance.logs[2]')&& isCurrentDay(dtrDay)">
-                                    <button v-on:click="logTime" class="btn btn-sm btn-light">Time-In</button>
+                                    <button v-on:click="logTime(1)" class="btn btn-sm btn-light">Time-In</button>
                                 </div>
                                 
                             </td>
@@ -270,10 +270,14 @@
                     me.workScheduleEditable = false;
                 })
             },
-            logTime: function(){
+            logTime: function(logType){
                 var me = this;
 
-                if(!confirm('Are you sure?')){
+                var msg = 'Are you sure you want to time-out now?'
+                if(logType==1){
+                    msg = 'Are you sure you want to time-in now?'
+                }
+                if(!confirm(msg)){
                     return ;
                 }
 

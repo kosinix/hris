@@ -1087,48 +1087,50 @@ router.get('/e-profile/memo/:memoId', middlewares.guardRoute(['use_employee_prof
         next(err);
     }
 });
-
-// 
 router.get('/e-profile/photo', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
-        return res.redirect('/e-profile/webcam')
+        let employee = res.employee
+
+        res.render('e-profile/photo.html', {
+            employee: employee.toObject()
+        });
     } catch (err) {
         next(err);
     }
 });
-// router.post('/e-profile/photo', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, fileUpload(), middlewares.handleExpressUploadMagic, async (req, res, next) => {
-//     try {
-//         let employee = res.employee
+router.post('/e-profile/photo', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, fileUpload(), middlewares.handleExpressUploadMagic, async (req, res, next) => {
+    try {
+        let employee = res.employee
 
-//         // Delete files on AWS S3
-//         const bucketName = CONFIG.aws.bucket1.name
-//         const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
-//         let photo = employee.profilePhoto
-//         if (photo) {
-//             await s3.deleteObjects({
-//                 Bucket: bucketName,
-//                 Delete: {
-//                     Objects: [
-//                         { Key: `${bucketKeyPrefix}${photo}` },
-//                         { Key: `${bucketKeyPrefix}tiny-${photo}` },
-//                         { Key: `${bucketKeyPrefix}small-${photo}` },
-//                         { Key: `${bucketKeyPrefix}medium-${photo}` },
-//                         { Key: `${bucketKeyPrefix}large-${photo}` },
-//                         { Key: `${bucketKeyPrefix}xlarge-${photo}` },
-//                         { Key: `${bucketKeyPrefix}orig-${photo}` },
-//                     ]
-//                 }
-//             }).promise()
-//         }
+        // Delete files on AWS S3
+        const bucketName = CONFIG.aws.bucket1.name
+        const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
+        let photo = employee.profilePhoto
+        if (photo) {
+            await s3.deleteObjects({
+                Bucket: bucketName,
+                Delete: {
+                    Objects: [
+                        { Key: `${bucketKeyPrefix}${photo}` },
+                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                        { Key: `${bucketKeyPrefix}small-${photo}` },
+                        { Key: `${bucketKeyPrefix}medium-${photo}` },
+                        { Key: `${bucketKeyPrefix}large-${photo}` },
+                        { Key: `${bucketKeyPrefix}xlarge-${photo}` },
+                        { Key: `${bucketKeyPrefix}orig-${photo}` },
+                    ]
+                }
+            }).promise()
+        }
 
-//         employee.profilePhoto = lodash.get(req, 'saveList.photo[0]')
-//         await employee.save()
-//         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} photo.`)
-//         res.redirect(`/e-profile/home`);
-//     } catch (err) {
-//         next(err);
-//     }
-// });
+        employee.profilePhoto = lodash.get(req, 'saveList.photo[0]')
+        await employee.save()
+        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} photo.`)
+        res.redirect(`/e-profile/home`);
+    } catch (err) {
+        next(err);
+    }
+});
 router.get('/e-profile/photo/delete', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, fileUpload(), middlewares.handleExpressUploadMagic, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()

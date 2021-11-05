@@ -202,8 +202,9 @@
                 var me = this;
                 var dtr = _.get(dtrDay, 'dtr');
                 var logs = _.get(dtrDay, 'attendance.logs', []);
+                var attendanceType = _.get(dtrDay, 'attendance.type');
                 var res = 0;
-                if (logs.length > 1){
+                if (logs.length > 1 || attendanceType === 'wfh' || attendanceType === 'travel'){
                     if (me.totalTimeView == 'time') {
                         res = _.get(dtr, 'renderedDays', 0) * 8 + _.get(dtr, 'renderedHours', 0);
                     } else {
@@ -217,8 +218,9 @@
                 var me = this;
                 var dtr = _.get(dtrDay, 'dtr');
                 var logs = _.get(dtrDay, 'attendance.logs', []);
+                var attendanceType = _.get(dtrDay, 'attendance.type');
                 var res = 0;
-                if (logs.length > 1){
+                if (logs.length > 1 || attendanceType === 'wfh' || attendanceType === 'travel'){
                     if (me.totalTimeView == 'time') {
                         res = _.get(dtr, 'renderedMinutes', 0);
                     } else {

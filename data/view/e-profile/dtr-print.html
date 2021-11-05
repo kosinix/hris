@@ -16,7 +16,7 @@
         {% endif %}
     </div>
 
-    <div class="csc-form-dtr mb-5">
+    <div class="csc-form-dtr">
         <p class="template">Civil Service Form No. 48</p>
         
         {# <div class="table-responsive"> #}
@@ -31,7 +31,7 @@
                         </div>
                         <div class="name-under mb-3">(Name)</div>
 
-                        <table class="table-sched font-italic fz-8">
+                        <table class="table-sched font-italic fz-10">
                             <tr>
                                 <td style="width:20%">For the month of</td>
                                 <td colspan="3">
@@ -45,8 +45,8 @@
                                 <td style="width:20%" class="text-right pr-2">Regular days</td>
                                 <td class="text-left">
                                     <div class="underline pl-5 pt-1">
-                                        <div>8:00-12:00 A.M.</div>
-                                        <div>1:00-5:00 P.M.</div>
+                                        <div style="visibility: hidden">8:00-12:00 A.M.</div>
+                                        <div style="visibility: hidden">1:00-5:00 P.M.</div>
                                     </div>
                                 </td>
                             </tr>
@@ -84,8 +84,14 @@
                         {% set attendance = day.attendance %}
                         <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
                             <td class="text-center">{{day.day}}</td>
-                            {% if attendance.onTravel %}
-                                <td colspan="6">On Travel</td>
+                            {% if attendance.type === 'travel' %}
+                                <td colspan="4" class="text-center">Travel</td>
+                                <td></td>
+                                <td></td>
+                            {% elif attendance.type === 'wfh' %}
+                                <td colspan="4" class="text-center">WFH</td>
+                                <td></td>
+                                <td></td>
                             {% else %}
                                 <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                                 <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
@@ -114,9 +120,9 @@
                     I certify on my honor that the above is a true and correct report of the hours of work performed, record of which was made daily at the time of arrival and departure from office.
                     </div>
                     <div class="underline mb-2"></div>
-                    <div class="font-italic fz-7 pl-4 mb-4">VERIFIED as to the prescribed office hours:</div>
+                    <div class="font-italic pl-4 mb-4">VERIFIED as to the prescribed office hours:</div>
                     <div class="underline mb-2"></div>
-                    <div class="text-center font-italic fz-7 mb-3">In Charge</div>
+                    <div class="text-center font-italic">In Charge</div>
                 </div>
             </div>
             <div class="col-6">
@@ -129,7 +135,7 @@
                         </div>
                         <div class="name-under mb-3">(Name)</div>
 
-                        <table class="table-sched font-italic fz-8">
+                        <table class="table-sched font-italic fz-10">
                             <tr>
                                 <td style="width:20%">For the month of</td>
                                 <td colspan="3">
@@ -143,8 +149,8 @@
                                 <td style="width:20%" class="text-right pr-2">Regular days</td>
                                 <td class="text-left">
                                     <div class="underline pl-5 pt-1">
-                                        <div>8:00-12:00 A.M.</div>
-                                        <div>1:00-5:00 P.M.</div>
+                                        <div style="visibility: hidden">8:00-12:00 A.M.</div>
+                                        <div style="visibility: hidden">1:00-5:00 P.M.</div>
                                     </div>
                                 </td>
                             </tr>
@@ -182,8 +188,14 @@
                         {% set attendance = day.attendance %}
                         <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
                             <td class="text-center">{{day.day}}</td>
-                            {% if attendance.onTravel %}
-                                <td colspan="6">On Travel</td>
+                            {% if attendance.type === 'travel' %}
+                                <td colspan="4" class="text-center">Travel</td>
+                                <td></td>
+                                <td></td>
+                            {% elif attendance.type === 'wfh' %}
+                                <td colspan="4" class="text-center">WFH</td>
+                                <td></td>
+                                <td></td>
                             {% else %}
                                 <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                                 <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
@@ -212,9 +224,9 @@
                     I certify on my honor that the above is a true and correct report of the hours of work performed, record of which was made daily at the time of arrival and departure from office.
                     </div>
                     <div class="underline mb-2"></div>
-                    <div class="font-italic fz-7 pl-4 mb-4">VERIFIED as to the prescribed office hours:</div>
+                    <div class="font-italic pl-4 mb-4">VERIFIED as to the prescribed office hours:</div>
                     <div class="underline mb-2"></div>
-                    <div class="text-center font-italic fz-7 mb-3">In Charge</div>
+                    <div class="text-center font-italic">In Charge</div>
                 </div>
             </div>
         </div>

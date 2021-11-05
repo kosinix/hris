@@ -65,10 +65,10 @@ img {
 }
 .csc-form-dtr {
     font-family: Arial;
-    font-size: 9px;
+    font-size: 12px;
 }
 .csc-form-dtr p.template {
-    font-size: 8px;
+    font-size: 9px;
     font-style: italic;
 }
 .csc-form-dtr h1 {
@@ -79,24 +79,21 @@ img {
     font-size: 8px;
 }
 .csc-form-dtr .name {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: bold;
 }
 .csc-form-dtr .underline {
     border-bottom: 1px solid #000;
     padding-bottom: 3px;
 }
-.csc-form-dtr .name-under {
-    font-size: 8px;
-}
 
 .csc-form-dtr .certify {
-    font-size: 7px;
+    font-size: 10px;
     font-style: italic;
 }
 
 .table-dtr th {
-    font-size: 7px;
+    font-size: 10px;
     text-align: center;
 }
 .table-dtr th,
@@ -108,15 +105,14 @@ img {
     font-weight: bold;
 }
 .table-dtr .undertime{
-    font-size: 8px;
     font-weight: bold;
 }
 .table-dtr .subcols th{
-    font-size: 7px;
+    font-size: 10px;
     font-weight: bold;
 }
 .table-dtr .total{
-    font-size: 9px;
+    font-size: 10px;
 }
 .table-sched {
     width: 100%;

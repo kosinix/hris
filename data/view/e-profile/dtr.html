@@ -15,6 +15,7 @@
         </div>
     </div>
     <div class=" mb-5">
+        {% include 'parts/flash.html' %}
         <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width: 600px" class="ml-auto mr-auto" >
             <div class="text-center">
                 <div class="text-center pt-3 pb-3">
@@ -55,19 +56,25 @@
                     <button v-on:click="saveSchedule" v-if="workScheduleEditable" class="btn btn-sm btn-outline-success ml-2">Save</button>
 
                 </div>
-                <div class="text-left mb-4 d-flex">
+                <div class="justify-content-center mb-4 d-flex">
                     <a onclick="return confirm('Are you sure you want to set your attendance today to WFH?')" href="/e-profile/dtr-set/{{employment._id}}?type=wfh" class="m-1 btn btn-primary">
                         <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                             <path fill="currentColor" d="M9,13H15V19H18V10L12,5.5L6,10V19H9V13M4,21V9L12,3L20,9V21H4Z" />
                         </svg>
-                        <span>WFH Today</span>
+                        <span>WFH </span>
                     </a>
 
                     <a onclick="return confirm('Are you sure you want to set your attendance today to Travel?')" href="/e-profile/dtr-set/{{employment._id}}?type=travel" class="m-1 btn btn-primary">
                         <svg style="width:16px;height:16px" viewBox="0 0 24 24">
-                            <path fill="currentColor" d="M3 13.5L11 2.03V13.5H3M12.5 13.5C13.85 9.75 13.67 4.71 12.5 1C17.26 2.54 20.9 8.4 20.96 13.5H12.5M21.1 17.08C20.69 17.72 20.21 18.27 19.65 18.74C19 18.45 18.42 18 17.96 17.5C16.47 19.43 13.46 19.43 11.97 17.5C10.5 19.43 7.47 19.43 6 17.5C5.5 18 4.95 18.45 4.3 18.74C3.16 17.8 2.3 16.46 2 15H21.94C21.78 15.75 21.5 16.44 21.1 17.08M20.96 23C19.9 23 18.9 22.75 17.96 22.25C16.12 23.25 13.81 23.25 11.97 22.25C10.13 23.25 7.82 23.25 6 22.25C4.77 22.94 3.36 23.05 2 23V21C3.41 21.05 4.77 20.9 6 20C7.74 21.25 10.21 21.25 11.97 20C13.74 21.25 16.2 21.25 17.96 20C19.17 20.9 20.54 21.05 21.94 21V23H20.96Z" />
+                            <path fill="currentColor" d="M16,6L19,10H21C22.11,10 23,10.89 23,12V15H21A3,3 0 0,1 18,18A3,3 0 0,1 15,15H9A3,3 0 0,1 6,18A3,3 0 0,1 3,15H1V12C1,10.89 1.89,10 3,10L6,6H16M10.5,7.5H6.75L4.86,10H10.5V7.5M12,7.5V10H17.14L15.25,7.5H12M6,13.5A1.5,1.5 0 0,0 4.5,15A1.5,1.5 0 0,0 6,16.5A1.5,1.5 0 0,0 7.5,15A1.5,1.5 0 0,0 6,13.5M18,13.5A1.5,1.5 0 0,0 16.5,15A1.5,1.5 0 0,0 18,16.5A1.5,1.5 0 0,0 19.5,15A1.5,1.5 0 0,0 18,13.5Z" />
                         </svg>
-                        <span>On Travel Today</span>
+                        <span>On Travel </span>
+                    </a>
+                    <a onclick="return confirm('Are you sure you want to mark your attendance as Leave?')" href="/e-profile/dtr-set/{{employment._id}}?type=leave" class="m-1 btn btn-primary">
+                        <svg style="width:16px;height:16px" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M20 20C18.61 20 17.22 19.53 16 18.67C13.56 20.38 10.44 20.38 8 18.67C6.78 19.53 5.39 20 4 20H2V22H4C5.37 22 6.74 21.65 8 21C10.5 22.3 13.5 22.3 16 21C17.26 21.65 18.62 22 20 22H22V20H20M20.78 19H20C18.82 19 17.64 18.6 16.58 17.85L16 17.45L15.42 17.85C14.39 18.57 13.21 18.95 12 18.95C10.77 18.95 9.59 18.57 8.56 17.85L8 17.45L7.43 17.85C6.36 18.6 5.18 19 4 19H3.22C3.75 17.54 5.58 15 12 15C14 15 15 15.24 15 15.24C15.68 13.87 16.83 10.77 16 6.82L17.06 7.53C17.39 8.96 18 11.75 16.8 15.65C19.43 16.5 20.42 18 20.78 19M22 7.59C21.21 6.5 20 5.71 18.58 5.53C18.7 5.67 18.81 5.83 18.92 6C20.12 7.91 19.87 10.32 18.47 11.95C19.06 10.5 19 8.79 18.08 7.36C18 7.28 17.96 7.2 17.9 7.11C17.5 6.53 16.96 6.06 16.38 5.72C14.35 6.37 12.88 8.27 12.88 10.5C12.88 11.03 12.96 11.53 13.1 12C12.5 11.17 12.16 10.17 12.16 9.07C12.16 7.41 12.96 5.95 14.2 5.03C13.16 4.95 12.09 5.18 11.14 5.78C10.7 6.05 10.32 6.38 10 6.76C10.39 5.82 11.05 5 12 4.4C13.04 3.74 14.25 3.5 15.39 3.69C15.1 3.29 14.75 2.92 14.33 2.6C13.92 2.29 13.47 2.05 13 1.88C14 1.91 15.04 2.24 15.91 2.89C16.35 3.22 16.7 3.62 17 4.05C17.06 4.05 17.12 4.04 17.19 4.04C19.45 4.04 21.37 5.53 22 7.59Z" />
+                        </svg>
+                        <span>On Leave </span>
                     </a>
                 </div>
             </div>
@@ -110,6 +117,18 @@
                         </template>
                         <template v-else-if="_.get(dtrDay, 'attendance.type') === 'wfh'">
                             <td>WFH</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                                ${dispHours(dtrDay)}
+                            </td>
+                            <td>
+                                ${dispMins(dtrDay)}
+                            </td>
+                        </template>
+                        <template v-else-if="_.get(dtrDay, 'attendance.type') === 'leave'">
+                            <td>Leave</td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -204,7 +223,7 @@
                 var logs = _.get(dtrDay, 'attendance.logs', []);
                 var attendanceType = _.get(dtrDay, 'attendance.type');
                 var res = 0;
-                if (logs.length > 1 || attendanceType === 'wfh' || attendanceType === 'travel'){
+                if (logs.length > 1 || attendanceType === 'wfh' || attendanceType === 'travel' || attendanceType === 'leave'){
                     if (me.totalTimeView == 'time') {
                         res = _.get(dtr, 'renderedDays', 0) * 8 + _.get(dtr, 'renderedHours', 0);
                     } else {
@@ -220,7 +239,7 @@
                 var logs = _.get(dtrDay, 'attendance.logs', []);
                 var attendanceType = _.get(dtrDay, 'attendance.type');
                 var res = 0;
-                if (logs.length > 1 || attendanceType === 'wfh' || attendanceType === 'travel'){
+                if (logs.length > 1 || attendanceType === 'wfh' || attendanceType === 'travel' || attendanceType === 'leave'){
                     if (me.totalTimeView == 'time') {
                         res = _.get(dtr, 'renderedMinutes', 0);
                     } else {

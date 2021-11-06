@@ -178,9 +178,11 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
     // Daily minutes
     let minutes = 0
     let underMinutes = 0
-    if (attendance.onTravel) {
+    if (attendance.type === 'travel') {
         minutes += travelPoints
-    } else if (attendance.wfh) {
+    } else if (attendance.type === 'wfh') {
+        minutes += travelPoints
+    } else if (attendance.type === 'leave') {
         minutes += travelPoints
     } else {
         // roll logs 

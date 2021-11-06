@@ -262,6 +262,7 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
         let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
         // return res.send(dtrDays)
         res.render('e-profile/dtr.html', {
+            flash: flash.get(req, 'employee'),
             momentNow: momentNow,
             attendances: attendances,
             employee: employee,
@@ -270,7 +271,7 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
             workSchedules: workSchedules,
         });
 
-        
+
     } catch (err) {
         next(err);
     }
@@ -285,7 +286,7 @@ router.post('/e-profile/dtr/:employmentId/change-sched', middlewares.guardRoute(
         let momentNow = moment().year(year).month(month)
 
         let workScheduleId = lodash.get(req, 'body.workScheduleId')
-        if(!workScheduleId){
+        if (!workScheduleId) {
             throw new Error('No work schedule selected.')
         }
 
@@ -548,6 +549,64 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
     }
 });
 
+router.get('/e-profile/dtr/:employmentId/analysis', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employmentId = res.employmentId
+        let employment = res.employment
+        let month = lodash.get(req, 'query.month', moment().format('MMM'))
+        let year = lodash.get(req, 'query.year', moment().format('YYYY'))
+        let momentNow = moment().year(year).month(month)
+
+        // Today attendance
+        let attendances = await db.main.Attendance.find({
+            employeeId: employee._id,
+            employmentId: employmentId,
+            createdAt: {
+                $gte: momentNow.clone().startOf('month').toDate(),
+                $lt: momentNow.clone().endOf('month').toDate(),
+            }
+        }).lean()
+
+        for (let a = 0; a < attendances.length; a++) {
+            let attendance = attendances[a]
+            let workSchedule = await db.main.WorkSchedule.findById(
+                lodash.get(attendance, 'workScheduleId')
+            )
+
+            attendance.shifts = lodash.get(workSchedule, 'timeSegments')
+        }
+
+        let workSchedules = await db.main.WorkSchedule.find().lean()
+        workSchedules = workSchedules.map((o) => {
+            let times = []
+            o.timeSegments = o.timeSegments.map((t) => {
+                t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
+                t.end = moment().startOf('day').minutes(t.end).format('hh:mm A')
+                times.push(`${t.start} to ${t.end}`)
+                return t
+            })
+            o.times = times.join(", \n")
+            return o
+        })
+
+        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
+        // return res.send(dtrDays)
+        res.render('e-profile/analysis.html', {
+            momentNow: momentNow,
+            attendances: attendances,
+            employee: employee,
+            employment: employment,
+            dtrDays: dtrDays,
+            workSchedules: workSchedules,
+        });
+
+
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/e-profile/wfh/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -645,7 +704,7 @@ router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_empl
         let employment = res.employment
         let attendanceType = lodash.get(req, 'query.type')
 
-        if(!['wfh', 'travel'].includes(attendanceType)){
+        if (!['wfh', 'travel', 'leave'].includes(attendanceType)) {
             throw new Error('Invalid attendance type.')
         }
         // Today attendance
@@ -657,20 +716,32 @@ router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_empl
                 $lt: moment().endOf('day').toDate(),
             }
         })
+
         if (attendance) {
-            throw new Error('Already have attendance for today.')
+            flash.error(req, 'employee', `You already have an attendance for today.`)
+            return res.redirect(`/e-profile/dtr/${employment._id}`)
+
         } else {
+            let message = ''
+
+            if ('wfh' === attendanceType) {
+                message = `Attendance set to WFH. Please secure your accomplishment report and other supporting documents.`
+            } else if ('travel' === attendanceType) {
+                message = `Attendance set to Travel. Please secure your appearance and other supporting documents.`
+            } else if ('leave' === attendanceType) {
+                message = `Attendance set to Leave. Please secure your supporting documents.`
+            }
+
             attendance = new db.main.Attendance({
                 employeeId: employee._id,
                 employmentId: employment._id,
-                onTravel: true,
-                wfh: false,
                 type: attendanceType,
                 logs: [
                 ]
             })
+            await attendance.save()
+            flash.ok(req, 'employee', `${message}`)
         }
-        await attendance.save()
 
         return res.redirect(`/e-profile/dtr/${employment._id}`)
     } catch (err) {

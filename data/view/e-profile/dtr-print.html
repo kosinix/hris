@@ -92,6 +92,10 @@
                                 <td colspan="4" class="text-center">WFH</td>
                                 <td></td>
                                 <td></td>
+                            {% elif attendance.type === 'leave' %}
+                                <td colspan="4" class="text-center">Leave</td>
+                                <td></td>
+                                <td></td>
                             {% else %}
                                 <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                                 <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
@@ -194,6 +198,10 @@
                                 <td></td>
                             {% elif attendance.type === 'wfh' %}
                                 <td colspan="4" class="text-center">WFH</td>
+                                <td></td>
+                                <td></td>
+                            {% elif attendance.type === 'leave' %}
+                                <td colspan="4" class="text-center">Leave</td>
                                 <td></td>
                                 <td></td>
                             {% else %}

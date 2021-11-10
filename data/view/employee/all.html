@@ -68,11 +68,11 @@
                                 {% set thId = 'group' %}
                                 {% include 'parts/sorted-th.html' %}
                             </th>
-                            {# <th>
+                            <th>
                                 {% set thId = 'campus' %}
                                 {% include 'parts/sorted-th.html' %}
                             </th>
-                            <th>
+                            {# <th>
                                 {% set thLabel = 'Address' %}
                                 {% set thId = 'address' %}
                                 {% include 'parts/sorted-th.html' %}
@@ -85,16 +85,16 @@
                             <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
                             <td>
                                 {% if employee.profilePhoto %}
-                                <a href="/employee/employment/{{employee._id}}"><img src="{{employee.profilePhoto|s3_url('tiny')}}" alt=""></a>
+                                <a href="/employee/personal/{{employee._id}}"><img src="{{employee.profilePhoto|s3_url('tiny')}}" alt=""></a>
                                 {% endif %}
                             </td>
-                            <td><a href="/employee/employment/{{employee._id}}">{{employee.lastName}}</a></td>
-                            <td><a href="/employee/employment/{{employee._id}}">{{employee.firstName}}</a></td>
+                            <td><a href="/employee/personal/{{employee._id}}">{{employee.lastName}}</a></td>
+                            <td><a href="/employee/personal/{{employee._id}}">{{employee.firstName}}</a></td>
                             <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].position}}</a></td>
                             <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</a></td>
                             <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].group|capitalize}}</a></td>
-                            {# <td><a href="/employee/all?customFilter=campus&customFilterValue={{employee.employments[0].campus}}">{{employee.employments[0].campus|capitalize}}</a></td>
-                            <td>{{employee.address}}</td> #}
+                            <td><a href="/employee/all?customFilter=campus&customFilterValue={{employee.employments[0].campus}}">{{employee.employments[0].campus|capitalize}}</a></td>
+                            {# <td>{{employee.address}}</td> #}
                         </tr>
                     {% endfor %}
                     </tbody>

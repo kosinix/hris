@@ -262,6 +262,7 @@
         },
         methods: {
             dateChange: function(){
+                this.pending = true;
                 window.location.replace('{{baseUrl}}' + '?month=' + this.month + '&year=' + this.year);
             },
             isTimeOutShown: function(dtrDay) {

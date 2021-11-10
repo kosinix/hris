@@ -169,7 +169,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
     if (!shifts) {
         shifts = []
         shifts.push(createShift({ hour: 8, minute: 0 }, { hour: 12, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4, flexible: false }))
-        shifts.push(createShift({ hour: 13, minute: 0 }, { hour: 17, minute: 0 }, { hour: 0, minute: 0 }, { maxHours: 4, flexible: false }))
+        shifts.push(createShift({ hour: 13, minute: 0 }, { hour: 17, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4, flexible: false }))
     }
 
     // travelPoints 480 minutes = 8 hours 
@@ -183,6 +183,8 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
     } else if (attendance.type === 'wfh') {
         minutes += travelPoints
     } else if (attendance.type === 'leave') {
+        minutes += travelPoints
+    } else if (attendance.type === 'pass') {
         minutes += travelPoints
     } else {
         // roll logs 

@@ -13,6 +13,7 @@
             <table class="table table-sm">
                 <tr class="text-center">
                     <th class="align-middle text-center" rowspan="2">No.</th>
+                    <th class="align-middle text-center" rowspan="2">Campus</th>
                     <th class="align-middle" rowspan="2">Name</th>
                     <th class="align-middle" colspan="2">Sex</th>
                     <th>AM</th>
@@ -35,10 +36,11 @@
                 {% for attendance in attendances %}
                     <tr>
                         <td class="text-center">{{loop.index}}</td>
+                        <td><em>{{attendance.employment.campus|capitalize}}</em></td>
                         <td>
-                         <a href="/attendance/employee/{{attendance.employeeId}}/employment/{{attendance.employmentId}}?start={{attendance.createdAt|format_date('YYYY-MM-DD')}}&amp;end={{attendance.createdAt|format_date('YYYY-MM-DD')}}">
-                            {{attendance.employee.firstName}} {{attendance.employee.lastName}} {{attendance.employee.suffix}}
-                        </a>
+                            <a class="text-left d-block" href="/attendance/employee/{{attendance.employeeId}}/employment/{{attendance.employmentId}}?start={{attendance.createdAt|format_date('YYYY-MM-DD')}}&amp;end={{attendance.createdAt|format_date('YYYY-MM-DD')}}">
+                                {{attendance.employee.firstName}} {{attendance.employee.lastName}} {{attendance.employee.suffix}}
+                            </a>
                             
                         </td>
                         <td class="text-center">{% if attendance.employee.gender == 'M' %}✓{% endif %}</td>

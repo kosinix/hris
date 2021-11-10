@@ -41,7 +41,7 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance',
                 campus: 'mosqueda'
             }).lean()
 
-            employmentIds = employmentIds.map((e) => e._id.toString())
+            employmentIds = employmentIds.map((e) => e._id)
 
             query['employmentId'] = {
                 $in: employmentIds
@@ -53,7 +53,7 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance',
                 campus: 'baterna'
             }).lean()
 
-            employmentIds = employmentIds.map((e) => e._id.toString())
+            employmentIds = employmentIds.map((e) => e._id)
 
             query['employmentId'] = {
                 $in: employmentIds
@@ -154,14 +154,14 @@ router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', '
                 $lte: mCalendar.endOf('day').toDate(),
             }
         }
-        console.log(res.user.roles)
+
         // Mosqueda
         if (res.user.roles.includes('campusdirectormosqueda')) {
             let employmentIds = await db.main.Employment.find({
                 campus: 'mosqueda'
             }).lean()
 
-            employmentIds = employmentIds.map((e) => e._id.toString())
+            employmentIds = employmentIds.map((e) => e._id)
 
             query['employmentId'] = {
                 $in: employmentIds
@@ -173,7 +173,7 @@ router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', '
                 campus: 'baterna'
             }).lean()
 
-            employmentIds = employmentIds.map((e) => e._id.toString())
+            employmentIds = employmentIds.map((e) => e._id)
 
             query['employmentId'] = {
                 $in: employmentIds
@@ -191,9 +191,21 @@ router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', '
             }
         })
         aggr.push({
+            $lookup: {
+                from: "employments",
+                localField: "employmentId",
+                foreignField: "_id",
+                as: "employments"
+            }
+        })
+
+        aggr.push({
             $addFields: {
                 "employee": {
                     $arrayElemAt: ["$employees", 0]
+                },
+                "employment": {
+                    $arrayElemAt: ["$employments", 0]
                 }
             }
         })
@@ -202,12 +214,13 @@ router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', '
         aggr.push({
             $project: {
                 employees: 0,
+                employments: 0,
             }
         })
 
-        console.log(aggr[0].$match.employmentId)
+        //console.log(aggr)
         attendances = await db.main.Attendance.aggregate(aggr)
-
+        //return res.send(attendances)
         res.render('attendance/daily.html', {
             flash: flash.get(req, 'attendance'),
             mCalendar: mCalendar,
@@ -240,8 +253,8 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
             }
         }).lean()
 
-        for(let a = 0; a < attendances.length; a++){
-            let attendance = attendances[a] 
+        for (let a = 0; a < attendances.length; a++) {
+            let attendance = attendances[a]
             let workSchedule = await db.main.WorkSchedule.findById(
                 lodash.get(attendance, 'workScheduleId')
             )

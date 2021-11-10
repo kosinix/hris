@@ -38,7 +38,7 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         let query = {}
         let projection = {}
 
-        if (['department', 'employmentType', 'group', 'position'].includes(customFilter)) {
+        if (['department', 'employmentType', 'group', 'position', 'campus'].includes(customFilter)) {
             query[`employments.0.${customFilter}`] = customFilterValue
         }
 
@@ -66,7 +66,7 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         let options = { skip: (page - 1) * perPage, limit: perPage };
         let sort = {}
         sort = lodash.set(sort, sortBy, sortOrder)
-        if (['department', 'employmentType', 'group', 'position'].includes(sortBy)) {
+        if (['department', 'employmentType', 'group', 'position', 'campus'].includes(sortBy)) {
             sort[`employments.0.${sortBy}`] = sortOrder
         }
 

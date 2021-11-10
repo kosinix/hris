@@ -260,6 +260,46 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
         })
 
         let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
+
+        dtrDays = dtrDays.map((d) => {
+
+            let attendance = d.attendance
+            let attendanceType = lodash.get(attendance, 'type')
+
+            // For use by vuejs in frontend
+            let ui = {
+                editable: false,
+                attendanceType: attendanceType,
+                log0: '',
+                log1: '',
+                log2: '',
+                log3: '',
+            }
+
+            
+
+
+            if (attendanceType === 'normal') {
+                let maxLogNumber = 4
+                for (let l = 0; l < maxLogNumber; l++) {
+                    let log = lodash.get(attendance, `logs[${l}]`)
+                    if (log) {
+                        lodash.set(ui, `log${l}`, moment(log.dateTime).format('HH:mm'))
+                    } else {
+                        lodash.set(ui, `log${l}`, '')
+                        // ui.editable = true
+                    }
+                }
+            }
+
+            d.ui = ui
+
+            return d
+        })
+
+        let years = new Array(10)
+        years = years.fill( moment().year() ).map((val, index) => val - index)
+
         // return res.send(dtrDays)
         res.render('e-profile/dtr.html', {
             flash: flash.get(req, 'employee'),
@@ -269,6 +309,8 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
             employment: employment,
             dtrDays: dtrDays,
             workSchedules: workSchedules,
+            months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            years: years,
         });
 
 
@@ -704,7 +746,7 @@ router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_empl
         let employment = res.employment
         let attendanceType = lodash.get(req, 'query.type')
 
-        if (!['wfh', 'travel', 'leave'].includes(attendanceType)) {
+        if (!['wfh', 'travel', 'leave', 'pass'].includes(attendanceType)) {
             throw new Error('Invalid attendance type.')
         }
         // Today attendance
@@ -730,6 +772,8 @@ router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_empl
                 message = `Attendance set to Travel. Please secure your appearance and other supporting documents.`
             } else if ('leave' === attendanceType) {
                 message = `Attendance set to Leave. Please secure your supporting documents.`
+            } else if ('pass' === attendanceType) {
+                message = `Attendance set to Pass Slip. Please secure your supporting documents such as your Pass Slip.`
             }
 
             attendance = new db.main.Attendance({

@@ -98,6 +98,9 @@ let requireAuthUser = async (req, res, next) => {
         if (!user) {
             return res.redirect('/login')
         }
+        if (!user.active) {
+            return res.redirect('/logout')
+        }
         res.user = user;
         next();
     } catch (err) {

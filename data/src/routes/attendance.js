@@ -41,7 +41,7 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance',
                 campus: 'mosqueda'
             }).lean()
 
-            employmentIds = employmentIds.map((e) => e._id)
+            employmentIds = employmentIds.map((e) => e._id.toString())
 
             query['employmentId'] = {
                 $in: employmentIds
@@ -53,7 +53,7 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance',
                 campus: 'baterna'
             }).lean()
 
-            employmentIds = employmentIds.map((e) => e._id)
+            employmentIds = employmentIds.map((e) => e._id.toString())
 
             query['employmentId'] = {
                 $in: employmentIds
@@ -147,40 +147,66 @@ router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', '
         let mCalendar = moment(date)
         let mNow = moment()
 
-        attendances = await db.main.Attendance.aggregate([
-            {
-                $match:
-                {
-                    createdAt: {
-                        $gte: mCalendar.startOf('day').toDate(),
-                        $lte: mCalendar.endOf('day').toDate(),
-                    }
+
+        let query = {
+            createdAt: {
+                $gte: mCalendar.startOf('day').toDate(),
+                $lte: mCalendar.endOf('day').toDate(),
+            }
+        }
+        console.log(res.user.roles)
+        // Mosqueda
+        if (res.user.roles.includes('campusdirectormosqueda')) {
+            let employmentIds = await db.main.Employment.find({
+                campus: 'mosqueda'
+            }).lean()
+
+            employmentIds = employmentIds.map((e) => e._id.toString())
+
+            query['employmentId'] = {
+                $in: employmentIds
+            }
+        }
+        // Baterna
+        if (res.user.roles.includes('campusdirectorbaterna')) {
+            let employmentIds = await db.main.Employment.find({
+                campus: 'baterna'
+            }).lean()
+
+            employmentIds = employmentIds.map((e) => e._id.toString())
+
+            query['employmentId'] = {
+                $in: employmentIds
+            }
+        }
+
+        let aggr = []
+        aggr.push({ $match: query })
+        aggr.push({
+            $lookup: {
+                from: "employees",
+                localField: "employeeId",
+                foreignField: "_id",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
                 }
-            },
-            {
-                $lookup:
-                {
-                    from: "employees",
-                    localField: "employeeId",
-                    foreignField: "_id",
-                    as: "employees"
-                }
-            },
-            // Turn array employees into field employee
-            // Add field employee
-            {
-                "$addFields": {
-                    "employee": {
-                        $arrayElemAt: ["$employees", 0]
-                    }
-                }
-            },
-            {
-                $project: {
-                    employees: 0,
-                }
-            },
-        ])
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+            }
+        })
+
+        console.log(aggr[0].$match.employmentId)
+        attendances = await db.main.Attendance.aggregate(aggr)
 
         res.render('attendance/daily.html', {
             flash: flash.get(req, 'attendance'),

@@ -145,8 +145,6 @@ router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', '
     try {
         let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
         let mCalendar = moment(date)
-        let mNow = moment()
-
 
         let query = {
             createdAt: {
@@ -225,7 +223,7 @@ router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', '
         res.render('attendance/daily.html', {
             flash: flash.get(req, 'attendance'),
             mCalendar: mCalendar,
-            attendances: attendances
+            attendances: attendances,
         });
     } catch (err) {
         next(err);

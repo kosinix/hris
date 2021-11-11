@@ -24,6 +24,9 @@
     {% elif user.roles and user.roles.includes('president') %}
         {% include 'parts/sidebar-president.html' %}
 
+    {% elif user.roles and (user.roles.includes('campusdirectormosqueda') or user.roles.includes('campusdirectorbaterna')) %}
+        {% include 'parts/sidebar-director.html' %}
+
     {% else %}
     <ul class="nav flex-column mb-2">
         <li class="nav-item {{urlPath|active_class([r/^\/employee\/(.)+/], 'expanded')}}" id="nav-item-employees">

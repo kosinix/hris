@@ -67,6 +67,11 @@ module.exports = [
     'update_hdf',
     'delete_hdf',
 
+    // Per campuses
+    'main',
+    'mosqueda',
+    'baterna',
+
     // Employee 
     'use_employee_profile',
 

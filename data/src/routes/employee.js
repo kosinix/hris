@@ -192,7 +192,7 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
     }
 });
 
-router.get('/employee/personal/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.get('/employee/personal/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
 
@@ -204,7 +204,7 @@ router.get('/employee/personal/:employeeId', middlewares.guardRoute(['create_emp
         next(err);
     }
 });
-router.post('/employee/personal/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.post('/employee/personal/:employeeId', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
         let body = req.body
@@ -226,7 +226,7 @@ router.post('/employee/personal/:employeeId', middlewares.guardRoute(['create_em
     }
 });
 
-router.get('/employee/employment/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.get('/employee/employment/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employmentIndex = employee.employments.length
@@ -292,7 +292,7 @@ router.post('/employee/employment/:employeeId/create', middlewares.guardRoute(['
     }
 });
 
-router.get('/employee/employment/:employeeId/:employmentId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+router.get('/employee/employment/:employeeId/:employmentId', middlewares.guardRoute(['read_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employment = res.employment
@@ -344,7 +344,7 @@ router.post('/employee/employment/:employeeId/:employmentId', middlewares.guardR
     }
 });
 
-router.get('/employee/employment/:employeeId/:employmentId/delete', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+router.get('/employee/employment/:employeeId/:employmentId/delete', middlewares.guardRoute(['delete_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
         let employee = res.employee
         let employment = res.employment
@@ -359,7 +359,7 @@ router.get('/employee/employment/:employeeId/:employmentId/delete', middlewares.
 });
 
 
-router.get('/employee/address/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.get('/employee/address/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
         employee.address = await db.main.Address.findOneFullAddress({
@@ -443,40 +443,7 @@ router.post('/employee/address/:employeeId', middlewares.guardRoute(['create_emp
     }
 });
 
-router.get('/employee/passes/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee
-        res.render('employee/passes.html', {
-            flash: flash.get(req, 'employee'),
-            employee: employee,
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-router.post('/employee/passes/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee
-        let body = req.body
-        let passes = lodash.get(employee, 'passes', [])
-
-        let pass = {
-            type: body.type,
-            createdAt: moment().toDate(),
-            expiredAt: moment().add(1, 'days').toDate(),
-        }
-        passes.push(pass)
-        employee.passes = passes
-        await employee.save()
-        flash.ok(req, 'employee', `Issued pass.`)
-        res.redirect(`/employee/passes/${employee._id}`)
-    } catch (err) {
-        next(err);
-    }
-});
-
-
-router.get('/employee/photo/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.get('/employee/photo/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
 
@@ -569,7 +536,7 @@ router.get('/employee/find', middlewares.guardRoute(['create_employee', 'update_
     }
 });
 
-router.get('/employee/user/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.get('/employee/user/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         employee.user = await db.main.User.findById(employee.userId)
@@ -587,7 +554,7 @@ router.get('/employee/user/:employeeId', middlewares.guardRoute(['create_employe
         next(err);
     }
 });
-router.post('/employee/user/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.post('/employee/user/:employeeId', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
 
@@ -652,7 +619,7 @@ router.post('/employee/user/:employeeId', middlewares.guardRoute(['create_employ
     }
 });
 
-router.get('/employee/e201/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.get('/employee/e201/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
 
@@ -665,7 +632,7 @@ router.get('/employee/e201/:employeeId', middlewares.guardRoute(['create_employe
         next(err);
     }
 });
-router.get('/employee/e201/:employeeId/pds', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.get('/employee/e201/:employeeId/pds', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
 
@@ -680,7 +647,7 @@ router.get('/employee/e201/:employeeId/pds', middlewares.guardRoute(['create_emp
 });
 
 
-router.post('/employee/user/:employeeId/password', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.post('/employee/user/:employeeId/password', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employeeUser = await db.main.User.findById(employee.userId)

@@ -35,7 +35,7 @@ module.exports = {
         return lodash.toLower(`${lastName}`) + '.' + lodash.toLower(`${firstName}`)
     },
     genPassword: (length) => { // Guarantees 1 upper and 1 special char in a random string
-        const upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        const upperChars = "ABCDEFGHIJKLMNPQRSTUVWXYZ"
         const specialChars = `!@#$%*_+?]=` // Use only less confusing characters
 
         let bytes = crypto.randomBytes(length / 2);

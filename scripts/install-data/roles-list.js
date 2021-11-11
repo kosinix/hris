@@ -133,7 +133,7 @@ const ROLES = [
         name: 'Campus Director Mosqueda',
         description: 'Can view attendance.',
         permissions: [
-           
+
             // Attendance
             'read_all_attendance',
             'read_attendance',
@@ -145,7 +145,7 @@ const ROLES = [
         name: 'Campus Director Baterna',
         description: 'Can view attendance.',
         permissions: [
-           
+
             // Attendance
             'read_all_attendance',
             'read_attendance',
@@ -157,7 +157,7 @@ const ROLES = [
         name: 'President',
         description: 'Can view attendance.',
         permissions: [
-           
+
             // Employees
             'read_all_employee',
             'read_employee',
@@ -165,6 +165,21 @@ const ROLES = [
             // Attendance
             'read_all_attendance',
             'read_attendance',
+
+            // Health Dec
+            'read_all_hdf',
+            'read_hdf',
+
+            // Memos
+            'read_all_memo',
+            'create_memo',
+            'read_memo',
+            'update_memo',
+            'delete_memo',
+
+            // Work Schedule
+            'read_all_schedule',
+            'read_schedule',
 
         ]
     },

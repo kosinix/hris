@@ -88,26 +88,6 @@ let handleExpressUploadMagic = async (req, res, next) => {
     }
 }
 
-let requireAuthUser = async (req, res, next) => {
-    try {
-        let authUserId = lodash.get(req, 'session.authUserId');
-        if (!authUserId) {
-            return res.redirect('/login')
-        }
-        let user = await db.main.User.findById(authUserId);
-        if (!user) {
-            return res.redirect('/login')
-        }
-        if (!user.active) {
-            return res.redirect('/logout')
-        }
-        res.user = user;
-        next();
-    } catch (err) {
-        next(err)
-    }
-}
-
 let requireAuthScanner = async (req, res, next) => {
     try {
         let authScannerId = lodash.get(req, 'session.authScannerId');
@@ -398,7 +378,25 @@ module.exports = {
     },
     dataUrlToReqFiles: dataUrlToReqFiles,
     handleExpressUploadMagic: handleExpressUploadMagic,
-    requireAuthUser: requireAuthUser,
+    requireAuthUser: async (req, res, next) => {
+        try {
+            let authUserId = lodash.get(req, 'session.authUserId');
+            if (!authUserId) {
+                return res.redirect('/login')
+            }
+            let user = await db.main.User.findById(authUserId);
+            if (!user) {
+                return res.redirect('/login')
+            }
+            if (!user.active) {
+                return res.redirect('/logout')
+            }
+            res.user = user;
+            next();
+        } catch (err) {
+            next(err)
+        }
+    },
     requireAuthScanner: requireAuthScanner, // TODO: @deprecated
     requireAssignedScanner: async (req, res, next) => {
         try {

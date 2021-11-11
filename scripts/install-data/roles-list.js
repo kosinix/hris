@@ -158,6 +158,10 @@ const ROLES = [
         description: 'Can view attendance.',
         permissions: [
            
+            // Employees
+            'read_all_employee',
+            'read_employee',
+
             // Attendance
             'read_all_attendance',
             'read_attendance',

@@ -39,7 +39,7 @@
                         <td class="text-center">{{loop.index}}</td>
                         <td><em>{{attendance.employment.campus|capitalize}}</em></td>
                         <td>
-                            <a class="text-left d-block" href="/attendance/employee/{{attendance.employeeId}}/employment/{{attendance.employmentId}}?start={{attendance.createdAt|format_date('YYYY-MM-DD')}}&amp;end={{attendance.createdAt|format_date('YYYY-MM-DD')}}">
+                            <a class="text-left d-block" href="/attendance/employee/{{attendance.employeeId}}/employment/{{attendance.employmentId}}?start={{mCalendar.startOf('month').format('YYYY-MM-DD')}}&amp;end={{mCalendar.endOf('month').format('YYYY-MM-DD')}}">
                                 {{attendance.employee.firstName}} {{attendance.employee.lastName}} {{attendance.employee.suffix}}
                             </a>
                             

@@ -17,7 +17,7 @@ let router = express.Router()
 
 router.get('/login', async (req, res, next) => {
     try {
-        if(lodash.get(req, 'session.authUserId')){
+        if (lodash.get(req, 'session.authUserId')) {
             return res.redirect(`/`)
         }
         // console.log(req.session)
@@ -40,18 +40,18 @@ router.post('/login', async (req, res, next) => {
         let recaptchaToken = lodash.trim(lodash.get(post, 'recaptchaToken', ''))
 
         // Recaptcha
-        let params = new url.URLSearchParams({ 
+        let params = new url.URLSearchParams({
             secret: CRED.recaptchav3.secret,
             response: recaptchaToken
         });
-        let response = await axios.post(`https://www.google.com/recaptcha/api/siteverify`, params.toString(), { 
-            headers: { 
-                "Content-Type": "application/x-www-form-urlencoded" 
+        let response = await axios.post(`https://www.google.com/recaptcha/api/siteverify`, params.toString(), {
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
             }
         })
         // console.log(response.config, response.data)
         let score = lodash.get(response, 'data.score', 0.0)
-        if(score < 0.5){
+        if (score < 0.5) {
             throw new Error('Security error.')
 
         }
@@ -85,7 +85,7 @@ router.post('/login', async (req, res, next) => {
         if (user.roles.includes('clinical')) {
             return res.redirect('/hdf/all')
         }
-        if (user.roles.includes('campusdirectormosqueda') || user.roles.includes('campusdirectorbaterna')) {
+        if (user.roles.includes('president') || user.roles.includes('campusdirectormosqueda') || user.roles.includes('campusdirectorbaterna')) {
             return res.redirect('/attendance/monthly')
         }
         if (user.roles.includes('checker')) {
@@ -173,7 +173,7 @@ router.get('/query/employment', async (req, res, next) => {
 
             employee.employments.forEach((employment, i) => {
                 let final = `${full} - ${employment.position}`
-               
+
                 ret.push({
                     id: employment._id,
                     name: final

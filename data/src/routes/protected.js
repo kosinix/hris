@@ -25,7 +25,7 @@ router.get('/', middlewares.requireAuthUser, async (req, res, next) => {
         if (user.roles.includes('clinical')) {
             return res.redirect('/hdf/all')
         }
-        if (user.roles.includes('campusdirectormosqueda') || user.roles.includes('campusdirectorbaterna')) {
+        if (user.roles.includes('president') || user.roles.includes('campusdirectormosqueda') || user.roles.includes('campusdirectorbaterna')) {
             return res.redirect('/attendance/monthly')
         }
         if (user.roles.includes('checker')) {

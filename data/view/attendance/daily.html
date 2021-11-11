@@ -45,14 +45,21 @@
                         </td>
                         <td class="text-center">{% if attendance.employee.gender == 'M' %}✓{% endif %}</td>
                         <td class="text-center">{% if attendance.employee.gender == 'F' %}✓{% endif %}</td>
-                        <td>{{attendance.logs[0].dateTime|default(true, '')|format_date('hh:mm')}}</td>
-                        <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
-                        <td>{{attendance.logs[1].dateTime|default(true, '')|format_date('hh:mm')}}</td>
-                        <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
-                        <td>{{attendance.logs[2].dateTime|default(true, '')|format_date('hh:mm')}}</td>
-                        <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
-                        <td>{{attendance.logs[3].dateTime|default(true, '')|format_date('hh:mm')}}</td>
-                        <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
+                        
+                        {% if attendance.type == 'normal' %}
+                            
+                            <td>{{attendance.logs[0].dateTime|default(true, '')|format_date('hh:mm')}}</td>
+                            <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
+                            <td>{{attendance.logs[1].dateTime|default(true, '')|format_date('hh:mm')}}</td>
+                            <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
+                            <td>{{attendance.logs[2].dateTime|default(true, '')|format_date('hh:mm')}}</td>
+                            <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
+                            <td>{{attendance.logs[3].dateTime|default(true, '')|format_date('hh:mm')}}</td>
+                            <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
+
+                        {% else %}
+                            <td colspan="8">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')|replace('Wfh', 'WFH')}}</td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
             </table>

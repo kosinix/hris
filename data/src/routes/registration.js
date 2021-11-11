@@ -163,16 +163,23 @@ router.get('/registration/create', middlewares.guardRoute(['read_all_user', 'rea
         next(err);
     }
 });
-router.post('/registration/create', middlewares.guardRoute(['read_all_user', 'read_user']), async (req, res, next) => {
+router.post('/registration/create', middlewares.guardRoute(['create_user', 'update_user']), async (req, res, next) => {
     try {
-        let code = lodash.get(req, 'body.uid')
-        let email = lodash.get(req, 'body.email')
-        let employmentId = lodash.get(req, 'body.employmentId')
+        let code = lodash.trim(lodash.get(req, 'body.uid'))
+        let email = lodash.trim(lodash.get(req, 'body.email'))
+        let employmentId = lodash.trim(lodash.get(req, 'body.employmentId'))
 
         let registrationForm = await db.main.RegistrationForm.findOne({
             uid: code,
         })
-        if (!registrationForm) {
+        if (registrationForm) {
+            if (registrationForm.status === 'finished') {
+                throw new Error(`You are already registered. Please proceed to the login page.`)
+            }
+            if (registrationForm.status === 'verified') {
+                throw new Error(`You are already verified. Please open your email.`)
+            }
+        } else {
             registrationForm = await db.main.RegistrationForm.create({
                 uid: code,
                 employmentId: employmentId,
@@ -180,17 +187,59 @@ router.post('/registration/create', middlewares.guardRoute(['read_all_user', 're
                 photo: '',
                 status: 'finished',
             })
-        } else {
-            if (registrationForm.status === 'finished') {
-                throw new Error('You are already registered. Please proceed to the login page.')
-            }
-            if (registrationForm.status === 'verified') {
-                throw new Error('You are already verified. Please open your email.')
-            }
+        }
+        //
+
+        let employment = await db.main.Employment.findById(registrationForm.employmentId).lean()
+        if (!employment) {
+            throw new Error("Sorry, employment not found.")
         }
 
-        flash.ok(req, 'registration', 'Added manually.')
-        return res.redirect('/registration/all')
+        let employee = await db.main.Employee.findById(employment.employeeId).lean()
+        if (!employee) {
+            throw new Error("Sorry, employee not found.")
+        }
+
+        let userAccount = await db.main.User.findById(employee.userId).lean()
+        if (!userAccount) {
+            throw new Error('You dont have an user account.')
+        }
+
+
+        registrationForm.employment = employment
+        registrationForm.employee = employee
+        registrationForm.userAccount = userAccount
+
+        let username = registrationForm.userAccount.username
+        let password = passwordMan.genPassword(8)
+        let passwordHash = passwordMan.hashPassword(password, registrationForm.userAccount.salt)
+
+        await db.main.User.updateOne({ _id: registrationForm.userAccount._id }, {
+            passwordHash: passwordHash
+        })
+
+        // Associate
+        await db.main.Employee.updateOne({ _id: registrationForm.employee._id }, {
+            uid: registrationForm.uid // ID card number
+        })
+
+        let data = {
+            to: registrationForm.email,
+            firstName: registrationForm.employee.firstName,
+            username: username,
+            password: password,
+            loginUrl: `${CONFIG.app.url}/login?username=${username}`
+        }
+
+        let info = await mailer.send('verified.html', data)
+        console.log(info)
+
+        await db.main.RegistrationForm.updateOne({ _id: registrationForm._id }, {
+            status: 'verified'
+        })
+
+        flash.ok(req, 'register', 'Employee registered and verified.')
+        return res.redirect('/registration/create')
     } catch (err) {
         next(err);
     }

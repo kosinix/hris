@@ -4,7 +4,7 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h2">Add </h1>
+            <h1 class="h2">Register Manually </h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
@@ -16,13 +16,16 @@
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
         <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/registration/create" method="POST" class="form-default">
-            {% set name = 'uid' %}
-            {% set label = 'RFID Number' %}
-            {% include 'parts/form-group-text.html' %}
-            {% set label = '' %}
+            <div class="form-group">
+                <label for="uid">RFID Number <span class="text-danger">*</span></label>
+                <div>
+                    <textarea v-on:blur="trim" name="uid" id="uid" v-model="uid" rows="1" class="form-control"></textarea>
+                    <small class="invalid-feedback">${getError('uid')}</small>
+                </div>
+            </div>
 
             <div class="form-group pb-5 mb-5">
-                <label for="employmentId">Select Your Name</label>
+                <label for="employmentId">Select Your Name <span class="text-danger">*</span></label>
                 <div>
                     <autocomplete ref="autocom" v-model="employmentId"
                         name="employmentId"
@@ -39,12 +42,17 @@
                 </div>
             </div>
 
-            {% set name = 'email' %}
-            {% include 'parts/form-group-text.html' %}
+            <div class="form-group">
+                <label for="email">Email <span class="text-danger">*</span></label>
+                <div>
+                    <input name="email" id="email" v-model="email" type="email" class="form-control">
+                    <small class="invalid-feedback">${getError('email')}</small>
+                </div>
+            </div>
 
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
-                    <button class="btn btn-primary">Add</button>
+                    <button class="btn btn-primary">Add and Verify</button>
                 </div>
             </div>
         </form>
@@ -76,7 +84,8 @@
         },
         validations: {
             uid: {
-                required: window.validators.required
+                required: window.validators.required,
+                minLength: window.validators.minLength(10),
             },
             employmentId: {
                 required: window.validators.required
@@ -86,13 +95,11 @@
             },
         },
         methods: {
+            trim: function(){
+                this.uid = _.trim(this.uid)
+            },
             onSubmit: function(){
                 var me = this;
-                if(!me.validateEmail(me.email)){
-                    alert('Please provide a valid email.')
-                    return
-                }
-
                 me.$v.$touch()
                 if (me.$v.$error) {
                     alert('Please correct the errors to continue.')

@@ -155,28 +155,29 @@ router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', '
             }
         }
 
-        // Mosqueda
-        if (res.user.roles.includes('campusdirectormosqueda')) {
-            let employmentIds = await db.main.Employment.find({
-                campus: 'mosqueda'
-            }).lean()
-
-            employmentIds = employmentIds.map((e) => e._id)
-
-            query['employmentId'] = {
-                $in: employmentIds
-            }
+        // Filter employees per campus depending on role
+        let employeesForThisCampuses = []
+        if (res.user.roles.includes('president')) {
+            employeesForThisCampuses = lodash.union(employeesForThisCampuses, ['main', 'mosqueda', 'baterna'])
         }
-        // Baterna
+        if (res.user.roles.includes('campusdirectormosqueda')) {
+            employeesForThisCampuses = lodash.union(employeesForThisCampuses, ['mosqueda'])
+        }
         if (res.user.roles.includes('campusdirectorbaterna')) {
-            let employmentIds = await db.main.Employment.find({
-                campus: 'baterna'
+            employeesForThisCampuses = lodash.union(employeesForThisCampuses, ['baterna'])
+        }
+
+        if(employeesForThisCampuses.length > 0){
+            let employments = await db.main.Employment.find({
+                campus: {
+                    $in: employeesForThisCampuses
+                }
             }).lean()
 
-            employmentIds = employmentIds.map((e) => e._id)
+            let _employmentIds = employments.map((e) => e._id)
 
             query['employmentId'] = {
-                $in: employmentIds
+                $in: _employmentIds
             }
         }
 
@@ -373,7 +374,8 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
     }
 });
 
-router.get('/attendance/schedule/all', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
+// Work Schedule
+router.get('/attendance/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_schedule']), async (req, res, next) => {
     try {
         let schedules = await db.main.WorkSchedule.find().lean()
         schedules = schedules.map((o) => {
@@ -393,7 +395,7 @@ router.get('/attendance/schedule/all', middlewares.guardRoute(['read_all_attenda
         next(err);
     }
 });
-router.get('/attendance/schedule/create', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
+router.get('/attendance/schedule/create', middlewares.guardRoute(['create_schedule']), async (req, res, next) => {
     try {
 
         res.render('attendance/schedule-create.html', {
@@ -403,7 +405,7 @@ router.get('/attendance/schedule/create', middlewares.guardRoute(['read_all_atte
         next(err);
     }
 });
-router.post('/attendance/schedule/create', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
+router.post('/attendance/schedule/create', middlewares.guardRoute(['create_schedule']), async (req, res, next) => {
     try {
 
         let name = lodash.get(req, 'body.name')
@@ -454,7 +456,7 @@ router.post('/attendance/schedule/create', middlewares.guardRoute(['read_all_att
     }
 });
 
-router.get('/attendance/schedule/:scheduleId', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), middlewares.getSchedule, async (req, res, next) => {
+router.get('/attendance/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']), middlewares.getSchedule, async (req, res, next) => {
     try {
         let schedule = res.schedule.toObject()
 
@@ -479,7 +481,7 @@ router.get('/attendance/schedule/:scheduleId', middlewares.guardRoute(['read_all
         next(err);
     }
 });
-router.post('/attendance/schedule/:scheduleId/members', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), middlewares.getSchedule, async (req, res, next) => {
+router.post('/attendance/schedule/:scheduleId/members', middlewares.guardRoute(['update_schedule']), middlewares.getSchedule, async (req, res, next) => {
     try {
         let listIds = lodash.get(req, 'body.listIds', [])
 
@@ -529,7 +531,7 @@ router.post('/attendance/schedule/:scheduleId/members', middlewares.guardRoute([
         next(err);
     }
 });
-router.get('/attendance/schedule/:scheduleId/members/:memberId/delete', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), middlewares.getSchedule, async (req, res, next) => {
+router.get('/attendance/schedule/:scheduleId/members/:memberId/delete', middlewares.guardRoute(['delete_schedule']), middlewares.getSchedule, async (req, res, next) => {
     try {
         let memberId = lodash.get(req, 'params.memberId')
 

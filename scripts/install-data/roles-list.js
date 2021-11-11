@@ -25,7 +25,7 @@ const ROLES = [
     {
         key: 'hrmo',
         name: 'Human Resource Management Officer',
-        description: 'Can manage employee, attendance, and payroll.',
+        description: 'Can manage employee, attendance, work schedule and payroll.',
         permissions: [
             // Employees
             'read_all_employee',
@@ -50,6 +50,13 @@ const ROLES = [
             'read_attendance',
             'update_attendance',
             'delete_attendance',
+
+            // Work Schedule
+            'read_all_schedule',
+            'create_schedule',
+            'read_schedule',
+            'update_schedule',
+            'delete_schedule',
 
             // Memos
             'read_all_memo',
@@ -136,6 +143,18 @@ const ROLES = [
     {
         key: 'campusdirectorbaterna',
         name: 'Campus Director Baterna',
+        description: 'Can view attendance.',
+        permissions: [
+           
+            // Attendance
+            'read_all_attendance',
+            'read_attendance',
+
+        ]
+    },
+    {
+        key: 'president',
+        name: 'President',
         description: 'Can view attendance.',
         permissions: [
            

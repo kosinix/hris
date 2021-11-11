@@ -53,7 +53,14 @@ module.exports = [
     'update_attendance',
     'delete_attendance',
 
-    // Attendance
+    // Work Schedule
+    'read_all_schedule',
+    'create_schedule',
+    'read_schedule',
+    'update_schedule',
+    'delete_schedule',
+
+    // Health Dec
     'read_all_hdf',
     'create_hdf',
     'read_hdf',

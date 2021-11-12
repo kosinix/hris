@@ -64,8 +64,8 @@
                         <td class="text-center">
                             {{attendance.createdAt|format_date('DD')}}
                         </td>
-                        {% if attendance.onTravel %}
-                            <td colspan="6">On Travel</td>
+                        {% if attendanceTypesList.includes(attendance.type) %}
+                            <td colspan="6">{{attendance.type|capitalize}}</td>
                         {% else %}
 
                             <td>

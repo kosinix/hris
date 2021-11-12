@@ -165,7 +165,7 @@ router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', '
             employeesForThisCampuses = lodash.union(employeesForThisCampuses, ['baterna'])
         }
 
-        if(employeesForThisCampuses.length > 0){
+        if (employeesForThisCampuses.length > 0) {
             let employments = await db.main.Employment.find({
                 campus: {
                     $in: employeesForThisCampuses
@@ -319,6 +319,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance
         res.render('attendance/edit.html', {
             flash: flash.get(req, 'attendance'),
             attendanceTypes: CONFIG.attendance.types,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
             employee: employee,
             employment: employment,
             attendance: attendance,
@@ -346,10 +347,10 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
         lodash.set(patch, 'log3', lodash.get(body, 'log3'))
         lodash.set(patch, 'comment', lodash.get(body, 'comment'))
 
-        let {changeLogs, att} = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
+        let { changeLogs, att } = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
 
         // return res.send(att)
-        if(changeLogs.length){
+        if (changeLogs.length) {
             flash.ok(req, 'attendance', `${changeLogs.join(' ')}`)
         } else {
 

@@ -5,7 +5,7 @@
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
             <div>
-                <h1>Attendance</h1>
+                <h1>Edit Attendance</h1>
                 <p class="mb-0 pl-1"></p>
             </div>
         </div>
@@ -27,7 +27,7 @@
 
 
         <form id="vApp" v-cloak ref="form" v-on:submit.prevent="onSubmit" action="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/{{attendance._id}}/edit" method="POST" class="form-default">
-    {% include 'parts/flash.html' %}
+            {% include 'parts/flash.html' %}
             
             <div class="table-responsive">
                 <table class="table table-dtr">
@@ -51,9 +51,10 @@
                     <tr>
                         <td class="text-center p-1">
                             <select v-model="attendance.type" name="type" id="type">
-                                <option value="normal">Normal</option>
-                                <option value="wfh">WFH</option>
-                                <option value="travel">On Travel</option>
+                                <option value=""></option>
+                                {% for attendanceType in attendanceTypes %}
+                                    <option value="{{attendanceType.value}}">{{attendanceType.name}}</option>
+                                {% endfor %}
                             </select>
                             <select v-model="attendance.workScheduleId" name="workScheduleId" id="workScheduleId">
                                 <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.name}</option>
@@ -67,14 +68,26 @@
                             <td colspan="6">On Travel</td>
                         {% else %}
 
-                            {% for log in attendance.logs %}
-                                <td>
-                                    <div class="d-flex">
-                                        <input type="time" v-model="log{{loop.index0}}" name="log{{loop.index0}}">
-                                    </div>
-                                </td>
-                            {% endfor %}
-                            
+                            <td>
+                                <div class="d-flex">
+                                    <input type="time" v-model="log0" name="log0">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex">
+                                    <input type="time" v-model="log1" name="log1">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex">
+                                    <input type="time" v-model="log2" name="log2">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex">
+                                    <input type="time" v-model="log3" name="log3">
+                                </div>
+                            </td>
                             
                         {% endif %}
                     </tr>
@@ -82,15 +95,40 @@
                 </table>
             </div>
 
+            <div class="form-group">
+                <label for="comment">Comments (optional)</label>
+                <div>
+                    <textarea  name="comment" id="comment" rows="1" class="form-control"></textarea>
+                </div>
+            </div>
+
+            {# <div class="alert alert-warning">Warning: Dishonest time is a serious offense.</div> #}
+
+
             <div class="text-right">
                 <button class="btn btn-primary btn-sm">Change Time Log</button>
             </div>
         </form>
-
-        <div class="form-row pt-3 pb-3">
-            <div class="col-md-12">
-                {# <a href="/employee/employment/{{employee._id}}" class="btn btn-primary">Back to Employee</a> #}
-            </div>
+        <hr>
+        <div class="mb-5">
+            {% if attendance.changes.length > 0 %}
+                <h2 class="h2">History</h2>
+                <ul>
+                    {% for change in attendance.changes.reverse() %}
+                        <li>{{change.summary}} - <a href="#"><em title="{{change.createdAt|format_date('MMM DD, YYYY - h:mm:ss A')}}">{{change.createdAt|from_now}}</em></a>
+                         </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if attendance.comments.length > 0 %}
+                <h2 class="h2">Comments</h2>
+                <ul>
+                    {% for comment in attendance.comments.reverse() %}
+                        <li>{{comment.summary}} - <a href="#"><em title="{{comment.createdAt|format_date('MMM DD, YYYY - h:mm:ss A')}}">{{comment.createdAt|from_now}}</em></a>
+                         </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         </div>
     </div>
 </div>

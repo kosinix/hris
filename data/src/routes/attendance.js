@@ -318,6 +318,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance
 
         res.render('attendance/edit.html', {
             flash: flash.get(req, 'attendance'),
+            attendanceTypes: CONFIG.attendance.types,
             employee: employee,
             employment: employment,
             attendance: attendance,
@@ -343,28 +344,16 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
         lodash.set(patch, 'log1', lodash.get(body, 'log1'))
         lodash.set(patch, 'log2', lodash.get(body, 'log2'))
         lodash.set(patch, 'log3', lodash.get(body, 'log3'))
+        lodash.set(patch, 'comment', lodash.get(body, 'comment'))
 
+        let {changeLogs, att} = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
 
-        attendance.type = patch.type
-        attendance.workScheduleId = patch.workScheduleId
-        attendance.onTravel = false
-        attendance.wfh = false
+        // return res.send(att)
+        if(changeLogs.length){
+            flash.ok(req, 'attendance', `${changeLogs.join(' ')}`)
+        } else {
 
-        if (attendance.type === 'wfh') {
-            attendance.wfh = true
-        } else if (attendance.type === 'travel') {
-            attendance.onTravel = true
         }
-
-        attendance.logs = attendance.logs.map((log, i) => {
-            let time = patch[`log${i}`].split(':')
-            let mDate = moment(attendance.createdAt).hour(parseInt(time[0])).minute(parseInt(time[1]))
-            log.dateTime = mDate.toDate()
-            return log
-        })
-
-        await db.main.Attendance.updateOne({ _id: attendance._id }, attendance)
-        flash.ok(req, 'attendance', `Attendance changed.`)
         res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
         // res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}?start=2021-11-02&end=2021-11-02`)
     } catch (err) {

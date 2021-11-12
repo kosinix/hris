@@ -12,14 +12,14 @@ let schema = mongoose.Schema({
     employmentId: {
         $type: mongoose.Schema.Types.ObjectId
     },
-    onTravel: Boolean,
-    wfh: Boolean,
+    onTravel: Boolean, // @deprecated. Use type
+    wfh: Boolean, // @deprecated. Use type
     workScheduleId: {
         $type: mongoose.Schema.Types.ObjectId
     },
     type: {
         $type: String,
-        default: 'normal', // wfh, travel
+        default: 'normal', // wfh, travel, pass, leave
     },
     logs: [
         {
@@ -28,7 +28,22 @@ let schema = mongoose.Schema({
             mode: Number, // 1 = in, 0 = out
         }
     ],
-}, {timestamps: {createdAt: true, updatedAt: false}, typeKey: '$type', versionKey: false})
+    changes: [
+        {
+            summary: String,
+            objectId: mongoose.Schema.Types.ObjectId,
+            comment: String,
+            createdAt: Date
+        }
+    ],
+    comments: [
+        {
+            summary: String,
+            objectId: mongoose.Schema.Types.ObjectId,
+            createdAt: Date
+        }
+    ],
+}, { timestamps: { createdAt: true, updatedAt: false }, typeKey: '$type', versionKey: false })
 
 //// Instance methods
 

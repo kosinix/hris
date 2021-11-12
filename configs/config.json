@@ -73,6 +73,30 @@
   },
   "minPasswordLength": 8,
   "minSaltLength": 8,
+  "attendance": {
+    "types":[
+      {
+        "name": "Normal",
+        "value": "normal"
+      },
+      {
+        "name": "WFH",
+        "value": "wfh"
+      },
+      {
+        "name": "Travel",
+        "value": "travel"
+      },
+      {
+        "name": "Leave",
+        "value": "leave"
+      },
+      {
+        "name": "Pass Slip",
+        "value": "pass"
+      }
+    ]
+  },
   "workTime": {
     "workDays": 22,
     "hoursPerDay": 8,

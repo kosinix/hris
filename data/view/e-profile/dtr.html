@@ -89,10 +89,12 @@
                         </div>
                     </div>
                 </div>
+                
             </div>
             <div class="table-responsive">
                 <table class="table table-dtr">
                     <tr>
+                        <th v-if="dtrEditable" class="text-center" rowspan="2"></th>
                         <th class="text-center" rowspan="2">Day</th>
                         <th class="text-center" colspan="2">AM</th>
                         <th class="text-center" colspan="2">PM</th>
@@ -114,45 +116,10 @@
                         <th>Minutes</th>
                     </tr>
                     <tr v-for="(dtrDay, index) in dtrDays" v-bind:class="getCssClass(dtrDay)">
+                        <td v-if="dtrEditable"><a  v-if="_.get(dtrDay, 'ui.editable')" v-bind:href="'/e-profile/dtr/' + _.get(employment, '_id') + '/attendance/' + _.get(dtrDay, 'attendance._id') + '/edit' ">Edit</a></td>
                         <td class="text-center">${index + 1}</td>
-                        <template v-if="_.get(dtrDay, 'attendance.type') === 'travel'">
-                            <td>Travel</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td>
-                                ${dispHours(dtrDay)}
-                            </td>
-                            <td>
-                                ${dispMins(dtrDay)}
-                            </td>
-                        </template>
-                        <template v-else-if="_.get(dtrDay, 'attendance.type') === 'wfh'">
-                            <td>WFH</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td>
-                                ${dispHours(dtrDay)}
-                            </td>
-                            <td>
-                                ${dispMins(dtrDay)}
-                            </td>
-                        </template>
-                        <template v-else-if="_.get(dtrDay, 'attendance.type') === 'leave'">
-                            <td>Leave</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td>
-                                ${dispHours(dtrDay)}
-                            </td>
-                            <td>
-                                ${dispMins(dtrDay)}
-                            </td>
-                        </template>
-                        <template v-else-if="_.get(dtrDay, 'attendance.type') === 'pass'">
-                            <td>Pass Slip</td>
+                        <template v-if="['travel', 'wfh', 'leave', 'pass'].includes(_.get(dtrDay, 'attendance.type'))">
+                            <td class="text-capitalize">${_.get(dtrDay, 'attendance.type')}</td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -164,52 +131,31 @@
                             </td>
                         </template>
                         <template v-else >
+                            <td>
+                                <div v-if="_.get(dtrDay, 'attendance.logs[0].dateTime')">
+                                    ${formatDate(_.get(dtrDay, 'attendance.logs[0].dateTime'), 'hh:mm A')}
+                                </div>
+                            </td>
+                            <td>
+                                <div v-if="_.get(dtrDay, 'attendance.logs[1].dateTime')">
+                                    ${formatDate(_.get(dtrDay, 'attendance.logs[1].dateTime'), 'hh:mm A')}
+                                </div>
 
-                            <td>
-                                <div v-if="_.get(dtrDay, 'ui.editable')">
-                                    <input type="time" v-model="dtrDay.ui.log0">
-                                </div>
-                                <div v-else>
-                                    <div v-if="_.get(dtrDay, 'attendance.logs[0].dateTime')">
-                                        ${formatDate(_.get(dtrDay, 'attendance.logs[0].dateTime'), 'hh:mm A')}
-                                    </div>
+                                <div v-if="isTimeOutShown(dtrDay)">
+                                    <button v-on:click="logTime(0)" class="btn btn-sm btn-light">Time-Out</button>
                                 </div>
                             </td>
                             <td>
-                                <div v-if="_.get(dtrDay, 'ui.editable')">
-                                    <input type="time" v-model="dtrDay.ui.log1">
+                                <div v-if="_.get(dtrDay, 'attendance.logs[2].dateTime')">
+                                    ${formatDate(_.get(dtrDay, 'attendance.logs[2].dateTime'), 'hh:mm A')}
                                 </div>
-                                <div v-else>
-                                    <div v-if="_.get(dtrDay, 'attendance.logs[1].dateTime')">
-                                        ${formatDate(_.get(dtrDay, 'attendance.logs[1].dateTime'), 'hh:mm A')}
-                                    </div>
-
-                                    <div v-if="isTimeOutShown(dtrDay)">
-                                        <button v-on:click="logTime(0)" class="btn btn-sm btn-light">Time-Out</button>
-                                    </div>
+                                <div v-if="isTimeInShown(dtrDay)">
+                                    <button v-on:click="logTime(1)" class="btn btn-sm btn-light">Time-In</button>
                                 </div>
                             </td>
                             <td>
-                                <div v-if="_.get(dtrDay, 'ui.editable')">
-                                    <input type="time" v-model="dtrDay.ui.log2">
-                                </div>
-                                <div v-else>
-                                    <div v-if="_.get(dtrDay, 'attendance.logs[2].dateTime')">
-                                        ${formatDate(_.get(dtrDay, 'attendance.logs[2].dateTime'), 'hh:mm A')}
-                                    </div>
-                                    <div v-if="isTimeInShown(dtrDay)">
-                                        <button v-on:click="logTime(1)" class="btn btn-sm btn-light">Time-In</button>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div v-if="_.get(dtrDay, 'ui.editable')">
-                                    <input type="time" v-model="dtrDay.ui.log3">
-                                </div>
-                                <div v-else>
-                                    <div v-if="_.get(dtrDay, 'attendance.logs[3].dateTime')">
-                                        ${formatDate(_.get(dtrDay, 'attendance.logs[3].dateTime'), 'hh:mm A')}
-                                    </div>
+                                <div v-if="_.get(dtrDay, 'attendance.logs[3].dateTime')">
+                                    ${formatDate(_.get(dtrDay, 'attendance.logs[3].dateTime'), 'hh:mm A')}
                                 </div>
                             </td>
                             <td>
@@ -221,9 +167,6 @@
                         </template>
                     </tr>
                 </table>
-            </div>
-            <div class="text-center">
-                {# <a href="/e-profile/dtr-qr" class="mt-3 btn btn-primary">Scan QR Code To Log Attendance</a> #}
             </div>
         </div>
     </div>
@@ -242,6 +185,7 @@
             workScheduleEditable: false,
             totalTimeViewEditable: false,
             dateEditable: false,
+            dtrEditable: {{dtrEditable}},
             workScheduleId: '{{employment.workScheduleId}}',
             workSchedules: {{workSchedules|default([], true)|stringify|safe}},
             dtrDays: {{dtrDays|default([], true)|stringify|safe}},
@@ -250,6 +194,7 @@
             year: '{{momentNow|format_date("YYYY")}}',
             months: {{months|default([], true)|stringify|safe}},
             years: {{years|default([], true)|stringify|safe}},
+            employment: {{employment|default({}, true)|stringify|safe}},
         },
         validations: {},
         computed: {

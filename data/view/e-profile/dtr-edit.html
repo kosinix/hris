@@ -1,0 +1,129 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Edit DTR <em>({{attendance.createdAt|format_date('MMMM, YYYY')}})</em></h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/e-profile/dtr/{{employment._id}}" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <div class=" mb-5">
+        {% include 'parts/flash.html' %}
+        <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width: 800px" class="ml-auto mr-auto" >
+            <div class="text-center">
+                <h4 class="h3 mb-3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
+                <p class="text-left mb-3"><em class="mr-2">Employment:</em> <strong>{{employment.position}}</strong></p>
+            </div>
+            <form action="/e-profile/dtr/{{employment._id}}/attendance/{{attendance._id}}/edit" method="POST">
+                <div class="table-responsive">
+                    <table class="table table-dtr">
+                        <tr>
+                            <th class="text-center" rowspan="2">Day</th>
+                            <th class="text-center" rowspan="2">Type</th>
+                            <th class="text-center" colspan="2">AM</th>
+                            <th class="text-center" colspan="2">PM</th>
+                            <th class="text-center" rowspan="2">Schedule</th>
+
+                        </tr>
+                        <tr>
+                            <th>Arrival</th>
+                            <th>Departure</th>
+                            
+                            <th>Arrival</th>
+                            <th>Departure</th>
+
+                        </tr>
+                        <tr>
+                            <td class="text-center">${formatDate(_.get(attendance, 'createdAt'), 'D')}</td>
+                            <td>
+                                <select v-model="attendance.type" name="type" id="type">
+                                    <option value="normal">Normal</option>
+                                    <option value="wfh">WFH</option>
+                                    <option value="travel">Travel</option>
+                                    <option value="leave">On Leave</option>
+                                    <option value="pass">Pass Slip</option>
+                                </select>
+                            </td>
+                            <template v-if="['travel', 'wfh', 'leave', 'pass'].includes(_.get(attendance, 'type'))">
+                                <td class="text-capitalize">${_.get(attendance, 'type')}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </template>
+                            <template v-else >
+                                <td>
+                                    <input type="time" name="log0" v-model="attendance.ui.log0">
+                                </td>
+                                <td>
+                                    <input type="time" name="log1" v-model="attendance.ui.log1">
+                                </td>
+                                <td>
+                                    <input type="time" name="log2" v-model="attendance.ui.log2">
+                                </td>
+                                <td>
+                                    <input type="time" name="log3" v-model="attendance.ui.log3">
+                                </td>
+                            </template>
+                            <td>
+                                <select v-model="attendance.type" name="type" id="type">
+                                    <option value="normal">Normal</option>
+                                    <option value="wfh">WFH</option>
+                                    <option value="travel">Travel</option>
+                                    <option value="leave">On Leave</option>
+                                    <option value="pass">Pass Slip</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="text-center mb-4">
+                    <button class="btn btn-primary">Save Correction to DTR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            pending: false,
+            workScheduleId: '{{employment.workScheduleId}}',
+            workSchedules: {{workSchedules|default([], true)|stringify|safe}},
+            attendance: {{attendance|default({}, true)|stringify|safe}},
+        },
+        validations: {},
+        computed: {
+            
+        },
+        methods: {
+            formatDate: function(date, format){
+                return moment(date).format(format);
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

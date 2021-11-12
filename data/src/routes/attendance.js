@@ -292,6 +292,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
             timeRecordSummary: timeRecordSummary,
             startMoment: startMoment,
             endMoment: endMoment,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
             // matrix: kalendaryo.getMatrix(momentNow, 0)
         });
     } catch (err) {
@@ -346,6 +347,10 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
         lodash.set(patch, 'log2', lodash.get(body, 'log2'))
         lodash.set(patch, 'log3', lodash.get(body, 'log3'))
         lodash.set(patch, 'comment', lodash.get(body, 'comment'))
+
+        if (patch.type === '') {
+            return res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
+        }
 
         let { changeLogs, att } = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
 

@@ -22,7 +22,7 @@
             {{employee.firstName}}
         </h1>
         <h2 class="h5 mb-4">
-            {{attendance.createdAt|format_date('MMM DD, YYYY')}}
+            {{attendance.createdAt|format_date('MMM DD, YYYY - dddd')}}
         </h2>
 
 
@@ -32,9 +32,8 @@
             <div class="table-responsive">
                 <table class="table table-dtr">
                     <tr>
-                        <th rowspan="2" width="5%"></th>
-                        <th class="text-center" rowspan="2"></th>
-                        <th class="text-center" rowspan="2">Day</th>
+                        <th class="text-center" rowspan="2" width="5%"></th>
+                        <th class="text-center" rowspan="2" colspan="2">Day</th>
                         <th class="text-center" colspan="2">AM</th>
                         <th class="text-center" colspan="2">PM</th>
                        
@@ -49,16 +48,18 @@
                    
                     </tr>
                     <tr>
-                        <td class="text-center p-1">
-                            <select v-model="attendance.type" name="type" id="type">
-                                <option value=""></option>
-                                {% for attendanceType in attendanceTypes %}
-                                    <option value="{{attendanceType.value}}">{{attendanceType.name}}</option>
-                                {% endfor %}
-                            </select>
-                            <select v-model="attendance.workScheduleId" name="workScheduleId" id="workScheduleId">
-                                <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.name}</option>
-                            </select>
+                        <td class="text-center">
+                            <div class="p-2">
+                                <select v-model="attendance.type" name="type" id="type" class="mb-2">
+                                    <option value=""></option>
+                                    {% for attendanceType in attendanceTypes %}
+                                        <option value="{{attendanceType.value}}">{{attendanceType.name}}</option>
+                                    {% endfor %}
+                                </select>
+                                <select v-model="attendance.workScheduleId" name="workScheduleId" id="workScheduleId">
+                                    <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.name}</option>
+                                </select>
+                            </div>
                         </td>
                         <td class="text-center">{{attendance.createdAt|format_date('ddd')}}</td>
                         <td class="text-center">

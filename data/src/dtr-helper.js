@@ -464,7 +464,7 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
     let changeLogs = []
 
     if (attendance.type !== attendancePatch.type) {
-        let message = `${user.username} changed type from ${attendance.type} to ${attendancePatch.type}.`
+        let message = `${user.username} changed attendance type from ${attendance.type} to ${attendancePatch.type}.`
         changeLogs.push(message)
         attendance.type = attendancePatch.type
         attendance.changes.push({
@@ -473,7 +473,7 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
             createdAt: moment().toDate()
         })
     }
-    if (attendance.workScheduleId.toString() !== attendancePatch.workScheduleId.toString()) {
+    if (lodash.invoke(attendance, 'workScheduleId.toString') !== lodash.invoke(attendancePatch, 'workScheduleId.toString')) {
         let workSchedule1 = await db.main.WorkSchedule.findById(attendance.workScheduleId)
         let workSchedule2 = await db.main.WorkSchedule.findById(attendancePatch.workScheduleId)
         let message = `${user.username} changed work schedule from ${lodash.get(workSchedule1, 'name')} to ${lodash.get(workSchedule2, 'name')}.`

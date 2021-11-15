@@ -218,6 +218,7 @@ router.post('/e-profile/accept', middlewares.guardRoute(['use_employee_profile']
     }
 });
 
+
 router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -261,6 +262,7 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
 
         let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
 
+        let dtrEditable = false
         dtrDays = dtrDays.map((d) => {
 
             let attendance = d.attendance
@@ -284,7 +286,8 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
                         lodash.set(ui, `log${l}`, moment(log.dateTime).format('HH:mm'))
                     } else {
                         lodash.set(ui, `log${l}`, '')
-                        // ui.editable = true
+                        ui.editable = true
+                        dtrEditable = true
                     }
                 }
             }
@@ -295,7 +298,7 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
         })
 
         let years = new Array(10)
-        years = years.fill( moment().year() ).map((val, index) => val - index)
+        years = years.fill(moment().year()).map((val, index) => val - index)
 
         // return res.send(dtrDays)
         res.render('e-profile/dtr.html', {
@@ -308,9 +311,191 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
             workSchedules: workSchedules,
             months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
             years: years,
+            dtrEditable: dtrEditable,
         });
 
 
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employmentId = res.employmentId
+        let employment = res.employment
+        let attendanceId = lodash.get(req, 'params.attendanceId')
+
+        // Get attendance
+        let attendance = await db.main.Attendance.findOne({
+            _id: attendanceId,
+            employmentId: employmentId,
+        }).lean()
+
+        if (!attendance) {
+            throw new Error('Attendance not found.')
+        }
+
+        let workSchedule = await db.main.WorkSchedule.findById(
+            lodash.get(attendance, 'workScheduleId')
+        )
+
+        attendance.shifts = lodash.get(workSchedule, 'timeSegments')
+
+        let workSchedules = await db.main.WorkSchedule.find().lean()
+        workSchedules = workSchedules.map((o) => {
+            let times = []
+            o.timeSegments = o.timeSegments.map((t) => {
+                t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
+                t.end = moment().startOf('day').minutes(t.end).format('hh:mm A')
+                times.push(`${t.start} to ${t.end}`)
+                return t
+            })
+            o.times = times.join(", \n")
+            return o
+        })
+
+
+        let attendanceType = lodash.get(attendance, 'type')
+
+        // For use by vuejs in frontend
+        let ui = {
+            editable: false,
+            attendanceType: attendanceType,
+            log0: '',
+            log1: '',
+            log2: '',
+            log3: '',
+        }
+
+        if (attendanceType === 'normal') {
+            let maxLogNumber = 4
+            for (let l = 0; l < maxLogNumber; l++) {
+                let log = lodash.get(attendance, `logs[${l}]`)
+                if (log) {
+                    lodash.set(ui, `log${l}`, moment(log.dateTime).format('HH:mm'))
+                } else {
+                    lodash.set(ui, `log${l}`, '')
+                    ui.editable = true
+                }
+            }
+        }
+
+        attendance.ui = ui
+
+
+        // return res.send(attendance)
+        res.render('e-profile/dtr-edit.html', {
+            flash: flash.get(req, 'employee'),
+            attendance: attendance,
+            employee: employee,
+            employment: employment,
+            workSchedules: workSchedules,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employmentId = res.employmentId
+        let employment = res.employment
+        let attendanceId = lodash.get(req, 'params.attendanceId')
+
+        
+        // Get attendance
+        let attendance = await db.main.Attendance.findOne({
+            _id: attendanceId,
+            employmentId: employmentId,
+        }).lean()
+
+        if (!attendance) {
+            throw new Error('Attendance not found.')
+        }
+
+        let body = lodash.get(req, 'body')
+        let log0 = lodash.get(body, 'log0')
+        let log1 = lodash.get(body, 'log1')
+        let log2 = lodash.get(body, 'log2')
+        let log3 = lodash.get(body, 'log3')
+
+        let splitTime = (createdAt, HHmm) =>{
+            let time = HHmm.split(':')
+
+            let hours = lodash.get(time, '0', 0)
+            let minutes = lodash.get(time, '1', 0)
+            return moment(createdAt).hours(hours).minutes(minutes)
+        }
+
+        let moment0 = splitTime(attendance.createdAt, log0)
+        let moment1 = splitTime(attendance.createdAt, log1)
+        let moment2 = splitTime(attendance.createdAt, log2)
+        let moment3 = splitTime(attendance.createdAt, log3)
+
+        console.log(moment0)
+        console.log(moment1)
+        console.log(moment2)
+        console.log(moment3)
+
+        return res.send(body)
+
+        let workSchedule = await db.main.WorkSchedule.findById(
+            lodash.get(attendance, 'workScheduleId')
+        )
+
+        attendance.shifts = lodash.get(workSchedule, 'timeSegments')
+
+        let workSchedules = await db.main.WorkSchedule.find().lean()
+        workSchedules = workSchedules.map((o) => {
+            let times = []
+            o.timeSegments = o.timeSegments.map((t) => {
+                t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
+                t.end = moment().startOf('day').minutes(t.end).format('hh:mm A')
+                times.push(`${t.start} to ${t.end}`)
+                return t
+            })
+            o.times = times.join(", \n")
+            return o
+        })
+
+
+        let attendanceType = lodash.get(attendance, 'type')
+
+        // For use by vuejs in frontend
+        let ui = {
+            editable: false,
+            attendanceType: attendanceType,
+            log0: '',
+            log1: '',
+            log2: '',
+            log3: '',
+        }
+
+        if (attendanceType === 'normal') {
+            let maxLogNumber = 4
+            for (let l = 0; l < maxLogNumber; l++) {
+                let log = lodash.get(attendance, `logs[${l}]`)
+                if (log) {
+                    lodash.set(ui, `log${l}`, moment(log.dateTime).format('HH:mm'))
+                } else {
+                    lodash.set(ui, `log${l}`, '')
+                    ui.editable = true
+                }
+            }
+        }
+
+        attendance.ui = ui
+
+
+        // return res.send(attendance)
+        res.render('e-profile/dtr-edit.html', {
+            flash: flash.get(req, 'employee'),
+            attendance: attendance,
+            employee: employee,
+            employment: employment,
+            workSchedules: workSchedules,
+        });
     } catch (err) {
         next(err);
     }
@@ -663,64 +848,6 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
             totalTimeView: totalTimeView,
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
         });
-    } catch (err) {
-        next(err);
-    }
-});
-
-router.get('/e-profile/dtr/:employmentId/analysis', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let employmentId = res.employmentId
-        let employment = res.employment
-        let month = lodash.get(req, 'query.month', moment().format('MMM'))
-        let year = lodash.get(req, 'query.year', moment().format('YYYY'))
-        let momentNow = moment().year(year).month(month)
-
-        // Today attendance
-        let attendances = await db.main.Attendance.find({
-            employeeId: employee._id,
-            employmentId: employmentId,
-            createdAt: {
-                $gte: momentNow.clone().startOf('month').toDate(),
-                $lt: momentNow.clone().endOf('month').toDate(),
-            }
-        }).lean()
-
-        for (let a = 0; a < attendances.length; a++) {
-            let attendance = attendances[a]
-            let workSchedule = await db.main.WorkSchedule.findById(
-                lodash.get(attendance, 'workScheduleId')
-            )
-
-            attendance.shifts = lodash.get(workSchedule, 'timeSegments')
-        }
-
-        let workSchedules = await db.main.WorkSchedule.find().lean()
-        workSchedules = workSchedules.map((o) => {
-            let times = []
-            o.timeSegments = o.timeSegments.map((t) => {
-                t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
-                t.end = moment().startOf('day').minutes(t.end).format('hh:mm A')
-                times.push(`${t.start} to ${t.end}`)
-                return t
-            })
-            o.times = times.join(", \n")
-            return o
-        })
-
-        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
-        // return res.send(dtrDays)
-        res.render('e-profile/analysis.html', {
-            momentNow: momentNow,
-            attendances: attendances,
-            employee: employee,
-            employment: employment,
-            dtrDays: dtrDays,
-            workSchedules: workSchedules,
-        });
-
-
     } catch (err) {
         next(err);
     }

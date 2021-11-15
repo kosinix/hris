@@ -276,9 +276,6 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
                 log3: '',
             }
 
-            
-
-
             if (attendanceType === 'normal') {
                 let maxLogNumber = 4
                 for (let l = 0; l < maxLogNumber; l++) {
@@ -435,32 +432,69 @@ router.get('/e-profile/dtr/print/:employmentId', middlewares.guardRoute(['use_em
                 $gte: momentNow.startOf('month').toDate(),
                 $lt: momentNow.endOf('month').toDate(),
             }
+        }).lean()
+
+        for (let a = 0; a < attendances.length; a++) {
+            let attendance = attendances[a]
+            let workSchedule = await db.main.WorkSchedule.findById(
+                lodash.get(attendance, 'workScheduleId')
+            )
+
+            attendance.shifts = lodash.get(workSchedule, 'timeSegments')
+        }
+
+        let workSchedules = await db.main.WorkSchedule.find().lean()
+        workSchedules = workSchedules.map((o) => {
+            let times = []
+            o.timeSegments = o.timeSegments.map((t) => {
+                t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
+                t.end = moment().startOf('day').minutes(t.end).format('hh:mm A')
+                times.push(`${t.start} to ${t.end}`)
+                return t
+            })
+            o.times = times.join(", \n")
+            return o
         })
 
-        attendances = lodash.mapKeys(attendances, (a) => {
-            return moment(a.createdAt).format('YYYY-MM-DD')
-        })
+        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
 
-        let days = new Array(31)
-        days = days.fill(1).map((v, i) => {
-            let key = momentNow.clone().startOf('month').date(v + i).format('YYYY-MM-DD')
-            let attendance = attendances[key] || null
-            let dtr = dtrHelper.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints)
+        dtrDays = dtrDays.map((d) => {
 
-            return {
-                date: key,
-                year: year,
-                month: month,
-                day: v + i,
-                dtr: dtr,
-                attendance: attendance
+            let attendance = d.attendance
+            let attendanceType = lodash.get(attendance, 'type')
+
+            // For use by vuejs in frontend
+            let ui = {
+                editable: false,
+                attendanceType: attendanceType,
+                log0: '',
+                log1: '',
+                log2: '',
+                log3: '',
             }
+
+            if (attendanceType === 'normal') {
+                let maxLogNumber = 4
+                for (let l = 0; l < maxLogNumber; l++) {
+                    let log = lodash.get(attendance, `logs[${l}]`)
+                    if (log) {
+                        lodash.set(ui, `log${l}`, moment(log.dateTime).format('HH:mm'))
+                    } else {
+                        lodash.set(ui, `log${l}`, '')
+                        // ui.editable = true
+                    }
+                }
+            }
+
+            d.ui = ui
+
+            return d
         })
 
         res.render('e-profile/dtr-print.html', {
             shared: false,
             momentNow: momentNow,
-            days: days,
+            days: dtrDays,
             attendances: attendances,
             employee: employee,
             employment: employment,

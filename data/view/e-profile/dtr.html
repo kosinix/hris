@@ -94,7 +94,7 @@
             <div class="table-responsive">
                 <table class="table table-dtr">
                     <tr>
-                        <th v-if="dtrEditable" class="text-center" rowspan="2"></th>
+                        {# <th v-if="dtrEditable" class="text-center" rowspan="2"></th> #}
                         <th class="text-center" rowspan="2">Day</th>
                         <th class="text-center" colspan="2">AM</th>
                         <th class="text-center" colspan="2">PM</th>
@@ -116,7 +116,7 @@
                         <th>Minutes</th>
                     </tr>
                     <tr v-for="(dtrDay, index) in dtrDays" v-bind:class="getCssClass(dtrDay)">
-                        <td v-if="dtrEditable"><a  v-if="_.get(dtrDay, 'ui.editable')" v-bind:href="'/e-profile/dtr/' + _.get(employment, '_id') + '/attendance/' + _.get(dtrDay, 'attendance._id') + '/edit' ">Edit</a></td>
+                        {# <td v-if="dtrEditable"><a  v-if="_.get(dtrDay, 'ui.editable')" v-bind:href="'/e-profile/dtr/' + _.get(employment, '_id') + '/attendance/' + _.get(dtrDay, 'attendance._id') + '/edit' ">Edit</a></td> #}
                         <td class="text-center">${index + 1}</td>
                         <template v-if="['travel', 'wfh', 'leave', 'pass'].includes(_.get(dtrDay, 'attendance.type'))">
                             <td class="text-capitalize">${_.get(dtrDay, 'attendance.type')}</td>

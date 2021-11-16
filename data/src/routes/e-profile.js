@@ -391,6 +391,8 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
             employee: employee,
             employment: employment,
             workSchedules: workSchedules,
+            attendanceTypes: CONFIG.attendance.types,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
         });
     } catch (err) {
         next(err);

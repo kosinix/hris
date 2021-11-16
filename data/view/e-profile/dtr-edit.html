@@ -14,7 +14,7 @@
     </div>
     <div class=" mb-5">
         {% include 'parts/flash.html' %}
-        <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width: 800px" class="ml-auto mr-auto" >
+        <div id="vApp" v-cloak v-bind:data-pending="pending" class="ml-auto mr-auto" >
             <div class="text-center">
                 <h4 class="h3 mb-3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
                 <p class="text-left mb-3"><em class="mr-2">Employment:</em> <strong>{{employment.position}}</strong></p>
@@ -42,14 +42,10 @@
                             <td class="text-center">${formatDate(_.get(attendance, 'createdAt'), 'D')}</td>
                             <td>
                                 <select v-model="attendance.type" name="type" id="type">
-                                    <option value="normal">Normal</option>
-                                    <option value="wfh">WFH</option>
-                                    <option value="travel">Travel</option>
-                                    <option value="leave">On Leave</option>
-                                    <option value="pass">Pass Slip</option>
+                                    <option v-for="attendanceType in attendanceTypes" v-bind:value="attendanceType.value">${attendanceType.name}</option>
                                 </select>
                             </td>
-                            <template v-if="['travel', 'wfh', 'leave', 'pass'].includes(_.get(attendance, 'type'))">
+                            <template v-if="attendanceTypesList.includes(_.get(attendance, 'type'))">
                                 <td class="text-capitalize">${_.get(attendance, 'type')}</td>
                                 <td></td>
                                 <td></td>
@@ -70,12 +66,8 @@
                                 </td>
                             </template>
                             <td>
-                                <select v-model="attendance.type" name="type" id="type">
-                                    <option value="normal">Normal</option>
-                                    <option value="wfh">WFH</option>
-                                    <option value="travel">Travel</option>
-                                    <option value="leave">On Leave</option>
-                                    <option value="pass">Pass Slip</option>
+                                <select v-model="workScheduleId" name="workScheduleId" id="type">
+                                    <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.name}</option>
                                 </select>
                             </td>
                         </tr>
@@ -102,6 +94,8 @@
             workScheduleId: '{{employment.workScheduleId}}',
             workSchedules: {{workSchedules|default([], true)|stringify|safe}},
             attendance: {{attendance|default({}, true)|stringify|safe}},
+            attendanceTypes: {{attendanceTypes|default([], true)|stringify|safe}},
+            attendanceTypesList: {{attendanceTypesList|default([], true)|stringify|safe}},
         },
         validations: {},
         computed: {

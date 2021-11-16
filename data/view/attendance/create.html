@@ -1,0 +1,214 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <div>
+                <h1>Insert Attendance</h1>
+                <p class="mb-0 pl-1"></p>
+            </div>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}?start={{attendance.createdAt|format_date('YYYY-MM-DD')}}&amp;end={{attendance.createdAt|format_date('YYYY-MM-DD')}}" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3">
+        <h1 class="mt-2">
+            {{employee.lastName}},
+            {{employee.firstName}}
+        </h1>
+        <h2 class="h5 mb-4">
+            {{attendance.createdAt|format_date('MMM DD, YYYY - dddd')}}
+        </h2>
+
+        <div class="alert alert-warning">Warning: Manual adding of time must be supported by a log sheet or other supporting documents.</div>
+        <form id="vApp" v-cloak ref="form" v-on:submit.prevent="onSubmit" action="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/create" method="POST" class="form-default">
+            {% include 'parts/flash.html' %}
+            
+            <div class="table-responsive">
+                <table class="table table-dtr">
+                    <tr>
+                        <th class="text-center" rowspan="2" width="5%"></th>
+                        <th class="text-center" rowspan="2" width="22%">Day</th>
+                        <th class="text-center" colspan="2" width="22%">AM</th>
+                        <th class="text-center" colspan="2" width="22%">PM</th>
+                        <th class="text-center" rowspan="2" width="5%"></th>
+                    </tr>
+                    <tr>
+                        <th>Arrival</th>
+                        <th>Departure</th>
+                        <th>Arrival</th>
+                        <th>Departure</th>
+                    </tr>
+                    <tr>
+                        <td class="text-center">
+                            <select v-model="type" name="type" id="type" class="mb-2">
+                                <option value=""></option>
+                                {% for attendanceType in attendanceTypes %}
+                                    <option value="{{attendanceType.value}}">{{attendanceType.name}}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="invalid-feedback">${getError('type')}</small>
+                        </td>
+                        <td class="text-center">
+                            <input type="date" v-model="date" name="date">
+                            <small class="invalid-feedback">${getError('date')}</small>
+
+                        </td>
+                        {% if attendanceTypesList.includes(attendance.type) %}
+                            <td colspan="6">{{attendance.type|capitalize}}</td>
+                        {% else %}
+                            <td>
+                                <div class="d-flex">
+                                    <input type="time" v-model="log0" name="log0">
+                                </div>
+                                <small class="invalid-feedback">${getError('log0')}</small>
+                            </td>
+                            <td>
+                                <div class="d-flex">
+                                    <input type="time" v-model="log1" name="log1">
+                                </div>
+                                <small class="invalid-feedback">${getError('log1')}</small>
+                            </td>
+                            <td>
+                                <div class="d-flex">
+                                    <input type="time" v-model="log2" name="log2">
+                                </div>
+                                <small class="invalid-feedback">${getError('log2')}</small>
+                            </td>
+                            <td>
+                                <div class="d-flex">
+                                    <input type="time" v-model="log3" name="log3">
+                                </div>
+                                <small class="invalid-feedback">${getError('log3')}</small>
+                            </td>
+                        {% endif %}
+
+                        <td class="text-center">
+                            <select v-model="workScheduleId" name="workScheduleId" id="workScheduleId">
+                                <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.name}</option>
+                            </select>
+                            <small class="invalid-feedback">${getError('workScheduleId')}</small>
+                        </td>
+                    </tr>
+                  
+                </table>
+            </div>
+
+            <div class="form-group">
+                <label for="comment">Comments <span class="text-danger">*</span></label>
+                <div>
+                    <textarea v-model="comment" name="comment" id="comment" rows="1" class="form-control"></textarea>
+                    <small class="invalid-feedback">${getError('comment')}</small>
+
+                </div>
+            </div>
+
+            {# <div class="alert alert-warning">Warning: Dishonest time is a serious offense.</div> #}
+
+
+            <div class="text-right">
+                <button class="btn btn-primary btn-sm">Insert Time Log</button>
+            </div>
+        </form>
+        <hr>
+        <div class="mb-5">
+            {% if attendance.changes.length > 0 %}
+                <h2 class="h2">History</h2>
+                <ul>
+                    {% for change in attendance.changes.reverse() %}
+                        <li>{{change.summary}} - <a href="#"><em title="{{change.createdAt|format_date('MMM DD, YYYY - h:mm:ss A')}}">{{change.createdAt|from_now}}</em></a>
+                         </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if attendance.comments.length > 0 %}
+                <h2 class="h2">Comments</h2>
+                <ul>
+                    {% for comment in attendance.comments.reverse() %}
+                        <li>{{comment.summary}} - <a href="#"><em title="{{comment.createdAt|format_date('MMM DD, YYYY - h:mm:ss A')}}">{{comment.createdAt|from_now}}</em></a>
+                         </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            type: 'normal',
+            workScheduleId: '',
+            workSchedules: {{workSchedules|default([], true)|stringify|safe}},
+            date: '2021-11-13',
+            comment: 'asasa',
+            log0: '08:00',
+            log1: '12:00',
+            log2: '13:00',
+            log3: '17:30',
+        },
+        validations: {
+            workScheduleId: {
+                required: window.validators.required
+            },
+            date: {
+                required: window.validators.required
+            },
+            comment: {
+                required: window.validators.required
+            },
+            log0: {
+                required: window.validators.requiredIf(function(){
+                    return this.type === 'normal';
+                })
+            },
+            log1: {
+                required: window.validators.requiredIf(function(){
+                    return this.type === 'normal';
+                })
+            },
+            log2: {
+                required: window.validators.requiredIf(function(){
+                    return this.type === 'normal';
+                })
+            },
+            log3: {
+                required: window.validators.requiredIf(function(){
+                    return this.type === 'normal';
+                })
+            },
+        },
+        created: function(){
+            var me = this;
+            
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

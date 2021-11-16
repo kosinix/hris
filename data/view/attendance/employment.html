@@ -22,6 +22,7 @@
             </div>
         </div>
        
+
         <h2 class="h5 mb-4">
             {{startMoment|format_date('MMM DD, YYYY')}}
             {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
@@ -29,6 +30,7 @@
             {% endif %}
         </h2>
 
+        <div class="text-right mb-2"><a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm">Insert Attendance</a></div>
         <div class="table-responsive">
             <table class="table table-dtr">
                 <tr>
@@ -126,12 +128,6 @@
                     </td>
                 </tr>
             </table>
-        </div>
-      
-        <div class="form-row pt-3 pb-3">
-            <div class="col-md-12">
-                {# <a href="/employee/employment/{{employee._id}}" class="btn btn-primary">Back to Employee</a> #}
-            </div>
         </div>
     </div>
 </div>

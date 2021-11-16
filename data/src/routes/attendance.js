@@ -311,8 +311,6 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance
             employeeId: '',
             employmentId: '',
             logs: [],
-            onTravel: false,
-            wfh: false,
             type: 'normal',
             workScheduleId: '',
         }, attendance)
@@ -362,6 +360,145 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
         }
         res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
         // res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}?start=2021-11-02&end=2021-11-02`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance/create', middlewares.guardRoute(['create_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment.toObject()
+        let workSchedules = await db.main.WorkSchedule.find().lean()
+
+        res.render('attendance/create.html', {
+            flash: flash.get(req, 'attendance'),
+            attendanceTypes: CONFIG.attendance.types,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+            employee: employee,
+            employment: employment,
+            workSchedules: workSchedules,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/employee/:employeeId/employment/:employmentId/attendance/create', middlewares.guardRoute(['create_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let user = res.user.toObject()
+        let employee = res.employee.toObject()
+        let employment = res.employment.toObject()
+
+        let body = req.body
+
+        // return res.send(body)
+        let patch = {}
+        lodash.set(patch, 'type', lodash.get(body, 'type'))
+        lodash.set(patch, 'workScheduleId', lodash.get(body, 'workScheduleId'))
+        lodash.set(patch, 'log0', lodash.get(body, 'log0'))
+        lodash.set(patch, 'log1', lodash.get(body, 'log1'))
+        lodash.set(patch, 'log2', lodash.get(body, 'log2'))
+        lodash.set(patch, 'log3', lodash.get(body, 'log3'))
+        lodash.set(patch, 'comment', lodash.get(body, 'comment'))
+        lodash.set(patch, 'date', lodash.get(body, 'date'))
+
+        
+
+
+        let whiteList = CONFIG.attendance.types.map(o => o.value)
+        if (!whiteList.includes(patch.type)) {
+            throw new Error(`Invalid attendance type "${patch.type}".`)
+        }
+
+        let conflict = await db.main.Attendance.findOne({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            createdAt: {
+                $gte: moment(patch.date).startOf('day').toDate(),
+                $lt: moment(patch.date).endOf('day').toDate(),
+            }
+        }).lean()
+
+        if(conflict){
+            throw new Error(`Already have attendance on this date. Please edit it instead.`)
+
+        }
+
+        let attendance = {
+            employeeId: employee._id,
+            employmentId: employment._id,
+            type: patch.type,
+            workScheduleId: patch.workScheduleId,
+            createdAt: moment(patch.date).toDate(),
+            logs: [],
+            changes: [],
+            comments: [],
+        }
+
+        attendance.changes.push({
+            summary: `${user.username} inserted a new attendance.`,
+            objectId: user._id,
+            createdAt: moment().toDate()
+        })
+
+        if (patch.type === 'normal') {
+            for (x = 0; x < 4; x++) {
+                let logPatch = lodash.get(patch, `log${x}`)
+
+                if (logPatch) {
+
+                    let time = logPatch.split(':')
+                    let hours = parseInt(time[0])
+                    let minutes = parseInt(time[1])
+                    let mDate = moment(attendance.createdAt).hour(hours).minute(minutes)
+
+
+                    let mode = 1 // 1 = "time-in" which is always the first log mode
+                    let lastLog = attendance.logs[attendance.logs.length - 1]
+                    if (lastLog) {
+                        mode = lastLog.mode === 1 ? 0 : 1 // Flip 1 or 0
+                    }
+
+                    attendance.logs.push({
+                        scannerId: null,
+                        dateTime: mDate.toDate(),
+                        mode: mode
+                    })
+
+                    let newTime = mDate.format('hh:mm A')
+
+                    let message = `${user.username} added time log #${x + 1} set to ${newTime}.`
+                    attendance.changes.push({
+                        summary: message,
+                        objectId: user._id,
+                        createdAt: moment().toDate()
+                    })
+                }
+            }
+        }
+
+        if (patch.comment) {
+            attendance.comments.push({
+                summary: patch.comment,
+                objectId: user._id,
+                createdAt: moment().toDate()
+            })
+    
+            let message = `${user.username} added a new comment.`
+            attendance.changes.push({
+                summary: message,
+                objectId: user._id,
+                createdAt: moment().toDate()
+            })
+    
+        }
+
+        attendance = await db.main.Attendance.create(attendance)
+
+        console.log(attendance)
+
+        flash.ok(req, 'attendance', `Inserted new attendance.`)
+        res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
     } catch (err) {
         next(err);
     }

@@ -463,16 +463,7 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
 
     let changeLogs = []
 
-    if (attendance.type !== attendancePatch.type) {
-        let message = `${user.username} changed attendance type from ${attendance.type} to ${attendancePatch.type}.`
-        changeLogs.push(message)
-        attendance.type = attendancePatch.type
-        attendance.changes.push({
-            summary: message,
-            objectId: user._id,
-            createdAt: moment().toDate()
-        })
-    }
+    
     if (lodash.invoke(attendance, 'workScheduleId.toString') !== lodash.invoke(attendancePatch, 'workScheduleId.toString')) {
         let workSchedule1 = await db.main.WorkSchedule.findById(attendance.workScheduleId)
         let workSchedule2 = await db.main.WorkSchedule.findById(attendancePatch.workScheduleId)
@@ -536,6 +527,18 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
         }
     }
 
+    if (attendance.type !== attendancePatch.type) {
+        let message = `${user.username} changed attendance type from ${attendance.type} to ${attendancePatch.type}.`
+        changeLogs.push(message)
+        attendance.type = attendancePatch.type
+        attendance.logs = []
+        attendance.changes.push({
+            summary: message,
+            objectId: user._id,
+            createdAt: moment().toDate()
+        })
+    }
+    
     if (attendancePatch.comment) {
         attendance.comments.push({
             summary: attendancePatch.comment,

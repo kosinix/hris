@@ -416,88 +416,32 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
             throw new Error('Attendance not found.')
         }
 
-        let body = lodash.get(req, 'body')
-        let log0 = lodash.get(body, 'log0')
-        let log1 = lodash.get(body, 'log1')
-        let log2 = lodash.get(body, 'log2')
-        let log3 = lodash.get(body, 'log3')
+        let body = req.body
+        // return res.send(body)
+        let patch = {}
+        lodash.set(patch, 'type', lodash.get(body, 'type'))
+        lodash.set(patch, 'workScheduleId', lodash.get(body, 'workScheduleId'))
+        lodash.set(patch, 'log0', lodash.get(body, 'log0'))
+        lodash.set(patch, 'log1', lodash.get(body, 'log1'))
+        lodash.set(patch, 'log2', lodash.get(body, 'log2'))
+        lodash.set(patch, 'log3', lodash.get(body, 'log3'))
+        lodash.set(patch, 'comment', lodash.get(body, 'comment'))
 
-        let splitTime = (createdAt, HHmm) =>{
-            let time = HHmm.split(':')
-
-            let hours = lodash.get(time, '0', 0)
-            let minutes = lodash.get(time, '1', 0)
-            return moment(createdAt).hours(hours).minutes(minutes)
+        if (patch.type === '') {
+            return res.redirect(`/e-profile/dtr/${employmentId}/attendance/${attendanceId}/edit`)
         }
 
-        let moment0 = splitTime(attendance.createdAt, log0)
-        let moment1 = splitTime(attendance.createdAt, log1)
-        let moment2 = splitTime(attendance.createdAt, log2)
-        let moment3 = splitTime(attendance.createdAt, log3)
+        // return res.send(patch)
 
-        console.log(moment0)
-        console.log(moment1)
-        console.log(moment2)
-        console.log(moment3)
+        let { changeLogs, att } = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
 
-        return res.send(body)
+        // return res.send(att)
+        if (changeLogs.length) {
+            flash.ok(req, 'employee', `${changeLogs.join(' ')}`)
+        } else {
 
-        let workSchedule = await db.main.WorkSchedule.findById(
-            lodash.get(attendance, 'workScheduleId')
-        )
-
-        attendance.shifts = lodash.get(workSchedule, 'timeSegments')
-
-        let workSchedules = await db.main.WorkSchedule.find().lean()
-        workSchedules = workSchedules.map((o) => {
-            let times = []
-            o.timeSegments = o.timeSegments.map((t) => {
-                t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
-                t.end = moment().startOf('day').minutes(t.end).format('hh:mm A')
-                times.push(`${t.start} to ${t.end}`)
-                return t
-            })
-            o.times = times.join(", \n")
-            return o
-        })
-
-
-        let attendanceType = lodash.get(attendance, 'type')
-
-        // For use by vuejs in frontend
-        let ui = {
-            editable: false,
-            attendanceType: attendanceType,
-            log0: '',
-            log1: '',
-            log2: '',
-            log3: '',
         }
-
-        if (attendanceType === 'normal') {
-            let maxLogNumber = 4
-            for (let l = 0; l < maxLogNumber; l++) {
-                let log = lodash.get(attendance, `logs[${l}]`)
-                if (log) {
-                    lodash.set(ui, `log${l}`, moment(log.dateTime).format('HH:mm'))
-                } else {
-                    lodash.set(ui, `log${l}`, '')
-                    ui.editable = true
-                }
-            }
-        }
-
-        attendance.ui = ui
-
-
-        // return res.send(attendance)
-        res.render('e-profile/dtr-edit.html', {
-            flash: flash.get(req, 'employee'),
-            attendance: attendance,
-            employee: employee,
-            employment: employment,
-            workSchedules: workSchedules,
-        });
+        res.redirect(`/e-profile/dtr/${employmentId}`)
     } catch (err) {
         next(err);
     }

@@ -335,7 +335,6 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
         let attendance = res.attendance.toObject()
 
         let body = req.body
-
         // return res.send(body)
         let patch = {}
         lodash.set(patch, 'type', lodash.get(body, 'type'))

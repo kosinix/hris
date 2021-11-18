@@ -15,9 +15,6 @@
     {% include 'payroll/tab-create.html' %}
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-2">
         <form ref="form" v-on:submit.prevent="onSubmit" action="/payroll/create" method="POST" class="form-default">
-
-            
-
             <div class="form-group">
                 <label for="dateStart">Period *</label>
                 <div class="d-flex">

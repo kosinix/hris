@@ -26,6 +26,7 @@
                            <th class="text-center" width="5%">#</th>
                            <th>Name</th>
                            <th>Time</th>
+                           <th>Visible To</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -45,6 +46,7 @@
                                     {% endfor %}
                                 </ul>
                             </td>
+                            <td>{{schedule.visibility|replace('members', 'Selected Employees')}}</td>
                         </tr>
                     {% endfor %}
                     </tbody>

@@ -23,21 +23,21 @@
         <hr>
         <form ref="form" v-cloak v-on:submit.prevent="onSubmit" v-if="payroll.status == 1 || payroll.status == 2" action="/payroll/employees/{{payroll._id}}" method="POST" class="form-default pt-2">
             <div class="form-group">
-                    <label for="employmentId">Add Employee <span class="text-danger">*</span></label>
-                    <div>
-                        <autocomplete v-model="employmentId"
-                            name="employmentId"
-                            initial-value="{{''}}"
-                            initial-display="{{''}}"
-                            placeholder="Type employee name..."
-                            :source="dataSource"
-                            input-class="form-control"
-                            :request-headers="headers"
-                            v-on:selected="onSelect"
-                            >
-                        </autocomplete>
-                        <small class="invalid-feedback">${getError('employmentId')}</small>
-                    </div>
+                <label for="employmentId">Add Employee <span class="text-danger">*</span></label>
+                <div>
+                    <autocomplete v-model="employmentId"
+                        name="employmentId"
+                        initial-value="{{''}}"
+                        initial-display="{{''}}"
+                        placeholder="Type employee name..."
+                        :source="dataSource"
+                        input-class="form-control"
+                        :request-headers="headers"
+                        v-on:selected="onSelect"
+                        >
+                    </autocomplete>
+                    <small class="invalid-feedback">${getError('employmentId')}</small>
+                </div>
             </div>
             <div class="form-row pb-3">
                 <div class="col-md-12">

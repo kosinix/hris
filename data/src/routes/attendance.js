@@ -401,7 +401,7 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
         lodash.set(patch, 'comment', lodash.get(body, 'comment'))
         lodash.set(patch, 'date', lodash.get(body, 'date'))
 
-        
+
 
 
         let whiteList = CONFIG.attendance.types.map(o => o.value)
@@ -418,7 +418,7 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
             }
         }).lean()
 
-        if(conflict){
+        if (conflict) {
             throw new Error(`Already have attendance on this date. Please edit it instead.`)
 
         }
@@ -482,14 +482,14 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
                 objectId: user._id,
                 createdAt: moment().toDate()
             })
-    
+
             let message = `${user.username} added a new comment.`
             attendance.changes.push({
                 summary: message,
                 objectId: user._id,
                 createdAt: moment().toDate()
             })
-    
+
         }
 
         attendance = await db.main.Attendance.create(attendance)
@@ -527,8 +527,10 @@ router.get('/attendance/schedule/all', middlewares.guardRoute(['read_all_schedul
 router.get('/attendance/schedule/create', middlewares.guardRoute(['create_schedule']), async (req, res, next) => {
     try {
 
+        let employeeLists = await db.main.EmployeeList.find({}, { _id: 1, name: 1 })
         res.render('attendance/schedule-create.html', {
             flash: flash.get(req, 'schedule'),
+            employeeLists: employeeLists,
         });
     } catch (err) {
         next(err);
@@ -537,7 +539,16 @@ router.get('/attendance/schedule/create', middlewares.guardRoute(['create_schedu
 router.post('/attendance/schedule/create', middlewares.guardRoute(['create_schedule']), async (req, res, next) => {
     try {
 
-        let name = lodash.get(req, 'body.name')
+        let body = lodash.get(req, 'body')
+
+        let name = lodash.get(body, 'name')
+        let visibility = lodash.get(body, 'visibility', '')
+        let memberIds = lodash.get(body, 'memberIds')
+
+        // return res.send(body)
+
+
+
         let timeSegments = lodash.get(req, 'body.timeSegments', [])
         if (timeSegments.length <= 0) {
             let err = new Error('No time segments.')
@@ -569,11 +580,57 @@ router.post('/attendance/schedule/create', middlewares.guardRoute(['create_sched
             timeSegment.flexible = false
             return timeSegment
         })
+
+        let members = []
+        if (visibility === 'members') {
+            if (!memberIds) {
+                let err = new Error('No members selected.')
+                err.type = 'flash'
+                throw err
+            } else {
+                memberIds = memberIds.split(',').map(id => new db.mongoose.Types.ObjectId(id))
+                for (let x = 0; x < memberIds.length; x++) {
+                    let memberId = memberIds[x]
+                    let objectId = null
+                    let name = ''
+                    let type = ''
+
+                    let employment = await db.main.Employment.findById(memberId)
+                    if (employment) {
+                        objectId = employment._id
+                        type = 'employment'
+                        let employee = await db.main.Employee.findById(employment.employeeId)
+                        if (employee) {
+                            name = `${employee.firstName} ${employee.lastName} - ${employment.position}`
+                        }
+                    } else {
+                        let employeeList = await db.main.EmployeeList.findById(memberId)
+                        if (employeeList) {
+                            objectId = employeeList._id
+                            name = `${employeeList.name} - ${employeeList.tags.join(',')}`
+                            type = 'list'
+                        }
+                    }
+                    if (objectId && name && type) {
+                        members.push({
+                            objectId: objectId,
+                            name: name,
+                            type: type,
+                        })
+                    }
+
+                }
+            }
+        }
+
         let patch = {
             name: name,
+            visibility: visibility,
+            members: members,
             timeSegments: timeSegments
         }
-        let workSchedule = await db.main.WorkSchedule.create(patch)
+        // return res.send(patch)
+        await db.main.WorkSchedule.create(patch)
         flash.ok(req, 'schedule', `Work schedule created.`)
         return res.redirect('/attendance/schedule/all')
     } catch (err) {

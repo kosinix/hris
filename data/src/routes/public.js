@@ -125,6 +125,7 @@ router.get('/data-privacy', async (req, res, next) => {
 });
 
 // TODO: Remove when done
+/*
 router.get('/query/employment', async (req, res, next) => {
     try {
         let search = lodash.get(req, 'query.s', '');
@@ -146,7 +147,6 @@ router.get('/query/employment', async (req, res, next) => {
             ]
         }
 
-        // console.log(util.inspect(query, false, null, true /* enable colors */))
         // raw ops
         // let employees = await db.main.Employee.collection.find(query).limit(10).toArray()
         let aggr = []
@@ -187,4 +187,6 @@ router.get('/query/employment', async (req, res, next) => {
         next(err);
     }
 });
+*/
+
 module.exports = router;

@@ -15,7 +15,7 @@
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
         
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/attendance/schedule/create" method="POST" class="form-default">
+        <form ref="form" id="vApp" v-cloak v-bind:data-pending="pending" v-on:submit.prevent="onSubmit" action="/attendance/schedule/create" method="POST" class="form-default">
             {% set name = 'name' %}
             {% include 'parts/form-group-text.html' %}
 
@@ -40,6 +40,51 @@
             <div class="text-center">
                 <button v-on:click.prevent="addTimeSegment" class="btn btn-sm btn-success" type="button">Add Time Segment</button>
             </div>
+
+            <div class="visibility">
+                <div class="form-group">
+                    <label for="roles">Visible to:</label>
+                    <div>
+                        <select v-model="visibility" name="visibility" id="visibility" class="">
+                            <option value="">All</option>
+                            <option value="members">Selected Employees Only</option>
+                        </select>
+                        <small class="invalid-feedback">${getError('visibility')}</small>
+
+                        <div v-if="visibility" class="p-3">
+                            <div class="d-flex align-items-center">
+                                <autocomplete ref="autocomplete"
+                                    placeholder="Type employee name..."
+                                    :source="dataSource"
+                                    v-on:selected="onSelect"
+                                    v-on:clear="onClear"
+                                    input-class="form-control"
+                                    v-bind:request-headers="headers"
+                                ></autocomplete>
+                                <div class="ml-2 mr-2"> or </div>
+                                <autocomplete ref="autocomplete2"
+                                    placeholder="Type list name..."
+                                    :source="dataSource2"
+                                    v-on:selected="onSelect2"
+                                    v-on:clear="onClear2"
+                                    input-class="form-control"
+                                    v-bind:request-headers="headers"
+                                ></autocomplete>
+                            </div>
+
+                            <div class="p-1" style="max-height: 100px; overflow-y: scroll;">
+                                <div class="d-flex flex-wrap">
+                                    <div v-for="(member, i) in members" class="border border-secondary rounded p-1 m-1">${member.name} <div v-on:click="deleteMember(i)" class="btn btn-sm btn-danger">X</div></div>
+                                </div>
+                            </div>
+
+                            <input type="hidden" name="memberIds" v-model="memberIds">
+                            <small class="invalid-feedback">${getError('memberIds')}</small>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
             <hr>
             <div class="form-group d-flex justify-content-between">
                 <a class="btn btn-outline-primary" href="/attendance/schedule/all">Cancel</a>
@@ -52,6 +97,8 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
+<script src="{{app.url}}/js/vuejs-auto-complete.js"></script>
+<script src="{{app.url}}/js/vuejs-auto-complete-extend.js"></script>
 <script>
 
     var vApp = new Vue({
@@ -60,19 +107,49 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
+            window.vueJsAutoCompleteExtendMixin,
         ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
         data: {
+            pending: false,
             name: '',
-            timeSegments: []
+            visibility: 'members',
+            timeSegments: [],
+            employeeLists: {{employeeLists|default([], true)|stringify|safe}},
+            members: {{members|default([], true)|stringify|safe}},
         },
         validations: {
             name: {
                 required: window.validators.required
             },
+            memberIds: {
+                required: window.validators.requiredIf(function(){
+                    return this.visibility === 'members';
+                })
+            },
         },
         mounted: function(){
             var me = this
-            me.addTimeSegment()
+            {# me.addTimeSegment() #}
+            ///
+me.name = 'test'
+            me.timeSegments.push({
+                    start: '08:00',
+                    end: '13:00',
+                    grace: 15,
+                    maxHours: 4,
+                    flexible: false
+                })
+        },
+        computed: {
+            memberIds: function(){
+                var me = this;
+                return _.map(me.members, function(member){
+                    return member.objectId;
+                })
+            }
         },
         methods: {
             addTimeSegment: function(){
@@ -104,7 +181,38 @@
                         me.$refs.form.submit();
                     });
                 }
-            }
+            },
+            // vuejs autocomplete
+            deleteMember: function(x){
+                this.$delete(this.members, x)
+            },
+            onSelect: function(o){
+                this.members.push({
+                    objectId: o.value,
+                    name: o.display,
+                });
+                this.$refs.autocomplete.close();
+                this.$refs.autocomplete.clear();
+            },
+            onClear: function(o){
+            },
+            dataSource: function(input) {
+                return '/auto-complete/employee?salary=0&s=' + input + '&ignore=' + this.memberIds.join(',');
+            },
+
+            onSelect2: function(o){
+                this.members.push({
+                    objectId: o.value,
+                    name: o.display,
+                });
+                this.$refs.autocomplete2.close();
+                this.$refs.autocomplete2.clear();
+            },
+            onClear2: function(o){
+            },
+            dataSource2: function(input) {
+                return '/auto-complete/employee-list?s=' + input + '&ignore=' + this.memberIds.join(',');
+            },
         }
     });
 </script>

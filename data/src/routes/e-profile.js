@@ -255,7 +255,6 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
             }
         }).lean()
         let listIds = lists.map(o => o._id)
-        console.log(listIds)
         let workSchedules = await db.main.WorkSchedule.find({
             $or: [
                 {
@@ -531,14 +530,6 @@ router.post('/e-profile/dtr/:employmentId/change-sched', middlewares.guardRoute(
             _id: employment._id
         }, {
             workScheduleId: workScheduleId
-        })
-
-        console.log({
-            _ids: {
-                $in: ids
-            },
-            r: r,
-            r2: r2,
         })
 
         let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
@@ -1514,11 +1505,6 @@ router.post('/e-profile/webcam', middlewares.guardRoute(['use_employee_profile']
                 }
             }).promise()
         }
-
-        console.log({
-            saveList: req.saveList,
-            saveList2: lodash.get(req, 'saveList.photo[0]'),
-        })
 
         employee.profilePhoto = lodash.get(req, 'saveList.photo[0]')
         await employee.save()

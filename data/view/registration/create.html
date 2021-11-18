@@ -118,7 +118,7 @@
                 this.employeeName = o.display
             },
             dataSource: function(input) {
-                return '/query/employment?s=' + input
+                return '/auto-complete/employee?salary=0&s=' + input
             },
         }
     });

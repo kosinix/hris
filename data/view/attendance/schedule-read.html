@@ -67,17 +67,12 @@
                 <div class="alert alert-info">Last applied to these employees:</div>
             {% endif %} #}
             
-            <h1 class="h5">Visible To: {{schedule.visibility|default('All', true)|capitalize}}</h1>
+            <h1 class="h5">Visible To: {{schedule.visibility|default('All', true)|replace('members', 'Selected Employees Only')|capitalize}}</h1>
 
             {% if schedule.visibility == 'members' %}
                 <div class="table-responsive">
                     <table class="table table-sm table-striped">
-                        <tr>
-                            <th></th>
-                            <th>Type</th>
-                            <th>Name</th>
-
-                        </tr>
+                        
                         {% for member in schedule.members %}
                             <tr>
                                 <td width="1%">{{loop.index}}</td>

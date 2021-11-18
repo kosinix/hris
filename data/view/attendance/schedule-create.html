@@ -115,7 +115,7 @@
         data: {
             pending: false,
             name: '',
-            visibility: 'members',
+            visibility: '',
             timeSegments: [],
             employeeLists: {{employeeLists|default([], true)|stringify|safe}},
             members: {{members|default([], true)|stringify|safe}},
@@ -132,16 +132,8 @@
         },
         mounted: function(){
             var me = this
-            {# me.addTimeSegment() #}
-            ///
-me.name = 'test'
-            me.timeSegments.push({
-                    start: '08:00',
-                    end: '13:00',
-                    grace: 15,
-                    maxHours: 4,
-                    flexible: false
-                })
+            me.addTimeSegment()
+            
         },
         computed: {
             memberIds: function(){

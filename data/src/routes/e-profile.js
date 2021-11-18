@@ -792,7 +792,11 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
             return o
         })
 
-        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
+        let workSchedule = workSchedules.find(o => {
+            return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
+        })
+        // return res.send(workSchedule)
+        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, true)
 
         dtrDays = dtrDays.map((d) => {
 
@@ -834,6 +838,7 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
             attendances: attendances,
             employee: employee,
             employment: employment,
+            workSchedule: workSchedule,
             title: `DTR-${momentNow.format('YYYY-MM')}-${employee.lastName}`,
             totalTimeView: totalTimeView,
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),

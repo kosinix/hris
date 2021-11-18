@@ -247,7 +247,46 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
             attendance.shifts = lodash.get(workSchedule, 'timeSegments')
         }
 
-        let workSchedules = await db.main.WorkSchedule.find().lean()
+        let lists = await db.main.EmployeeList.find({
+            'members': {
+                $elemMatch: {
+                    employmentId: employmentId
+                }
+            }
+        }).lean()
+        let listIds = lists.map(o => o._id)
+        console.log(listIds)
+        let workSchedules = await db.main.WorkSchedule.find({
+            $or: [
+                {
+                    visibility: ''
+                },
+                {
+                    visibility: {
+                        $exists: false
+                    }
+                },
+                {
+                    'members': {
+                        $elemMatch: {
+                            objectId: employmentId,
+                            type: 'employment'
+                        }
+                    }
+                },
+                {
+                    'members': {
+                        $elemMatch: {
+                            objectId: {
+                                $in: listIds
+                            },
+                            type: 'list'
+                        }
+                    }
+                }
+            ]
+        }).lean()
+        
         workSchedules = workSchedules.map((o) => {
             let times = []
             o.timeSegments = o.timeSegments.map((t) => {
@@ -405,7 +444,7 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
         let employment = res.employment
         let attendanceId = lodash.get(req, 'params.attendanceId')
 
-        
+
         // Get attendance
         let attendance = await db.main.Attendance.findOne({
             _id: attendanceId,

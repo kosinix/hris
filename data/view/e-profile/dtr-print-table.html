@@ -1,3 +1,5 @@
+<p class="template">Civil Service Form No. 48</p>
+
 <div class="text-center mb-3">
     <h1 class="mb-0">Daily Time Record</h1>
     <div class="separator mb-3">-----o0o-----</div>
@@ -19,10 +21,7 @@
             <td style="width:25%" colspan="2" rowspan="2" class="align-middle">Official hours for <br>arrival and departure</td>
             <td style="width:20%" class="text-right pr-2">Regular days</td>
             <td class="text-left">
-                <div class="underline pl-5 pt-1">
-                    <div style="visibility: hidden">8:00-12:00 A.M.</div>
-                    <div style="visibility: hidden">1:00-5:00 P.M.</div>
-                </div>
+                <div class="underline pl-5 pt-1" style="white-space: pre;">{{workSchedule.times|replace(',', '')}}</div>
             </td>
         </tr>
         <tr>
@@ -39,7 +38,7 @@
 
 <table style="width:100%" class="table table-bordered table-dtr table-sm">
     <tr>
-        <th class="text-center" rowspan="2">Day</th>
+        <th class="text-center" rowspan="2" colspan="2">Day</th>
         <th class="text-center" colspan="2"><div class="am-pm">A.M.</div></th>
         <th class="text-center am-pm" colspan="2"><div class="am-pm">P.M.</div></th>
         <th class="text-center" colspan="2">
@@ -63,7 +62,8 @@
     {% for day in days %}
     {% set attendance = day.attendance %}
     <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
-        <td class="text-center">{{day.day}}</td>
+        <td class="text-center" width="10%">{{day.day}}</td>
+        <td class="text-center" width="10%">{{day.weekDay}}</td>
         {% if attendanceTypesList.includes(attendance.type) %}
             <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass','Pass Slip')|replace('Wfh', 'WFH')}}</td>
             <td>
@@ -141,7 +141,7 @@
     </tr>
     {% endfor %}
     <tr>
-        <td class="text-right total" colspan="5">Total</td>
+        <td class="text-right total" colspan="6">Total</td>
         <td colspan="2"></td>
     </tr>
 </table>
@@ -151,5 +151,5 @@ I certify on my honor that the above is a true and correct report of the hours o
 </div>
 <div class="underline pb-2 mb-2"></div>
 <div class="font-italic pl-4 mb-2">VERIFIED as to the prescribed office hours:</div>
-<div class="underline pb-4 pt-3">&nbsp;</div>
+<div class="underline pt-4 text-center font-weight-bold" contenteditable="true"></div>
 <div class="text-center font-italic">In Charge</div>

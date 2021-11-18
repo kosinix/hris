@@ -286,7 +286,7 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
                 }
             ]
         }).lean()
-        
+
         workSchedules = workSchedules.map((o) => {
             let times = []
             o.timeSegments = o.timeSegments.map((t) => {
@@ -627,7 +627,11 @@ router.get('/e-profile/dtr/print/:employmentId', middlewares.guardRoute(['use_em
             return o
         })
 
-        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
+        let workSchedule = workSchedules.find(o => {
+            return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
+        })
+        // return res.send(workSchedule)
+        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, true)
 
         dtrDays = dtrDays.map((d) => {
 
@@ -669,6 +673,7 @@ router.get('/e-profile/dtr/print/:employmentId', middlewares.guardRoute(['use_em
             attendances: attendances,
             employee: employee,
             employment: employment,
+            workSchedule: workSchedule,
             title: `DTR-${momentNow.format('YYYY-MM')}-${employee.lastName}`,
             totalTimeView: totalTimeView,
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),

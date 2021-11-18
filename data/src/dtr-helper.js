@@ -302,7 +302,7 @@ const getDtrMonthlyView = (month, year, attendances, useDaysInMonth = false) => 
         let month = momentNow.format('MM')
         let day = String(index1).padStart(2, '0')
         let date = `${year}-${month}-${day}`
-        let weekDay = moment(date).format('ddd')
+        let weekDay = moment(date).isValid() ? moment(date).format('ddd') : ''
         let attendance = attendances[date] || null
         let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, lodash.get(attendance, 'shifts'))
 

@@ -32,10 +32,8 @@
         <div class="mb-3">
             <div class="d-flex align-items-center">
                 <input v-model="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}">
-                {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
-                    <span class="m-1">to</span> 
-                    <input v-model="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}">
-                {% endif %}
+                <span class="m-1">to</span> 
+                <input v-model="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}">
                 <select v-model="showWeekDays" name="showWeekDays" class="ml-1" id="showWeekDays">
                     <option value="Mon|Tue|Wed|Thu|Fri">Mon-Fri</option>
                     <option value="Sat|Sun">Sat,Sun</option>

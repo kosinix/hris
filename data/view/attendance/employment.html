@@ -5,7 +5,7 @@
     {% include 'parts/flash.html' %}
     {% include 'attendance/header.html' %}
     {# {% include 'attendance/tabs-calendar.html' %} #}
-    <div class="tab-content pt-3 pb-2 pl-3 pr-3">
+    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3">
         <div class="d-flex mb-3">
             {% if employee.profilePhoto %}
                 <img class="mr-3" width="100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="photo">
@@ -29,7 +29,22 @@
                 to {{endMoment|format_date('MMM DD, YYYY')}}
             {% endif %}
         </h2>
-
+        <div class="mb-3">
+            <div class="d-flex align-items-center">
+                <input v-model="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}">
+                {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
+                    <span class="m-1">to</span> 
+                    <input v-model="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}">
+                {% endif %}
+                <select v-model="showWeekDays" name="showWeekDays" class="ml-1" id="showWeekDays">
+                    <option value="Mon|Tue|Wed|Thu|Fri">Mon-Fri</option>
+                    <option value="Sat|Sun">Sat,Sun</option>
+                    <option value="Mon|Tue|Wed|Thu|Fri|Sat|Sun">All days</option>
+                </select>
+                <button v-on:click="reloado" type="button" class="ml-1 btn btn-sm btn-primary">Change</button>
+            </div>
+        </div>
+        
         <div class="text-right mb-2"><a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm">Insert Attendance</a></div>
         <div class="table-responsive">
             <table class="table table-dtr">
@@ -38,7 +53,7 @@
                     <th class="text-center" colspan="2">AM</th>
                     <th class="text-center" colspan="2">PM</th>
                     <th class="text-center" colspan="3">
-                        {% if undertimeView %}
+                        {% if showTotalAs == 'undertime' %}
                             <a href="?{{query|query_string({undertime: 0})}}">Undertime</a>
                         {% else %}
                             <a href="?{{query|query_string({undertime: 1})}}">Time</a>
@@ -59,68 +74,65 @@
                 {% for day in days %}
                 {% set attendance = day.attendance %}
                 <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
-                    <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
                     <td class="text-center">
-                        <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/{{attendance._id}}/edit">{{day.day}}</a>
-                    </td>
-                    {% if attendanceTypesList.includes(attendance.type) %}
-                        <td colspan="4" class="text-center">{{attendance.type|capitalize}}</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                   
-                    {% else %}
-                        {% if attendance.type == 'normal' %}
-                            <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                            <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                            <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                            <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-
+                        {% if attendance %}
+                            <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/{{attendance._id}}/edit">{{day.day}}</a>
                         {% else %}
-                            <td colspan="4">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')|replace('Wfh', 'WFH')}}</td>
+                            <span class="text-dark">{{day.day}}</span>
                         {% endif %}
-                        <td>
-                            {% if undertimeView %}
-                                {{day.dtr.underDays|default('', true)}}
-                            {% else %}
-                                {{day.dtr.renderedDays}}
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if undertimeView %}
-                                {{day.dtr.underHours|default('', true)}}
-                            {% else %}
-                                {{day.dtr.renderedHours}}
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if undertimeView %}
-                                {{day.dtr.underMinutes|default('', true)}}
-                            {% else %}
-                                {{day.dtr.renderedMinutes}}
-                            {% endif %}
-                        </td>
+                    </td>
+                    <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
+                    
+                    {% if attendance.type == 'normal' %}
+                        <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+
+                    {% else %}
+                        <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')|replace('Wfh', 'WFH')}}</td>
                     {% endif %}
+                    <td>
+                        {% if showTotalAs == 'undertime' %}
+                            {{day.dtr.underDays|default('', true)}}
+                        {% else %}
+                            {{day.dtr.renderedDays}}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if showTotalAs == 'undertime' %}
+                            {{day.dtr.underHours|default('', true)}}
+                        {% else %}
+                            {{day.dtr.renderedHours}}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if showTotalAs == 'undertime' %}
+                            {{day.dtr.underMinutes|default('', true)}}
+                        {% else %}
+                            {{day.dtr.renderedMinutes}}
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
                 <tr>
                     <td colspan="6"><h5 class="m-0">Total</h5></td>
                     <td>
-                        {% if undertimeView %}
+                        {% if showTotalAs == 'undertime' %}
                             {{timeRecordSummary.underDays|default('', true)}}
                         {% else %}
                             {{timeRecordSummary.renderedDays}}
                         {% endif %}
                     </td>
                     <td>
-                        {% if undertimeView %}
+                        {% if showTotalAs == 'undertime' %}
                             {{timeRecordSummary.underHours|default('', true)}}
                         {% else %}
                             {{timeRecordSummary.renderedHours}}
                         {% endif %}
                     </td>
                     <td>
-                        {% if undertimeView %}
+                        {% if showTotalAs == 'undertime' %}
                             {{timeRecordSummary.underMinutes|default('', true)}}
                         {% else %}
                             {{timeRecordSummary.renderedMinutes}}
@@ -143,12 +155,18 @@
             window.vuelidateExtendMixin,
         ],
         data: {
-            
+            urlPath: '{{urlPath}}',
+            startDate: '{{startMoment|format_date("YYYY-MM-DD")}}',
+            endDate: '{{endMoment|format_date("YYYY-MM-DD")}}',
+            showWeekDays: '{{showWeekDays}}',
         },
         validations: {
             
         },
         methods: {
+            reloado: function(){
+                window.location.href = this.urlPath + '?start=' + this.startDate + '&end=' + this.endDate + '&showWeekDays=' + this.showWeekDays
+            },
             onSubmit: function(){
                 var me = this;
                 me.$v.$touch()

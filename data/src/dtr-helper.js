@@ -3,6 +3,8 @@
 //// External modules
 const lodash = require('lodash')
 const moment = require('moment')
+const momentRange = require('moment-range')
+const momentExt = momentRange.extendMoment(moment)
 const money = require('money-math')
 
 //// Modules
@@ -281,6 +283,89 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
 
 }
 
+const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endMoment, options) => {
+
+    let defaults = {
+        showTotalAs: 'time',
+        showWeekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+    }
+
+    options = lodash.merge(defaults, options)
+    let { showTotalAs, showWeekDays } = options;
+
+    let attendances = await db.main.Attendance.aggregate([
+        {
+            $match: {
+                employeeId: employeeId,
+                employmentId: employmentId,
+                createdAt: {
+                    $gte: startMoment.clone().startOf('day').toDate(),
+                    $lte: endMoment.clone().endOf('day').toDate(),
+                }
+            }
+        },
+        {
+            $lookup: {
+                localField: 'workScheduleId',
+                foreignField: '_id',
+                from: 'workschedules',
+                as: 'workSchedules'
+            }
+        },
+        {
+            $addFields: {
+                "workSchedule": {
+                    $arrayElemAt: ["$workSchedules", 0]
+                }
+            }
+        },
+        // {
+        //     $addFields: {
+        //         "shifts": "$workSchedule.timeSegments"
+        //     }
+        // },
+        {
+            $project: {
+                workSchedules: 0,
+            }
+        }
+    ])
+
+    // Turn array of attendances into an object with date as keys: "2020-12-31"
+    attendances = lodash.mapKeys(attendances, (a) => {
+        return moment(a.createdAt).format('YYYY-MM-DD')
+    })
+
+    const range1 = momentExt.range(startMoment, endMoment)
+    let days = Array.from(range1.by('days'))
+
+    days = days.map((_moment) => {
+        let year = _moment.format('YYYY')
+        let month = _moment.format('MM')
+        let day = _moment.format('DD')
+        let date = _moment.format('YYYY-MM-DD')
+        let weekDay = _moment.format('ddd')
+        let attendance = attendances[date] || null
+        let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, lodash.get(attendance, 'workSchedule.timeSegments'))
+
+        return {
+            date: date,
+            year: year,
+            month: month,
+            weekDay: weekDay,
+            day: day,
+            dtr: dtr,
+            attendance: attendance
+        }
+    })
+
+    days = days.filter((day) => {
+        return showWeekDays.includes(day.weekDay)
+    })
+
+    return days
+}
+
 const getDtrMonthlyView = (month, year, attendances, useDaysInMonth = false) => {
 
     let momentNow = moment().year(year).month(month)
@@ -463,7 +548,7 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
 
     let changeLogs = []
 
-    
+
     if (lodash.invoke(attendance, 'workScheduleId.toString') !== lodash.invoke(attendancePatch, 'workScheduleId.toString')) {
         let workSchedule1 = await db.main.WorkSchedule.findById(attendance.workScheduleId)
         let workSchedule2 = await db.main.WorkSchedule.findById(attendancePatch.workScheduleId)
@@ -538,7 +623,7 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
             createdAt: moment().toDate()
         })
     }
-    
+
     if (attendancePatch.comment) {
         attendance.comments.push({
             summary: attendancePatch.comment,
@@ -574,5 +659,6 @@ module.exports = {
     getNearestShift: getNearestShift,
     getNextShift: getNextShift,
     getTimeBreakdown: calcTimeRecord,
+    getDtrByDateRange: getDtrByDateRange,
     momentToMinutes: momentToMinutes
 }

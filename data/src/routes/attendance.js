@@ -6,6 +6,8 @@ const express = require('express')
 const flash = require('kisapmata')
 const lodash = require('lodash')
 const moment = require('moment')
+const momentRange = require('moment-range')
+const momentExt = momentRange.extendMoment(moment)
 
 //// Modules
 const db = require('../db');
@@ -237,40 +239,42 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
 
         let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
         let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
-        let undertimeView = lodash.get(req, 'query.undertime') == 1 ? true : false
+        let showWeekDays = lodash.get(req, 'query.showWeekDays', 'Mon|Tue|Wed|Thu|Fri')
+        let showTotalAs = lodash.get(req, 'query.undertime') == 1 ? 'undertime' : 'time'
 
         let startMoment = moment(start).startOf('day')
         let endMoment = moment(end).endOf('day')
-        let momentNow = moment()
 
-        let attendances = await db.main.Attendance.find({
-            employeeId: employee._id,
-            employmentId: employment._id,
-            createdAt: {
-                $gte: startMoment.toDate(),
-                $lte: endMoment.toDate(),
-            }
-        }).lean()
-
-        for (let a = 0; a < attendances.length; a++) {
-            let attendance = attendances[a]
-            let workSchedule = await db.main.WorkSchedule.findById(
-                lodash.get(attendance, 'workScheduleId')
-            )
-
-            attendance.shifts = lodash.get(workSchedule, 'timeSegments')
+        if (!startMoment.isValid()) {
+            throw new Error(`Invalid start date.`)
+        }
+        if (!endMoment.isValid()) {
+            throw new Error(`Invalid end date.`)
         }
 
-        // return res.send(attendances)
+        if (endMoment.isBefore(startMoment)) {
+            throw new Error(`Invalid end date. Must not be less than the start date.`)
+        }
 
-        let days = dtrHelper.getDtrTable(startMoment, endMoment, attendances)
+        let momentNow = moment()
+
+        
+        let options = {
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
+        }
+        if(!options.showWeekDays.length){
+            options.showWeekDays = showWeekDays.split('|')
+        }
+        let days = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
+
+        console.log(options)
         let totalMinutes = 0
         let totalMinutesUnderTime = 0
         days.forEach((day) => {
             totalMinutes += lodash.get(day, 'dtr.totalMinutes', 0)
             totalMinutesUnderTime += lodash.get(day, 'dtr.underTimeTotalMinutes', 0)
         })
-
 
         let timeRecordSummary = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
 
@@ -283,12 +287,12 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
             flash: flash.get(req, 'attendance'),
             employee: employee,
             employment: employment,
-            attendances: attendances,
             momentNow: momentNow,
             months: months,
             days: days,
             selectedMonth: 'nu',
-            undertimeView: undertimeView,
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
             timeRecordSummary: timeRecordSummary,
             startMoment: startMoment,
             endMoment: endMoment,

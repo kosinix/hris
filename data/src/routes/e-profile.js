@@ -52,6 +52,7 @@ router.get('/e-profile/home', middlewares.guardRoute(['use_employee_profile']), 
 
 
         res.render('e-profile/home.html', {
+            flash: flash.get(req, 'employee'),
             employee: employee,
             momentNow: moment(),
             carouselItems: carouselItems,
@@ -65,6 +66,14 @@ router.get('/e-profile/hdf', middlewares.guardRoute(['use_employee_profile']), m
     try {
         let employee = res.employee.toObject()
 
+        // Today attendance
+        let hd = await db.main.HealthDeclaration.findOne({
+            employeeId: employee._id,
+            createdAt: {
+                $gte: moment().startOf('day').toDate(),
+                $lt: moment().endOf('day').toDate(),
+            }
+        })
 
         let optionsSymptoms1 = [
             'fever',
@@ -86,6 +95,7 @@ router.get('/e-profile/hdf', middlewares.guardRoute(['use_employee_profile']), m
         ]
         res.render('e-profile/hdf.html', {
             employee: employee,
+            hd: hd,
             optionsSymptoms1: optionsSymptoms1,
             optionsSymptoms2: optionsSymptoms2,
             visitedMedicalFacilityPurposes: visitedMedicalFacilityPurposes,
@@ -170,7 +180,7 @@ router.post('/e-profile/hdf', middlewares.guardRoute(['use_employee_profile']), 
                 }
             })
             if (hd) {
-                throw new Error('Already submitted today.')
+                throw new Error('You have already submitted a health declaration today.')
             } else {
 
                 hd = new db.main.HealthDeclaration({
@@ -178,11 +188,8 @@ router.post('/e-profile/hdf', middlewares.guardRoute(['use_employee_profile']), 
                     data: body
                 })
                 await hd.save()
-                return res.render('e-profile/hdf-good.html', {
-                    momentNow: moment(),
-                    employee: employee,
-                    hd: hd,
-                });
+                flash.ok(req, 'employee', 'Health declaration submitted.')
+                return res.redirect('/e-profile/home');
             }
         }
 
@@ -1147,7 +1154,7 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         // return res.send(patch)
         await db.main.Employee.updateOne({ _id: employee._id }, patch)
 
-        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} PDS.`)
+        flash.ok(req, 'employee', `PDS updated.`)
         if (lodash.get(body, 'actionType') === 'saveNext') {
             return res.redirect(`/e-profile/pds2`)
         }
@@ -1185,7 +1192,7 @@ router.post('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']),
 
         await db.main.Employee.updateOne({ _id: employee._id }, patch)
 
-        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} PDS.`)
+        flash.ok(req, 'employee', `PDS updated.`)
 
         if (lodash.get(body, 'actionType') === 'saveNext') {
             return res.redirect(`/e-profile/pds3`)
@@ -1225,7 +1232,7 @@ router.post('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']),
 
         await db.main.Employee.updateOne({ _id: employee._id }, patch)
 
-        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} PDS.`)
+        flash.ok(req, 'employee', `PDS updated.`)
 
         if (lodash.get(body, 'actionType') === 'saveNext') {
             return res.redirect(`/e-profile/pds4`)
@@ -1287,7 +1294,7 @@ router.post('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']),
 
         await db.main.Employee.updateOne({ _id: employee._id }, patch)
 
-        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} PDS.`)
+        flash.ok(req, 'employee', `PDS updated.`)
 
         res.redirect(`/e-profile/pds4`)
     } catch (err) {
@@ -1430,7 +1437,7 @@ router.post('/e-profile/photo', middlewares.guardRoute(['use_employee_profile'])
 
         employee.profilePhoto = lodash.get(req, 'saveList.photo[0]')
         await employee.save()
-        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} photo.`)
+        flash.ok(req, 'employee', `Profile photo updated.`)
         res.redirect(`/e-profile/home`);
     } catch (err) {
         next(err);
@@ -1464,7 +1471,7 @@ router.get('/e-profile/photo/delete', middlewares.guardRoute(['use_employee_prof
 
         await db.main.Employee.updateOne({ _id: employee._id }, { profilePhoto: '' })
 
-        flash.ok(req, 'employee', `"${employee.firstName} ${employee.lastName}" photo deleted.`)
+        flash.ok(req, 'employee', `Profile photo deleted.`)
         res.redirect(`/e-profile/home`);
     } catch (err) {
         next(err);
@@ -1508,7 +1515,7 @@ router.post('/e-profile/webcam', middlewares.guardRoute(['use_employee_profile']
 
         employee.profilePhoto = lodash.get(req, 'saveList.photo[0]')
         await employee.save()
-        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} photo.`)
+        flash.ok(req, 'employee', `Profile photo updated.`)
         res.redirect(`/e-profile/home`);
 
     } catch (err) {

@@ -2,19 +2,22 @@
 
 {% block body %}
 <div class="col-md-12">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <div class="d-flex align-items-start">
-            <h1 class="h3">Photo</h1>
-        </div>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group mr-2">
-                <a href="/e-profile/photo" class="btn btn-sm btn-outline-primary">Upload Photo</a>
-                <a href="/e-profile/home" class="btn btn-sm btn-outline-primary">Back</a>
+
+    {% include 'e-profile/account-header.html' %}
+    {% include 'e-profile/account-tabs.html' %}
+    
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+
+        {% include 'parts/flash.html' %}
+
+        <div class="d-flex justify-content-end">
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group mr-2">
+                    <a href="/e-profile/photo" class="btn btn-sm btn-outline-primary">Use Uploader</a>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-6 ml-auto mr-auto">
-        {% include 'parts/flash.html' %}
+        
         <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/webcam" method="POST" class="form-default">
             <div class="text-center mb-3">
                 <div v-if="error" class="alert alert-danger">${error}</div>

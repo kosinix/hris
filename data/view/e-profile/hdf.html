@@ -8,12 +8,14 @@
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                {# <a href="/e-profile/dtr" class="btn btn-sm btn-outline-primary">Back</a> #}
+                <a href="/e-profile/home" class="btn btn-sm btn-outline-primary">Back</a>
             </div>
         </div>
     </div>
-
-    <div class=" mb-5">
+    <div class="mb-5">
+        {% if hd %}
+        <div class="alert alert-info">You have already submitted a health declaration today.</div>
+        {% else %}
         <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/hdf" method="POST" class="form-default">
             <div class="form-row">
                 <div class="col-md-4">
@@ -173,6 +175,8 @@
                 </div>
             </div>
         </form>
+        {% endif %}
+
     </div>
 </div>
 {% endblock %}

@@ -1070,6 +1070,14 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'phoneNumber', lodash.get(body, 'phoneNumber'))
         lodash.set(patch, 'email', lodash.get(body, 'email'))
 
+        patch.history = employee.history
+        if(patch.gender !== employee.gender){
+            patch.history.push({
+                comment: `Changed gender from ${employee.gender} to ${patch.gender}.`,
+                createdAt: moment().toDate()
+            })
+        }
+
         // TODO: Should generate new id every save??
         lodash.set(patch, 'addresses.0._id', db.mongoose.Types.ObjectId())
         lodash.set(patch, 'addresses.0.unit', lodash.get(body, 'unit0'))

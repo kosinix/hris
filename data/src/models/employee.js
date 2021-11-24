@@ -302,7 +302,8 @@ const schema = new Schema({
     acceptedDataPrivacy: {
         $type: Boolean,
         default: false
-    }
+    },
+    history: []
 }, { timestamps: true, typeKey: '$type' })
 
 //// Virtuals

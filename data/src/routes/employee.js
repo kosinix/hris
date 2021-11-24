@@ -190,6 +190,16 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
     }
 });
 
+router.get('/employee/history/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee
+
+        res.send(employee.history)
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/employee/personal/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee

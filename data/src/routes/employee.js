@@ -78,9 +78,9 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         aggr.push({
             $lookup:
             {
-                from: "employments",
                 localField: "_id",
                 foreignField: "employeeId",
+                from: "employments",
                 as: "employments"
             }
         })
@@ -173,14 +173,12 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
         lodash.set(patch, 'gender', lodash.get(body, 'gender'))
         lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
 
-        // TODO: Check duplicate
         let matches = await db.main.Employee.find({
-            firstName: patch.firstName,
-            middleName: patch.middleName,
-            lastName: patch.lastName,
+            firstName: new RegExp(`^${lodash.trim(patch.firstName)}$`, "i"),
+            lastName: new RegExp(`^${lodash.trim(patch.lastName)}$`, "i"),
         })
         if (matches.length > 0) {
-            throw new Error("Duplicate entry")
+            throw new Error(`Possible duplicate entry. There is already an employee with a name of "${patch.firstName} ${patch.lastName}"`)
         }
 
         let employee = new db.main.Employee(patch)

@@ -2,62 +2,65 @@
 
 {% block body %}
 <div class="col-md-12">
-    {% include 'parts/flash.html' %}
-    {% set pageTitle = 'Reports' %}
-    {% include 'parts/header-main.html' %}
-
-    <div>
-        <div>
-            <ul class="nav nav-tabs">
-                <li class="nav-item">
-                    <a class="nav-link active" href="/reports/person">Find Person</a>
-                </li>
-            </ul>
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">Reports</h1>
         </div>
-        <div class="tab-content pt-3 pb-2 pl-3 pr-2">
-            <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/reports/person" method="GET" class="form-default">
-                <div class="form-group">
-                    <label for="firstName">First Name</label>
-                    <div>
-                        <input name="firstName" id="firstName" v-model="firstName" type="text" class="form-control">
-                        <small class="invalid-feedback">${getError('firstName')}</small>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="middleName">Middle Name</label>
-                    <div>
-                        <input name="middleName" id="middleName" v-model="middleName" type="text" class="form-control">
-                        <small class="invalid-feedback">${getError('middleName')}</small>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="lastName">Last Name</label>
-                    <div>
-                        <input name="lastName" id="lastName" v-model="lastName" type="text" class="form-control">
-                        <small class="invalid-feedback">${getError('lastName')}</small>
-                    </div>
-                </div>
-
-
+        <div class="btn-toolbar mb-2 mb-md-0">
+            {# <div class="btn-group mr-2">
+                <a href="/employee/create" class="btn btn-sm btn-outline-primary">Add Employee</a>
+            </div> #}
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    <h2 class="h3">PRIME-HRM Indicators</h2>
+    <div class="d-flex">
+        <div class="card text-white m-3" style="background: #2674b4; width: 25%;">
+            <div class="card-header">RSP</div>
+            <div class="card-body">
+                <h5 class="card-title">Recruitment, Selection, and Placement</h5>
                 <ul>
-                    {% for log in logs %}
-                        <li>
-                            Person: {{log.person.firstName}} {{log.person.lastName}}
-                            <br>{{log.entity.name}} - {{log.entity.type}}
-                            <br>entered {{log.scannerIn.name}} {{log.enteredAt}}
-                            <br>exited {{log.scannerOut.name}} {{log.enteredAt}}
-                        </li>
-                    {% endfor %}
+                    <li>Governance</li>
+                    <li>Talent Planning</li>
+                    <li>Talent Sourcing</li>
+                    <li>Talent Selection and Placement</li>
                 </ul>
-
-                <div class="form-row pt-3 pb-3">
-                    <div class="col-md-12">
-                        <button class="btn btn-primary">Search</button>
-                    </div>
-                </div>
-            </form>
+            </div>
+        </div>
+        <div class="card text-white m-3" style="background: #2391a0; width: 25%;">
+            <div class="card-header">L&D</div>
+            <div class="card-body">
+                <h5 class="card-title">Learning and Development</h5>
+                <ul>
+                    <li>Governance</li>
+                    <li>Planning and M&E</li>
+                    <li>Execution</li>
+                </ul>
+            </div>
+        </div>
+        <div class="card text-white m-3" style="background: #47b49f; width: 25%;">
+            <div class="card-header">PM</div>
+            <div class="card-body">
+                <h5 class="card-title">Performance Management</h5>
+                <ul>
+                    <li>Governance</li>
+                    <li>Performance Planning and Commitment</li>
+                    <li>Performance monitoring and Coaching</li>
+                    <li>Performance Review and Evaluation</li>
+                    <li>Development Planning</li>
+                </ul>
+            </div>
+        </div>
+        <div class="card m-3" style="background: #b0d794; width: 25%;">
+            <div class="card-header">R&R</div>
+            <div class="card-body">
+                <h5 class="card-title">Rewards and Recognition</h5>
+                <ul>
+                    <li>Governance</li>
+                    <li>Planning</li>
+                    <li>Execution</li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>

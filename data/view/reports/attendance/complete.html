@@ -1,0 +1,90 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">Reports</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            {# <div class="btn-group mr-2">
+                <a href="/employee/create" class="btn btn-sm btn-outline-primary">Add Employee</a>
+            </div> #}
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    <h2 class="h3">Incomplete Attendance</h2>
+    <table class="table table-sm">
+        <tr>
+            <th></th>
+            <th>Last</th>
+            <th>First</th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+        {% for attendance in attendances %}
+            <tr>
+                <td>{{loop.index}}</td>
+                <td>{{attendance.employee.lastName}}</td>
+                <td>{{attendance.employee.firstName}}</td>
+                <td>{{attendance.createdAt|format_date('MMM DD, YYYY')}}</td>
+                <td>{{attendance.type}}</td>
+                <td>
+                {% for log in attendance.logs %}
+                    {{log.dateTime|format_date('hh:mm A')}}  &nbsp;
+                {% endfor %}
+                </td>
+                <td><a href="/attendance/employee/{{attendance.employee._id}}/employment/{{attendance.employment._id}}/attendance/{{attendance._id}}/edit">Edit</a></td>
+
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        components: {
+        },
+        data: {
+            firstName: '',
+            middleName: '',
+            lastName: '',
+        },
+        validations: {
+            firstName: {
+                required: window.validators.required
+            },
+            middleName: {
+                required: window.validators.required
+            },
+            lastName: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

@@ -113,7 +113,7 @@ router.get('/reports/attendance/incomplete', async (req, res, next) => {
     }
 });
 
-router.get('/reports/attendance/missing', async (req, res, next) => {
+router.get('/reports/attendance/complete', async (req, res, next) => {
     try {
 
         let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
@@ -132,10 +132,19 @@ router.get('/reports/attendance/missing', async (req, res, next) => {
 
         aggr.push({
             $match: {
-                type: 'normal',
-                logsLength: {
-                    $lt: 4
-                },
+                $or: [
+                    {
+                        type: 'normal',
+                        logsLength: {
+                            $eq: 4
+                        },
+                    },
+                    {
+                        type: {
+                            $in: ['wfh','travel','pass','leave']
+                        }
+                    }
+                ],
                 createdAt: {
                     $gte: startMoment.clone().startOf('day').toDate(),
                     $lte: endMoment.clone().endOf('day').toDate(),
@@ -188,7 +197,7 @@ router.get('/reports/attendance/missing', async (req, res, next) => {
 
         let attendances = await db.main.Attendance.aggregate(aggr)
         // return res.send(attendances)
-        res.render('reports/attendance/incomplete.html', {
+        res.render('reports/attendance/complete.html', {
             flash: flash.get(req, 'reports'),
             attendances: attendances,
         });

@@ -41,6 +41,16 @@ let schema = mongoose.Schema({
     active: {
         $type: Boolean,
         default: false
+    },
+    settings: { // dynamic permissions for employee
+        editDtr: {
+            $type: Boolean,
+            default: false
+        },
+        editPds: {
+            $type: Boolean,
+            default: false
+        },
     }
 }, {timestamps: true, typeKey: '$type'})
 

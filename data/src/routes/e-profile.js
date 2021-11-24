@@ -371,7 +371,7 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
         let employment = res.employment
         let attendanceId = lodash.get(req, 'params.attendanceId')
 
-        if (!res.user.settings.editDtr) {
+        if (!lodash.get(res, 'user.settings.editDtr', false)) {
             throw new Error('Attendance not editable.')
         }
 
@@ -454,7 +454,7 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
         let employment = res.employment
         let attendanceId = lodash.get(req, 'params.attendanceId')
 
-        if (!res.user.settings.editDtr) {
+        if (!lodash.get(res, 'user.settings.editDtr', false)) {
             throw new Error('Attendance not editable.')
         }
 

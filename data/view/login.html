@@ -29,7 +29,7 @@
                         </div>
                         <input type="hidden" name="recaptchaToken" v-model="recaptchaToken">
                         <div class="form-group">
-                            <button v-bind:disabled="pending" class="btn btn-primary btn-full-width">Login</button>
+                            <button v-bind:disabled="disabled" class="btn btn-primary btn-full-width">${loginText}</button>
                         </div>
                         {# <small class="note">Logging in from IP Address: {{ip}}</small> #}
                     </form>
@@ -64,6 +64,14 @@
             password: {
                 required: window.validators.required
             },
+        },
+        computed: {
+            disabled: function(){
+                return (!this.username || !this.password || this.pending);
+            },
+            loginText: function(){
+                return this.pending ? 'Logging in...' : 'Login';
+            }
         },
         methods: {
             togglePassword: function () {

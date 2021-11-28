@@ -268,7 +268,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
         }
         let days = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
 
-        console.log(options)
+        // console.log(options)
         let totalMinutes = 0
         let totalMinutesUnderTime = 0
         days.forEach((day) => {

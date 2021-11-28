@@ -386,7 +386,7 @@ module.exports = {
             }
             let user = await db.main.User.findById(authUserId);
             if (!user) {
-                return res.redirect('/login')
+                return res.redirect('/logout') // Prevent redirect loop when user is null
             }
             if (!user.active) {
                 return res.redirect('/logout')

@@ -39,7 +39,7 @@ div[data-pending="true"]:before {
     right: 0;
     top: 0;
     bottom: 0;
-    z-index: 99;
+    z-index: 100;
 }
 div[data-pending="true"]:after {
     content: "Processing... Please wait...";
@@ -47,10 +47,9 @@ div[data-pending="true"]:after {
     left: 0;
     right: 0;
     top: 50%;
-    z-index: 100;
+    z-index: 101;
     text-align: center;
     color: #222;
-    background: #fff;
     font-size: 18px;
     font-style: italic;
 } 
@@ -599,6 +598,9 @@ div.focusable:focus-within  {
 }
 .table-dtr tr.undertime td{
     background: #f8a1a1;
+}
+.table-dtr tr td.bg-light{
+    background: #e9e9e9 !important;
 }
 
 .table-dtr th,

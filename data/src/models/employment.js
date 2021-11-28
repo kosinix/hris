@@ -63,6 +63,10 @@ const schema = new Schema({
     workScheduleId: {
         $type: mongoose.Schema.Types.ObjectId,
     },
+    inCharge: {
+        $type: String,
+        trim: true,
+    },
     documents: [
         {
             type: {

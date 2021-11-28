@@ -287,11 +287,14 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
 
     let defaults = {
         showTotalAs: 'time',
-        showWeekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
     }
 
     options = lodash.merge(defaults, options)
     let { showTotalAs, showWeekDays } = options;
+
+    if (!showWeekDays) {
+        showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+    }
 
     let attendances = await db.main.Attendance.aggregate([
         {

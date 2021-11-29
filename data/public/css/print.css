@@ -87,6 +87,10 @@ img {
     padding-bottom: 3px;
 }
 
+.csc-form-dtr td {
+    font-size: 10px;
+}
+
 .csc-form-dtr .certify {
     font-size: 10px;
     font-style: italic;

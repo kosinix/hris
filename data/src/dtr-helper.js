@@ -287,10 +287,12 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
 
     let defaults = {
         showTotalAs: 'time',
+        padded: false,
+        excludeWeekend: false,
     }
 
     options = lodash.merge(defaults, options)
-    let { showTotalAs, showWeekDays } = options;
+    let { showTotalAs, showWeekDays, padded, excludeWeekend } = options;
 
     if (!showWeekDays) {
         showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
@@ -339,6 +341,10 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         return moment(a.createdAt).format('YYYY-MM-DD')
     })
 
+    if(padded){
+        startMoment.startOf('month')
+        endMoment.endOf('month')
+    }
     const range1 = momentExt.range(startMoment, endMoment)
     let days = Array.from(range1.by('days'))
 
@@ -351,6 +357,12 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         let attendance = attendances[date] || null
         let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, lodash.get(attendance, 'workSchedule.timeSegments'))
 
+        let isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
+        let isWeekend = ['Sun','Sat'].includes(weekDay) ? true : false
+        if(isWeekend && excludeWeekend){
+            dtr = null
+            attendance = null
+        }
         return {
             date: date,
             year: year,
@@ -358,6 +370,8 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
             weekDay: weekDay,
             day: day,
             dtr: dtr,
+            isNow: isNow,
+            isWeekend: isWeekend,
             attendance: attendance
         }
     })

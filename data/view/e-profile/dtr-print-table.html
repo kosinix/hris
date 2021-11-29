@@ -13,7 +13,7 @@
             <td style="width:20%">For the month of</td>
             <td colspan="3">
                 <div class="underline text-left pl-3 font-weight-bold">
-                {{momentNow|format_date('MMMM')}}
+                {{periodMonthYear|format_date('MMMM YYYY')}}
                 </div>
             </td>
         </tr>
@@ -42,7 +42,7 @@
         <th class="text-center" colspan="2"><div class="am-pm">A.M.</div></th>
         <th class="text-center am-pm" colspan="2"><div class="am-pm">P.M.</div></th>
         <th class="text-center" colspan="2">
-            {% if totalTimeView === 'time' %}
+            {% if showTotalAs === 'time' %}
             <div>Time</div>
             {% else %}
             <div>Undertime</div>
@@ -69,7 +69,7 @@
             <td>
                 {% set res = 0 %}
                 {% if (attendance.logs.length > 1 or attendanceTypesList.includes(attendance.type)) %}
-                    {% if totalTimeView == 'time' %}
+                    {% if showTotalAs == 'time' %}
                         {% set res = day.dtr.renderedDays|default(0, true) * 8 + day.dtr.renderedHours|default(0, true) %}
                     {% else %}
                         {% set res = day.dtr.underDays|default(0, true) * 8 + day.dtr.underHours|default(0, true) %}
@@ -86,7 +86,7 @@
             <td>
                 {% set res = 0 %}
                 {% if (attendance.logs.length > 1 or attendanceTypesList.includes(attendance.type)) %}
-                    {% if totalTimeView == 'time' %}
+                    {% if showTotalAs == 'time' %}
                         {% set res = day.dtr.renderedMinutes|default(0, true) %}
                     {% else %}
                         {% set res = day.dtr.underMinutes|default(0, true) %}
@@ -107,7 +107,7 @@
             <td>
                 {% set res = 0 %}
                 {% if (attendance.logs.length > 1 or attendanceTypesList.includes(attendance.type)) %}
-                    {% if totalTimeView == 'time' %}
+                    {% if showTotalAs == 'time' %}
                         {% set res = day.dtr.renderedDays|default(0, true) * 8 + day.dtr.renderedHours|default(0, true) %}
                     {% else %}
                         {% set res = day.dtr.underDays|default(0, true) * 8 + day.dtr.underHours|default(0, true) %}
@@ -124,7 +124,7 @@
             <td>
                 {% set res = 0 %}
                 {% if (attendance.logs.length > 1 or attendanceTypesList.includes(attendance.type)) %}
-                    {% if totalTimeView == 'time' %}
+                    {% if showTotalAs == 'time' %}
                         {% set res = day.dtr.renderedMinutes|default(0, true) %}
                     {% else %}
                         {% set res = day.dtr.underMinutes|default(0, true) %}
@@ -142,7 +142,17 @@
     {% endfor %}
     <tr>
         <td class="text-right total" colspan="6">Total</td>
-        <td colspan="2"></td>
+        <td class="text-center" colspan="2">
+            {% if showTotalAs == 'undertime' %}
+                {{timeRecordSummary.underDays|default(0, true)|maybePluralize('day')}}
+                {{timeRecordSummary.underHours|default(0, true)|maybePluralize('hr')}}
+                {{timeRecordSummary.underMinutes|default(0, true)|maybePluralize('min')}}
+            {% else %}
+                {{timeRecordSummary.renderedDays|default(0, true)|maybePluralize('day')}}
+                {{timeRecordSummary.renderedHours|default(0, true)|maybePluralize('hr')}}
+                {{timeRecordSummary.renderedMinutes|default(0, true)|maybePluralize('min')}}
+            {% endif %}
+        </td>
     </tr>
 </table>
 
@@ -151,5 +161,5 @@ I certify on my honor that the above is a true and correct report of the hours o
 </div>
 <div class="underline pb-2 mb-2"></div>
 <div class="font-italic pl-4 mb-2">VERIFIED as to the prescribed office hours:</div>
-<div class="underline pt-4 text-center font-weight-bold" contenteditable="true"></div>
+<div class="underline pt-4 text-center font-weight-bold" contenteditable="true">{{inCharge}}</div>
 <div class="text-center font-italic">In Charge</div>

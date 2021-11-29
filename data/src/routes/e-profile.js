@@ -5,7 +5,9 @@ const express = require('express')
 const fileUpload = require('express-fileupload')
 const flash = require('kisapmata')
 const lodash = require('lodash')
-const moment = require('moment');
+const moment = require('moment')
+const momentRange = require('moment-range')
+const momentExt = momentRange.extendMoment(moment)
 const qr = require('qr-image')
 const sharp = require('sharp')
 
@@ -225,35 +227,105 @@ router.post('/e-profile/accept', middlewares.guardRoute(['use_employee_profile']
     }
 });
 
-
-router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'], middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let employmentId = res.employmentId
         let employment = res.employment
-        let month = lodash.get(req, 'query.month', moment().format('MMM'))
-        let year = lodash.get(req, 'query.year', moment().format('YYYY'))
-        let momentNow = moment().year(year).month(month)
+        let employmentId = employment._id
+        let momentNow = moment()
 
-        // Today attendance
-        let attendances = await db.main.Attendance.find({
-            employeeId: employee._id,
-            employmentId: employmentId,
-            createdAt: {
-                $gte: momentNow.clone().startOf('month').toDate(),
-                $lt: momentNow.clone().endOf('month').toDate(),
+        let periodMonthYear = lodash.get(req, 'query.periodMonthYear', moment().startOf('month').format('YYYY-MM-DD'))
+        let periodMonthYearMoment = moment(periodMonthYear)
+        let periodSlice = lodash.get(req, 'query.periodSlice')
+        let periodWeekDays = lodash.get(req, 'query.periodWeekDays', 'Mon-Fri')
+        let showTotalAs = lodash.get(req, 'query.showTotalAs', 'time')
+
+        // Validation
+        if (!periodMonthYearMoment.isValid()) {
+            throw new Error(`Invalid period date.`)
+        }
+        if (!['15th', '30th', 'all'].includes(periodSlice)) {
+            if (momentNow.date() <= 15) {
+                periodSlice = '15th'
+            } else {
+                periodSlice = '30th'
             }
-        }).lean()
 
-        for (let a = 0; a < attendances.length; a++) {
-            let attendance = attendances[a]
-            let workSchedule = await db.main.WorkSchedule.findById(
-                lodash.get(attendance, 'workScheduleId')
-            )
-
-            attendance.shifts = lodash.get(workSchedule, 'timeSegments')
+            if (employment.employmentType === 'permanent') {
+                periodSlice = 'all'
+            }
+        }
+        if (!['Mon-Fri', 'Sat-Sun'].includes(periodWeekDays)) {
+            periodWeekDays = 'Mon-Fri'
+        }
+        if (!['time', 'undertime'].includes(showTotalAs)) {
+            showTotalAs = 'time'
         }
 
+        let startMoment = periodMonthYearMoment.clone().startOf('month')
+        let endMoment = periodMonthYearMoment.clone().endOf('month')
+
+        if (periodSlice === '15th') {
+            startMoment = startMoment.startOf('day')
+            endMoment = endMoment.date(15).endOf('day')
+        } else if (periodSlice === '30th') {
+            startMoment = startMoment.date(16).startOf('day')
+            endMoment = endMoment.endOf('month').endOf('day')
+        }
+
+        let showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+        if (periodWeekDays === 'Sat-Sun') {
+            showWeekDays = ['Sat', 'Sun']
+            showWeekDays = ['Sat', 'Sun']
+        }
+
+        // return res.send({
+        // console.log({
+        //     periodMonthYearMoment: periodMonthYearMoment.format('YYYY-MM-DD'),
+        //     periodSlice: periodSlice,
+        //     showWeekDays: showWeekDays,
+        //     showTotalAs: showTotalAs,
+        //     startMoment: startMoment.format('YYYY-MM-DD'),
+        //     endMoment: endMoment.format('YYYY-MM-DD'),
+        // })
+
+
+        let options = {
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
+        }
+
+        if(/^\/e-profile\/dtr\/print/.test(req.path)){
+            options.padded = true // Show full month days but may not include attendance data
+            options.showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            options.excludeWeekend = true
+        }
+
+        let days = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
+
+        let totalMinutes = 0
+        let totalMinutesUnderTime = 0
+        days.forEach((day) => {
+            totalMinutes += lodash.get(day, 'dtr.totalMinutes', 0)
+            totalMinutesUnderTime += lodash.get(day, 'dtr.underTimeTotalMinutes', 0)
+        })
+
+        let timeRecordSummary = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
+
+
+        const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
+        let months = Array.from(range1.by('months')).reverse()
+
+        let periodMonthYearList = months.map((_moment) => {
+            let date = _moment.startOf('month')
+
+            return {
+                value: date.format('YYYY-MM-DD'),
+                text: date.format('MMM YYYY'),
+            }
+        })
+
+        // Work Sched
         let lists = await db.main.EmployeeList.find({
             'members': {
                 $elemMatch: {
@@ -305,61 +377,50 @@ router.get('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee
             return o
         })
 
-        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
-
-        let dtrEditable = false
-        dtrDays = dtrDays.map((d) => {
-
-            let attendance = d.attendance
-            let attendanceType = lodash.get(attendance, 'type')
-
-            // For use by vuejs in frontend
-            let ui = {
-                editable: false,
-                attendanceType: attendanceType,
-                log0: '',
-                log1: '',
-                log2: '',
-                log3: '',
-            }
-
-            if (attendanceType === 'normal') {
-                let maxLogNumber = 4
-                for (let l = 0; l < maxLogNumber; l++) {
-                    let log = lodash.get(attendance, `logs[${l}]`)
-                    if (log) {
-                        lodash.set(ui, `log${l}`, moment(log.dateTime).format('HH:mm'))
-                    } else {
-                        lodash.set(ui, `log${l}`, '')
-                        ui.editable = true
-                        dtrEditable = true
-                    }
-                }
-            }
-
-            d.ui = ui
-
-            return d
+        let workSchedule = workSchedules.find(o => {
+            return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
         })
 
-        let years = new Array(10)
-        years = years.fill(moment().year()).map((val, index) => val - index)
+        let data = {
+            title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
 
-        // return res.send(dtrDays)
-        res.render('e-profile/dtr.html', {
-            flash: flash.get(req, 'employee'),
-            momentNow: momentNow,
-            attendances: attendances,
+            flash: flash.get(req, 'attendance'),
+
             employee: employee,
             employment: employment,
-            dtrDays: dtrDays,
+
+            // Data that might change
+            days: days,
+            timeRecordSummary: timeRecordSummary,
+
+            showTotalAs: showTotalAs,
             workSchedules: workSchedules,
-            months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            years: years,
-            dtrEditable: dtrEditable,
-        });
+            periodMonthYearList: periodMonthYearList,
+            periodMonthYear: periodMonthYearMoment.format('YYYY-MM-DD'),
+            periodWeekDays: periodWeekDays,
+            periodSlice: periodSlice,
+            inCharge: employment.inCharge,
 
+            startDate: startMoment.format('YYYY-MM-DD'),
+            endDate: endMoment.format('YYYY-MM-DD'),
 
+            workSchedule: workSchedule,
+            shared: false,
+
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+
+        }
+
+        // return res.send(req.path)
+        if (req.xhr) {
+            return res.json(data)
+        }
+        // return res.send(days)
+
+        if(/^\/e-profile\/dtr\/print/.test(req.path)){
+            return res.render('e-profile/dtr-print.html', data)
+        }
+        res.render('e-profile/dtr.html', data)
     } catch (err) {
         next(err);
     }
@@ -498,57 +559,104 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
         next(err);
     }
 });
-router.post('/e-profile/dtr/:employmentId/change-sched', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+router.patch('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let employmentId = res.employmentId
         let employment = res.employment
-        let month = lodash.get(req, 'query.month', moment().format('MMM'))
-        let year = lodash.get(req, 'query.year', moment().format('YYYY'))
-        let momentNow = moment().year(year).month(month)
+        let employmentId = employment._id
+        let momentNow = moment()
+
+        let periodMonthYear = lodash.get(req, 'query.periodMonthYear', moment().startOf('month').format('YYYY-MM-DD'))
+        let periodMonthYearMoment = moment(periodMonthYear)
+        let periodSlice = lodash.get(req, 'query.periodSlice')
+        let periodWeekDays = lodash.get(req, 'query.periodWeekDays', 'Mon-Fri')
+        let showTotalAs = lodash.get(req, 'query.showTotalAs', 'time')
+
+        // Validation
+        if (!periodMonthYearMoment.isValid()) {
+            throw new Error(`Invalid period date.`)
+        }
+        if (!['15th', '30th', 'all'].includes(periodSlice)) {
+            if (momentNow.date() <= 15) {
+                periodSlice = '15th'
+            } else {
+                periodSlice = '30th'
+            }
+
+            if (employment.employmentType === 'permanent') {
+                periodSlice = 'all'
+            }
+        }
+        if (!['Mon-Fri', 'Sat-Sun'].includes(periodWeekDays)) {
+            periodWeekDays = 'Mon-Fri'
+        }
+        if (!['time', 'undertime'].includes(showTotalAs)) {
+            showTotalAs = 'time'
+        }
+
+        let startMoment = periodMonthYearMoment.clone().startOf('month')
+        let endMoment = periodMonthYearMoment.clone().endOf('month')
+
+        if (periodSlice === '15th') {
+            startMoment = startMoment.startOf('day')
+            endMoment = endMoment.date(15).endOf('day')
+        } else if (periodSlice === '30th') {
+            startMoment = startMoment.date(16).startOf('day')
+            endMoment = endMoment.endOf('month').endOf('day')
+        }
+
+        let showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+        if (periodWeekDays === 'Sat-Sun') {
+            showWeekDays = ['Sat', 'Sun']
+        }
 
         let workScheduleId = lodash.get(req, 'body.workScheduleId')
-        if (!workScheduleId) {
-            throw new Error('No work schedule selected.')
+        let inCharge = lodash.get(req, 'body.inCharge')
+
+        let patch = {}
+
+        if (workScheduleId) {
+            patch.workScheduleId = workScheduleId
+
+            // Today attendance
+            let attendances = await db.main.Attendance.find({
+                employeeId: employee._id,
+                employmentId: employmentId,
+                createdAt: {
+                    $gte: startMoment.clone().startOf('day').toDate(),
+                    $lte: endMoment.clone().endOf('day').toDate(),
+                }
+            }).lean()
+
+            attendances = attendances.filter((attendance)=>{
+                return showWeekDays.includes(moment(attendance.createdAt).format('ddd'))
+            })
+
+            let attendanceIds = attendances.map((attendance) => {
+                return attendance._id.toString()
+            })
+
+            let rA = await db.main.Attendance.updateMany({
+                _id: {
+                    $in: attendanceIds
+                }
+            }, {
+                workScheduleId: workScheduleId
+            })
+
+            console.log('updatedAttendances', rA, attendanceIds)
+        }
+        if (inCharge) {
+            patch.inCharge = inCharge
         }
 
-        // Today attendance
-        let attendances = await db.main.Attendance.find({
-            employeeId: employee._id,
-            employmentId: employmentId,
-            createdAt: {
-                $gte: momentNow.clone().startOf('month').toDate(),
-                $lt: momentNow.clone().endOf('month').toDate(),
-            }
-        }).lean()
-
-        let ids = []
-        for (let a = 0; a < attendances.length; a++) {
-            let attendance = attendances[a]
-            ids.push(attendance._id.toString())
-            lodash.set(attendance, 'workScheduleId', workScheduleId)
-            let workSchedule = await db.main.WorkSchedule.findById(
-                lodash.get(attendance, 'workScheduleId')
-            )
-            attendance.shifts = lodash.get(workSchedule, 'timeSegments')
-        }
-
-        let r = await db.main.Attendance.updateMany({
-            _id: {
-                $in: ids
-            }
-        }, {
-            workScheduleId: workScheduleId
-        })
-        let r2 = await db.main.Employment.updateOne({
+        let rE = await db.main.Employment.updateOne({
             _id: employment._id
-        }, {
-            workScheduleId: workScheduleId
-        })
+        }, patch)
 
-        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, false)
+        console.log('updated employment', rE)
 
-        res.send(dtrDays)
+        res.send('ok')
     } catch (err) {
         next(new AppError(err.message));
     }
@@ -694,7 +802,13 @@ router.get('/e-profile/dtr/share/:employmentId', middlewares.guardRoute(['use_em
         let employment = res.employment
         let month = lodash.get(req, 'query.month', moment().format('MMM'))
         let year = lodash.get(req, 'query.year', moment().format('YYYY'))
-        let momentNow = moment().year(year).month(month)
+        
+        let periodMonthYear = lodash.get(req, 'query.periodMonthYear', moment().startOf('month').format('YYYY-MM-DD'))
+        let periodMonthYearMoment = moment(periodMonthYear)
+        let periodSlice = lodash.get(req, 'query.periodSlice')
+        let periodWeekDays = lodash.get(req, 'query.periodWeekDays', 'Mon-Fri')
+        let showTotalAs = lodash.get(req, 'query.showTotalAs', 'time')
+        
 
         let prevShares = await db.main.Share.deleteMany({
             createdBy: res.user._id,
@@ -710,6 +824,7 @@ router.get('/e-profile/dtr/share/:employmentId', middlewares.guardRoute(['use_em
         // console.log(forDeletion)
         // return res.send('forDeletion')
 
+        //TODO: Do not allow different DTR view from one shared
 
         let secureKey = await passwordMan.randomStringAsync(64)
         let share = await db.main.Share.create({
@@ -717,7 +832,7 @@ router.get('/e-profile/dtr/share/:employmentId', middlewares.guardRoute(['use_em
             expiredAt: moment().add(1, 'hour').toDate(),
             createdBy: res.user._id,
             payload: {
-                url: `${CONFIG.app.url}/shared/dtr/print/${secureKey}`,
+                url: `${CONFIG.app.url}/shared/dtr/print/${secureKey}?periodMonthYear=${periodMonthYearMoment.format('YYYY-MM-DD')}&periodSlice=${periodSlice}&periodWeekDays=${periodWeekDays}&showTotalAs=${showTotalAs}`,
                 employeeId: employee._id,
                 employmentId: employmentId,
                 month: month,
@@ -741,10 +856,6 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
         let payload = res.payload
         let employeeId = payload.employeeId
         let employmentId = payload.employmentId
-        let month = payload.month
-        let year = payload.year
-        let momentNow = moment().year(year).month(month)
-        let totalTimeView = lodash.get(req, 'query.totalTimeView', 'undertime')
 
         // employee
         let employee = await db.main.Employee.findOne({
@@ -765,26 +876,136 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
             throw new Error('Employment not found.')
         }
 
-        // Today attendance
-        let attendances = await db.main.Attendance.find({
-            employeeId: employee._id,
-            employmentId: employmentId,
-            createdAt: {
-                $gte: momentNow.clone().startOf('month').toDate(),
-                $lt: momentNow.clone().endOf('month').toDate(),
+        ////////
+
+        let momentNow = moment()
+
+        let periodMonthYear = lodash.get(req, 'query.periodMonthYear', moment().startOf('month').format('YYYY-MM-DD'))
+        let periodMonthYearMoment = moment(periodMonthYear)
+        let periodSlice = lodash.get(req, 'query.periodSlice')
+        let periodWeekDays = lodash.get(req, 'query.periodWeekDays', 'Mon-Fri')
+        let showTotalAs = lodash.get(req, 'query.showTotalAs', 'time')
+
+        // Validation
+        if (!periodMonthYearMoment.isValid()) {
+            throw new Error(`Invalid period date.`)
+        }
+        if (!['15th', '30th', 'all'].includes(periodSlice)) {
+            if (momentNow.date() <= 15) {
+                periodSlice = '15th'
+            } else {
+                periodSlice = '30th'
             }
-        }).lean()
 
-        for (let a = 0; a < attendances.length; a++) {
-            let attendance = attendances[a]
-            let workSchedule = await db.main.WorkSchedule.findById(
-                lodash.get(attendance, 'workScheduleId')
-            )
-
-            attendance.shifts = lodash.get(workSchedule, 'timeSegments')
+            if (employment.employmentType === 'permanent') {
+                periodSlice = 'all'
+            }
+        }
+        if (!['Mon-Fri', 'Sat-Sun'].includes(periodWeekDays)) {
+            periodWeekDays = 'Mon-Fri'
+        }
+        if (!['time', 'undertime'].includes(showTotalAs)) {
+            showTotalAs = 'time'
         }
 
-        let workSchedules = await db.main.WorkSchedule.find().lean()
+        let startMoment = periodMonthYearMoment.clone().startOf('month')
+        let endMoment = periodMonthYearMoment.clone().endOf('month')
+
+        if (periodSlice === '15th') {
+            startMoment = startMoment.startOf('day')
+            endMoment = endMoment.date(15).endOf('day')
+        } else if (periodSlice === '30th') {
+            startMoment = startMoment.date(16).startOf('day')
+            endMoment = endMoment.endOf('month').endOf('day')
+        }
+
+        let showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+        if (periodWeekDays === 'Sat-Sun') {
+            showWeekDays = ['Sat', 'Sun']
+        }
+
+        // return res.send({
+        // console.log({
+        //     periodMonthYearMoment: periodMonthYearMoment.format('YYYY-MM-DD'),
+        //     periodSlice: periodSlice,
+        //     showWeekDays: showWeekDays,
+        //     showTotalAs: showTotalAs,
+        //     startMoment: startMoment.format('YYYY-MM-DD'),
+        //     endMoment: endMoment.format('YYYY-MM-DD'),
+        // })
+
+
+        let options = {
+            showTotalAs: showTotalAs,
+            padded: true,
+            excludeWeekend: true,
+            showWeekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        }
+
+        let days = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
+
+        let totalMinutes = 0
+        let totalMinutesUnderTime = 0
+        days.forEach((day) => {
+            totalMinutes += lodash.get(day, 'dtr.totalMinutes', 0)
+            totalMinutesUnderTime += lodash.get(day, 'dtr.underTimeTotalMinutes', 0)
+        })
+
+        let timeRecordSummary = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
+
+
+        const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
+        let months = Array.from(range1.by('months')).reverse()
+
+        let periodMonthYearList = months.map((_moment) => {
+            let date = _moment.startOf('month')
+
+            return {
+                value: date.format('YYYY-MM-DD'),
+                text: date.format('MMM YYYY'),
+            }
+        })
+
+        // Work Sched
+        let lists = await db.main.EmployeeList.find({
+            'members': {
+                $elemMatch: {
+                    employmentId: employmentId
+                }
+            }
+        }).lean()
+        let listIds = lists.map(o => o._id)
+        let workSchedules = await db.main.WorkSchedule.find({
+            $or: [
+                {
+                    visibility: ''
+                },
+                {
+                    visibility: {
+                        $exists: false
+                    }
+                },
+                {
+                    'members': {
+                        $elemMatch: {
+                            objectId: employmentId,
+                            type: 'employment'
+                        }
+                    }
+                },
+                {
+                    'members': {
+                        $elemMatch: {
+                            objectId: {
+                                $in: listIds
+                            },
+                            type: 'list'
+                        }
+                    }
+                }
+            ]
+        }).lean()
+
         workSchedules = workSchedules.map((o) => {
             let times = []
             o.timeSegments = o.timeSegments.map((t) => {
@@ -800,54 +1021,38 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
         let workSchedule = workSchedules.find(o => {
             return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
         })
-        // return res.send(workSchedule)
-        let dtrDays = dtrHelper.getDtrMonthlyView(month, year, attendances, true)
 
-        dtrDays = dtrDays.map((d) => {
+        let data = {
+            title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
 
-            let attendance = d.attendance
-            let attendanceType = lodash.get(attendance, 'type')
+            flash: flash.get(req, 'attendance'),
 
-            // For use by vuejs in frontend
-            let ui = {
-                editable: false,
-                attendanceType: attendanceType,
-                log0: '',
-                log1: '',
-                log2: '',
-                log3: '',
-            }
-
-            if (attendanceType === 'normal') {
-                let maxLogNumber = 4
-                for (let l = 0; l < maxLogNumber; l++) {
-                    let log = lodash.get(attendance, `logs[${l}]`)
-                    if (log) {
-                        lodash.set(ui, `log${l}`, moment(log.dateTime).format('HH:mm'))
-                    } else {
-                        lodash.set(ui, `log${l}`, '')
-                        // ui.editable = true
-                    }
-                }
-            }
-
-            d.ui = ui
-
-            return d
-        })
-
-        res.render('e-profile/dtr-print.html', {
-            shared: true,
-            momentNow: momentNow,
-            days: dtrDays,
-            attendances: attendances,
             employee: employee,
             employment: employment,
+
+            // Data that might change
+            days: days,
+            timeRecordSummary: timeRecordSummary,
+
+            showTotalAs: showTotalAs,
+            workSchedules: workSchedules,
+            periodMonthYearList: periodMonthYearList,
+            periodMonthYear: periodMonthYearMoment.format('YYYY-MM-DD'),
+            periodWeekDays: periodWeekDays,
+            periodSlice: periodSlice,
+            inCharge: employment.inCharge,
+
+            startDate: startMoment.format('YYYY-MM-DD'),
+            endDate: endMoment.format('YYYY-MM-DD'),
+
             workSchedule: workSchedule,
-            title: `DTR-${momentNow.format('YYYY-MM')}-${employee.lastName}`,
-            totalTimeView: totalTimeView,
+            shared: true,
+
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
-        });
+
+        }
+
+        res.render('e-profile/dtr-print.html', data)
     } catch (err) {
         next(err);
     }
@@ -1071,7 +1276,7 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'email', lodash.get(body, 'email'))
 
         patch.history = employee.history
-        if(patch.gender !== employee.gender){
+        if (patch.gender !== employee.gender) {
             patch.history.push({
                 comment: `Changed gender from ${employee.gender} to ${patch.gender}.`,
                 createdAt: moment().toDate()

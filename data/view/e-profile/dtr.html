@@ -4,170 +4,241 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h3">DTR <em>({{momentNow|format_date('MMMM, YYYY')}})</em></h1>
-        </div>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group mr-2">
-                <a href="/e-profile/home" class="btn btn-sm btn-outline-primary">Back</a>
-                <a href="/e-profile/dtr/print/{{employment._id}}?{{query|query_string}}" class="btn btn-sm btn-outline-primary">Print</a>
-                <a href="/e-profile/dtr/share/{{employment._id}}?{{query|query_string}}" class="btn btn-sm btn-outline-primary">Share</a>
-            </div>
+            <h1 class="h3">Daily Time Record (DTR)</h1>
         </div>
     </div>
-    <div class=" mb-5">
+    <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content pt-3 pb-2 pl-3 pr-3">
         {% include 'parts/flash.html' %}
-        <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width: 800px" class="ml-auto mr-auto" >
-            <div class="text-center">
-                <div class="text-center pt-3 pb-3">
-                    <div class="e-profile-photo ml-auto mr-auto">
-                        {% if employee.profilePhoto %}
-                            <div class="actual-pic">
-                                <a href="/e-profile/photo">   
-                                    <img style="min-height: 100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="{{employee.firstName|first}}. {{employee.lastName|first}}.">
-                                </a>
-                            </div>
-                        {% else %}
-                            <a href="/e-profile/photo">  
-                                {% if employee.gender == 'F' %}
-                                    <svg viewBox="0 0 24 24">
-                                        <path fill="#4bb29d" d="M13.75 13C13.75 12.31 14.31 11.75 15 11.75S16.25 12.31 16.25 13 15.69 14.25 15 14.25 13.75 13.69 13.75 13M22 12V22H2V12C2 6.5 6.5 2 12 2S22 6.5 22 12M4 12C4 16.41 7.59 20 12 20S20 16.41 20 12C20 11.21 19.88 10.45 19.67 9.74C18.95 9.91 18.2 10 17.42 10C14.05 10 11.07 8.33 9.26 5.77C8.28 8.16 6.41 10.09 4.05 11.14C4 11.42 4 11.71 4 12M9 14.25C9.69 14.25 10.25 13.69 10.25 13S9.69 11.75 9 11.75 7.75 12.31 7.75 13 8.31 14.25 9 14.25Z" />
-                                    </svg>
-                                {% else %}
-                                    <svg viewBox="0 0 24 24">
-                                        <path fill="#115195" d="M9,11.75A1.25,1.25 0 0,0 7.75,13A1.25,1.25 0 0,0 9,14.25A1.25,1.25 0 0,0 10.25,13A1.25,1.25 0 0,0 9,11.75M15,11.75A1.25,1.25 0 0,0 13.75,13A1.25,1.25 0 0,0 15,14.25A1.25,1.25 0 0,0 16.25,13A1.25,1.25 0 0,0 15,11.75M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,11.71 4,11.42 4.05,11.14C6.41,10.09 8.28,8.16 9.26,5.77C11.07,8.33 14.05,10 17.42,10C18.2,10 18.95,9.91 19.67,9.74C19.88,10.45 20,11.21 20,12C20,16.41 16.41,20 12,20Z" />
-                                    </svg>
-                                {% endif %}
+
+        <div class="row mb-4">
+            <div class="col-md-4 col-xl-3 mb-3">
+                <div class="e-profile-photo ml-auto mr-auto">
+                    {% if employee.profilePhoto %}
+                        <div class="actual-pic">
+                            <a href="/e-profile/photo">   
+                                <img style="min-height: 100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="{{employee.firstName|first}}. {{employee.lastName|first}}.">
                             </a>
-                        {% endif %}
+                        </div>
+                    {% else %}
+                        <a href="/e-profile/photo">  
+                            {% if employee.gender == 'F' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path fill="#4bb29d" d="M13.75 13C13.75 12.31 14.31 11.75 15 11.75S16.25 12.31 16.25 13 15.69 14.25 15 14.25 13.75 13.69 13.75 13M22 12V22H2V12C2 6.5 6.5 2 12 2S22 6.5 22 12M4 12C4 16.41 7.59 20 12 20S20 16.41 20 12C20 11.21 19.88 10.45 19.67 9.74C18.95 9.91 18.2 10 17.42 10C14.05 10 11.07 8.33 9.26 5.77C8.28 8.16 6.41 10.09 4.05 11.14C4 11.42 4 11.71 4 12M9 14.25C9.69 14.25 10.25 13.69 10.25 13S9.69 11.75 9 11.75 7.75 12.31 7.75 13 8.31 14.25 9 14.25Z" />
+                                </svg>
+                            {% else %}
+                                <svg viewBox="0 0 24 24">
+                                    <path fill="#115195" d="M9,11.75A1.25,1.25 0 0,0 7.75,13A1.25,1.25 0 0,0 9,14.25A1.25,1.25 0 0,0 10.25,13A1.25,1.25 0 0,0 9,11.75M15,11.75A1.25,1.25 0 0,0 13.75,13A1.25,1.25 0 0,0 15,14.25A1.25,1.25 0 0,0 16.25,13A1.25,1.25 0 0,0 15,11.75M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,11.71 4,11.42 4.05,11.14C6.41,10.09 8.28,8.16 9.26,5.77C11.07,8.33 14.05,10 17.42,10C18.2,10 18.95,9.91 19.67,9.74C19.88,10.45 20,11.21 20,12C20,16.41 16.41,20 12,20Z" />
+                                </svg>
+                            {% endif %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {#  #}
+            <div v-if="!settingsEditable" class="col-md-8 col-xl-9">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h4 class="h3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
+                    </div>
+                    <div class="col-sm-6 text-right">
+                        <div class="btn-toolbar justify-content-end">
+                            <div class="btn-group">
+                                <button v-on:click="settingsEditable = true" type="button" class="btn btn-sm btn-outline-primary">Settings</button>
+                                <a v-bind:href="printUrl" class="btn btn-sm btn-outline-primary">Print</a>
+                                <a v-bind:href="shareUrl" class="btn btn-sm btn-outline-primary">Share</a>
+                            </div>
+                        </div>
+                        {# <a href="#" class="btn btn-sm btn-outline-primary" title="DTR Settings">Settings</a> #}
                     </div>
                 </div>
-                <h4 class="h3 mb-3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
-                <p class="text-left mb-3"><em class="mr-2">Employment:</em> <strong>{{employment.position}}</strong></p>
-                <p class="text-left mb-4 d-flex align-items-center">
-                    <em class="mr-2" style="width: 130px">For the period of:</em>  
-                    <strong v-if="!dateEditable">{{momentNow|format_date('MMMM')}}</strong>
-                    <button v-if="!dateEditable" v-on:click="dateEditable = true" class="btn btn-sm btn-outline-success ml-2">Edit</button>
-
-                    <select v-if="dateEditable" v-model="month" name="month" id="month" class="form-control mr-1" style="max-width: 100px">
-                        <option v-for="m in months" v-bind:value="m">${m}</option>
-                    </select>
-                    <select v-if="dateEditable" v-model="year" name="year" id="year" class="form-control" style="max-width: 200px">
-                        <option v-for="y in years" v-bind:value="y">${y}</option>
-                    </select>
-                    <button v-on:click="dateEditable = false" v-if="dateEditable" class="btn btn-sm btn-outline-info ml-2">Cancel</button>
-                    <button v-on:click="dateChange" v-if="dateEditable" class="btn btn-sm btn-outline-success ml-1">Save</button>
-
-                </p>
-                <div class="text-left mb-4 d-flex align-items-center">
-                    <em class="mr-2">Work Schedule:</em>  
-                    <span v-if="!workScheduleEditable">${_.get(workSchedule, 'times')}</span>
-                    <button v-if="!workScheduleEditable" v-on:click="workScheduleEdit" class="btn btn-sm btn-outline-success ml-2">Edit</button>
-
-                    <select v-if="workScheduleEditable" v-model="workScheduleId" name="workScheduleId" id="workScheduleId" class="form-control">
-                        <option value=""></option>
-                        <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.times}</option>
-                    </select>
-                    <button v-on:click="workScheduleEditable = false" v-if="workScheduleEditable" class="btn btn-sm btn-outline-info ml-2">Cancel</button>
-                    <button v-on:click="saveSchedule" v-if="workScheduleEditable" class="btn btn-sm btn-outline-success ml-1">Save</button>
-
+                <div class="row mb-2">
+                    <div class="col-sm-3">Employment:</div>
+                    <div class="col-sm-9"><strong>{{employment.position}}</strong></div>
                 </div>
-                <div class="justify-content-center mb-4 d-flex">
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="btn-group">
-                            <a onclick="return confirm('Do you want to set your attendance today to \'WFH\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=wfh" class="btn btn-sm btn-primary">
-                                <span>WFH</span>
-                            </a>
-                            <a onclick="return confirm('Do you want to set your attendance today to \'Travel\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=travel" class="btn btn-sm btn-primary">
-                                <span>Travel </span>
-                            </a>
-                            <a onclick="return confirm('Do you want to set your attendance today to \'Leave\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=leave" class="btn btn-sm btn-primary">
-                                <span>On Leave </span>
-                            </a>
-                            <a onclick="return confirm('Do you want to set your attendance today to \'Pass Slip\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=pass" class="btn btn-sm btn-primary">
-                                <span>Pass Slip</span>
-                            </a>
+                <div class="row mb-2">
+                    <div class="col-sm-3">Period:</div>
+                    <div class="col-sm-9"><strong>${period}</strong></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3">Schedule:</div>
+                    <div class="col-sm-9"><strong>${workScheduleString}</strong></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3">In Charge:</div>
+                    <div class="col-sm-9"><strong>${inCharge}</strong></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3">Show Total:</div>
+                    <div class="col-sm-9"><strong class="text-capitalize">${showTotalAs}</strong></div>
+                </div>
+            </div>
+            <div v-if="settingsEditable" class="col-md-8 col-xl-9">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h4 class="h3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
+                    </div>
+                    <div class="col-sm-6 text-right">
+                        <div class="btn-toolbar justify-content-end">
+                            <div class="btn-group">
+                                <button v-on:click="reloado" type="button" class="btn btn-sm btn-outline-primary">Save</button>
+                            </div>
+                        </div>
+                        {# <a href="#" class="btn btn-sm btn-outline-primary" title="DTR Settings">Settings</a> #}
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3">Employment:</div>
+                    <div class="col-sm-9"><strong>{{employment.position}}</strong></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3">Period:</div>
+                    <div class="col-sm-9">
+                        <div class="d-flex">
+                            <select v-model="periodSlice" name="periodSlice" id="periodSlice" class="form-control form-control-sm mr-1">
+                                <option value="15th">1st-15th</option>
+                                <option value="30th">16th-end</option>
+                                <option value="all">All</option>
+                            </select>
+                            <select v-model="periodMonthYear" name="periodMonthYear" id="periodMonthYear" class="form-control form-control-sm mr-1">
+                                <option v-for="option in periodMonthYearList" v-bind:value="option.value">${option.text}</option>
+                            </select>
+                            <select v-model="periodWeekDays" name="periodWeekDays" id="periodWeekDays" class="form-control form-control-sm">
+                                <option value="Mon-Fri">Mon-Fri</option>
+                                <option value="Sat-Sun">Sat-Sun</option>
+                            </select>
                         </div>
                     </div>
                 </div>
-                
+                <div class="row mb-2">
+                    <div class="col-sm-3">Schedule:</div>
+                    <div class="col-sm-9">
+                        <select v-model="workScheduleId" name="workScheduleId" id="workScheduleId" class="form-control form-control-sm">
+                            <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.times}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3">In Charge:</div>
+                    <div class="col-sm-9">
+                        <input v-model="inCharge" name="inCharge" id="inCharge" type="text" class="form-control form-control-sm">
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3">Show Total:</div>
+                    <div class="col-sm-9">
+                        <select v-model="showTotalAs" name="showTotalAs" id="showTotalAs" class="form-control form-control-sm">
+                            <option value="time">Time</option>
+                            <option value="undertime">Undertime</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div class="table-responsive">
-                <table class="table table-dtr">
-                    <tr>
-                        {# <th v-if="dtrEditable" class="text-center" rowspan="2"></th> #}
-                        <th class="text-center" rowspan="2">Day</th>
-                        <th class="text-center" colspan="2">AM</th>
-                        <th class="text-center" colspan="2">PM</th>
-                        <th class="text-center" colspan="2">
-                            <select style="border:0; font-weight:bold;"  v-model="totalTimeView" name="totalTimeView" id="totalTimeView">
-                                <option value="undertime">Undertime</option>
-                                <option value="time">Time</option>
-                            </select>
-                        </th>
-                    </tr>
-                    <tr>
-                        <th>Arrival</th>
-                        <th>Departure</th>
-                        
-                        <th>Arrival</th>
-                        <th>Departure</th>
-
-                        <th>Hours</th>
-                        <th>Minutes</th>
-                    </tr>
-                    <tr v-for="(dtrDay, index) in dtrDays" v-bind:class="getCssClass(dtrDay)">
-                        {# <td v-if="dtrEditable"><a  v-if="_.get(dtrDay, 'ui.editable')" v-bind:href="'/e-profile/dtr/' + _.get(employment, '_id') + '/attendance/' + _.get(dtrDay, 'attendance._id') + '/edit' ">Edit</a></td> #}
-                        <td class="text-center">${index + 1}</td>
-                        <template v-if="['travel', 'wfh', 'leave', 'pass'].includes(_.get(dtrDay, 'attendance.type'))">
-                            <td class="text-capitalize">${_.get(dtrDay, 'attendance.type')}</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td>
-                                ${dispHours(dtrDay)}
-                            </td>
-                            <td>
-                                ${dispMins(dtrDay)}
-                            </td>
-                        </template>
-                        <template v-else >
-                            <td>
-                                <div v-if="_.get(dtrDay, 'attendance.logs[0].dateTime')">
-                                    ${formatDate(_.get(dtrDay, 'attendance.logs[0].dateTime'), 'hh:mm A')}
-                                </div>
-                            </td>
-                            <td>
-                                <div v-if="_.get(dtrDay, 'attendance.logs[1].dateTime')">
-                                    ${formatDate(_.get(dtrDay, 'attendance.logs[1].dateTime'), 'hh:mm A')}
-                                </div>
-
-                                <div v-if="isTimeOutShown(dtrDay)">
-                                    <button v-on:click="logTime(0)" class="btn btn-sm btn-light">Time-Out</button>
-                                </div>
-                            </td>
-                            <td>
-                                <div v-if="_.get(dtrDay, 'attendance.logs[2].dateTime')">
-                                    ${formatDate(_.get(dtrDay, 'attendance.logs[2].dateTime'), 'hh:mm A')}
-                                </div>
-                                <div v-if="isTimeInShown(dtrDay)">
-                                    <button v-on:click="logTime(1)" class="btn btn-sm btn-light">Time-In</button>
-                                </div>
-                            </td>
-                            <td>
-                                <div v-if="_.get(dtrDay, 'attendance.logs[3].dateTime')">
-                                    ${formatDate(_.get(dtrDay, 'attendance.logs[3].dateTime'), 'hh:mm A')}
-                                </div>
-                            </td>
-                            <td>
-                                ${dispHours(dtrDay)}
-                            </td>
-                            <td>
-                                ${dispMins(dtrDay)}
-                            </td>
-                        </template>
-                    </tr>
-                </table>
+        </div>
+  
+        <div class="justify-content-center mb-4 d-flex">
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group">
+                    <a onclick="return confirm('Do you want to set your attendance today to \'WFH\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=wfh" class="btn btn-sm btn-primary">
+                        <span>WFH</span>
+                    </a>
+                    <a onclick="return confirm('Do you want to set your attendance today to \'Travel\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=travel" class="btn btn-sm btn-primary">
+                        <span>Travel </span>
+                    </a>
+                    <a onclick="return confirm('Do you want to set your attendance today to \'Leave\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=leave" class="btn btn-sm btn-primary">
+                        <span>On Leave </span>
+                    </a>
+                    <a onclick="return confirm('Do you want to set your attendance today to \'Pass Slip\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=pass" class="btn btn-sm btn-primary">
+                        <span>Pass Slip</span>
+                    </a>
+                </div>
             </div>
+        </div>
+
+        {# <h2 class="h5 mb-4">
+            {{startMoment|format_date('MMM DD, YYYY')}}
+            {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
+                to {{endMoment|format_date('MMM DD, YYYY')}}
+            {% endif %}
+        </h2>
+        <div class="mb-3">
+            <div class="d-flex align-items-center">
+                <input v-model="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}">
+                <span class="m-1">to</span> 
+                <input v-model="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}">
+                <select v-model="showWeekDays" name="showWeekDays" class="ml-1" id="showWeekDays">
+                    <option value="Mon|Tue|Wed|Thu|Fri">Mon-Fri</option>
+                    <option value="Sat|Sun">Sat,Sun</option>
+                    <option value="Mon|Tue|Wed|Thu|Fri|Sat|Sun">All days</option>
+                </select>
+                <button v-on:click="reloado" type="button" class="ml-1 btn btn-sm btn-primary">Change</button>
+            </div>
+        </div> #}
+        
+        <div class="table-responsive">
+            <table class="table table-dtr">
+                <tr>
+                    <th class="text-center" rowspan="2" colspan="2">Day</th>
+                    <th class="text-center" colspan="2">AM</th>
+                    <th class="text-center" colspan="2">PM</th>
+                    <th class="text-center text-capitalize" colspan="3">${showTotalAs}</th>
+                </tr>
+                <tr>
+                    <th>Arrival</th>
+                    <th>Departure</th>
+                    
+                    <th>Arrival</th>
+                    <th>Departure</th>
+
+                    <th>Days</th>
+                    <th>Hours</th>
+                    <th>Minutes</th>
+                </tr>
+                <tr v-for="day in days" v-bind:class="dayCssClasses(day)">
+                    <td class="text-center">
+                        <template v-if="day.attendance">
+                            <a :href="attendanceEditUrl(day)">${day.day}</a>
+                        </template>
+                        <template v-else>
+                            <span class="text-dark">${day.day}</span>
+                        </template>
+                    </td>
+                    <td :class="weekDayCssClasses(day)">${day.weekDay}</td>
+                    
+                    <template v-if="_.get(day, 'attendance.type') === 'normal'">
+                        <td>${showLogTime(_.get(day, 'attendance.logs[0].dateTime'))}</td>
+                        <td>${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}</td>
+                        <td>${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}</td>
+                        <td>${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>
+                    </template>
+                    <template v-else>
+                        <td colspan="4" class="text-center">
+                            ${showLogType(_.get(day, 'attendance.type'))}
+                        </td>
+                    </template>
+                    <td>
+                        ${subTotalDays(day)}
+                    </td>
+                    <td>
+                        ${subTotalHours(day)}
+                    </td>
+                    <td>
+                        ${subTotalMinutes(day)}
+                    </td>
+                </tr>
+                {# end v-for #}
+                <tr>
+                    <td colspan="6"><h5 class="m-0">Total</h5></td>
+                    <td>
+                        ${totalDays(timeRecordSummary)}
+                    </td>
+                    <td>
+                        ${totalHours(timeRecordSummary)}
+                    </td>
+                    <td>
+                        ${totalMinutes(timeRecordSummary)}
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 </div>
@@ -182,184 +253,191 @@
         mixins: [],
         data: {
             pending: false,
-            workScheduleEditable: false,
-            totalTimeViewEditable: false,
-            dateEditable: false,
-            dtrEditable: {{dtrEditable}},
-            workScheduleId: '{{employment.workScheduleId}}',
+            settingsEditable: false,
+
+            periodMonthYearList: {{periodMonthYearList|default([], true)|stringify|safe}},
             workSchedules: {{workSchedules|default([], true)|stringify|safe}},
-            dtrDays: {{dtrDays|default([], true)|stringify|safe}},
-            totalTimeView: 'undertime',
-            month: '{{momentNow|format_date("MMM")}}',
-            year: '{{momentNow|format_date("YYYY")}}',
-            months: {{months|default([], true)|stringify|safe}},
-            years: {{years|default([], true)|stringify|safe}},
-            employment: {{employment|default({}, true)|stringify|safe}},
+            days: {{days|default([], true)|stringify|safe}},
+            timeRecordSummary: {{timeRecordSummary|default({}, true)|stringify|safe}},
+
+            urlPath: '{{urlPath}}',
+            workScheduleIdOrig: '{{employment.workScheduleId}}',
+            workScheduleId: '{{employment.workScheduleId}}',
+
+            periodSlice: '{{periodSlice}}',
+            periodMonthYear: '{{periodMonthYear}}',
+            periodWeekDays: '{{periodWeekDays}}',
+            showTotalAs: '{{showTotalAs}}',
+            inChargeOrig: '{{inCharge}}',
+            inCharge: '{{inCharge}}',
+
+            startDate: '{{startDate}}',
+            endDate: '{{endDate}}',
         },
         validations: {},
         computed: {
-            workSchedule: function(){
-                var me = this;
-                return _.find(me.workSchedules, function(o){
-                    return me.workScheduleId === o._id
-                })
+            period: function(){
+                return this.periodSliceString + ' ' + this.periodMonthYearString + ' (' + this.periodWeekDays + ')';
             },
+            periodMonthYearString: function(){
+                return moment(this.periodMonthYear).format('MMMM YYYY');
+            },
+            periodSliceString: function(){
+                if(this.periodSlice === '15th'){
+                    return '1st-15th of';
+                } else if(this.periodSlice === '30th'){
+                    return '16th-end of';
+                }
+                return 'All of';
+            },
+            urlQuery: function(){
+                return 'periodMonthYear=' + this.periodMonthYear + '&periodSlice=' + this.periodSlice + '&periodWeekDays=' + this.periodWeekDays + '&showTotalAs=' + this.showTotalAs + '&inCharge=' + this.inCharge;
+            },
+            fullUrl: function(){
+                return this.urlPath + '?' + this.urlQuery;
+            },
+            printUrl: function(){
+                return '/e-profile/dtr/print/{{employment._id}}' + '?' + this.urlQuery
+            },
+            shareUrl: function(){
+                return '/e-profile/dtr/share/{{employment._id}}' + '?' + this.urlQuery
+            },
+            patchUrl: function(){
+                return '/e-profile/dtr/{{employment._id}}' + '?' + this.urlQuery
+            },
+            workScheduleString: function(){
+                var me = this;
+                var f = _.find(me.workSchedules, function(o){
+                    return o._id === me.workScheduleId;
+                })
+                if(f){
+                    return f.times;
+                }
+                return ''
+            }
         },
         methods: {
-            dateChange: function(){
-                this.pending = true;
-                window.location.replace('{{baseUrl}}' + '?month=' + this.month + '&year=' + this.year);
-            },
-            isTimeOutShown: function(dtrDay) {
-                return _.get(dtrDay, 'attendance.logs[0]') && !_.get(dtrDay, 'attendance.logs[1]')&& this.isCurrentDay(dtrDay);
-            },
-            isTimeInShown: function(dtrDay) {
-                return _.get(dtrDay, 'attendance.logs[1]') && !_.get(dtrDay, 'attendance.logs[2]')&& this.isCurrentDay(dtrDay);
-            },
-            dispHours: function(dtrDay) {
-                var me = this;
-                var dtr = _.get(dtrDay, 'dtr');
-                var logs = _.get(dtrDay, 'attendance.logs', []);
-                var attendanceType = _.get(dtrDay, 'attendance.type');
-                var res = 0;
-                if (logs.length > 1 || ['wfh', 'leave', 'travel', 'pass'].includes(attendanceType)){
-                    if (me.totalTimeView == 'time') {
-                        res = _.get(dtr, 'renderedDays', 0) * 8 + _.get(dtr, 'renderedHours', 0);
-                    } else {
-                        res = _.get(dtr, 'underDays', 0) * 8 + _.get(dtr, 'underHours', 0);
-                    }
+            subTotalDays: function(day) {
+                var x = _.get(day, 'dtr.renderedDays', '');
+                if(this.showTotalAs === 'undertime'){
+                    x = _.get(day, 'dtr.underDays', '');
                 }
-                if (res === 0) return ''
-                return res
+                return (x === 0) ? '' : x;
             },
-            dispMins: function(dtrDay) {
-                var me = this;
-                var dtr = _.get(dtrDay, 'dtr');
-                var logs = _.get(dtrDay, 'attendance.logs', []);
-                var attendanceType = _.get(dtrDay, 'attendance.type');
-                var res = 0;
-                if (logs.length > 1 || ['wfh', 'leave', 'travel', 'pass'].includes(attendanceType)){
-                    if (me.totalTimeView == 'time') {
-                        res = _.get(dtr, 'renderedMinutes', 0);
-                    } else {
-                        res = _.get(dtr, 'underMinutes', 0);
-                    }
+            subTotalHours: function(day) {
+                var x = _.get(day, 'dtr.renderedHours', '');
+                if(this.showTotalAs === 'undertime'){
+                    x = _.get(day, 'dtr.underHours', '');
                 }
-                if (res === 0) return ''
-                return res
+                return (x === 0) ? '' : x;
             },
-            isCurrentDay: function(dtrDay){
-                return _.get(dtrDay, 'date') === moment().format('YYYY-MM-DD');
-            },
-            formatDate: function(date, format){
-                return moment(date).format(format);
-            },
-            getCssClass: function(dtrDay){
-                var me = this;
-                var dtrDayClass = [];
-                if(me.isCurrentDay(dtrDay)){
-                    dtrDayClass.push('selected');
+            subTotalMinutes: function(day) {
+                var x = _.get(day, 'dtr.renderedMinutes', '');
+                if(this.showTotalAs === 'undertime'){
+                    x = _.get(day, 'dtr.underMinutes', '');
                 }
-                if(_.get(dtrDay, 'dtr.undertime', false)){
-                    dtrDayClass.push('undertime');
+                return (x === 0) ? '' : x;
+            },
+            totalDays: function(timeRecordSummary) {
+                var x = _.get(timeRecordSummary, 'renderedDays', '')
+                if(this.showTotalAs === 'undertime'){
+                    x = _.get(timeRecordSummary, 'underDays', '')
                 }
-
-                return dtrDayClass.join(' ');
+                return (x === 0) ? '' : x;
             },
-            workScheduleEdit: function(){
-                this.workScheduleEditable = true;
-            },
-            totalTimeViewEdit: function(){
-                this.totalTimeViewEditable = true;
-            },
-            saveSchedule: function(){
-                var me = this;
-
-                me.pending = true;
-                var body = {
-                    workScheduleId: me.workScheduleId
-                };
-                axios.post('/e-profile/dtr/{{employment._id}}/change-sched', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
-                    var data = _.get(response, 'data')
-                    console.log(data)
-                    me.dtrDays = data
-                    
-                }).catch(function (error) {
-                    if (error.response) {
-                        // Request made, server responded with a status code outside of 2xx
-                        // console.error(error.response.status)
-                        var err = error.response.data;
-                       console.error(err)
-                       alert(err.msg)
-
-                    } else if (error.request) {
-                        var msg = 'The request was made but no response was received'
-                        console.error(msg);
-
-                    } else {
-                        var msg = 'Something happened in setting up the request that triggered an Error.'
-                        console.error(msg, error.message);
-
-                    }
-                }).then(function () {
-                    // always executed
-                    me.pending = false;
-                    me.workScheduleEditable = false;
-                })
-            },
-            logTime: function(logType){
-                var me = this;
-
-                var msg = 'Are you sure you want to time-out now?'
-                if(logType==1){
-                    msg = 'Are you sure you want to time-in now?'
+            totalHours: function(timeRecordSummary) {
+                var x = _.get(timeRecordSummary, 'renderedHours', '')
+                if(this.showTotalAs === 'undertime'){
+                    x = _.get(timeRecordSummary, 'underHours', '')
                 }
-                if(!confirm(msg)){
-                    return ;
+                return (x === 0) ? '' : x;
+            },
+            totalMinutes: function(timeRecordSummary) {
+                var x = _.get(timeRecordSummary, 'renderedMinutes', '')
+                if(this.showTotalAs === 'undertime'){
+                    x = _.get(timeRecordSummary, 'underMinutes', '')
+                }
+                return (x === 0) ? '' : x;
+            },
+            showLogType: function(type) {
+                type = _.capitalize(type);
+                type = _.replace(type, 'Pass', 'Pass Slip');
+                type = _.replace(type, 'Wfh', 'WFH');
+                return type;
+            },
+            showLogTime: function(dateTime) {
+                if(dateTime){
+                    return moment(dateTime).format('hh:mm A');
+                }
+                return ''
+            },
+            attendanceEditUrl: function(day) {
+                return '/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/' + _.get(day, 'attendance._id') + '/edit';
+            },
+            weekDayCssClasses: function(day){
+                var classes = ['text-center'];
+                
+                if(day.isWeekend){
+                    classes.push('bg-light');
+                } 
+
+                return classes.join(' ');
+            },
+            dayCssClasses: function(day){
+                var classes = [];
+                
+                if(day.isNow){
+                    classes.push('selected');
+                } 
+                if (_.get(day, 'dtr.undertime') === true) {
+                    classes.push('undertime');
                 }
 
-                me.pending = true;
-                var body = {
-
-                };
-                axios.post('/e-profile/dtr/{{employment._id}}/logs', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
-                    var data = _.get(response, 'data')
-                    console.log(data)
-                    me.dtrDays = data
-                    
-                }).catch(function (error) {
-                    if (error.response) {
-                        // Request made, server responded with a status code outside of 2xx
-                        // console.error(error.response.status)
-                        var err = error.response.data;
-                       console.error(err)
-                       alert(err.msg)
-
-                    } else if (error.request) {
-                        var msg = 'The request was made but no response was received'
-                        console.error(msg);
-
-                    } else {
-                        var msg = 'Something happened in setting up the request that triggered an Error.'
-                        console.error(msg, error.message);
-
-                    }
-                }).then(function () {
-                    // always executed
-                    me.pending = false;
-                })
+                return classes.join(' ');
             },
-            onSubmit: function(){
-                var me = this;
-                me.$v.$touch()
-                if (me.$v.$error) {
-                    alert('Please correct the errors to continue.')
+            reloado: function(){
+                if (this.workScheduleIdOrig != this.workScheduleId || this.inChargeOrig != this.inCharge){
+                    this.xhrPatchDtr()
                 } else {
-                    me.$nextTick(function() {
-                        me.$refs.form.submit();
-                    });
+                    this.pending = true
+                    window.location.href = this.fullUrl
                 }
-            }
+            },
+            xhrPatchDtr: function(){
+                var me = this;
+
+                me.pending = true;
+                var body = {
+                    workScheduleId: me.workScheduleId,
+                    inCharge: me.inCharge,
+                };
+                axios.patch(me.patchUrl, body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
+                    var data = _.get(response, 'data')
+                    console.log(data)
+
+                    window.location.href = me.fullUrl
+                    
+                }).catch(function (error) {
+                    if (error.response) {
+                        // Request made, server responded with a status code outside of 2xx
+                        // console.error(error.response.status)
+                        var err = error.response.data;
+                       console.error(err)
+                       alert(err.msg)
+
+                    } else if (error.request) {
+                        var msg = 'The request was made but no response was received'
+                        console.error(msg);
+
+                    } else {
+                        var msg = 'Something happened in setting up the request that triggered an Error.'
+                        console.error(msg, error.message);
+
+                    }
+                    me.pending = false;
+                    me.settingsEditable = false;
+                })
+            },
         }
     });
 </script>

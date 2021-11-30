@@ -325,7 +325,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
         let data = {
             title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
 
-            flash: flash.get(req, 'attendance'),
+            flash: flash.get(req, 'employee'),
 
             employee: employee,
             employment: employment,

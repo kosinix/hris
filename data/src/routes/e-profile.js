@@ -859,7 +859,7 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
         if (!['time', 'undertime'].includes(showTotalAs)) {
             showTotalAs = 'time'
         }
-        if (!['weekdays', 'weekends', 'all'].includes(countTimeBy)) {
+        if (!['weekdays', 'weekends', 'all', 'none'].includes(countTimeBy)) {
             countTimeBy = 'weekdays'
         }
 

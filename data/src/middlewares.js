@@ -466,7 +466,7 @@ module.exports = {
             let countTimeBy = lodash.get(req, 'query.countTimeBy', 'weekdays')
 
             let momentNow = moment()
-            
+
             // Validation and defaults
             let periodMonthYearMoment = moment(periodMonthYear)
             if (!periodMonthYearMoment.isValid()) {
@@ -488,7 +488,7 @@ module.exports = {
             if (!['time', 'undertime'].includes(showTotalAs)) {
                 showTotalAs = 'time'
             }
-            if (!['weekdays', 'weekends', 'all'].includes(countTimeBy)) {
+            if (!['weekdays', 'weekends', 'all', 'none'].includes(countTimeBy)) {
                 countTimeBy = 'weekdays'
             }
 

@@ -136,6 +136,7 @@
                                 <option value="weekdays">On Weekdays Only</option>
                                 <option value="weekends">On Weekends Only</option>
                                 <option value="all">All Week</option>
+                                <option value="none">Don't Show</option>
                             </select>
                         </div>
                     </div>
@@ -235,42 +236,56 @@
                     </td>
                 </tr>
                 {# end v-for #}
-                <tr v-if="['weekdays', 'all'].includes(countTimeBy)">
-                    <td colspan="6"><h5 class="m-0">Total Weekdays</h5></td>
-                    <td>
-                        ${totalDays(stats.weekdays)}
-                    </td>
-                    <td>
-                        ${totalHours(stats.weekdays)}
-                    </td>
-                    <td>
-                        ${totalMinutes(stats.weekdays)}
-                    </td>
-                </tr>
-                <tr v-if="['weekends', 'all'].includes(countTimeBy)">
-                    <td colspan="6"><h5 class="m-0">Total Weekends</h5></td>
-                    <td>
-                        ${totalDays(stats.weekends)}
-                    </td>
-                    <td>
-                        ${totalHours(stats.weekends)}
-                    </td>
-                    <td>
-                        ${totalMinutes(stats.weekends)}
-                    </td>
-                </tr>
-                <tr v-if="countTimeBy=='all'">
-                    <td colspan="6"><h5 class="m-0">Total </h5></td>
-                    <td>
-                        ${totalDays(stats.days)}
-                    </td>
-                    <td>
-                        ${totalHours(stats.days)}
-                    </td>
-                    <td>
-                        ${totalMinutes(stats.days)}
-                    </td>
-                </tr>
+                <template v-if="countTimeBy == 'none'">
+                    <tr>
+                        <td colspan="6"><h5 class="m-0">Total</h5></td>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                </template>
+                <template v-else>
+                    <tr v-if="['weekdays', 'all'].includes(countTimeBy)">
+                        <td colspan="6"><h5 class="m-0">Total Weekdays</h5></td>
+                        <td>
+                            ${totalDays(stats.weekdays)}
+                        </td>
+                        <td>
+                            ${totalHours(stats.weekdays)}
+                        </td>
+                        <td>
+                            ${totalMinutes(stats.weekdays)}
+                        </td>
+                    </tr>
+                    <tr v-if="['weekends', 'all'].includes(countTimeBy)">
+                        <td colspan="6"><h5 class="m-0">Total Weekends</h5></td>
+                        <td>
+                            ${totalDays(stats.weekends)}
+                        </td>
+                        <td>
+                            ${totalHours(stats.weekends)}
+                        </td>
+                        <td>
+                            ${totalMinutes(stats.weekends)}
+                        </td>
+                    </tr>
+                    <tr v-if="countTimeBy=='all'">
+                        <td colspan="6"><h5 class="m-0">Total </h5></td>
+                        <td>
+                            ${totalDays(stats.days)}
+                        </td>
+                        <td>
+                            ${totalHours(stats.days)}
+                        </td>
+                        <td>
+                            ${totalMinutes(stats.days)}
+                        </td>
+                    </tr>
+                </template>
+
             </table>
         </div>
     </div>

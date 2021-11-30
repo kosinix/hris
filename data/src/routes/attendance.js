@@ -258,15 +258,15 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
 
         let momentNow = moment()
 
-        
+
         let options = {
             showTotalAs: showTotalAs,
             showWeekDays: showWeekDays,
         }
-        if(!options.showWeekDays.length){
+        if (!options.showWeekDays.length) {
             options.showWeekDays = showWeekDays.split('|')
         }
-        let days = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days } = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
 
         // console.log(options)
         let totalMinutes = 0

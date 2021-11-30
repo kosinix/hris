@@ -454,6 +454,75 @@ module.exports = {
             next(err)
         }
     },
+    getDtrQueries: async (req, res, next) => {
+        try {
+            // Dependencies
+            let employment = res.employment
+
+            let periodMonthYear = lodash.get(req, 'query.periodMonthYear', moment().startOf('month').format('YYYY-MM-DD'))
+            let periodSlice = lodash.get(req, 'query.periodSlice')
+            let periodWeekDays = lodash.get(req, 'query.periodWeekDays', 'Mon-Fri')
+            let showTotalAs = lodash.get(req, 'query.showTotalAs', 'time')
+            let countTimeBy = lodash.get(req, 'query.countTimeBy', 'weekdays')
+
+            // Validation and defaults
+            let periodMonthYearMoment = moment(periodMonthYear)
+            if (!periodMonthYearMoment.isValid()) {
+                throw new Error(`Invalid period date.`)
+            }
+            if (!['15th', '30th', 'all'].includes(periodSlice)) {
+                if (momentNow.date() <= 15) {
+                    periodSlice = '15th'
+                } else {
+                    periodSlice = '30th'
+                }
+                if (employment.employmentType === 'permanent') {
+                    periodSlice = 'all'
+                }
+            }
+            if (!['Mon-Fri', 'Sat-Sun', 'All'].includes(periodWeekDays)) {
+                periodWeekDays = 'Mon-Fri'
+            }
+            if (!['time', 'undertime'].includes(showTotalAs)) {
+                showTotalAs = 'time'
+            }
+            if (!['weekdays', 'weekends', 'all'].includes(countTimeBy)) {
+                countTimeBy = 'weekdays'
+            }
+
+            let startMoment = periodMonthYearMoment.clone().startOf('month')
+            let endMoment = periodMonthYearMoment.clone().endOf('month')
+
+            if (periodSlice === '15th') {
+                startMoment = startMoment.startOf('day')
+                endMoment = endMoment.date(15).endOf('day')
+            } else if (periodSlice === '30th') {
+                startMoment = startMoment.date(16).startOf('day')
+                endMoment = endMoment.endOf('month').endOf('day')
+            }
+
+            let showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+            if (periodWeekDays === 'Sat-Sun') {
+                showWeekDays = ['Sat', 'Sun']
+            }
+            if (periodWeekDays === 'All') {
+                showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            }
+
+            res.periodMonthYear = periodMonthYearMoment.format('YYYY-MM-DD')
+            res.periodSlice = periodSlice
+            res.periodWeekDays = periodWeekDays
+            res.showTotalAs = showTotalAs
+            res.showWeekDays = showWeekDays
+            res.startMoment = startMoment
+            res.endMoment = endMoment
+            res.countTimeBy = countTimeBy
+
+            next();
+        } catch (err) {
+            next(err)
+        }
+    },
     getEmployeeList: async (req, res, next) => {
         try {
             let employeeListId = lodash.get(req, 'params.employeeListId')

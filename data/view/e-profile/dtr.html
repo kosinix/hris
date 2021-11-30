@@ -7,7 +7,7 @@
             <h1 class="h3">Daily Time Record (DTR)</h1>
         </div>
     </div>
-    <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content pt-3 pb-2 pl-3 pr-3">
+    <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width:900px; margin:0 auto;">
         {% include 'parts/flash.html' %}
 
         <div class="row mb-4">
@@ -63,14 +63,14 @@
                     <div class="col-sm-3">Schedule:</div>
                     <div class="col-sm-9"><strong>${workScheduleString}</strong></div>
                 </div>
-                <div class="row mb-2">
+                {# <div class="row mb-2">
                     <div class="col-sm-3">In Charge:</div>
                     <div class="col-sm-9"><strong>${inCharge}</strong></div>
-                </div>
-                <div class="row mb-2">
+                </div> #}
+                {# <div class="row mb-2">
                     <div class="col-sm-3">Show Total:</div>
                     <div class="col-sm-9"><strong class="text-capitalize">${showTotalAs}</strong></div>
-                </div>
+                </div> #}
             </div>
             <div v-if="settingsEditable" class="col-md-8 col-xl-9">
                 <div class="row mb-2">
@@ -91,7 +91,7 @@
                     <div class="col-sm-9"><strong>{{employment.position}}</strong></div>
                 </div>
                 <div class="row mb-2">
-                    <div class="col-sm-3">Period:</div>
+                    <div class="col-sm-3">Show:</div>
                     <div class="col-sm-9">
                         <div class="d-flex">
                             <select v-model="periodSlice" name="periodSlice" id="periodSlice" class="form-control form-control-sm mr-1">
@@ -103,14 +103,15 @@
                                 <option v-for="option in periodMonthYearList" v-bind:value="option.value">${option.text}</option>
                             </select>
                             <select v-model="periodWeekDays" name="periodWeekDays" id="periodWeekDays" class="form-control form-control-sm">
-                                <option value="Mon-Fri">Mon-Fri</option>
-                                <option value="Sat-Sun">Sat-Sun</option>
+                                <option value="Mon-Fri">Mon-Fri Only</option>
+                                <option value="Sat-Sun">Sat-Sun Only</option>
+                                <option value="All">All days</option>
                             </select>
                         </div>
                     </div>
                 </div>
                 <div class="row mb-2">
-                    <div class="col-sm-3">Schedule:</div>
+                    <div class="col-sm-3">Work Sched:</div>
                     <div class="col-sm-9">
                         <select v-model="workScheduleId" name="workScheduleId" id="workScheduleId" class="form-control form-control-sm">
                             <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.times}</option>
@@ -124,14 +125,22 @@
                     </div>
                 </div>
                 <div class="row mb-2">
-                    <div class="col-sm-3">Show Total:</div>
+                    <div class="col-sm-3">Count:</div>
                     <div class="col-sm-9">
-                        <select v-model="showTotalAs" name="showTotalAs" id="showTotalAs" class="form-control form-control-sm">
-                            <option value="time">Time</option>
-                            <option value="undertime">Undertime</option>
-                        </select>
+                        <div class="d-flex">
+                            <select v-model="showTotalAs" name="showTotalAs" id="showTotalAs" class="form-control form-control-sm mr-1">
+                                <option value="time">Time</option>
+                                <option value="undertime">Undertime</option>
+                            </select>
+                            <select v-model="countTimeBy" name="countTimeBy" id="countTimeBy" class="form-control form-control-sm">
+                                <option value="weekdays">On Weekdays Only</option>
+                                <option value="weekends">On Weekends Only</option>
+                                <option value="all">All Week</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
+               
             </div>
         </div>
   
@@ -175,9 +184,9 @@
         </div> #}
         
         <div class="table-responsive">
-            <table class="table table-dtr">
+            <table class="table table-dtr bg-white">
                 <tr>
-                    <th class="text-center" rowspan="2" colspan="2">Day</th>
+                    <th class="text-center" rowspan="2" colspan="2">{{periodMonthYear|format_date('MMM')}}</th>
                     <th class="text-center" colspan="2">AM</th>
                     <th class="text-center" colspan="2">PM</th>
                     <th class="text-center text-capitalize" colspan="3">${showTotalAs}</th>
@@ -226,16 +235,40 @@
                     </td>
                 </tr>
                 {# end v-for #}
-                <tr>
-                    <td colspan="6"><h5 class="m-0">Total</h5></td>
+                <tr v-if="['weekdays', 'all'].includes(countTimeBy)">
+                    <td colspan="6"><h5 class="m-0">Total Weekdays</h5></td>
                     <td>
-                        ${totalDays(timeRecordSummary)}
+                        ${totalDays(stats.weekdays)}
                     </td>
                     <td>
-                        ${totalHours(timeRecordSummary)}
+                        ${totalHours(stats.weekdays)}
                     </td>
                     <td>
-                        ${totalMinutes(timeRecordSummary)}
+                        ${totalMinutes(stats.weekdays)}
+                    </td>
+                </tr>
+                <tr v-if="['weekends', 'all'].includes(countTimeBy)">
+                    <td colspan="6"><h5 class="m-0">Total Weekends</h5></td>
+                    <td>
+                        ${totalDays(stats.weekends)}
+                    </td>
+                    <td>
+                        ${totalHours(stats.weekends)}
+                    </td>
+                    <td>
+                        ${totalMinutes(stats.weekends)}
+                    </td>
+                </tr>
+                <tr v-if="countTimeBy=='all'">
+                    <td colspan="6"><h5 class="m-0">Total </h5></td>
+                    <td>
+                        ${totalDays(stats.days)}
+                    </td>
+                    <td>
+                        ${totalHours(stats.days)}
+                    </td>
+                    <td>
+                        ${totalMinutes(stats.days)}
                     </td>
                 </tr>
             </table>
@@ -258,7 +291,7 @@
             periodMonthYearList: {{periodMonthYearList|default([], true)|stringify|safe}},
             workSchedules: {{workSchedules|default([], true)|stringify|safe}},
             days: {{days|default([], true)|stringify|safe}},
-            timeRecordSummary: {{timeRecordSummary|default({}, true)|stringify|safe}},
+            stats: {{stats|default({}, true)|stringify|safe}},
 
             urlPath: '{{urlPath}}',
             workScheduleIdOrig: '{{employment.workScheduleId}}',
@@ -273,11 +306,12 @@
 
             startDate: '{{startDate}}',
             endDate: '{{endDate}}',
+            countTimeBy: '{{countTimeBy}}',
         },
         validations: {},
         computed: {
             period: function(){
-                return this.periodSliceString + ' ' + this.periodMonthYearString + ' (' + this.periodWeekDays + ')';
+                return this.periodSliceString + ' ' + this.periodMonthYearString + ' (' + this.periodWeekDaysString + ')';
             },
             periodMonthYearString: function(){
                 return moment(this.periodMonthYear).format('MMMM YYYY');
@@ -290,8 +324,20 @@
                 }
                 return 'All of';
             },
+            periodWeekDaysString: function(){
+                if(this.periodWeekDays === 'All'){
+                    return 'All days';
+                }
+                return this.periodWeekDays;
+            },
             urlQuery: function(){
-                return 'periodMonthYear=' + this.periodMonthYear + '&periodSlice=' + this.periodSlice + '&periodWeekDays=' + this.periodWeekDays + '&showTotalAs=' + this.showTotalAs + '&inCharge=' + this.inCharge;
+                var queries = [];
+                queries.push('periodMonthYear=' + this.periodMonthYear);
+                queries.push('periodSlice=' + this.periodSlice);
+                queries.push('periodWeekDays=' + this.periodWeekDays);
+                queries.push('showTotalAs=' + this.showTotalAs);
+                queries.push('countTimeBy=' + this.countTimeBy);
+                return queries.join('&');
             },
             fullUrl: function(){
                 return this.urlPath + '?' + this.urlQuery;

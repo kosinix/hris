@@ -25,6 +25,9 @@ module.exports = {
     hashPassword: (password, salt) => {
         return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
     },
+    hashSha256: (text) => {
+        return crypto.createHash('sha256').update(text, 'utf8').digest('hex');
+    },
     genUsername: (firstName, lastName) => {
         let firstNames = firstName.split(' ')
         firstName = lodash.toLower(firstNames.shift())

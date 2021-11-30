@@ -13,7 +13,7 @@
             <td style="width:20%">For the month of</td>
             <td colspan="3">
                 <div class="underline text-left pl-3 font-weight-bold">
-                {{periodMonthYear|format_date('MMMM YYYY')}}
+                {{periodMonthYear|format_date('MMMM, YYYY')}}
                 </div>
             </td>
         </tr>
@@ -141,16 +141,48 @@
     </tr>
     {% endfor %}
     <tr>
+        <td class="text-right total" colspan="6">Total Weekdays</td>
+        <td class="text-center" colspan="2">
+            {% if ['weekdays', 'all']|includes(countTimeBy) %}
+                {% if showTotalAs == 'undertime' %}
+                    {{stats.weekdays.underDays|default(0, true)|maybePluralize('day')}}
+                    {{stats.weekdays.underHours|default(0, true)|maybePluralize('hr')}}
+                    {{stats.weekdays.underMinutes|default(0, true)|maybePluralize('min')}}
+                {% else %}
+                    {{stats.weekdays.renderedDays|default(0, true)|maybePluralize('day')}}
+                    {{stats.weekdays.renderedHours|default(0, true)|maybePluralize('hr')}}
+                    {{stats.weekdays.renderedMinutes|default(0, true)|maybePluralize('min')}}
+                {% endif %}
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="text-right total" colspan="6">Total Weekends</td>
+        <td class="text-center" colspan="2">
+            {% if ['weekends', 'all']|includes(countTimeBy) %}
+                {% if showTotalAs == 'undertime' %}
+                    {{stats.weekends.underDays|default(0, true)|maybePluralize('day')}}
+                    {{stats.weekends.underHours|default(0, true)|maybePluralize('hr')}}
+                    {{stats.weekends.underMinutes|default(0, true)|maybePluralize('min')}}
+                {% else %}
+                    {{stats.weekends.renderedDays|default(0, true)|maybePluralize('day')}}
+                    {{stats.weekends.renderedHours|default(0, true)|maybePluralize('hr')}}
+                    {{stats.weekends.renderedMinutes|default(0, true)|maybePluralize('min')}}
+                {% endif %}
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
         <td class="text-right total" colspan="6">Total</td>
         <td class="text-center" colspan="2">
             {% if showTotalAs == 'undertime' %}
-                {{timeRecordSummary.underDays|default(0, true)|maybePluralize('day')}}
-                {{timeRecordSummary.underHours|default(0, true)|maybePluralize('hr')}}
-                {{timeRecordSummary.underMinutes|default(0, true)|maybePluralize('min')}}
+                {{stats.days.underDays|default(0, true)|maybePluralize('day')}}
+                {{stats.days.underHours|default(0, true)|maybePluralize('hr')}}
+                {{stats.days.underMinutes|default(0, true)|maybePluralize('min')}}
             {% else %}
-                {{timeRecordSummary.renderedDays|default(0, true)|maybePluralize('day')}}
-                {{timeRecordSummary.renderedHours|default(0, true)|maybePluralize('hr')}}
-                {{timeRecordSummary.renderedMinutes|default(0, true)|maybePluralize('min')}}
+                {{stats.days.renderedDays|default(0, true)|maybePluralize('day')}}
+                {{stats.days.renderedHours|default(0, true)|maybePluralize('hr')}}
+                {{stats.days.renderedMinutes|default(0, true)|maybePluralize('min')}}
             {% endif %}
         </td>
     </tr>

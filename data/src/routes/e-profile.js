@@ -227,92 +227,33 @@ router.post('/e-profile/accept', middlewares.guardRoute(['use_employee_profile']
     }
 });
 
-router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'], middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'], middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employment = res.employment
         let employmentId = employment._id
-        let momentNow = moment()
 
-        let periodMonthYear = lodash.get(req, 'query.periodMonthYear', moment().startOf('month').format('YYYY-MM-DD'))
-        let periodMonthYearMoment = moment(periodMonthYear)
-        let periodSlice = lodash.get(req, 'query.periodSlice')
-        let periodWeekDays = lodash.get(req, 'query.periodWeekDays', 'Mon-Fri')
-        let showTotalAs = lodash.get(req, 'query.showTotalAs', 'time')
-
-        // Validation
-        if (!periodMonthYearMoment.isValid()) {
-            throw new Error(`Invalid period date.`)
-        }
-        if (!['15th', '30th', 'all'].includes(periodSlice)) {
-            if (momentNow.date() <= 15) {
-                periodSlice = '15th'
-            } else {
-                periodSlice = '30th'
-            }
-
-            if (employment.employmentType === 'permanent') {
-                periodSlice = 'all'
-            }
-        }
-        if (!['Mon-Fri', 'Sat-Sun'].includes(periodWeekDays)) {
-            periodWeekDays = 'Mon-Fri'
-        }
-        if (!['time', 'undertime'].includes(showTotalAs)) {
-            showTotalAs = 'time'
-        }
-
-        let startMoment = periodMonthYearMoment.clone().startOf('month')
-        let endMoment = periodMonthYearMoment.clone().endOf('month')
-
-        if (periodSlice === '15th') {
-            startMoment = startMoment.startOf('day')
-            endMoment = endMoment.date(15).endOf('day')
-        } else if (periodSlice === '30th') {
-            startMoment = startMoment.date(16).startOf('day')
-            endMoment = endMoment.endOf('month').endOf('day')
-        }
-
-        let showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
-        if (periodWeekDays === 'Sat-Sun') {
-            showWeekDays = ['Sat', 'Sun']
-            showWeekDays = ['Sat', 'Sun']
-        }
-
-        // return res.send({
-        // console.log({
-        //     periodMonthYearMoment: periodMonthYearMoment.format('YYYY-MM-DD'),
-        //     periodSlice: periodSlice,
-        //     showWeekDays: showWeekDays,
-        //     showTotalAs: showTotalAs,
-        //     startMoment: startMoment.format('YYYY-MM-DD'),
-        //     endMoment: endMoment.format('YYYY-MM-DD'),
-        // })
+        let {
+            periodMonthYear,
+            periodSlice,
+            periodWeekDays,
+            showTotalAs,
+            showWeekDays,
+            startMoment,
+            endMoment,
+            countTimeBy,
+        } = res
 
 
         let options = {
+            padded: true,
             showTotalAs: showTotalAs,
             showWeekDays: showWeekDays,
         }
 
-        if(/^\/e-profile\/dtr\/print/.test(req.path)){
-            options.padded = true // Show full month days but may not include attendance data
-            options.showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-            options.excludeWeekend = true
-        }
+        let { days, stats } = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
 
-        let days = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
-
-        let totalMinutes = 0
-        let totalMinutesUnderTime = 0
-        days.forEach((day) => {
-            totalMinutes += lodash.get(day, 'dtr.totalMinutes', 0)
-            totalMinutesUnderTime += lodash.get(day, 'dtr.underTimeTotalMinutes', 0)
-        })
-
-        let timeRecordSummary = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
-
-
+        let periodMonthYearMoment = moment(periodMonthYear)
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
         let months = Array.from(range1.by('months')).reverse()
 
@@ -391,7 +332,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
 
             // Data that might change
             days: days,
-            timeRecordSummary: timeRecordSummary,
+            stats: stats,
 
             showTotalAs: showTotalAs,
             workSchedules: workSchedules,
@@ -400,6 +341,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             periodWeekDays: periodWeekDays,
             periodSlice: periodSlice,
             inCharge: employment.inCharge,
+            countTimeBy: countTimeBy,
 
             startDate: startMoment.format('YYYY-MM-DD'),
             endDate: endMoment.format('YYYY-MM-DD'),
@@ -417,7 +359,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
         }
         // return res.send(days)
 
-        if(/^\/e-profile\/dtr\/print/.test(req.path)){
+        if (/^\/e-profile\/dtr\/print/.test(req.path)) {
             return res.render('e-profile/dtr-print.html', data)
         }
         res.render('e-profile/dtr.html', data)
@@ -628,7 +570,7 @@ router.patch('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employ
                 }
             }).lean()
 
-            attendances = attendances.filter((attendance)=>{
+            attendances = attendances.filter((attendance) => {
                 return showWeekDays.includes(moment(attendance.createdAt).format('ddd'))
             })
 
@@ -795,20 +737,27 @@ router.get('/e-profile/dtr/print/:employmentId', middlewares.guardRoute(['use_em
         next(err);
     }
 });
-router.get('/e-profile/dtr/share/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+router.get('/e-profile/dtr/share/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employmentId = res.employmentId
         let employment = res.employment
         let month = lodash.get(req, 'query.month', moment().format('MMM'))
         let year = lodash.get(req, 'query.year', moment().format('YYYY'))
-        
-        let periodMonthYear = lodash.get(req, 'query.periodMonthYear', moment().startOf('month').format('YYYY-MM-DD'))
+
+        let {
+            periodMonthYear,
+            periodSlice,
+            periodWeekDays,
+            showTotalAs,
+            showWeekDays,
+            startMoment,
+            endMoment,
+            countTimeBy,
+        } = res
+
+
         let periodMonthYearMoment = moment(periodMonthYear)
-        let periodSlice = lodash.get(req, 'query.periodSlice')
-        let periodWeekDays = lodash.get(req, 'query.periodWeekDays', 'Mon-Fri')
-        let showTotalAs = lodash.get(req, 'query.showTotalAs', 'time')
-        
 
         let prevShares = await db.main.Share.deleteMany({
             createdBy: res.user._id,
@@ -826,13 +775,16 @@ router.get('/e-profile/dtr/share/:employmentId', middlewares.guardRoute(['use_em
 
         //TODO: Do not allow different DTR view from one shared
 
-        let secureKey = await passwordMan.randomStringAsync(64)
+        let secureKey = await passwordMan.randomStringAsync(12)
+        let url = `${CONFIG.app.url}/shared/dtr/print/${secureKey}?periodMonthYear=${periodMonthYearMoment.format('YYYY-MM-DD')}&periodSlice=${periodSlice}&periodWeekDays=${periodWeekDays}&showTotalAs=${showTotalAs}&countTimeBy=${countTimeBy}`
+        let hash = passwordMan.hashSha256(url)
+        url = url + '&hash=' + hash
         let share = await db.main.Share.create({
             secureKey: secureKey,
             expiredAt: moment().add(1, 'hour').toDate(),
             createdBy: res.user._id,
             payload: {
-                url: `${CONFIG.app.url}/shared/dtr/print/${secureKey}?periodMonthYear=${periodMonthYearMoment.format('YYYY-MM-DD')}&periodSlice=${periodSlice}&periodWeekDays=${periodWeekDays}&showTotalAs=${showTotalAs}`,
+                url: url,
                 employeeId: employee._id,
                 employmentId: employmentId,
                 month: month,
@@ -881,12 +833,13 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
         let momentNow = moment()
 
         let periodMonthYear = lodash.get(req, 'query.periodMonthYear', moment().startOf('month').format('YYYY-MM-DD'))
-        let periodMonthYearMoment = moment(periodMonthYear)
         let periodSlice = lodash.get(req, 'query.periodSlice')
         let periodWeekDays = lodash.get(req, 'query.periodWeekDays', 'Mon-Fri')
         let showTotalAs = lodash.get(req, 'query.showTotalAs', 'time')
+        let countTimeBy = lodash.get(req, 'query.countTimeBy', 'weekdays')
 
-        // Validation
+        // Validation and defaults
+        let periodMonthYearMoment = moment(periodMonthYear)
         if (!periodMonthYearMoment.isValid()) {
             throw new Error(`Invalid period date.`)
         }
@@ -896,16 +849,18 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
             } else {
                 periodSlice = '30th'
             }
-
             if (employment.employmentType === 'permanent') {
                 periodSlice = 'all'
             }
         }
-        if (!['Mon-Fri', 'Sat-Sun'].includes(periodWeekDays)) {
+        if (!['Mon-Fri', 'Sat-Sun', 'All'].includes(periodWeekDays)) {
             periodWeekDays = 'Mon-Fri'
         }
         if (!['time', 'undertime'].includes(showTotalAs)) {
             showTotalAs = 'time'
+        }
+        if (!['weekdays', 'weekends', 'all'].includes(countTimeBy)) {
+            countTimeBy = 'weekdays'
         }
 
         let startMoment = periodMonthYearMoment.clone().startOf('month')
@@ -923,36 +878,18 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
         if (periodWeekDays === 'Sat-Sun') {
             showWeekDays = ['Sat', 'Sun']
         }
-
-        // return res.send({
-        // console.log({
-        //     periodMonthYearMoment: periodMonthYearMoment.format('YYYY-MM-DD'),
-        //     periodSlice: periodSlice,
-        //     showWeekDays: showWeekDays,
-        //     showTotalAs: showTotalAs,
-        //     startMoment: startMoment.format('YYYY-MM-DD'),
-        //     endMoment: endMoment.format('YYYY-MM-DD'),
-        // })
+        if (periodWeekDays === 'All') {
+            showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        }
 
 
         let options = {
-            showTotalAs: showTotalAs,
             padded: true,
-            excludeWeekend: true,
-            showWeekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
         }
 
-        let days = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
-
-        let totalMinutes = 0
-        let totalMinutesUnderTime = 0
-        days.forEach((day) => {
-            totalMinutes += lodash.get(day, 'dtr.totalMinutes', 0)
-            totalMinutesUnderTime += lodash.get(day, 'dtr.underTimeTotalMinutes', 0)
-        })
-
-        let timeRecordSummary = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
-
+        let { days, stats } = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
 
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
         let months = Array.from(range1.by('months')).reverse()
@@ -1032,7 +969,7 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
 
             // Data that might change
             days: days,
-            timeRecordSummary: timeRecordSummary,
+            stats: stats,
 
             showTotalAs: showTotalAs,
             workSchedules: workSchedules,
@@ -1041,6 +978,7 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
             periodWeekDays: periodWeekDays,
             periodSlice: periodSlice,
             inCharge: employment.inCharge,
+            countTimeBy: countTimeBy,
 
             startDate: startMoment.format('YYYY-MM-DD'),
             endDate: endMoment.format('YYYY-MM-DD'),
@@ -1052,7 +990,7 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
 
         }
 
-        res.render('e-profile/dtr-print.html', data)
+        return res.render('e-profile/dtr-print.html', data)
     } catch (err) {
         next(err);
     }

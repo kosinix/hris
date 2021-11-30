@@ -118,7 +118,7 @@ const momentToMinutes = (momentObject) => {
  * @param {number} hoursPerDay Work hours per day
  * @returns {object} See return
  */
-const calcTimeRecord = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
+const getTimeBreakdown = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
 
     /* Bare JS  is inaccurate */
     // /*
@@ -279,14 +279,13 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
         minutes = 60 * hoursPerDay
     }
     underMinutes = 60 * hoursPerDay - minutes
-    return calcTimeRecord(minutes, underMinutes, hoursPerDay)
+    return getTimeBreakdown(minutes, underMinutes, hoursPerDay)
 
 }
 
 const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endMoment, options) => {
 
     let defaults = {
-        showTotalAs: 'time',
         padded: false,
         excludeWeekend: false,
     }
@@ -341,7 +340,7 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         return moment(a.createdAt).format('YYYY-MM-DD')
     })
 
-    if(padded){
+    if (padded) {
         startMoment.startOf('month')
         endMoment.endOf('month')
     }
@@ -358,11 +357,11 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, lodash.get(attendance, 'workSchedule.timeSegments'))
 
         let isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
-        let isWeekend = ['Sun','Sat'].includes(weekDay) ? true : false
-        if(isWeekend && excludeWeekend){
-            dtr = null
-            attendance = null
-        }
+        let isWeekend = ['Sun', 'Sat'].includes(weekDay) ? true : false
+        // if (isWeekend && excludeWeekend) {
+        //     dtr = null
+        //     attendance = null
+        // }
         return {
             date: date,
             year: year,
@@ -376,11 +375,43 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         }
     })
 
-    days = days.filter((day) => {
-        return showWeekDays.includes(day.weekDay)
+    days = days.map((day) => {
+        if (!showWeekDays.includes(day.weekDay)) {
+            day.dtr = null
+            day.attendance = null
+        }
+        return day
     })
+    
+    let weekdays = days.filter((day) => {
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(day.weekDay)
+    })
+    let weekdaysTotalMinutes = weekdays.map(day => lodash.get(day, 'dtr.totalMinutes', 0)).reduce((a, b) => a + b)
+    let weekdaysTotalMinutesUnderTime = weekdays.map(day => lodash.get(day, 'dtr.underTimeTotalMinutes', 0)).reduce((a, b) => a + b)
 
-    return days
+    let weekends = days.filter((day) => {
+        return ['Sat', 'Sun'].includes(day.weekDay)
+    })
+    let weekendsTotalMinutes = weekends.map(day => lodash.get(day, 'dtr.totalMinutes', 0)).reduce((a, b) => a + b)
+    let weekendsTotalMinutesUnderTime = weekends.map(day => lodash.get(day, 'dtr.underTimeTotalMinutes', 0)).reduce((a, b) => a + b)
+
+
+    
+
+    let daysTotalMinutes = days.map(day => lodash.get(day, 'dtr.totalMinutes', 0)).reduce((a, b) => a + b)
+    let daysTotalMinutesUnderTime = days.map(day => lodash.get(day, 'dtr.underTimeTotalMinutes', 0)).reduce((a, b) => a + b)
+
+    let hoursPerDay = 8
+    let stats = {
+        days: getTimeBreakdown(daysTotalMinutes, daysTotalMinutesUnderTime, hoursPerDay),
+        weekdays: getTimeBreakdown(weekdaysTotalMinutes, weekdaysTotalMinutesUnderTime, hoursPerDay),
+        weekends: getTimeBreakdown(weekendsTotalMinutes, weekendsTotalMinutesUnderTime, hoursPerDay),
+    }
+
+    return {
+        days: days,
+        stats: stats,
+    }
 }
 
 const getDtrMonthlyView = (month, year, attendances, useDaysInMonth = false) => {
@@ -669,13 +700,13 @@ module.exports = {
     editAttendance: editAttendance,
     compute: compute,
     calcDailyAttendance: calcDailyAttendance,
-    calcTimeRecord: calcTimeRecord, //@deprecated. Use getTimeBreakdown
+    calcTimeRecord: getTimeBreakdown, //@deprecated. Use getTimeBreakdown
     createShift: createShift,
     getDtrMonthlyView: getDtrMonthlyView,
     getDtrTable: getDtrTable,
     getNearestShift: getNearestShift,
     getNextShift: getNextShift,
-    getTimeBreakdown: calcTimeRecord,
+    getTimeBreakdown: getTimeBreakdown,
     getDtrByDateRange: getDtrByDateRange,
     momentToMinutes: momentToMinutes
 }

@@ -44,6 +44,9 @@ env.addFilter('padStart', function (value, length = 2, pads = '0') {
 env.addFilter('maybePluralize', function (count, noun, suffix = 's') {
     return`${count} ${noun}${count !== 1 ? suffix : ''}`;
 })
+env.addFilter('includes', function (array, value) {
+    return array.includes(value);
+})
 
 //// Export
 module.exports = env;

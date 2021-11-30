@@ -465,6 +465,8 @@ module.exports = {
             let showTotalAs = lodash.get(req, 'query.showTotalAs', 'time')
             let countTimeBy = lodash.get(req, 'query.countTimeBy', 'weekdays')
 
+            let momentNow = moment()
+            
             // Validation and defaults
             let periodMonthYearMoment = moment(periodMonthYear)
             if (!periodMonthYearMoment.isValid()) {

@@ -164,6 +164,13 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
         employments = await Promise.all(employments)
         attendances = await Promise.all(attendances)
 
+        attendances = attendances.map((memberAttendances) => {
+            return memberAttendances.filter((a) => {
+                let createdAt = moment(a.createdAt).format('ddd')
+                return !['Sat', 'Sun'].includes(createdAt)
+            })
+        })
+
         // 3. Get columns
         let columns = payrollTemplate.getColumns(patch.template)
 
@@ -263,7 +270,7 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
         lodash.set(patch, 'workSchedule', lodash.get(body, 'workSchedule'))
         let workSchedule = await db.main.WorkSchedule.findById(patch.workSchedule).lean()
         let timeSegments = null
-        if(workSchedule){
+        if (workSchedule) {
             timeSegments = workSchedule.timeSegments
         }
 
@@ -306,6 +313,13 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
             employments = await Promise.all(employments)
             attendances = await Promise.all(attendances)
 
+            attendances = attendances.map((memberAttendances) => {
+                return memberAttendances.filter((a) => {
+                    let createdAt = moment(a.createdAt).format('ddd')
+                    return !['Sat', 'Sun'].includes(createdAt)
+                })
+            })
+            
             // 3. Get columns
             let columns = payrollTemplate.getColumns(template)
 

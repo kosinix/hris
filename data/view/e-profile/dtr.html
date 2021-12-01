@@ -216,8 +216,19 @@
                     
                     <template v-if="_.get(day, 'attendance.type') === 'normal'">
                         <td>${showLogTime(_.get(day, 'attendance.logs[0].dateTime'))}</td>
-                        <td>${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}</td>
-                        <td>${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}</td>
+                        <td>
+                            ${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}
+
+                            <div v-if="isTimeOutShown(day)">
+                                <button v-on:click="logTime(0)" class="btn btn-sm btn-light">Time-Out</button>
+                            </div>
+                        </td>
+                        <td>
+                            ${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}
+                            <div v-if="isTimeInShown(day)">
+                                <button v-on:click="logTime(1)" class="btn btn-sm btn-light">Time-In</button>
+                            </div>
+                        </td>
                         <td>${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>
                     </template>
                     <template v-else>
@@ -497,6 +508,58 @@
                     }
                     me.pending = false;
                     me.settingsEditable = false;
+                })
+            },
+            isTimeOutShown: function(dtrDay) {
+                return _.get(dtrDay, 'attendance.logs[0]') && !_.get(dtrDay, 'attendance.logs[1]')&& this.isCurrentDay(dtrDay);
+            },
+            isTimeInShown: function(dtrDay) {
+                return _.get(dtrDay, 'attendance.logs[1]') && !_.get(dtrDay, 'attendance.logs[2]')&& this.isCurrentDay(dtrDay);
+            },
+            isCurrentDay: function(dtrDay){
+                return _.get(dtrDay, 'date') === moment().format('YYYY-MM-DD');
+            },
+            logTime: function(logType){
+                var me = this;
+
+                var msg = 'Are you sure you want to time-out now?'
+                if(logType==1){
+                    msg = 'Are you sure you want to time-in now?'
+                }
+                if(!confirm(msg)){
+                    return ;
+                }
+
+                me.pending = true;
+                var body = {
+
+                };
+                axios.post('/e-profile/dtr/{{employment._id}}/logs', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
+                    var data = _.get(response, 'data')
+                    console.log(data)
+                    window.location.href = me.fullUrl
+
+                    
+                }).catch(function (error) {
+                    if (error.response) {
+                        // Request made, server responded with a status code outside of 2xx
+                        // console.error(error.response.status)
+                        var err = error.response.data;
+                       console.error(err)
+                       alert(err.msg)
+
+                    } else if (error.request) {
+                        var msg = 'The request was made but no response was received'
+                        console.error(msg);
+
+                    } else {
+                        var msg = 'Something happened in setting up the request that triggered an Error.'
+                        console.error(msg, error.message);
+
+                    }
+                }).then(function () {
+                    // always executed
+                    me.pending = false;
                 })
             },
         }

@@ -206,6 +206,75 @@ router.get('/reports/attendance/complete', async (req, res, next) => {
     }
 });
 
+router.get('/reports/rsp/all', async (req, res, next) => {
+    try {
+
+        let aggr = [
+            {
+                $match: {
+                    gender: 'F'
+                }
+            },
+            {
+                $lookup: {
+                    localField: '_id',
+                    foreignField: 'employeeId',
+                    from: 'employments',
+                    as: 'employments'
+                }
+            },
+            {
+                $match: {
+                    'employments.0': {
+                        $exists: true 
+                    }
+                }
+            },
+            { $count: "total" }
+        ]
+        let females = await db.main.Employee.aggregate(aggr)
+        females = lodash.get(females, '0.total', 0)
+
+        aggr = [
+            {
+                $match: {
+                    gender: 'M'
+                }
+            },
+            {
+                $lookup: {
+                    localField: '_id',
+                    foreignField: 'employeeId',
+                    from: 'employments',
+                    as: 'employments'
+                }
+            },
+            {
+                $match: {
+                    'employments.0': {
+                        $exists: true 
+                    }
+                }
+            },
+            { $count: "total" }
+        ]
+        let males = await db.main.Employee.aggregate(aggr)
+        males = lodash.get(males, '0.total', 0)
+       
+        let total = males + females
+        let data = {
+            total: total,
+            males: males,
+            females: females,
+            malesPercentage: Math.round(males / total * 100),
+            femalesPercentage: Math.round(females / total * 100),
+        }
+        res.render('reports/rsp/all.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/reports/rsp/gender', async (req, res, next) => {
     try {
 
@@ -270,8 +339,8 @@ router.get('/reports/rsp/gender', async (req, res, next) => {
             total: total,
             males: males,
             females: females,
-            malesPercentage: males / total * 100,
-            femalesPercentage: females / total * 100,
+            malesPercentage: Math.round(males / total * 100),
+            femalesPercentage: Math.round(females / total * 100),
         }
         res.render('reports/rsp/gender.html', data);
     } catch (err) {

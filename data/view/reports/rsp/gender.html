@@ -86,7 +86,7 @@
             ],
             datasets: [{
                 label: 'Gender',
-                data: [{{females / total * 100}}, {{males / total * 100}}],
+                data: [{{femalesPercentage}}, {{malesPercentage}}],
                 backgroundColor: [
                     'rgb(255, 99, 132)',
                     'rgb(54, 162, 235)',
@@ -96,6 +96,15 @@
         },
         options: {
             responsive: true,
+            tooltips: {
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        var label = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] || '';
+
+                        return label +'%';
+                    }
+                }
+            }
         }
     };
     new Chart(ctx2, config2);

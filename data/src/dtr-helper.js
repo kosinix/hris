@@ -358,17 +358,14 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
 
         let isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
         let isWeekend = ['Sun', 'Sat'].includes(weekDay) ? true : false
-        // if (isWeekend && excludeWeekend) {
-        //     dtr = null
-        //     attendance = null
-        // }
+      
+        // Push if PM login
         if (attendance) {
             if(attendance.logs[0] && attendance.logs.length <= 2){
                 if('PM' === moment(attendance.logs[0].dateTime).format('A')){
                     attendance.logs.unshift(null)
                     attendance.logs.unshift(null)
                 }
-                
             }
         }
         return {

@@ -164,26 +164,6 @@
             </div>
         </div>
 
-        {# <h2 class="h5 mb-4">
-            {{startMoment|format_date('MMM DD, YYYY')}}
-            {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
-                to {{endMoment|format_date('MMM DD, YYYY')}}
-            {% endif %}
-        </h2>
-        <div class="mb-3">
-            <div class="d-flex align-items-center">
-                <input v-model="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}">
-                <span class="m-1">to</span> 
-                <input v-model="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}">
-                <select v-model="showWeekDays" name="showWeekDays" class="ml-1" id="showWeekDays">
-                    <option value="Mon|Tue|Wed|Thu|Fri">Mon-Fri</option>
-                    <option value="Sat|Sun">Sat,Sun</option>
-                    <option value="Mon|Tue|Wed|Thu|Fri|Sat|Sun">All days</option>
-                </select>
-                <button v-on:click="reloado" type="button" class="ml-1 btn btn-sm btn-primary">Change</button>
-            </div>
-        </div> #}
-        
         <div class="table-responsive">
             <table class="table table-dtr bg-white">
                 <tr>

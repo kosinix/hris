@@ -362,6 +362,15 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         //     dtr = null
         //     attendance = null
         // }
+        if (attendance) {
+            if(attendance.logs[0] && attendance.logs.length <= 2){
+                if('PM' === moment(attendance.logs[0].dateTime).format('A')){
+                    attendance.logs.unshift(null)
+                    attendance.logs.unshift(null)
+                }
+                
+            }
+        }
         return {
             date: date,
             year: year,
@@ -382,7 +391,7 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         }
         return day
     })
-    
+
     let weekdays = days.filter((day) => {
         return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(day.weekDay)
     })
@@ -396,7 +405,7 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
     let weekendsTotalMinutesUnderTime = weekends.map(day => lodash.get(day, 'dtr.underTimeTotalMinutes', 0)).reduce((a, b) => a + b, 0)
 
 
-    
+
 
     let daysTotalMinutes = days.map(day => lodash.get(day, 'dtr.totalMinutes', 0)).reduce((a, b) => a + b, 0)
     let daysTotalMinutesUnderTime = days.map(day => lodash.get(day, 'dtr.underTimeTotalMinutes', 0)).reduce((a, b) => a + b, 0)

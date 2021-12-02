@@ -18,18 +18,15 @@
         <h2 class="h4 mb-3">Gender</h2>
         <div class="table-responsive">
             <table class="table table-sm">
-            
                 <tr>
-                    <td>Total Employed</td>
-                    <td>{{total}}</td>
+                    <th>Total Employed</th>
+                    <th>Females</th>
+                    <th>Males</th>
                 </tr>
                 <tr>
-                    <td>Females</td>
-                    <td>{{females}}</td>
-                </tr>
-                <tr>
-                    <td>Males</td>
-                    <td>{{males}}</td>
+                    <td>{{total}} <em>(100%)</em></td>
+                    <td>{{females}} <em>({{femalesPercentage}}%)</em></td>
+                    <td>{{males}} <em>({{malesPercentage}}%)</em></td>
                 </tr>
             </table>
         </div>

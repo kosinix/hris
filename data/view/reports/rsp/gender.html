@@ -1,0 +1,69 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">Reports</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            {# <div class="btn-group mr-2">
+                <a href="/employee/create" class="btn btn-sm btn-outline-primary">Add Employee</a>
+            </div> #}
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    <h2 class="h3">RSP - Gender</h2>
+    <div class="table-responsive">
+        <table class="table table-sm">
+           
+            <tr>
+                <td>Total</td>
+                <td>{{total}}</td>
+            </tr>
+            <tr>
+                <td>Females</td>
+                <td>{{females}}</td>
+            </tr>
+            <tr>
+                <td>Males</td>
+                <td>{{males}}</td>
+            </tr>
+        </table>
+    </div>
+    <div style="max-width:  "></div> <canvas id="myChart" width="100" height="100"></canvas>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/Chart.min.js"></script>
+<script>
+    var ctx = document.getElementById("myChart");
+    
+    var data = {
+        labels: [
+            'Females',
+            'Males',
+        ],
+        datasets: [{
+            label: 'Gender',
+            data: [{{females}}, {{males}}],
+            backgroundColor: [
+                'rgb(255, 99, 132)',
+                'rgb(54, 162, 235)',
+            ],
+            hoverOffset: 4
+        }]
+    };
+
+    var config = {
+        type: 'pie',
+        data: data,
+        options: {
+            responsive: true,
+        }
+    };
+    var myChart = new Chart(ctx, config);
+</script>
+{% endblock %}
+

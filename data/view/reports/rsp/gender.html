@@ -3,8 +3,9 @@
 {% block body %}
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <div class="d-flex align-items-start">
+        <div class="">
             <h1 class="h2">Reports</h1>
+            <p class="m-1 mb-0">Recruitment, Selection, and Placement &gt; Gender</p>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             {# <div class="btn-group mr-2">
@@ -13,28 +14,29 @@
         </div>
     </div>
     {% include 'parts/flash.html' %}
-    <h2 class="h3">RSP - Gender</h2>
-    <div class="table-responsive">
-        <table class="table table-sm">
-           
-            <tr>
-                <td>Total Employed</td>
-                <td>{{total}}</td>
-            </tr>
-            <tr>
-                <td>Females</td>
-                <td>{{females}}</td>
-            </tr>
-            <tr>
-                <td>Males</td>
-                <td>{{males}}</td>
-            </tr>
-        </table>
-    </div>
-    <div class="row">
-        <div class="col-md-6">
-            <canvas id="myChart"></canvas>
-        
+    <div class="tab-content p-3">
+        <h2 class="h4 mb-3">Gender</h2>
+        <div class="table-responsive">
+            <table class="table table-sm">
+            
+                <tr>
+                    <td>Total Employed</td>
+                    <td>{{total}}</td>
+                </tr>
+                <tr>
+                    <td>Females</td>
+                    <td>{{females}}</td>
+                </tr>
+                <tr>
+                    <td>Males</td>
+                    <td>{{males}}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <canvas id="myChart"></canvas>
+            </div>
         </div>
     </div>
     

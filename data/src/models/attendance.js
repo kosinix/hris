@@ -26,6 +26,11 @@ let schema = mongoose.Schema({
             scannerId: mongoose.Schema.Types.ObjectId,
             dateTime: Date,
             mode: Number, // 1 = in, 0 = out
+            type: String, // 'online', 'scanner'
+            extra: {
+                lat: '',
+                lon: ''
+            }
         }
     ],
     changes: [

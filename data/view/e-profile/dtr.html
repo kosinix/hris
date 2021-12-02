@@ -306,6 +306,7 @@
 {{ super() }}
 <script src="{{app.url}}/js/axios.min.js"></script>
 <script>
+    var geo = _.get(window, 'navigator.geolocation');
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
@@ -333,6 +334,8 @@
             startDate: '{{startDate}}',
             endDate: '{{endDate}}',
             countTimeBy: '{{countTimeBy}}',
+            lat: null,
+            lon: null,
         },
         validations: {},
         computed: {
@@ -387,6 +390,9 @@
                 }
                 return ''
             }
+        },
+        created: function(){
+            var me = this;
         },
         methods: {
             subTotalDays: function(day) {
@@ -530,37 +536,72 @@
                     return ;
                 }
 
-                me.pending = true;
-                var body = {
+                if (!geo) {
+                    alert("Your browser does not support the online time-in/time-out. Please go to the scanner to log.");
+                } else {
 
-                };
-                axios.post('/e-profile/dtr/{{employment._id}}/logs', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
-                    var data = _.get(response, 'data')
-                    console.log(data)
-                    window.location.href = me.fullUrl
+                    me.pending = true;
 
-                    
-                }).catch(function (error) {
-                    if (error.response) {
-                        // Request made, server responded with a status code outside of 2xx
-                        // console.error(error.response.status)
-                        var err = error.response.data;
-                       console.error(err)
-                       alert(err.msg)
+                    geo.getCurrentPosition(
+                        function(location){
 
-                    } else if (error.request) {
-                        var msg = 'The request was made but no response was received'
-                        console.error(msg);
+                            var body = {
+                                lat: _.get(location, 'coords.latitude'),
+                                lon: _.get(location, 'coords.longitude'),
+                            };
 
-                    } else {
-                        var msg = 'Something happened in setting up the request that triggered an Error.'
-                        console.error(msg, error.message);
+                            axios.post('/e-profile/dtr/{{employment._id}}/logs', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
+                                var data = _.get(response, 'data')
+                                {# console.log(data) #}
+                                console.log(`https://nominatim.openstreetmap.org/ui/reverse.html?lat=${data.lat}&lon=${data.lon}`)
 
-                    }
-                }).then(function () {
-                    // always executed
-                    me.pending = false;
-                })
+                                window.location.href = me.fullUrl
+                                
+                            }).catch(function (error) {
+                                if (error.response) {
+                                    // Request made, server responded with a status code outside of 2xx
+                                    // console.error(error.response.status)
+                                    var err = error.response.data;
+                                    console.error(err)
+                                    alert(err.msg)
+
+                                } else if (error.request) {
+                                    var msg = 'The request was made but no response was received'
+                                    console.error(msg);
+
+                                } else {
+                                    var msg = 'Something happened in setting up the request that triggered an Error.'
+                                    console.error(msg, error.message);
+
+                                }
+                                me.pending = false;
+
+                            }).then(function () {
+                            })
+
+                        }, 
+                        function(positionError) {
+
+                            var code = _.get(positionError, 'code', 0)
+
+                            if (code === 1) { // PERMISSION_DENIED
+                                alert("Please allow permission to use this service: \nSite Settings > Location > Allow\nOr you can go to the scanner to log.")
+                            } else if (code === 2) { // POSITION_UNAVAILABLE
+                                alert('Service unavailable. Please go to the scanner to log.')
+                            } else if (code === 3) { // TIMEOUT
+                                alert('Logging failed. Please try again later or go to the scanner to log.')
+                            } else {
+                                alert('Unknown error. Please go to the scanner to log.')
+                            }
+
+                            me.pending = false;
+
+                        },
+                        { 
+                            timeout: 5000 
+                        }
+                    );
+                }
             },
         }
     });

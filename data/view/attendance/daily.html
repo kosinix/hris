@@ -18,13 +18,13 @@
                     <th class="align-middle" rowspan="2">Name</th>
                     <th class="align-middle" colspan="2">Sex</th>
                     <th>AM</th>
-                    <th class="align-middle" rowspan="2">Sign</th>
+                    <th class="align-middle" rowspan="2"></th>
                     <th>AM</th>
-                    <th class="align-middle" rowspan="2">Sign</th>
+                    <th class="align-middle" rowspan="2"></th>
                     <th>PM</th>
-                    <th class="align-middle" rowspan="2">Sign</th>
+                    <th class="align-middle" rowspan="2"></th>
                     <th>PM</th>
-                    <th class="align-middle" rowspan="2">Sign</th>
+                    <th class="align-middle" rowspan="2"></th>
                 </tr>
                 <tr class="text-center">
                     <th>M</th>
@@ -51,9 +51,37 @@
                             
                             <td>{{attendance.logs[0].dateTime|default(true, '')|format_date('hh:mm')}}</td>
                             <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
-                            <td>{{attendance.logs[1].dateTime|default(true, '')|format_date('hh:mm')}}</td>
-                            <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
-                            <td>{{attendance.logs[2].dateTime|default(true, '')|format_date('hh:mm')}}</td>
+                            <td>
+                                {% set log = attendance.logs[1] %}
+                                {% if log.extra %}
+                                    <a title="View Location" href="https://nominatim.openstreetmap.org/ui/reverse.html?lat={{log.extra.lat}}&lon={{log.extra.lon}}"> 
+                                        {{attendance.logs[1].dateTime|default(true, '')|format_date('hh:mm')}}  
+                                        
+                                        <svg style="width:18px;height:18px" viewBox="0 0 24 24">
+                                            <path fill="currentColor" d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z" />
+                                        </svg>
+                                    </a>
+                                {% else %}
+                                    {{log.dateTime|default(true, '')|format_date('hh:mm')}}
+                                {% endif %}
+                            </td>
+                            <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}
+                            </td>
+                            <td>
+                                {% set log = attendance.logs[2] %}
+                                {% if log.extra %}
+                                    <a title="View Location" href="https://nominatim.openstreetmap.org/ui/reverse.html?lat={{log.extra.lat}}&lon={{log.extra.lon}}"> 
+                                        {{log.dateTime|default(true, '')|format_date('hh:mm')}}  
+                                        
+                                        <svg style="width:18px;height:18px" viewBox="0 0 24 24">
+                                            <path fill="currentColor" d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z" />
+                                        </svg>
+                                    </a>
+                                {% else %}
+                                    {{log.dateTime|default(true, '')|format_date('hh:mm')}}
+                                {% endif %}
+                                
+                            </td>
                             <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
                             <td>{{attendance.logs[3].dateTime|default(true, '')|format_date('hh:mm')}}</td>
                             <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>

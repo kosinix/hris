@@ -33,9 +33,14 @@
                 </tr>
             </table>
         </div>
-        <div class="row">
+        <div class="row text-center">
             <div class="col-md-6">
+                <p>Count</p>
                 <canvas id="myChart"></canvas>
+            </div>
+            <div class="col-md-6">
+                <p>Percentage (%)</p>
+                <canvas id="myChart2"></canvas>
             </div>
         </div>
     </div>
@@ -47,7 +52,6 @@
 <script src="{{app.url}}/js/Chart.min.js"></script>
 <script>
     var ctx = document.getElementById("myChart");
-    
     var data = {
         labels: [
             'Females',
@@ -63,7 +67,6 @@
             hoverOffset: 4
         }]
     };
-
     var config = {
         type: 'pie',
         data: data,
@@ -72,6 +75,30 @@
         }
     };
     var myChart = new Chart(ctx, config);
+
+    var ctx2 = document.getElementById("myChart2");
+    var config2 = {
+        type: 'pie',
+        data: {
+            labels: [
+                'Females',
+                'Males',
+            ],
+            datasets: [{
+                label: 'Gender',
+                data: [{{females / total * 100}}, {{males / total * 100}}],
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+        }
+    };
+    new Chart(ctx2, config2);
 </script>
 {% endblock %}
 

@@ -536,27 +536,23 @@
                     return ;
                 }
 
-                if (!geo) {
+                {#/* if (!geo) {
                     alert("Your browser does not support the online time-in/time-out. Please go to the scanner to log.");
-                } else {
+                } else { */#}
 
                     me.pending = true;
 
-                    geo.getCurrentPosition(
-                        function(location){
+                    {#/* geo.getCurrentPosition(
+                        function(location){  */#}
 
                             var body = {
-                                lat: _.get(location, 'coords.latitude'),
-                                lon: _.get(location, 'coords.longitude'),
+                                //lat: _.get(location, 'coords.latitude'),
+                                //lon: _.get(location, 'coords.longitude'),
                             };
 
                             axios.post('/e-profile/dtr/{{employment._id}}/logs', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
                                 var data = _.get(response, 'data')
-                                {# console.log(data) #}
-                                console.log(`https://nominatim.openstreetmap.org/ui/reverse.html?lat=${data.lat}&lon=${data.lon}`)
-
                                 window.location.href = me.fullUrl
-                                
                             }).catch(function (error) {
                                 if (error.response) {
                                     // Request made, server responded with a status code outside of 2xx
@@ -579,7 +575,7 @@
                             }).then(function () {
                             })
 
-                        }, 
+                        {#/* }, 
                         function(positionError) {
 
                             var code = _.get(positionError, 'code', 0)
@@ -600,8 +596,8 @@
                         { 
                             timeout: 5000 
                         }
-                    );
-                }
+                    ); 
+                }*/#}
             },
         }
     });

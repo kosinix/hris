@@ -585,7 +585,7 @@
                             var code = _.get(positionError, 'code', 0)
 
                             if (code === 1) { // PERMISSION_DENIED
-                                alert("You need to turn on this permission to use this service: \nPermissions > Location > Allow\nOtherwise, you can go to one of our scanner to log.")
+                                alert("Allow this permission to use the service: \nPermissions > Location > Allow\nOtherwise, you can go to one of our scanner to log.")
                             } else if (code === 2) { // POSITION_UNAVAILABLE
                                 alert('Service unavailable. Please go to the scanner to log.')
                             } else if (code === 3) { // TIMEOUT

@@ -899,7 +899,12 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
 @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
 
 
-
+.privacy-on .privy-name,
+.privacy-on .privy-photo,
+.privacy-on .privy-employment,
+.privacy-on .privy-address{
+    filter: blur(6px)
+}
 
 /* Nav */
 

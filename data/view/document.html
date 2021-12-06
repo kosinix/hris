@@ -13,10 +13,10 @@
 </head>
 
 {% if user %}
-<body class="{% if hideNav == 'true' %}hide-menu{% endif %}">
+<body class="{% if hideNav == 'true' %}hide-menu{% endif %} {% if user.username == 'gsc.mis' or user.username == 'gsc.mis.amarilla' %}privacy-on{% endif %}">
 {% include 'parts/sidebar.html' %}
 {% else %}
-<body class="hide-menu">
+<body class="hide-menu {% if user.username == 'gsc.mis' or user.username == 'gsc.mis.amarilla' %}privacy-on{% endif %}">
 {% endif %}
 <main role="main" class="main">
     <div class="container-fluid">

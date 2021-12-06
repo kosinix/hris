@@ -8,17 +8,17 @@
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3">
         <div class="d-flex mb-3">
             {% if employee.profilePhoto %}
-                <img class="mr-3" width="100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="photo">
+                <img class="mr-3 privy-photo" width="100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="photo">
             {% else %}
             {% endif %}
             <div class="mt-2">
-                <h1>  
+                <h1 class="privy-name">  
                     <a href="/employee/personal/{{employee._id}}">
                         {{employee.lastName}},
                         {{employee.firstName}}
                     </a>
                 </h1>
-                <h2><a href="/employee/employment/{{employee._id}}">{{employment.position}}</a></h2>
+                <h2><a class="privy-employment" href="/employee/employment/{{employee._id}}">{{employment.position}}</a></h2>
             </div>
         </div>
        

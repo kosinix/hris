@@ -83,11 +83,13 @@
                             <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
                             <td>
                                 {% if employee.profilePhoto %}
-                                <a href="/employee/personal/{{employee._id}}"><img src="{{employee.profilePhoto|s3_url('tiny')}}" alt=""></a>
+                                <a href="/employee/personal/{{employee._id}}"><img class="privy-photo" src="{{employee.profilePhoto|s3_url('tiny')}}" alt=""></a>
                                 {% endif %}
                             </td>
-                            <td><a href="/employee/personal/{{employee._id}}">{{employee.lastName}}</a></td>
-                            <td><a href="/employee/personal/{{employee._id}}">{{employee.firstName}}</a></td>
+                            <td>
+                                <a class="privy-name privy-last-name" href="/employee/personal/{{employee._id}}">{{employee.lastName}}</a>
+                            </td>
+                            <td><a class="privy-name privy-last-name" href="/employee/personal/{{employee._id}}">{{employee.firstName}}</a></td>
                             <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].position}}</a></td>
                             <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</a></td>
                             <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].group|capitalize}}</a></td>

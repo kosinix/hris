@@ -31,7 +31,14 @@
                                     <span>${getCellValue(row, column.uid, formulas, payroll.columns)['mins']} mins</span>
                                 </a>
                             </template>
-                            <template v-else>${getCellValue(row, column.uid, formulas, payroll.columns) | currency}</template>
+                            <template v-else>
+                                <span v-if="column.uid=='name' || column.uid=='fundSource'" class="privy-name">
+                                    ${getCellValue(row, column.uid, formulas, payroll.columns) | currency}
+                                </span>
+                                <span v-else>
+                                    ${getCellValue(row, column.uid, formulas, payroll.columns) | currency}
+                                </span>
+                            </template>
                         </template>
                     </td>
                     <td><button v-on:click="deleteRow(rowIndex)" class="btn btn-sm text-danger">X</button></td>

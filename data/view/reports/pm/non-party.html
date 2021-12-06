@@ -1,0 +1,46 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="">
+            <h1 class="h2">Reports</h1>
+            <p class="m-1 mb-0">Performance Management &gt; Non-participating</p>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            {# <div class="btn-group mr-2">
+                <a href="/employee/create" class="btn btn-sm btn-outline-primary">Add Employee</a>
+            </div> #}
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    <div class="tab-content p-3">
+        <h2 class="h4 mb-3">Non-participating</h2>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <tr>
+                    <th width="1%" class="text-center"></th>
+                    <th>Last Name</th>
+                    <th>First Name</th>
+                    <th>Position</th>
+                    <th>Total Attendance</th>
+                </tr>
+                {% for employee in employees %}
+                <tr>
+                    <td>{{loop.index}}</td>
+                   
+                    <td>{{employee.lastName}}</td>
+                    <td>{{employee.firstName}}</td>
+                    <td>{{employee.employments[0].position}}</td>
+                    <td>{{employee.totalA}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{% endblock %}
+

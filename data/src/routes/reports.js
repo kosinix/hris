@@ -206,75 +206,14 @@ router.get('/reports/attendance/complete', async (req, res, next) => {
     }
 });
 
+// RSP
 router.get('/reports/rsp/all', async (req, res, next) => {
     try {
-
-        let aggr = [
-            {
-                $match: {
-                    gender: 'F'
-                }
-            },
-            {
-                $lookup: {
-                    localField: '_id',
-                    foreignField: 'employeeId',
-                    from: 'employments',
-                    as: 'employments'
-                }
-            },
-            {
-                $match: {
-                    'employments.0': {
-                        $exists: true
-                    }
-                }
-            },
-            { $count: "total" }
-        ]
-        let females = await db.main.Employee.aggregate(aggr)
-        females = lodash.get(females, '0.total', 0)
-
-        aggr = [
-            {
-                $match: {
-                    gender: 'M'
-                }
-            },
-            {
-                $lookup: {
-                    localField: '_id',
-                    foreignField: 'employeeId',
-                    from: 'employments',
-                    as: 'employments'
-                }
-            },
-            {
-                $match: {
-                    'employments.0': {
-                        $exists: true
-                    }
-                }
-            },
-            { $count: "total" }
-        ]
-        let males = await db.main.Employee.aggregate(aggr)
-        males = lodash.get(males, '0.total', 0)
-
-        let total = males + females
-        let data = {
-            total: total,
-            males: males,
-            females: females,
-            malesPercentage: Math.round(males / total * 100),
-            femalesPercentage: Math.round(females / total * 100),
-        }
-        res.render('reports/rsp/all.html', data);
+        res.render('reports/rsp/all.html');
     } catch (err) {
         next(err);
     }
 });
-
 router.get('/reports/rsp/gender', async (req, res, next) => {
     try {
 
@@ -365,6 +304,72 @@ router.get('/reports/rsp/gender', async (req, res, next) => {
     }
 });
 
+// PM
+router.get('/reports/pm/all', async (req, res, next) => {
+    try {
+        res.render('reports/pm/all.html');
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/reports/pm/non-party', async (req, res, next) => {
+    try {
+
+        let employees = await db.main.Employee.aggregate([
+            {
+                $lookup: {
+                    localField: '_id',
+                    foreignField: 'employeeId',
+                    from: 'attendances',
+                    as: 'attendances'
+                }
+            },
+            {
+                $lookup: {
+                    localField: '_id',
+                    foreignField: 'employeeId',
+                    from: 'employments',
+                    as: 'employments'
+                }
+            },
+            {
+                $addFields: {
+                    "totalA": {
+                        $size: "$attendances"
+                    }
+                }
+            },
+            {
+                $addFields: {
+                    "totalE": {
+                        $size: "$employments"
+                    }
+                }
+            },
+            {
+                $match: {
+                    totalE: {
+                        $gte: 1
+                    },
+                    totalA: {
+                        $lte: 5
+                    }
+                }
+            },
+        ])
+
+        let data = {
+            employees: employees
+        }
+        
+        // return res.send(data)
+        res.render('reports/pm/non-party.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+
+// RAR
 router.get('/reports/rar/all', async (req, res, next) => {
     try {
         res.render('reports/rar/all.html');

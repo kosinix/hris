@@ -367,6 +367,7 @@ router.get('/reports/rar/early', async (req, res, next) => {
         let aggr = [
             {
                 $match: {
+                    type: 'normal',
                     createdAt: {
                         $gte: moment(startMoment).toDate(),
                         $lt: moment(endMoment).toDate(),

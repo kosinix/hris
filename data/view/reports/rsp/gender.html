@@ -15,7 +15,8 @@
     </div>
     {% include 'parts/flash.html' %}
     <div class="tab-content p-3">
-        <h2 class="h4 mb-3">Gender</h2>
+        <h2 class="h4 mb-4">Gender</h2>
+        <h3 class="h5 mb-3">Overall</h3>
         <div class="table-responsive">
             <table class="table table-sm">
                 <tr>
@@ -24,20 +25,72 @@
                     <th>Males</th>
                 </tr>
                 <tr>
-                    <td>{{total}} <em>(100%)</em></td>
-                    <td>{{females}} <em>({{femalesPercentage}}%)</em></td>
-                    <td>{{males}} <em>({{malesPercentage}}%)</em></td>
+                    <td>{{overall.total}} <em>(100%)</em></td>
+                    <td>{{overall.females}} <em>({{overall.femalesPercentage}}%)</em></td>
+                    <td>{{overall.males}} <em>({{overall.malesPercentage}}%)</em></td>
                 </tr>
             </table>
         </div>
         <div class="row text-center">
             <div class="col-md-6">
                 <p>Count</p>
-                <canvas id="myChart"></canvas>
+                <canvas id="chartCount"></canvas>
             </div>
             <div class="col-md-6">
                 <p>Percentage (%)</p>
-                <canvas id="myChart2"></canvas>
+                <canvas id="chartPercent"></canvas>
+            </div>
+        </div>
+
+        <h3 class="h5 mb-3">Faculty</h3>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <tr>
+                    <th>Total Faculty</th>
+                    <th>Females</th>
+                    <th>Males</th>
+                </tr>
+                <tr>
+                    <td>{{faculty.total}} <em>(100%)</em></td>
+                    <td>{{faculty.females}} <em>({{faculty.femalesPercentage}}%)</em></td>
+                    <td>{{faculty.males}} <em>({{faculty.malesPercentage}}%)</em></td>
+                </tr>
+            </table>
+        </div>
+        <div class="row text-center">
+            <div class="col-md-6">
+                <p>Count</p>
+                <canvas id="facultyCount"></canvas>
+            </div>
+            <div class="col-md-6">
+                <p>Percentage (%)</p>
+                <canvas id="facultyPercent"></canvas>
+            </div>
+        </div>
+
+        <h3 class="h5 mb-3">Staff</h3>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <tr>
+                    <th>Total Staff</th>
+                    <th>Females</th>
+                    <th>Males</th>
+                </tr>
+                <tr>
+                    <td>{{staff.total}} <em>(100%)</em></td>
+                    <td>{{staff.females}} <em>({{staff.femalesPercentage}}%)</em></td>
+                    <td>{{staff.males}} <em>({{staff.malesPercentage}}%)</em></td>
+                </tr>
+            </table>
+        </div>
+        <div class="row text-center">
+            <div class="col-md-6">
+                <p>Count</p>
+                <canvas id="staffCount"></canvas>
+            </div>
+            <div class="col-md-6">
+                <p>Percentage (%)</p>
+                <canvas id="staffPercent"></canvas>
             </div>
         </div>
     </div>
@@ -48,33 +101,9 @@
 {{ super() }}
 <script src="{{app.url}}/js/Chart.min.js"></script>
 <script>
-    var ctx = document.getElementById("myChart");
-    var data = {
-        labels: [
-            'Females',
-            'Males',
-        ],
-        datasets: [{
-            label: 'Gender',
-            data: [{{females}}, {{males}}],
-            backgroundColor: [
-                'rgb(255, 99, 132)',
-                'rgb(54, 162, 235)',
-            ],
-            hoverOffset: 4
-        }]
-    };
-    var config = {
-        type: 'pie',
-        data: data,
-        options: {
-            responsive: true,
-        }
-    };
-    var myChart = new Chart(ctx, config);
 
-    var ctx2 = document.getElementById("myChart2");
-    var config2 = {
+    // Overall
+    new Chart(document.getElementById("chartCount"), {
         type: 'pie',
         data: {
             labels: [
@@ -83,7 +112,28 @@
             ],
             datasets: [{
                 label: 'Gender',
-                data: [{{femalesPercentage}}, {{malesPercentage}}],
+                data: [{{overall.females}}, {{overall.males}}],
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+        }
+    })
+    new Chart(document.getElementById("chartPercent"), {
+        type: 'pie',
+        data: {
+            labels: [
+                'Females',
+                'Males',
+            ],
+            datasets: [{
+                label: 'Gender',
+                data: [{{overall.femalesPercentage}}, {{overall.malesPercentage}}],
                 backgroundColor: [
                     'rgb(255, 99, 132)',
                     'rgb(54, 162, 235)',
@@ -103,8 +153,113 @@
                 }
             }
         }
-    };
-    new Chart(ctx2, config2);
+    })
+    
+    // Faculty
+    new Chart(document.getElementById("facultyCount"), {
+        type: 'pie',
+        data: {
+            labels: [
+                'Females',
+                'Males',
+            ],
+            datasets: [{
+                label: 'Gender',
+                data: [{{faculty.females}}, {{faculty.males}}],
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+        }
+    })
+    new Chart(document.getElementById("facultyPercent"), {
+        type: 'pie',
+        data: {
+            labels: [
+                'Females',
+                'Males',
+            ],
+            datasets: [{
+                label: 'Gender',
+                data: [{{faculty.femalesPercentage}}, {{faculty.malesPercentage}}],
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            tooltips: {
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        var label = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] || '';
+
+                        return label +'%';
+                    }
+                }
+            }
+        }
+    })
+
+    // Staff
+    new Chart(document.getElementById("staffCount"), {
+        type: 'pie',
+        data: {
+            labels: [
+                'Females',
+                'Males',
+            ],
+            datasets: [{
+                label: 'Gender',
+                data: [{{staff.females}}, {{staff.males}}],
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+        }
+    })
+    new Chart(document.getElementById("staffPercent"), {
+        type: 'pie',
+        data: {
+            labels: [
+                'Females',
+                'Males',
+            ],
+            datasets: [{
+                label: 'Gender',
+                data: [{{staff.femalesPercentage}}, {{staff.malesPercentage}}],
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            tooltips: {
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        var label = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] || '';
+
+                        return label +'%';
+                    }
+                }
+            }
+        }
+    })
 </script>
 {% endblock %}
 

@@ -1,0 +1,143 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="">
+            <h1 class="h2">Reports</h1>
+            <p class="m-1 mb-0">Rewards and Recognition</p>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            {# <div class="btn-group mr-2">
+                <a href="/employee/create" class="btn btn-sm btn-outline-primary">Add Employee</a>
+            </div> #}
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    <div id="vApp" v-cloak class="tab-content p-3">
+        <h2 class="h4 mb-3">Early Birds
+            {% if startDate != endDate %}
+                From {{startDate|format_date('MMM DD, YYYY')}} to {{endDate|format_date('MMM DD, YYYY')}}
+            {% else %}
+                on {{startDate|format_date('MMM DD, YYYY')}}
+            {% endif %}
+        </h2>
+        <div class="mb-3">
+            <div class="d-flex align-items-center">
+                <input v-model="startDate" type="date" value="{{startDate}}">
+                <span class="m-1">to</span> 
+                <input v-model="endDate" type="date" value="{{endDate}}">
+                <button v-on:click="reloado" type="button" class="ml-1 btn btn-sm btn-primary">Change</button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <tr>
+                    <th>Morning In</th>
+                    <th>Last Name</th>
+                    <th>First Name</th>
+                    <th>Date</th>
+                </tr>
+                {% for attendance in earlyBirds %}
+                {% set employee = attendance.employee %}
+                <tr>
+                    <td>
+                        <span class="font-weight-bold">{{attendance.logs[0].dateTime|format_date('hh:mm A')}}</span>
+                    </td>
+                    <td>{{employee.lastName}}</td>
+                    <td>{{employee.firstName}}</td>
+                    <td>{{attendance.logs[0].dateTime|format_date('ddd - MMM DD, YYYY')}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/Chart.min.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            urlPath: '{{urlPath}}',
+            startDate: '{{startDate}}',
+            endDate: '{{endDate}}',
+        },
+        validations: {
+            
+        },
+        methods: {
+            reloado: function(){
+                window.location.href = this.urlPath + '?start=' + this.startDate + '&end=' + this.endDate
+            },
+        }
+    });
+</script>
+<script>
+    var ctx = document.getElementById("myChart");
+    var data = {
+        labels: [
+            'Females',
+            'Males',
+        ],
+        datasets: [{
+            label: 'Gender',
+            data: [{{females}}, {{males}}],
+            backgroundColor: [
+                'rgb(255, 99, 132)',
+                'rgb(54, 162, 235)',
+            ],
+            hoverOffset: 4
+        }]
+    };
+    var config = {
+        type: 'pie',
+        data: data,
+        options: {
+            responsive: true,
+        }
+    };
+    var myChart = new Chart(ctx, config);
+
+    var ctx2 = document.getElementById("myChart2");
+    var config2 = {
+        type: 'pie',
+        data: {
+            labels: [
+                'Females',
+                'Males',
+            ],
+            datasets: [{
+                label: 'Gender',
+                data: [{{femalesPercentage}}, {{malesPercentage}}],
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            tooltips: {
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        var label = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] || '';
+
+                        return label +'%';
+                    }
+                }
+            }
+        }
+    };
+    new Chart(ctx2, config2);
+</script>
+{% endblock %}
+

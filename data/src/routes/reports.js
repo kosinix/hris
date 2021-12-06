@@ -19,7 +19,7 @@ router.use('/reports', middlewares.requireAuthUser)
 
 router.get('/reports/all', async (req, res, next) => {
     try {
-        
+
         res.render('reports/all.html', {
             flash: flash.get(req, 'reports'),
         });
@@ -94,7 +94,7 @@ router.get('/reports/attendance/incomplete', async (req, res, next) => {
             }
         })
 
-        
+
         aggr.push({
             $project: {
                 employees: 0,
@@ -141,7 +141,7 @@ router.get('/reports/attendance/complete', async (req, res, next) => {
                     },
                     {
                         type: {
-                            $in: ['wfh','travel','pass','leave']
+                            $in: ['wfh', 'travel', 'pass', 'leave']
                         }
                     }
                 ],
@@ -187,7 +187,7 @@ router.get('/reports/attendance/complete', async (req, res, next) => {
             }
         })
 
-        
+
         aggr.push({
             $project: {
                 employees: 0,
@@ -226,7 +226,7 @@ router.get('/reports/rsp/all', async (req, res, next) => {
             {
                 $match: {
                     'employments.0': {
-                        $exists: true 
+                        $exists: true
                     }
                 }
             },
@@ -252,7 +252,7 @@ router.get('/reports/rsp/all', async (req, res, next) => {
             {
                 $match: {
                     'employments.0': {
-                        $exists: true 
+                        $exists: true
                     }
                 }
             },
@@ -260,7 +260,7 @@ router.get('/reports/rsp/all', async (req, res, next) => {
         ]
         let males = await db.main.Employee.aggregate(aggr)
         males = lodash.get(males, '0.total', 0)
-       
+
         let total = males + females
         let data = {
             total: total,
@@ -300,7 +300,7 @@ router.get('/reports/rsp/gender', async (req, res, next) => {
             {
                 $match: {
                     'employments.0': {
-                        $exists: true 
+                        $exists: true
                     }
                 }
             },
@@ -325,7 +325,7 @@ router.get('/reports/rsp/gender', async (req, res, next) => {
             {
                 $match: {
                     'employments.0': {
-                        $exists: true 
+                        $exists: true
                     }
                 }
             },
@@ -333,7 +333,7 @@ router.get('/reports/rsp/gender', async (req, res, next) => {
         ]
         let males = await db.main.Employee.aggregate(aggr)
         males = lodash.get(males, '0.total', 0)
-       
+
         let total = males + females
         let data = {
             total: total,
@@ -348,5 +348,102 @@ router.get('/reports/rsp/gender', async (req, res, next) => {
     }
 });
 
+router.get('/reports/rar/all', async (req, res, next) => {
+    try {
+        res.render('reports/rar/all.html');
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/reports/rar/early', async (req, res, next) => {
+    try {
+
+        let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+
+        let startMoment = moment(start).startOf('day')
+        let endMoment = moment(end).endOf('day')
+
+        let aggr = [
+            {
+                $match: {
+                    createdAt: {
+                        $gte: moment(startMoment).toDate(),
+                        $lt: moment(endMoment).toDate(),
+                    }
+                },
+            },
+            {
+                $lookup: {
+                    localField: 'employeeId',
+                    foreignField: '_id',
+                    from: 'employees',
+                    as: 'employees'
+                }
+            },
+            // Attendance can only have one employee, move employees[0] to employee
+            {
+                $addFields: {
+                    "employee": {
+                        $arrayElemAt: ["$employees", 0]
+                    }
+                }
+            },
+            // Remove employees[]
+            {
+                $project: {
+                    employees: 0,
+                }
+            },
+            {
+                $lookup: {
+                    localField: 'employmentId',
+                    foreignField: '_id',
+                    from: 'employments',
+                    as: 'employments'
+                }
+            },
+            // Attendance can only have one employment, move employments[0] to employment
+            {
+                $addFields: {
+                    "employment": {
+                        $arrayElemAt: ["$employments", 0]
+                    }
+                }
+            },
+            // Remove employments[]
+            {
+                $project: {
+                    employments: 0,
+                }
+            },
+            {
+                $sort: {
+                    'createdAt': -1
+                }
+            },
+            {
+                $project: {
+                    'employee': {
+                        personal: 0,
+                        employments: 0,
+                    }
+                }
+            },
+            { $limit: 10 }
+        ]
+        let earlyBirds = await db.main.Attendance.aggregate(aggr)
+
+        let data = {
+            earlyBirds: earlyBirds,
+            startDate: startMoment.format('YYYY-MM-DD'),
+            endDate: endMoment.format('YYYY-MM-DD'),
+        }
+        // return res.send(data)
+        res.render('reports/rar/early.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
 
 module.exports = router;

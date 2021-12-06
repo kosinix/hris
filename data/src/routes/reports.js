@@ -419,7 +419,7 @@ router.get('/reports/rar/early', async (req, res, next) => {
             },
             {
                 $sort: {
-                    'createdAt': -1
+                    'logs.0.dateTime': 1
                 }
             },
             {

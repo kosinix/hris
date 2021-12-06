@@ -358,7 +358,8 @@ router.get('/reports/pm/non-party', async (req, res, next) => {
             },
             {
                 $sort: {
-                    totalA: 1
+                    totalA: 1,
+                    'employments.0.employmentType': -1
                 }
             },
         ])

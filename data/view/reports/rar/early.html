@@ -16,17 +16,14 @@
     {% include 'parts/flash.html' %}
     <div id="vApp" v-cloak class="tab-content p-3">
         <h2 class="h4 mb-3">Early Birds
-            {% if startDate != endDate %}
-                From {{startDate|format_date('MMM DD, YYYY')}} to {{endDate|format_date('MMM DD, YYYY')}}
-            {% else %}
-                on {{startDate|format_date('MMM DD, YYYY')}}
-            {% endif %}
+            
+            On {{startDate|format_date('MMM DD, YYYY')}}
         </h2>
         <div class="mb-3">
             <div class="d-flex align-items-center">
                 <input v-model="startDate" type="date" value="{{startDate}}">
                 <span class="m-1">to</span> 
-                <input v-model="endDate" type="date" value="{{endDate}}">
+                {# <input v-model="endDate" type="date" value="{{endDate}}"> #}
                 <button v-on:click="reloado" type="button" class="ml-1 btn btn-sm btn-primary">Change</button>
             </div>
         </div>
@@ -72,14 +69,13 @@
         data: {
             urlPath: '{{urlPath}}',
             startDate: '{{startDate}}',
-            endDate: '{{endDate}}',
         },
         validations: {
             
         },
         methods: {
             reloado: function(){
-                window.location.href = this.urlPath + '?start=' + this.startDate + '&end=' + this.endDate
+                window.location.href = this.urlPath + '?start=' + this.startDate
             },
         }
     });

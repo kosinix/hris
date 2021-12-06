@@ -359,7 +359,7 @@ router.get('/reports/rar/early', async (req, res, next) => {
     try {
 
         let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
-        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
 
         let startMoment = moment(start).startOf('day')
         let endMoment = moment(end).endOf('day')
@@ -368,7 +368,7 @@ router.get('/reports/rar/early', async (req, res, next) => {
             {
                 $match: {
                     type: 'normal',
-                    createdAt: {
+                    'logs.0.dateTime': {
                         $gte: moment(startMoment).toDate(),
                         $lt: moment(endMoment).toDate(),
                     }
@@ -438,7 +438,6 @@ router.get('/reports/rar/early', async (req, res, next) => {
         let data = {
             earlyBirds: earlyBirds,
             startDate: startMoment.format('YYYY-MM-DD'),
-            endDate: endMoment.format('YYYY-MM-DD'),
         }
         // return res.send(data)
         res.render('reports/rar/early.html', data);

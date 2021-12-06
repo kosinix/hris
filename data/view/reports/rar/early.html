@@ -37,6 +37,7 @@
                     <th>Morning In</th>
                     <th>Last Name</th>
                     <th>First Name</th>
+                    <th>Position</th>
                     <th>Date</th>
                 </tr>
                 {% for attendance in earlyBirds %}
@@ -48,6 +49,7 @@
                     </td>
                     <td>{{employee.lastName}}</td>
                     <td>{{employee.firstName}}</td>
+                    <td>{{attendance.employment.position}}</td>
                     <td>{{attendance.logs[0].dateTime|format_date('ddd - MMM DD, YYYY')}}</td>
                 </tr>
                 {% endfor %}

@@ -356,6 +356,11 @@ router.get('/reports/pm/non-party', async (req, res, next) => {
                     }
                 }
             },
+            {
+                $sort: {
+                    totalA: 1
+                }
+            },
         ])
 
         let facus = employees.filter(e => lodash.get(e, 'employments[0].group') == 'faculty')

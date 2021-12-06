@@ -2,7 +2,7 @@
     <div class="profile-photo">
         <a href="/employee/photo/{{employee._id}}">
         {% if employee.profilePhoto %}
-            <img src="{{employee.profilePhoto|s3_url('medium')}}" alt="photo">
+            <img class="privy-photo" src="{{employee.profilePhoto|s3_url('medium')}}" alt="photo">
         {% else %}
             <span class="initials">{{employee.firstName|first}} {{employee.lastName|first}}</span>
         {% endif %}

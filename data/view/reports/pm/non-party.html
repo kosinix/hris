@@ -16,6 +16,53 @@
     {% include 'parts/flash.html' %}
     <div class="tab-content p-3">
         <h2 class="h4 mb-3">Non-participating</h2>
+        <h3 class="h5">Faculty</h3>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <tr>
+                    <th width="1%" class="text-center"></th>
+                    <th>Last Name</th>
+                    <th>First Name</th>
+                    <th>Position</th>
+                    <th>Total Attendance</th>
+                </tr>
+                {% for employee in facus %}
+                <tr>
+                    <td>{{loop.index}}</td>
+                   
+                    <td>{{employee.lastName}}</td>
+                    <td>{{employee.firstName}}</td>
+                    <td>{{employee.employments[0].position}}</td>
+                    <td>{{employee.totalA}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <h3 class="h5">Staff</h3>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <tr>
+                    <th width="1%" class="text-center"></th>
+                    <th>Last Name</th>
+                    <th>First Name</th>
+                    <th>Position</th>
+                    <th>Total Attendance</th>
+                </tr>
+                {% for employee in staffs %}
+                <tr>
+                    <td>{{loop.index}}</td>
+                   
+                    <td>{{employee.lastName}}</td>
+                    <td>{{employee.firstName}}</td>
+                    <td>{{employee.employments[0].position}}</td>
+                    <td>{{employee.totalA}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <h3 class="h5">Overall</h3>
         <div class="table-responsive">
             <table class="table table-sm">
                 <tr>

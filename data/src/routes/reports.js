@@ -358,10 +358,14 @@ router.get('/reports/pm/non-party', async (req, res, next) => {
             },
         ])
 
+        let facus = employees.filter(e => lodash.get(e, 'employments[0].group') == 'faculty')
+        let staffs = employees.filter(e => lodash.get(e, 'employments[0].group') == 'staff')
         let data = {
-            employees: employees
+            employees: employees,
+            facus: facus,
+            staffs: staffs,
         }
-        
+
         // return res.send(data)
         res.render('reports/pm/non-party.html', data);
     } catch (err) {

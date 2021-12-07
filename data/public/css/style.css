@@ -903,7 +903,7 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
 .privacy-on .privy-photo,
 .privacy-on .privy-employment,
 .privacy-on .privy-address{
-    filter: blur(6px)
+    /* filter: blur(6px) */
 }
 
 /* Nav */

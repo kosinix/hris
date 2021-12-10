@@ -173,8 +173,6 @@ router.post('/user/:userId/password', middlewares.guardRoute(['read_user']), mid
             lodash.set(patch, 'passwordHash', passwordHash)
             lodash.set(patch, 'salt', salt)
 
-            await db.main.User.updateOne({ _id: user._id }, patch)
-
             if (notify) {
 
                 let data = {
@@ -185,13 +183,20 @@ router.post('/user/:userId/password', middlewares.guardRoute(['read_user']), mid
                     loginUrl: `${CONFIG.app.url}/login?username=${user.username}`
                 }
 
-                let info = await mailer.send('change-password.html', data)
-                console.log(info)
+                try {
+                    await mailer.send('change-password.html', data)
+                } catch (err) {
+                    flash.error(req, 'user', `Error changing password: ${err.message}`)
+                    return res.redirect(`/user/all`)
+                }
 
                 flash.ok(req, 'user', `Updated "${user.username}" password and sent an email to ${user.email}`)
             } else {
                 flash.ok(req, 'user', `Updated "${user.username}" password.`)
             }
+
+            await db.main.User.updateOne({ _id: user._id }, patch)
+
         }
 
 

@@ -63,7 +63,7 @@
     {% set attendance = day.attendance %}
     <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
         <td class="text-center" width="10%">{{day.day}}</td>
-        <td class="text-center" width="10%">{{day.weekDay}}</td>
+        <td class="text-center weekday" width="10%">{{day.weekDay}}</td>
         {% if attendanceTypesList.includes(attendance.type) %}
             <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass','Pass Slip')|replace('Wfh', 'WFH')}}</td>
             <td>
@@ -151,7 +151,7 @@
     {% else %}
         <tr>
             <td class="text-right total" colspan="6">Total Weekdays</td>
-            <td class="text-center" colspan="2">
+            <td class="text-center total-num" colspan="2">
                 {% if ['weekdays', 'all']|includes(countTimeBy) %}
                     {% if showTotalAs == 'undertime' %}
                         {{stats.weekdays.underDays|default(0, true)|maybePluralize('day')}}
@@ -167,7 +167,7 @@
         </tr>
         <tr>
             <td class="text-right total" colspan="6">Total Weekends</td>
-            <td class="text-center" colspan="2">
+            <td class="text-center total-num" colspan="2">
                 {% if ['weekends', 'all']|includes(countTimeBy) %}
                     {% if showTotalAs == 'undertime' %}
                         {{stats.weekends.underDays|default(0, true)|maybePluralize('day')}}
@@ -183,7 +183,7 @@
         </tr>
         <tr>
             <td class="text-right total" colspan="6">Total</td>
-            <td class="text-center" colspan="2">
+            <td class="text-center total-num" colspan="2">
                 {% if showTotalAs == 'undertime' %}
                     {{stats.days.underDays|default(0, true)|maybePluralize('day')}}
                     {{stats.days.underHours|default(0, true)|maybePluralize('hr')}}

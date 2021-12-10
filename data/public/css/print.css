@@ -88,12 +88,14 @@ img {
 }
 
 .csc-form-dtr td {
-    font-size: 12px;
-    padding: 1px 2px;
+    font-size: 13px;
+    padding: 1px 0 1px 1px;
+    white-space: nowrap;
+    text-align: center;
 }
 
 .csc-form-dtr .certify {
-    font-size: 12px;
+    font-size: 11px;
     font-style: italic;
 }
 
@@ -106,15 +108,19 @@ img {
     border-color: #000 !important;
 }
 .table-dtr .am-pm{
-    font-size: 9px;
+    font-size: 12px;
     font-weight: bold;
 }
 .table-dtr .subcols th{
-    font-size: 10px;
+    font-size: 12px;
     font-weight: bold;
 }
 .table-dtr .total{
     padding-right: 5px;
+    font-size: 12px;
+}
+.table-dtr .total-num{
+    font-size: 12px;
 }
 .table-sched {
     width: 100%;

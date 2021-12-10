@@ -1,0 +1,36 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div>
+            <h1 class="h3 mb-0">Help</h1>
+            <p class="mb-3">Browse help topics</p>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                {# <a href="/e-profile/dtr" class="btn btn-sm btn-outline-primary">Back</a> #}
+            </div>
+        </div>
+    </div>
+
+    <div class=" mb-5">
+        {% include 'parts/flash.html' %}
+        <div class="d-flex align-items-start">
+            <div class="card m-2" style="max-width: 250px">
+                <img src="/images/help/timezone-correction.jpg" class="img-fluid border border-success rounded-sm m-3" alt="...">
+                <div class="card-body">
+                    <h5 class="card-title">How to Correct Timezone?</h5>
+                    <p class="card-text">Time displays incorrectly on another computer or laptop compared to a phone.</p>
+                    <a href="/help/timezone-correction" class="btn btn-success">Read</a>
+                </div>
+            </div>
+         
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{% endblock %}
+

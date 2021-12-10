@@ -9,7 +9,9 @@
     </div>
     <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width:900px; margin:0 auto;">
         {% include 'parts/flash.html' %}
-
+        <div v-if="timeZone != 8" class="alert alert-warning"><strong>Warning:</strong> Your time zone is currently not set to Philippine time. Your time will be displayed incorrectly. Please set your device's timezone to UTC+8:00. <a href="/help/timezone-correction">See help instructions</a>
+        
+        </div>
         <div class="row mb-4">
             <div class="col-md-4 col-xl-3 mb-3">
                 <div class="e-profile-photo ml-auto mr-auto">
@@ -200,13 +202,13 @@
                             ${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}
 
                             <div v-if="isTimeOutShown(day)">
-                                <button v-on:click="logTime(0)" class="btn btn-sm btn-light">Time-Out</button>
+                                <button v-on:click="logTime(0)" class="btn-sm" style="font-size:10px">OUT</button>
                             </div>
                         </td>
                         <td>
                             ${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}
                             <div v-if="isTimeInShown(day)">
-                                <button v-on:click="logTime(1)" class="btn btn-sm btn-light">Time-In</button>
+                                <button v-on:click="logTime(1)" class="btn-sm" style="font-size:10px">IN</button>
                             </div>
                         </td>
                         <td>${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>
@@ -316,6 +318,7 @@
             countTimeBy: '{{countTimeBy}}',
             lat: null,
             lon: null,
+            timeZone: 0 - (new Date().getTimezoneOffset() / 60)
         },
         validations: {},
         computed: {

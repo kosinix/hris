@@ -1,0 +1,40 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div>
+            <h1 class="h3 mb-0">Help</h1>
+            <p class="mb-0">Browse help topics</p>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/help" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+
+    {% include 'parts/flash.html' %}
+
+    <div class="tab-content mb-3 p-3">
+        <h2 class="h3 mb-3">How to Correct Timezone?</h2>
+        <div class="p-3">
+            <h3 class="h5">Windows PC/Laptop</h3>
+            <ol>
+                <li>Right-click the time on the taskbar.</li>
+                <li>Left-click "Adjust Date/Time"</li>
+                <li>Change "Set time automatically" to "On"</li>
+                <li>Change "Time zone" to UTC+8:00 Taipei
+                
+                    <div><img src="/images/help/timezone-correction.jpg" alt="timezone-correction"></div>
+                </li>
+
+            </ol>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{% endblock %}
+

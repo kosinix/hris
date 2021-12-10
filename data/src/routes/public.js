@@ -189,4 +189,20 @@ router.get('/query/employment', async (req, res, next) => {
 });
 */
 
+router.get('/help', async (req, res, next) => {
+    try {
+
+        res.render('e-profile/help.html');
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/help/timezone-correction', async (req, res, next) => {
+    try {
+        res.render('e-profile/help-timezone.html');
+    } catch (err) {
+        next(err);
+    }
+});
+
 module.exports = router;

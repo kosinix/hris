@@ -153,7 +153,7 @@ p {
 {# <!-- Hack to manage presentation of preheader text. (https://litmus.com/blog/the-little-known-preview-text-hack-you-may-want-to-use-in-every-email) --> #}
 <div style="display: none; max-height: 0px; overflow: hidden;">&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
 
-<table style="background: #f5f5f5 url('https://hris.codefleet.net/images/flaglets.png') no-repeat left 130px; color:#4b4948;" role="presentation" aria-hidden="true" cellspacing="0" cellpadding="0" border="0" align="center" class="document">
+<table style="background: #f5f5f5 url('{{baseUrl}}/images/flaglets.png') no-repeat left 130px; color:#4b4948;" role="presentation" aria-hidden="true" cellspacing="0" cellpadding="0" border="0" align="center" class="document">
     <tr>
         <td valign="top">
 
@@ -165,7 +165,7 @@ p {
                             <tr>
                                 <td style="padding-left:40px; padding-right: 40px">
                                     <div class="logo" style="margin-bottom: 15px; padding-top:20px; text-align: center">
-                                        <img src="https://hris.codefleet.net/images/logo-md.png" width="80" height="80" alt="GSC">
+                                        <img src="{{baseUrl}}/images/logo-md.png" width="80" height="80" alt="GSC">
                                     </div>
                                     <div style="padding-top: 20px; padding-bottom: 20px; padding-left: 20px; padding-right: 20px; background-color: #ffffff; color: #05366a; border-radius: 5px; box-shadow: 0 0 6px 1px #ccc;">
                                         {% block body %}{% endblock %}
@@ -183,10 +183,10 @@ p {
                     <td style="padding: 0 15px">
                         <!-- Physical address -->
                         <div style="text-align: center; padding-top:50px; padding-bottom: 16px;" class="logo-footer">
-                            <img src="https://hris.codefleet.net/images/logo-sm.png" alt="">
+                            <img src="{{baseUrl}}/images/logo-sm.png" alt="">
                         </div>
                         <p style="text-align: center; font-size: 12px;">
-                            <a href="https://hris.codefleet.net/data-privacy">Data Privacy</a>
+                            <a href="{{baseUrl}}/data-privacy">Data Privacy</a>
                         </p>
                         <p style="text-align: center; font-size: 12px;">Guimaras State College - Human Resource Information System</p>
                         <p style="text-align: center; font-size: 12px; margin-bottom: 50px">This is a system-generated email sent to you from HRIS. You do not need to reply.</p>

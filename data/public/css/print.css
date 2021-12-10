@@ -72,14 +72,14 @@ img {
     font-style: italic;
 }
 .csc-form-dtr h1 {
-    font-size: 12px;
+    font-size: 16px;
     font-weight: bold;
 }
 .csc-form-dtr .separator {
     font-size: 8px;
 }
 .csc-form-dtr .name {
-    font-size: 12px;
+    font-size: 16px;
     font-weight: bold;
 }
 .csc-form-dtr .underline {
@@ -95,7 +95,7 @@ img {
 }
 
 .csc-form-dtr .certify {
-    font-size: 11px;
+    font-size: 12px;
     font-style: italic;
 }
 
@@ -112,7 +112,7 @@ img {
     font-weight: bold;
 }
 .table-dtr .subcols th{
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
 }
 .table-dtr .total{

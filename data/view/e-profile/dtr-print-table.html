@@ -4,7 +4,7 @@
     <h1 class="mb-0">Daily Time Record</h1>
     <div class="separator mb-3">-----o0o-----</div>
     <div class="name underline">
-        {{employee.firstName}} {{employee.middleName}} {{employee.lastName}}
+        {{employee.firstName}} {{employee.middleName}} {{employee.lastName}} {{employee.suffix}}
     </div>
     <div class="name-under mb-3">(Name)</div>
 
@@ -12,7 +12,7 @@
         <tr>
             <td style="width:20%">For the month of</td>
             <td colspan="3">
-                <div class="underline text-left pl-3 font-weight-bold">
+                <div class="underline text-left pl-3 font-weight-bold name">
                 {{periodMonthYear|format_date('MMMM, YYYY')}}
                 </div>
             </td>
@@ -204,5 +204,5 @@ I certify on my honor that the above is a true and correct report of the hours o
 </div>
 <div class="underline pb-2 mb-2"></div>
 <div class="font-italic pl-4 mb-2">VERIFIED as to the prescribed office hours:</div>
-<div class="underline pt-4 text-center font-weight-bold" contenteditable="true">{{inCharge}}</div>
+<div class="underline pt-4 text-center font-weight-bold name" contenteditable="true">{{inCharge}}</div>
 <div class="text-center font-italic">In Charge</div>

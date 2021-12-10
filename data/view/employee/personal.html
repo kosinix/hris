@@ -34,6 +34,21 @@
             {% set options = [{value:'', text:''}, {value:'Single', text:'Single'}, {value:'Married', text:'Married'}, {value:'Separated', text:'Separated'}, {value:'Widowed', text:'Widowed'}] %}
             {% include 'parts/form-group-select.html' %}
 
+            <div class="form-group">
+                <label for="speechSynthesisName">Speech Synthesis Name</label>
+                <div class>
+                    <div class="d-flex">
+                        <input v-on:blur="clean" maxlength="15" name="speechSynthesisName" id="speechSynthesisName" v-model="speechSynthesisName" type="text" class="form-control">
+                        <button v-on:click="hambal(speechSynthesisName)" class="btn btn-light" type="button" :disabled="btnSpeechDisabled">
+                            <svg style="width:18px;height:18px" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M9,5A4,4 0 0,1 13,9A4,4 0 0,1 9,13A4,4 0 0,1 5,9A4,4 0 0,1 9,5M9,15C11.67,15 17,16.34 17,19V21H1V19C1,16.34 6.33,15 9,15M16.76,5.36C18.78,7.56 18.78,10.61 16.76,12.63L15.08,10.94C15.92,9.76 15.92,8.23 15.08,7.05L16.76,5.36M20.07,2C24,6.05 23.97,12.11 20.07,16L18.44,14.37C21.21,11.19 21.21,6.65 18.44,3.63L20.07,2Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <small class="invalid-feedback">${getError('speechSynthesisName')}</small>
+                </div>
+            </div>
+
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
                     <button class="btn btn-primary">Save Info</button>
@@ -47,6 +62,8 @@
 {% block scripts %}
 {{ super() }}
 <script>
+    var voices = []
+    var synth = window.speechSynthesis;
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
@@ -55,6 +72,7 @@
             window.vuelidateExtendMixin,
         ],
         data: {
+            voicesReady: false,
             firstName: '{{employee.firstName}}',
             middleName: '{{employee.middleName}}',
             lastName: '{{employee.lastName}}',
@@ -62,6 +80,7 @@
             gender: '{{employee.gender|default(true, "M")}}',
             birthDate: '{{employee.birthDate|format_date("YYYY-MM-DD")}}',
             civilStatus: '{{employee.civilStatus|default(true, "S")}}',
+            speechSynthesisName: '{{employee.speechSynthesisName}}',
         },
         validations: {
             firstName: {
@@ -80,7 +99,47 @@
                 required: window.validators.required
             },
         },
+        computed: {
+            btnSpeechDisabled: function(){
+                return _.trim(this.speechSynthesisName) === '' ? true : false;
+            }
+        },
+        mounted: function(){
+            var me = this;
+            // Voices
+            var timer = setInterval(function(){
+                voices = synth.getVoices();
+
+                if(voices.length > 0){
+                    clearInterval(timer)
+                    me.voicesReady = true;
+                }
+            }, 100)
+
+            if(!me.speechSynthesisName){
+                me.speechSynthesisName = me.firstName
+            }
+        },
         methods: {
+            clean: function(){
+                this.speechSynthesisName = this.speechSynthesisName.replace(/^Ma\./i, ''); // Remove maria
+            },
+            hambal: function(words){
+                try {
+                    if(this.voicesReady){
+                        var utterThis = new SpeechSynthesisUtterance(words);
+                        utterThis.voice = _.find(voices, function(v){
+                            return v.name.includes('Microsoft Zira')
+                        });
+                        utterThis.pitch = 1;
+                        utterThis.rate = 1;
+                        synth.cancel();
+                        synth.speak(utterThis);
+                    }
+                } catch (err){
+                    console.error(err)
+                }
+            },
             onSubmit: function(){
                 var me = this;
                 me.$v.$touch()

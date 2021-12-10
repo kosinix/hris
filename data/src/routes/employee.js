@@ -224,6 +224,7 @@ router.post('/employee/personal/:employeeId', middlewares.guardRoute(['update_em
         lodash.set(patch, 'birthDate', lodash.get(body, 'birthDate'))
         lodash.set(patch, 'gender', lodash.get(body, 'gender'))
         lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
+        lodash.set(patch, 'speechSynthesisName', lodash.get(body, 'speechSynthesisName'))
 
         await db.main.Employee.updateOne({ _id: employee._id }, patch)
 

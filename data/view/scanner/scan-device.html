@@ -65,6 +65,7 @@
             returnCountdown: 0,
             voicesReady: false,
             clock: '',
+            date: '',
         },
         validations: {
 
@@ -90,7 +91,8 @@
             }, 100)
 
             var tick = function(){
-                me.clock = moment().format('h:mm:ss A')
+                me.clock = moment().format('hh:mm:ss A')
+                me.date = moment().format('MMM D, dddd')
             }
             tick();
             setInterval(tick, 1000);
@@ -273,6 +275,7 @@
                     var gender = _.get(data, 'employee.gender')
                     var firstName = _.get(data, 'employee.firstName')
                     var lastName = _.get(data, 'employee.lastName')
+                    var speechSynthesisName = _.get(data, 'employee.speechSynthesisName', firstName)
                     var profilePhoto = _.get(data, 'employee.profilePhoto')
                     if(log){
                         var momentLogTime = moment(log.dateTime)
@@ -285,9 +288,9 @@
                         var message = '';
                         var salute = '';
                         if(gender === 'M') {
-                            salute = ' Sir';
+                            salute = ' Sir ' + speechSynthesisName.replace(/^Ma\./i, '');
                         } else if(gender === 'F'){
-                            salute = ' Maam';
+                            salute = ' Maam ' + speechSynthesisName.replace(/^Ma\./i, '');
                         }
                         if(morning) {
                             message += 'Good morning'+salute+'!';

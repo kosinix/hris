@@ -33,6 +33,11 @@ const schema = new Schema({
         trim: true,
         default: ""
     },
+    speechSynthesisName: {
+        $type: String,
+        trim: true,
+        default: ""
+    },
     suffix: {
         $type: String,
         trim: true,

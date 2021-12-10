@@ -24,18 +24,18 @@ In mongo
 
 Multiple domains in one Nginx server
 
-* hris.codefleet.net - A node process running on `http://localhost:9094`
+* hris.gsc.edu.ph - A node process running on `http://localhost:9094`
 
-Create file `sudo nano /etc/nginx/sites-available/hris.codefleet.net`
+Create file `sudo nano /etc/nginx/sites-available/hris.gsc.edu.ph`
 
 
-Then inside `hris.codefleet.net`
+Then inside `hris.gsc.edu.ph`
 
     server {
         listen 80;
         listen [::]:80;
 
-        server_name hris.codefleet.net;
+        server_name hris.gsc.edu.ph;
 
         root /home/ubuntu/hris/data/public;
 
@@ -55,7 +55,7 @@ Then inside `hris.codefleet.net`
 
 Then enable both sites in Nginx by symlinking the files above into sites-enabled dir:
 
-`sudo ln -s /etc/nginx/sites-available/hris.codefleet.net /etc/nginx/sites-enabled/`
+`sudo ln -s /etc/nginx/sites-available/hris.gsc.edu.ph /etc/nginx/sites-enabled/`
 
 Restart Nginx for changes to take effect
 

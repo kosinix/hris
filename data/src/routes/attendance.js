@@ -96,7 +96,7 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance',
 
         matrix = matrix.map((row, i) => {
             row = row.map((cell) => {
-                let mCellDate = moment(cell)
+                let mCellDate = moment(cell, 'YYYY-MM-DD', true)
                 let className = 'current'
                 if (mCellDate.isBefore(mFirstDay)) {
                     cell = ''

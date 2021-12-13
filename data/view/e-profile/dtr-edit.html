@@ -4,7 +4,7 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h3">Edit DTR <em>({{attendance.createdAt|format_date('MMMM, YYYY')}})</em></h1>
+            <h1 class="h3">Apply for DTR Correction <em>({{attendance.createdAt|format_date('MMMM, YYYY')}})</em></h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
@@ -19,7 +19,7 @@
                 <h4 class="h3 mb-3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
                 <p class="text-left mb-3"><em class="mr-2">Employment:</em> <strong>{{employment.position}}</strong></p>
             </div>
-            <form action="/e-profile/dtr/{{employment._id}}/attendance/{{attendance._id}}/edit" method="POST">
+            <form id="vApp" v-cloak ref="form" enctype="multipart/form-data" v-on:submit.prevent="onSubmit" action="/e-profile/dtr/{{employment._id}}/attendance/{{attendance._id}}/edit" method="POST" class="form-default">
                 <div class="table-responsive">
                     <table class="table table-dtr">
                         <tr>
@@ -73,8 +73,30 @@
                         </tr>
                     </table>
                 </div>
+                <div class="form-group">
+                    <label for="correctionReason" class="font-weight-bold">Reason for Correction <span class="text-danger">*</span></label>
+                    <select v-model="correctionReason" name="correctionReason" id="correctionReason" class="form-control">
+                        <option value=""></option>
+                        {% for correctionReason in correctionReasons %}
+                            <option value="{{correctionReason.value}}">{{correctionReason.name}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('correctionReason')}</small>
+                </div>
+                <div class="form-group">
+                    <label for="logsheetNumber" class="font-weight-bold">Your Number on the Log Sheet</label>
+                    <input type="number" v-model="logsheetNumber" name="logsheetNumber" id="logsheetNumber" class="form-control">
+                    <small class="invalid-feedback">${getError('logsheetNumber')}</small>
+                </div>
+               <div class="form-group">
+                    <label for="photo" class="font-weight-bold">Upload Log Sheet Photo</label>
+                    <div>
+                        <input name="photo" id="photo" ref="filePhoto" type="file" class="form-control">
+                    </div>
+                </div>
+                
                 <div class="text-center mb-4">
-                    <button class="btn btn-primary">Save Correction to DTR</button>
+                    <button class="btn btn-primary">Submit</button>
                 </div>
             </form>
         </div>
@@ -88,7 +110,10 @@
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
-        mixins: [],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
         data: {
             pending: false,
             workScheduleId: '{{employment.workScheduleId}}',
@@ -96,10 +121,21 @@
             attendance: {{attendance|default({}, true)|stringify|safe}},
             attendanceTypes: {{attendanceTypes|default([], true)|stringify|safe}},
             attendanceTypesList: {{attendanceTypesList|default([], true)|stringify|safe}},
+            correctionReasons: {{correctionReasons|default([], true)|stringify|safe}},
+            correctionReason: '',
+            logsheetNumber: '',
+            photo: '',
         },
-        validations: {},
-        computed: {
+        validations: {
+            correctionReason: {
+                required: window.validators.required
+            },
             
+        },
+        computed: {
+            type: function(){
+                return this.attendance.type
+            }
         },
         methods: {
             formatDate: function(date, format){
@@ -111,6 +147,7 @@
                 if (me.$v.$error) {
                     alert('Please correct the errors to continue.')
                 } else {
+                    me.pending = true
                     me.$nextTick(function() {
                         me.$refs.form.submit();
                     });

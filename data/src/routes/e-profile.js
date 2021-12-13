@@ -22,6 +22,7 @@ const paginator = require('../paginator');
 const suffixes = require('../suffixes');
 const s3 = require('../aws-s3');
 const { AppError } = require('../errors');
+const workScheduler = require('../work-scheduler');
 
 // Router
 let router = express.Router()
@@ -266,57 +267,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             }
         })
 
-        // Work Sched
-        let lists = await db.main.EmployeeList.find({
-            'members': {
-                $elemMatch: {
-                    employmentId: employmentId
-                }
-            }
-        }).lean()
-        let listIds = lists.map(o => o._id)
-        let workSchedules = await db.main.WorkSchedule.find({
-            $or: [
-                {
-                    visibility: ''
-                },
-                {
-                    visibility: {
-                        $exists: false
-                    }
-                },
-                {
-                    'members': {
-                        $elemMatch: {
-                            objectId: employmentId,
-                            type: 'employment'
-                        }
-                    }
-                },
-                {
-                    'members': {
-                        $elemMatch: {
-                            objectId: {
-                                $in: listIds
-                            },
-                            type: 'list'
-                        }
-                    }
-                }
-            ]
-        }).lean()
-
-        workSchedules = workSchedules.map((o) => {
-            let times = []
-            o.timeSegments = o.timeSegments.map((t) => {
-                t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
-                t.end = moment().startOf('day').minutes(t.end).format('hh:mm A')
-                times.push(`${t.start} to ${t.end}`)
-                return t
-            })
-            o.times = times.join(", \n")
-            return o
-        })
+        let workSchedules = await workScheduler.getEmploymentWorkSchedule(db, employmentId)
 
         let workSchedule = workSchedules.find(o => {
             return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
@@ -367,6 +318,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
         next(err);
     }
 });
+
 router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -374,9 +326,19 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
         let employment = res.employment
         let attendanceId = lodash.get(req, 'params.attendanceId')
 
-        if (!lodash.get(res, 'user.settings.editDtr', false)) {
-            throw new Error('Attendance not editable.')
+        // Get pending
+        let attendanceReview = await db.main.AttendanceReview.findOne({
+            attendanceId: attendanceId,
+        }).lean()
+
+        if (attendanceReview) {
+            if (attendanceReview.status === 'pending') {
+                throw new Error('Attendance correction application for this date is still under review.')
+            } else if (attendanceReview.status === 'rejected') {
+                throw new Error('Previous attendance correction application for this date was rejected.')
+            }
         }
+        
 
         // Get attendance
         let attendance = await db.main.Attendance.findOne({
@@ -444,21 +406,31 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
             employment: employment,
             workSchedules: workSchedules,
             attendanceTypes: CONFIG.attendance.types,
-            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal', 'wfh'].includes(o)),
+            correctionReasons: CONFIG.attendance.correctionReasons,
         });
     } catch (err) {
         next(err);
     }
 });
-router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, fileUpload(), middlewares.handleExpressUploadMagic, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employmentId = res.employmentId
         let employment = res.employment
         let attendanceId = lodash.get(req, 'params.attendanceId')
 
-        if (!lodash.get(res, 'user.settings.editDtr', false)) {
-            throw new Error('Attendance not editable.')
+        // Get pending
+        let attendanceReview = await db.main.AttendanceReview.findOne({
+            attendanceId: attendanceId,
+        }).lean()
+
+        if (attendanceReview) {
+            if (attendanceReview.status === 'pending') {
+                throw new Error('Attendance correction application for this date is still under review.')
+            } else if (attendanceReview.status === 'rejected') {
+                throw new Error('Previous attendance correction application for this date was rejected.')
+            }
         }
 
         // Get attendance
@@ -471,31 +443,84 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
             throw new Error('Attendance not found.')
         }
 
-        let body = req.body
-        // return res.send(body)
-        let patch = {}
-        lodash.set(patch, 'type', lodash.get(body, 'type'))
-        lodash.set(patch, 'workScheduleId', lodash.get(body, 'workScheduleId'))
-        lodash.set(patch, 'log0', lodash.get(body, 'log0'))
-        lodash.set(patch, 'log1', lodash.get(body, 'log1'))
-        lodash.set(patch, 'log2', lodash.get(body, 'log2'))
-        lodash.set(patch, 'log3', lodash.get(body, 'log3'))
-        lodash.set(patch, 'comment', lodash.get(body, 'comment'))
+        let saveList = lodash.get(req, 'saveList')
+        let attachments = lodash.get(saveList, 'photo')
+        let body = lodash.get(req, 'body')
 
-        if (patch.type === '') {
-            return res.redirect(`/e-profile/dtr/${employmentId}/attendance/${attendanceId}/edit`)
+
+        // ORIG
+        let orig = JSON.parse(JSON.stringify(attendance))
+        delete orig._id
+
+        // PATCH
+        let patch = JSON.parse(JSON.stringify(attendance))
+        delete patch._id
+
+        patch.attendanceId = attendance._id.toString()
+        patch.attachments = attachments
+        patch.correctionReason = body.correctionReason
+        patch.logsheetNumber = body.logsheetNumber
+        patch.workScheduleId = body.workScheduleId
+        patch.status = 'pending'
+
+        let getMode = (x) => {
+            let mode = 1
+            if (x === 0) {
+                mode = 1
+            } else if (x === 1) {
+                mode = 0
+            } else if (x === 2) {
+                mode = 1
+            } else if (x === 3) {
+                mode = 0
+            }
+            return mode
         }
+
+        // Merge 4 logs
+        for (let x = 0; x < 4; x++) {
+            let origLog = lodash.get(orig, `logs[${x}]`)
+            let patchLog = lodash.get(body, `log${x}`)
+            let newLog = origLog
+            let momentLog = moment(patchLog, 'HH:mm', true) // Turn to moment or null if fails
+            if (momentLog.isValid()) {
+
+                let dateTime = moment(attendance.createdAt).hours(momentLog.hours()).minutes(momentLog.minutes()).toDate()
+                let mode = getMode(x)
+                if (origLog) {
+                    newLog.dateTime = dateTime
+                    newLog.mode = mode
+                } else { // undefined
+                    newLog = {
+                        _id: db.mongoose.Types.ObjectId(),
+                        scannerId: null,
+                        dateTime: dateTime,
+                        mode: mode,
+                        type: 'online',
+
+                    }
+                }
+
+            }
+
+            patch.logs[x] = newLog
+        }
+        // Remove undefined
+        patch.logs = patch.logs.filter(o => o !== undefined)
+        patch = JSON.parse(JSON.stringify(patch))
 
         // return res.send(patch)
+        let merged = lodash.merge(orig, patch)
+        let review = await db.main.AttendanceReview.create(merged)
 
-        let { changeLogs, att } = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
+        // return res.send({
+        //     orig: JSON.parse(JSON.stringify(attendance)),
+        //     patch: patch,
+        //     merged: merged,
+        //     review: review,
+        // })
 
-        // return res.send(att)
-        if (changeLogs.length) {
-            flash.ok(req, 'employee', `${changeLogs.join(' ')}`)
-        } else {
-
-        }
+        flash.ok(req, 'employee', 'Application submitted.')
         res.redirect(`/e-profile/dtr/${employmentId}`)
     } catch (err) {
         next(err);

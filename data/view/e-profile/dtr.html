@@ -433,7 +433,7 @@
                 return ''
             },
             attendanceEditUrl: function(day) {
-                return '/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/' + _.get(day, 'attendance._id') + '/edit';
+                return '/e-profile/dtr/{{employment._id}}/attendance/' + _.get(day, 'attendance._id') + '/edit';
             },
             weekDayCssClasses: function(day){
                 var classes = ['text-center'];

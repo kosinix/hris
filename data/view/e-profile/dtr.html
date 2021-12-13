@@ -174,7 +174,7 @@
                     <th class="text-center" colspan="2">PM</th>
                     <th class="text-center text-capitalize" colspan="3">${showTotalAs}</th>
                 </tr>
-                <tr>
+                <tr class="text-center">
                     <th>Arrival</th>
                     <th>Departure</th>
                     
@@ -197,40 +197,40 @@
                     <td :class="weekDayCssClasses(day)">${day.weekDay}</td>
                     
                     <template v-if="_.get(day, 'attendance.type') === 'normal'">
-                        <td>${showLogTime(_.get(day, 'attendance.logs[0].dateTime'))}</td>
-                        <td>
+                        <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[0].dateTime'))}</td>
+                        <td class="text-center">
                             ${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}
 
                             <div v-if="isTimeOutShown(day)">
                                 <button v-on:click="logTime(0)" class="btn-sm" style="font-size:10px">OUT</button>
                             </div>
                         </td>
-                        <td>
+                        <td class="text-center">
                             ${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}
                             <div v-if="isTimeInShown(day)">
                                 <button v-on:click="logTime(1)" class="btn-sm" style="font-size:10px">IN</button>
                             </div>
                         </td>
-                        <td>${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>
+                        <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>
                     </template>
                     <template v-else>
                         <td colspan="4" class="text-center">
                             ${showLogType(_.get(day, 'attendance.type'))}
                         </td>
                     </template>
-                    <td>
+                    <td class="text-center">
                         ${subTotalDays(day)}
                     </td>
-                    <td>
+                    <td class="text-center">
                         ${subTotalHours(day)}
                     </td>
-                    <td>
+                    <td class="text-center">
                         ${subTotalMinutes(day)}
                     </td>
                 </tr>
                 {# end v-for #}
                 <template v-if="countTimeBy == 'none'">
-                    <tr>
+                    <tr class="text-center">
                         <td colspan="6"><h5 class="m-0">Total</h5></td>
                         <td>
                         </td>
@@ -243,37 +243,37 @@
                 <template v-else>
                     <tr v-if="['weekdays', 'all'].includes(countTimeBy)">
                         <td colspan="6"><h5 class="m-0">Total Weekdays</h5></td>
-                        <td>
+                        <td class="text-center">
                             ${totalDays(stats.weekdays)}
                         </td>
-                        <td>
+                        <td class="text-center">
                             ${totalHours(stats.weekdays)}
                         </td>
-                        <td>
+                        <td class="text-center">
                             ${totalMinutes(stats.weekdays)}
                         </td>
                     </tr>
                     <tr v-if="['weekends', 'all'].includes(countTimeBy)">
                         <td colspan="6"><h5 class="m-0">Total Weekends</h5></td>
-                        <td>
+                        <td class="text-center">
                             ${totalDays(stats.weekends)}
                         </td>
-                        <td>
+                        <td class="text-center">
                             ${totalHours(stats.weekends)}
                         </td>
-                        <td>
+                        <td class="text-center">
                             ${totalMinutes(stats.weekends)}
                         </td>
                     </tr>
                     <tr v-if="countTimeBy=='all'">
                         <td colspan="6"><h5 class="m-0">Total </h5></td>
-                        <td>
+                        <td class="text-center">
                             ${totalDays(stats.days)}
                         </td>
-                        <td>
+                        <td class="text-center">
                             ${totalHours(stats.days)}
                         </td>
-                        <td>
+                        <td class="text-center">
                             ${totalMinutes(stats.days)}
                         </td>
                     </tr>

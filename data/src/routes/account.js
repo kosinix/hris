@@ -20,7 +20,7 @@ let router = express.Router()
 
 router.use('/account', middlewares.requireAuthUser)
 
-router.get('/account', async (req, res, next) => {
+router.get('/account', middlewares.guardRoute(['read_own_account']), async (req, res, next) => {
     try {
         res.redirect('/account/password')
     } catch (err) {
@@ -28,7 +28,7 @@ router.get('/account', async (req, res, next) => {
     }
 })
 
-router.get('/account/password', async (req, res, next) => {
+router.get('/account/password', middlewares.guardRoute(['update_own_password']), async (req, res, next) => {
     try {
         let myAccount = res.user.toObject()
 
@@ -42,7 +42,7 @@ router.get('/account/password', async (req, res, next) => {
         next(err);
     }
 });
-router.post('/account/password', async (req, res, next) => {
+router.post('/account/password', middlewares.guardRoute(['update_own_password']), async (req, res, next) => {
     try {
         let myAccount = res.user.toObject()
 

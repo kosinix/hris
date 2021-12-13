@@ -71,6 +71,10 @@ const ROLES = [
             'read_report',
             'update_report',
             'delete_report',
+
+            // Own account related - admin users
+            'read_own_account',
+            'update_own_password',
         ]
     },
     {
@@ -133,6 +137,9 @@ const ROLES = [
             'read_hdf',
             'update_hdf',
             'delete_hdf',
+            // Own account related - admin users
+            'read_own_account',
+            'update_own_password',
         ]
     },
     {
@@ -145,6 +152,10 @@ const ROLES = [
             'read_all_attendance',
             'read_attendance',
 
+            // Own account related - admin users
+            'read_own_account',
+            'update_own_password',
+
         ]
     },
     {
@@ -156,6 +167,10 @@ const ROLES = [
             // Attendance
             'read_all_attendance',
             'read_attendance',
+
+            // Own account related - admin users
+            'read_own_account',
+            'update_own_password',
 
         ]
     },
@@ -191,6 +206,10 @@ const ROLES = [
             // Reports
             'read_all_report',
             'read_report',
+
+            // Own account related - admin users
+            'read_own_account',
+            'update_own_password',
         ]
     },
 ]

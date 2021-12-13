@@ -21,6 +21,9 @@
     {% if user.roles and user.roles.includes('employee') %}
         {% include 'parts/sidebar-employee.html' %}
         
+    {% elif user.roles and user.roles.includes('checker') %}
+        {% include 'parts/sidebar-scanner.html' %}
+
     {% elif user.roles and user.roles.includes('president') %}
         {% include 'parts/sidebar-president.html' %}
 

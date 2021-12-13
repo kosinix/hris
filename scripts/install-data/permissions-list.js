@@ -109,4 +109,8 @@ module.exports = [
     'update_security',
     'delete_security',
 
+    // Own account related - admin users
+    'read_own_account',
+    'update_own_password',
+
 ]

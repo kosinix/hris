@@ -67,6 +67,13 @@ module.exports = [
     'update_hdf',
     'delete_hdf',
 
+    // Reports
+    'read_all_report',
+    'create_report',
+    'read_report',
+    'update_report',
+    'delete_report',
+
     // Per campuses
     'main',
     'mosqueda',

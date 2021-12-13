@@ -64,6 +64,13 @@ const ROLES = [
             'read_memo',
             'update_memo',
             'delete_memo',
+
+            // Reports
+            'read_all_report',
+            'create_report',
+            'read_report',
+            'update_report',
+            'delete_report',
         ]
     },
     {
@@ -181,6 +188,9 @@ const ROLES = [
             'read_all_schedule',
             'read_schedule',
 
+            // Reports
+            'read_all_report',
+            'read_report',
         ]
     },
 ]

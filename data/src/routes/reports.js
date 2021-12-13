@@ -15,9 +15,8 @@ const middlewares = require('../middlewares');
 let router = express.Router()
 
 router.use('/reports', middlewares.requireAuthUser)
-// router.use('/reports', middlewares.guardRoute(['read_all_admin', 'create_admin', 'read_admin', 'update_admin', 'delete_admin']))
 
-router.get('/reports/all', async (req, res, next) => {
+router.get('/reports/all', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
 
         res.render('reports/all.html', {
@@ -29,7 +28,7 @@ router.get('/reports/all', async (req, res, next) => {
 });
 
 
-router.get('/reports/attendance/incomplete', async (req, res, next) => {
+router.get('/reports/attendance/incomplete', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
 
         let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
@@ -113,7 +112,7 @@ router.get('/reports/attendance/incomplete', async (req, res, next) => {
     }
 });
 
-router.get('/reports/attendance/complete', async (req, res, next) => {
+router.get('/reports/attendance/complete', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
 
         let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
@@ -207,14 +206,14 @@ router.get('/reports/attendance/complete', async (req, res, next) => {
 });
 
 // RSP
-router.get('/reports/rsp/all', async (req, res, next) => {
+router.get('/reports/rsp/all', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
         res.render('reports/rsp/all.html');
     } catch (err) {
         next(err);
     }
 });
-router.get('/reports/rsp/gender', async (req, res, next) => {
+router.get('/reports/rsp/gender', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
 
         let generate = (total, males, females) => {
@@ -305,14 +304,14 @@ router.get('/reports/rsp/gender', async (req, res, next) => {
 });
 
 // PM
-router.get('/reports/pm/all', async (req, res, next) => {
+router.get('/reports/pm/all', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
         res.render('reports/pm/all.html');
     } catch (err) {
         next(err);
     }
 });
-router.get('/reports/pm/non-party', async (req, res, next) => {
+router.get('/reports/pm/non-party', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
 
         let employees = await db.main.Employee.aggregate([
@@ -380,14 +379,14 @@ router.get('/reports/pm/non-party', async (req, res, next) => {
 });
 
 // RAR
-router.get('/reports/rar/all', async (req, res, next) => {
+router.get('/reports/rar/all', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
         res.render('reports/rar/all.html');
     } catch (err) {
         next(err);
     }
 });
-router.get('/reports/rar/early', async (req, res, next) => {
+router.get('/reports/rar/early', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
 
         let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))

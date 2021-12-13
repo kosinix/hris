@@ -14,6 +14,7 @@ const db = require('../db');
 const dtrHelper = require('../dtr-helper');
 const middlewares = require('../middlewares');
 const payrollCalc = require('../payroll-calc');
+const workScheduler = require('../work-scheduler');
 
 
 // Router
@@ -742,4 +743,211 @@ router.get('/attendance/schedule/:scheduleId/members/:memberId/delete', middlewa
         next(err);
     }
 });
+
+// Attendance Review
+router.get('/attendance/review/all', middlewares.guardRoute(['read_all_attendance', 'update_attendance']), async (req, res, next) => {
+    try {
+
+        let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+
+        let startMoment = moment(start).startOf('day')
+        let endMoment = moment(end).endOf('day')
+
+        if (!startMoment.isValid()) {
+            throw new Error(`Invalid start date.`)
+        }
+        if (!endMoment.isValid()) {
+            throw new Error(`Invalid end date.`)
+        }
+
+        if (endMoment.isBefore(startMoment)) {
+            throw new Error(`Invalid end date. Must not be less than the start date.`)
+        }
+
+        let aggr = [
+            {
+                $match: {
+                    status: 'pending'
+                }
+            },
+            {
+                $lookup: {
+                    localField: 'attendanceId',
+                    foreignField: '_id',
+                    from: 'attendances',
+                    as: 'attendances'
+                }
+            },
+            {
+                $addFields: {
+                    "attendance": {
+                        $arrayElemAt: ["$attendances", 0]
+                    }
+                }
+            },
+            {
+                $project: {
+                    attendances: 0,
+                }
+            },
+            {
+                $lookup: {
+                    localField: 'workScheduleId',
+                    foreignField: '_id',
+                    from: 'workschedules',
+                    as: 'workSchedules'
+                }
+            },
+            {
+                $addFields: {
+                    "workSchedule": {
+                        $arrayElemAt: ["$workSchedules", 0]
+                    }
+                }
+            },
+            {
+                $project: {
+                    workSchedules: 0,
+                }
+            },
+            {
+                $lookup: {
+                    localField: 'employeeId',
+                    foreignField: '_id',
+                    from: 'employees',
+                    as: 'employees'
+                }
+            },
+            {
+                $addFields: {
+                    "employee": {
+                        $arrayElemAt: ["$employees", 0]
+                    }
+                }
+            },
+            {
+                $project: {
+                    employees: 0,
+                }
+            },
+            {
+                $lookup: {
+                    localField: 'employmentId',
+                    foreignField: '_id',
+                    from: 'employments',
+                    as: 'employments'
+                }
+            },
+            {
+                $addFields: {
+                    "employment": {
+                        $arrayElemAt: ["$employments", 0]
+                    }
+                }
+            },
+            {
+                $project: {
+                    employments: 0,
+                }
+            }
+        ]
+        let attendanceReviews = await db.main.AttendanceReview.aggregate(aggr)
+        let attendanceReview = attendanceReviews[0]
+
+        let workSchedules = await db.main.WorkSchedule.find()
+        let workSchedule1 = workSchedules.find(o => {
+            return lodash.invoke(o, '_id.toString') === lodash.invoke(attendanceReview, 'employment.workScheduleId.toString')
+        })
+        let workSchedule2 = workSchedules.find(o => {
+            return lodash.invoke(o, '_id.toString') === lodash.invoke(attendanceReview, 'workScheduleId.toString')
+        })
+
+        let data = {
+            flash: flash.get(req, 'attendance'),
+            attendanceReviews: attendanceReviews,
+            attendanceReview: attendanceReview,
+            workSchedule1: workSchedule1,
+            workSchedule2: workSchedule2,
+        }
+        // return res.send(data)
+        res.render('attendance/review.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_attendance']), async (req, res, next) => {
+    try {
+        let user = res.user
+        let reviewId = lodash.get(req, 'params.reviewId')
+        let attendanceReview = await db.main.AttendanceReview.findById(reviewId).lean()
+        let attendance = null
+        if (attendanceReview) {
+            attendance = await db.main.Attendance.findById(attendanceReview.attendanceId).lean()
+        }
+        if (attendance) {
+
+        }
+
+        let action = lodash.get(req, 'body.action')
+        if (action == 'reject') {
+            await db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, { status: 'rejected' })
+            attendance.changes.push({
+                summary: `${user.username} rejected review #${attendanceReview._id}.`,
+                objectId: user._id,
+                createdAt: moment().toDate()
+            })
+            await db.main.Attendance.updateOne({ _id: attendance._id }, { changes: attendance.changes })
+        } else if (action == 'approve') {
+            let patch = {}
+            lodash.set(patch, 'type', lodash.get(attendanceReview, 'type'))
+            lodash.set(patch, 'workScheduleId', lodash.get(attendanceReview, 'workScheduleId'))
+
+            let log0 = lodash.get(attendanceReview, 'logs[0].dateTime')
+            let log1 = lodash.get(attendanceReview, 'logs[1].dateTime')
+            let log2 = lodash.get(attendanceReview, 'logs[2].dateTime')
+            let log3 = lodash.get(attendanceReview, 'logs[3].dateTime')
+
+            if (patch.type === '') {
+                return res.redirect(`/attendance/review/all`)
+            }
+
+            if (log0) {
+                lodash.set(patch, 'log0', moment(log0).format('HH:mm'))
+            }
+            if (log1) {
+                lodash.set(patch, 'log1', moment(log1).format('HH:mm'))
+            }
+            if (log2) {
+                lodash.set(patch, 'log2', moment(log2).format('HH:mm'))
+            }
+            if (log3) {
+                lodash.set(patch, 'log3', moment(log3).format('HH:mm'))
+            }
+
+            let { changeLogs, att } = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
+            console.log(changeLogs)
+
+            await db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, { status: 'approved' })
+
+            attendance.changes.push({
+                summary: `${user.username} approved review #${attendanceReview._id}.`,
+                objectId: user._id,
+                createdAt: moment().toDate()
+            })
+            await db.main.Attendance.updateOne({ _id: attendance._id }, { changes: attendance.changes })
+
+        }
+        let data = {
+            attendanceReview: attendanceReview,
+            attendance: attendance,
+        }
+
+        flash.ok(req, 'attendance', 'Done.')
+        return res.redirect('/attendance/review/all')
+    } catch (err) {
+        next(err);
+    }
+});
+
 module.exports = router;

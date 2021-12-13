@@ -21,9 +21,6 @@
             {{employee.lastName}},
             {{employee.firstName}}
         </h1>
-        <h2 class="h5 mb-4">
-            {{attendance.createdAt|format_date('MMM DD, YYYY - dddd')}}
-        </h2>
 
         <div class="alert alert-warning">Warning: Manual adding of time must be supported by a log sheet or other supporting documents.</div>
         <form id="vApp" v-cloak ref="form" v-on:submit.prevent="onSubmit" action="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/create" method="POST" class="form-default">

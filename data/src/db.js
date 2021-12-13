@@ -24,6 +24,7 @@ main.on('disconnected', () => {
 
 main.Address = main.model('Address', require('./models/address'));
 main.Attendance = main.model('Attendance', require('./models/attendance'));
+main.AttendanceReview = main.model('AttendanceReview', require('./models/attendance-review'));
 main.App = main.model('App', require('./models/app'));
 main.Application = main.model('Application', require('./models/application'));
 main.Employee = main.model('Employee', require('./models/employee'));

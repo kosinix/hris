@@ -74,7 +74,7 @@
   "minPasswordLength": 8,
   "minSaltLength": 8,
   "attendance": {
-    "types":[
+    "types": [
       {
         "name": "Normal",
         "value": "normal"
@@ -94,6 +94,24 @@
       {
         "name": "Pass Slip",
         "value": "pass"
+      }
+    ],
+    "correctionReasons": [
+      {
+        "name": "Scanner has no internet.",
+        "value": "Scanner has no internet."
+      },
+      {
+        "name": "Scanner did not register my log.",
+        "value": "Scanner did not register my log."
+      },
+      {
+        "name": "I forgot to log.",
+        "value": "I forgot to log."
+      },
+      {
+        "name": "I don't have my ID.",
+        "value": "I don't have my ID."
       }
     ]
   },

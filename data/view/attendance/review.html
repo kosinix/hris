@@ -18,94 +18,26 @@
     {% if attendanceReviews.length <= 0 %}
         <p>None found.</p>
     {% else %}
-        {% set review = attendanceReviews[0] %}
-        {% set attendance = review.attendance %}
-        <form action="/attendance/review/{{review._id}}" method="POST">
-            <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
-                <h2>{{review.employee.lastName}}, {{review.employee.firstName}}</h2>
-                <p>{{attendance.createdAt|format_date('ddd - MMM DD, YYYY')}}</p>
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>Attendance Type</th>
-                                <th>In</th>
-                                <th>Out</th>
-                                <th>In</th>
-                                <th>Out</th>
-                                <th>Schedule</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="text-success">
-                                <td>Current Logs</td>
-                                <td>{{attendance.type}}</td>
-                                <td>
-                                    {% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}
-                                </td>
-                                <td>
-                                    {% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}
-                                </td>
-                                <td>
-                                    {% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}
-                                </td>
-                                <td>
-                                    {% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}
-                                </td>
-                                <td>
-                                    {{workSchedule1.name}}
-
-                                </td>
-                            </tr>
-                            <tr class="text-info">
-                                <td>Pending Changes</td>
-                                <td>{{review.type}}</td>
-                                <td>
-                                    {% if review.logs[0].dateTime %} {{review.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}
-                                </td>
-                                <td>
-                                    {% if review.logs[1].dateTime %} {{review.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}
-                                </td>
-                                <td>
-                                    {% if review.logs[2].dateTime %} {{review.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}
-                                </td>
-                                <td>
-                                    {% if review.logs[3].dateTime %} {{review.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}
-                                </td>
-                                <td>
-                                    {{workSchedule2.name}}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <p>Reason: {{review.correctionReason}}</p>
-                <p>Logsheet #: {{review.logsheetNumber}}</p>
-                {% if review.attachments.length > 0 %}
-                    <p>Logsheet: </p>
-                    <div class="text-center p-3">
-                        <img src="{{review.attachments[0]|s3_url}}" class="img-fluid">
-                    </div>
-                {% else %}
-                    <p>Logsheet: No photo</p>
-                {% endif %}
-
-                <div class="form-row">
-                    <div class="col-md-6 text-left">
-                        <button class="btn btn-sm btn-danger" name="action" value="reject">Reject</button>
-                        <select name="rejectReason" id="rejectReason">
-                            <option>No log sheet data.</option>
-                            <option>Unreadable log sheet data.</option>
-                            <option>Others.</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 text-right">
-                        <button class="btn btn-sm btn-success" name="action" value="approve">Approve</button>
-                    </div>
-                </div>
-            </div>
-        </form>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <tr>
+                    <th></th>
+                    <th>Name</th>
+                    <th>Date</th>
+                    <th></th>
+                </tr>
+                {% for attendanceReview in attendanceReviews%}
+                {% set review = attendanceReview %}
+                {% set attendance = review.attendance %}
+                <tr>
+                    <td>{{loop.index}}</td>
+                    <td>{{review.employee.lastName}}, {{review.employee.firstName}}</td>
+                    <td>{{attendance.createdAt|format_date('ddd - MMM DD, YYYY')}} - {{review.status}}</td>
+                    <td><a href="/attendance/review/{{review._id}}">Review</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
     {% endif %}
 </div>
 {% endblock %}

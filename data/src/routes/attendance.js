@@ -876,6 +876,46 @@ router.get('/attendance/review/all', middlewares.guardRoute(['read_all_attendanc
         next(err);
     }
 });
+router.get('/attendance/review/:reviewId', middlewares.guardRoute(['update_attendance']), async (req, res, next) => {
+    try {
+        let user = res.user
+        let reviewId = lodash.get(req, 'params.reviewId')
+        let attendanceReview = await db.main.AttendanceReview.findById(reviewId).lean()
+        if (!attendanceReview) {
+            throw new Error('Not found.')
+        }
+        let attendance = null
+        let employee = null
+        if (attendanceReview) {
+            attendance = await db.main.Attendance.findById(attendanceReview.attendanceId).lean()
+            employee = await db.main.Employee.findById(attendanceReview.employeeId).lean()
+        }
+        if (attendance) {
+
+        }
+
+        let workSchedules = await db.main.WorkSchedule.find()
+        let workSchedule1 = workSchedules.find(o => {
+            return lodash.invoke(o, '_id.toString') === lodash.invoke(attendance, 'workScheduleId.toString')
+        })
+        let workSchedule2 = workSchedules.find(o => {
+            return lodash.invoke(o, '_id.toString') === lodash.invoke(attendanceReview, 'workScheduleId.toString')
+        })
+
+        let data = {
+            flash: flash.get(req, 'attendance'),
+            attendanceReview: attendanceReview,
+            employee: employee,
+            attendance: attendance,
+            workSchedule1: workSchedule1,
+            workSchedule2: workSchedule2,
+        }
+        // return res.send(data)
+        res.render('attendance/review-read.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
 router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_attendance']), async (req, res, next) => {
     try {
         let user = res.user

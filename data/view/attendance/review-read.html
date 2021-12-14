@@ -1,0 +1,104 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">Attendance Corrections Review</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                {# <a href="/attendance/schedule/create" class="btn btn-sm btn-outline-primary">Create Schedule</a> #}
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    <form action="/attendance/review/{{attendanceReview._id}}" method="POST">
+        <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+            <h2>{{employee.lastName}}, {{employee.firstName}}</h2>
+            <p>{{attendance.createdAt|format_date('ddd - MMM DD, YYYY')}}</p>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Attendance Type</th>
+                            <th>In</th>
+                            <th>Out</th>
+                            <th>In</th>
+                            <th>Out</th>
+                            <th>Schedule</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="text-success">
+                            <td>Current Logs</td>
+                            <td>{{attendance.type}}</td>
+                            <td>
+                                {% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}
+                            </td>
+                            <td>
+                                {% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}
+                            </td>
+                            <td>
+                                {% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}
+                            </td>
+                            <td>
+                                {% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}
+                            </td>
+                            <td>
+                                {{workSchedule1.name}}
+
+                            </td>
+                        </tr>
+                        <tr class="text-info">
+                            <td>Pending Changes</td>
+                            <td>{{attendanceReview.type}}</td>
+                            <td>
+                                {% if attendanceReview.logs[0].dateTime %} {{attendanceReview.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}
+                            </td>
+                            <td>
+                                {% if attendanceReview.logs[1].dateTime %} {{attendanceReview.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}
+                            </td>
+                            <td>
+                                {% if attendanceReview.logs[2].dateTime %} {{attendanceReview.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}
+                            </td>
+                            <td>
+                                {% if attendanceReview.logs[3].dateTime %} {{attendanceReview.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}
+                            </td>
+                            <td>
+                                {{workSchedule2.name}}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>Reason: {{attendanceReview.correctionReason}}</p>
+            <p>Logsheet #: {{attendanceReview.logsheetNumber}}</p>
+            {% if attendanceReview.attachments.length > 0 %}
+                <p>Logsheet: </p>
+                <div class="text-center p-3">
+                    <img src="{{attendanceReview.attachments[0]|s3_url}}" class="img-fluid">
+                </div>
+            {% else %}
+                <p>Logsheet: No photo</p>
+            {% endif %}
+
+            <div class="form-row">
+                <div class="col-md-6 text-left">
+                    <button class="btn btn-sm btn-danger" name="action" value="reject">Reject</button>
+                    <select name="rejectReason" id="rejectReason">
+                        <option>No log sheet data.</option>
+                        <option>Unreadable log sheet data.</option>
+                        <option>Others.</option>
+                    </select>
+                </div>
+                <div class="col-md-6 text-right">
+                    <button class="btn btn-sm btn-success" name="action" value="approve">Approve</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

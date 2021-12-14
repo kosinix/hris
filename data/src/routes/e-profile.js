@@ -335,7 +335,7 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
             if (attendanceReview.status === 'pending') {
                 throw new Error('Attendance correction application for this date is still under review.')
             } else if (attendanceReview.status === 'rejected') {
-                throw new Error('Previous attendance correction application for this date was rejected.')
+                // throw new Error('Previous attendance correction application for this date was rejected.')
             }
         }
         
@@ -429,7 +429,7 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
             if (attendanceReview.status === 'pending') {
                 throw new Error('Attendance correction application for this date is still under review.')
             } else if (attendanceReview.status === 'rejected') {
-                throw new Error('Previous attendance correction application for this date was rejected.')
+                // throw new Error('Previous attendance correction application for this date was rejected.')
             }
         }
 

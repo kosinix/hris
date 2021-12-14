@@ -903,7 +903,7 @@ router.get('/attendance/review/:reviewId', middlewares.guardRoute(['update_atten
         })
 
         let fileType = 'image'
-        if(attendanceReview.attachments[0].includes('pdf')){
+        if(lodash.get(attendanceReview, 'attachments[0]', '').includes('pdf')){
             fileType = 'pdf'
         }
         

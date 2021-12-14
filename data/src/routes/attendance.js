@@ -902,6 +902,11 @@ router.get('/attendance/review/:reviewId', middlewares.guardRoute(['update_atten
             return lodash.invoke(o, '_id.toString') === lodash.invoke(attendanceReview, 'workScheduleId.toString')
         })
 
+        let fileType = 'image'
+        if(attendanceReview.attachments[0].includes('pdf')){
+            fileType = 'pdf'
+        }
+        
         let data = {
             flash: flash.get(req, 'attendance'),
             attendanceReview: attendanceReview,
@@ -909,7 +914,10 @@ router.get('/attendance/review/:reviewId', middlewares.guardRoute(['update_atten
             attendance: attendance,
             workSchedule1: workSchedule1,
             workSchedule2: workSchedule2,
+            fileType: fileType,
         }
+
+
         // return res.send(data)
         res.render('attendance/review-read.html', data);
     } catch (err) {

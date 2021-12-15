@@ -83,13 +83,13 @@
                     </select>
                     <small class="invalid-feedback">${getError('correctionReason')}</small>
                 </div>
-                <div class="form-group">
+                <div class="form-group" v-if="attendance.type === 'normal'">
                     <label for="logsheetNumber" class="font-weight-bold">Your Number on the Log Sheet</label>
                     <input type="number" v-model="logsheetNumber" name="logsheetNumber" id="logsheetNumber" class="form-control">
                     <small class="invalid-feedback">${getError('logsheetNumber')}</small>
                 </div>
                <div class="form-group">
-                    <label for="photo" class="font-weight-bold">Upload Log Sheet Photo</label>
+                    <label for="photo" class="font-weight-bold">Upload Travel Document</label>
                     <div>
                         <input name="photo" id="photo" ref="filePhoto" type="file" class="form-control">
                     </div>

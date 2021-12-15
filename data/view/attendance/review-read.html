@@ -76,7 +76,7 @@
             <p>Reason: {{attendanceReview.correctionReason}}</p>
             <p>Logsheet #: {{attendanceReview.logsheetNumber}}</p>
             {% if attendanceReview.attachments.length > 0 %}
-                <p>Logsheet: </p>
+                <p>Attachments: </p>
                 <div class="text-center p-3">
                     {% if fileType == 'pdf' %}
                         <a href="{{attendanceReview.attachments[0]|s3_url}}">View PDF</a>
@@ -85,7 +85,7 @@
                     {% endif %}
                 </div>
             {% else %}
-                <p>Logsheet: No photo</p>
+                <p>Attachments: None</p>
             {% endif %}
 
             <div class="form-row">

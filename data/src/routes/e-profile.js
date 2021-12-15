@@ -458,6 +458,7 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
 
         patch.attendanceId = attendance._id.toString()
         patch.attachments = attachments
+        patch.type = body.type
         patch.correctionReason = body.correctionReason
         patch.logsheetNumber = body.logsheetNumber
         patch.workScheduleId = body.workScheduleId

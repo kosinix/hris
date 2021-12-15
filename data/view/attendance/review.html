@@ -31,7 +31,7 @@
                 {% set attendance = review.attendance %}
                 <tr>
                     <td>{{loop.index}}</td>
-                    <td>{{review.employee.lastName}}, {{review.employee.firstName}}</td>
+                    <td><a href="/attendance/review/{{review._id}}">{{review.employee.lastName}}, {{review.employee.firstName}}</a></td>
                     <td>{{attendance.createdAt|format_date('ddd - MMM DD, YYYY')}} - {{review.status}}</td>
                     <td><a href="/attendance/review/{{review._id}}">Review</a></td>
                 </tr>

@@ -988,8 +988,11 @@ router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_atte
                 lodash.set(patch, 'log3', moment(log3).format('HH:mm'))
             }
 
-            let { changeLogs, att } = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
-            // console.log(changeLogs)
+            let r = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
+            // console.log(r.changeLogs, r.attendance)
+            if(r.attendance){
+                attendance = r.attendance
+            }
 
             await db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, { 
                 status: 'approved',

@@ -96,7 +96,7 @@
                     <small class="invalid-feedback">${getError('logsheetNumber')}</small>
                 </div>
                <div class="form-group">
-                    <label for="photo" class="font-weight-bold">Upload Travel Document</label>
+                    <label for="photo" class="font-weight-bold">Upload ${attachmentLabel} </label>
                     <div>
                         <input name="photo" id="photo" ref="filePhoto" type="file" class="form-control">
                     </div>
@@ -142,6 +142,12 @@
         computed: {
             type: function(){
                 return this.attendance.type
+            },
+            attachmentLabel: function(){
+                if(this.type === 'normal'){
+                    return 'Log Sheet Photo'
+                } 
+                return 'Attachment'
             }
         },
         methods: {

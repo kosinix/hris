@@ -673,7 +673,6 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
         let message = `${user.username} changed attendance type from ${attendance.type} to ${attendancePatch.type}.`
         changeLogs.push(message)
         attendance.type = attendancePatch.type
-        attendance.logs = []
         attendance.changes.push({
             summary: message,
             objectId: user._id,

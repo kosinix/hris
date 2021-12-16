@@ -24,6 +24,7 @@
                     <th></th>
                     <th>Name</th>
                     <th>Date</th>
+                    <th>Status</th>
                     <th></th>
                 </tr>
                 {% for attendanceReview in attendanceReviews%}
@@ -32,7 +33,8 @@
                 <tr>
                     <td>{{loop.index}}</td>
                     <td><a href="/attendance/review/{{review._id}}">{{review.employee.lastName}}, {{review.employee.firstName}}</a></td>
-                    <td>{{attendance.createdAt|format_date('ddd - MMM DD, YYYY')}} - {{review.status}}</td>
+                    <td>{{attendance.createdAt|format_date('ddd - MMM DD, YYYY')}}</td>
+                    <td>{{review.status}}</td>
                     <td><a href="/attendance/review/{{review._id}}">Review</a></td>
                 </tr>
                 {% endfor %}

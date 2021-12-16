@@ -886,12 +886,20 @@ router.get('/attendance/review/:reviewId', middlewares.guardRoute(['update_atten
         }
         let attendance = null
         let employee = null
+        let employment = null
         if (attendanceReview) {
             attendance = await db.main.Attendance.findById(attendanceReview.attendanceId).lean()
             employee = await db.main.Employee.findById(attendanceReview.employeeId).lean()
+            employment = await db.main.Employment.findById(attendanceReview.employmentId).lean()
         }
-        if (attendance) {
-
+        if (!attendance) {
+            throw new Error('Attendance not found.')
+        }
+        if (!employee) {
+            throw new Error('Employee not found.')
+        }
+        if (!employment) {
+            throw new Error('Employment not found.')
         }
 
         let workSchedules = await db.main.WorkSchedule.find()
@@ -911,6 +919,7 @@ router.get('/attendance/review/:reviewId', middlewares.guardRoute(['update_atten
             flash: flash.get(req, 'attendance'),
             attendanceReview: attendanceReview,
             employee: employee,
+            employment: employment,
             attendance: attendance,
             workSchedule1: workSchedule1,
             workSchedule2: workSchedule2,
@@ -939,13 +948,19 @@ router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_atte
 
         let action = lodash.get(req, 'body.action')
         if (action == 'reject') {
-            await db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, { status: 'rejected' })
+            await db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, { 
+                status: 'rejected',
+                denyReason: lodash.get(req, 'body.denyReason'),
+            })
             attendance.changes.push({
                 summary: `${user.username} rejected review #${attendanceReview._id}.`,
                 objectId: user._id,
                 createdAt: moment().toDate()
             })
             await db.main.Attendance.updateOne({ _id: attendance._id }, { changes: attendance.changes })
+
+            flash.ok(req, 'attendance', 'Application denied.')
+
         } else if (action == 'approve') {
             let patch = {}
             lodash.set(patch, 'type', lodash.get(attendanceReview, 'type'))
@@ -974,9 +989,11 @@ router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_atte
             }
 
             let { changeLogs, att } = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
-            console.log(changeLogs)
+            // console.log(changeLogs)
 
-            await db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, { status: 'approved' })
+            await db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, { 
+                status: 'approved',
+            })
 
             attendance.changes.push({
                 summary: `${user.username} approved review #${attendanceReview._id}.`,
@@ -985,13 +1002,13 @@ router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_atte
             })
             await db.main.Attendance.updateOne({ _id: attendance._id }, { changes: attendance.changes })
 
+            flash.ok(req, 'attendance', 'Application approved.')
+
         }
         let data = {
             attendanceReview: attendanceReview,
             attendance: attendance,
         }
-
-        flash.ok(req, 'attendance', 'Done.')
         return res.redirect('/attendance/review/all')
     } catch (err) {
         next(err);

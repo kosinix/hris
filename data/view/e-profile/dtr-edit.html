@@ -14,6 +14,13 @@
     </div>
     <div class=" mb-5">
         {% include 'parts/flash.html' %}
+
+        {% if attendanceDenied %}
+            <div class="alert alert-warning">
+                Previous application was denied: <strong>{{attendanceDenied.denyReason}}</strong>
+            </div>
+        {% endif %}
+
         <div id="vApp" v-cloak v-bind:data-pending="pending" class="ml-auto mr-auto" >
             <div class="text-center">
                 <h4 class="h3 mb-3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>

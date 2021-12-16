@@ -329,16 +329,21 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
         // Get pending
         let attendanceReview = await db.main.AttendanceReview.findOne({
             attendanceId: attendanceId,
+            status: 'pending'
         }).lean()
 
         if (attendanceReview) {
-            if (attendanceReview.status === 'pending') {
-                throw new Error('Attendance correction application for this date is still under review.')
-            } else if (attendanceReview.status === 'rejected') {
-                // throw new Error('Previous attendance correction application for this date was rejected.')
-            }
+            throw new Error('Attendance correction application for this date is still under review.')
         }
+
+        // Get rejected
+        let attendanceDenied = await db.main.AttendanceReview.findOne({
+            attendanceId: attendanceId,
+            status: 'rejected'
+        }).sort({_id:-1}).lean()
+
         
+
 
         // Get attendance
         let attendance = await db.main.Attendance.findOne({
@@ -408,6 +413,7 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
             attendanceTypes: CONFIG.attendance.types,
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal', 'wfh'].includes(o)),
             correctionReasons: CONFIG.attendance.correctionReasons,
+            attendanceDenied: attendanceDenied,
         });
     } catch (err) {
         next(err);
@@ -423,14 +429,11 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
         // Get pending
         let attendanceReview = await db.main.AttendanceReview.findOne({
             attendanceId: attendanceId,
+            status: 'pending'
         }).lean()
 
         if (attendanceReview) {
-            if (attendanceReview.status === 'pending') {
-                throw new Error('Attendance correction application for this date is still under review.')
-            } else if (attendanceReview.status === 'rejected') {
-                // throw new Error('Previous attendance correction application for this date was rejected.')
-            }
+            throw new Error('Attendance correction application for this date is still under review.')
         }
 
         // Get attendance

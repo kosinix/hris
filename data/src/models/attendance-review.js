@@ -36,6 +36,7 @@ let schema = mongoose.Schema({
     ],
     status: String,
     correctionReason: String,
+    denyReason: String,
     logsheetNumber: Number,
     attachments: [],
     comment: String

@@ -13,96 +13,172 @@
         </div>
     </div>
     {% include 'parts/flash.html' %}
-    <form action="/attendance/review/{{attendanceReview._id}}" method="POST">
-        <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
-            <h2>{{employee.lastName}}, {{employee.firstName}}</h2>
-            <p>{{attendance.createdAt|format_date('ddd - MMM DD, YYYY')}}</p>
-            <div class="table-responsive">
-                <table class="table table-sm table-striped">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Attendance Type</th>
-                            <th>In</th>
-                            <th>Out</th>
-                            <th>In</th>
-                            <th>Out</th>
-                            <th>Schedule</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="text-success">
-                            <td>Current Logs</td>
-                            <td>{{attendance.type}}</td>
-                            <td>
-                                {% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}
-                            </td>
-                            <td>
-                                {% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}
-                            </td>
-                            <td>
-                                {% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}
-                            </td>
-                            <td>
-                                {% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}
-                            </td>
-                            <td>
-                                {{workSchedule1.name}}
+    <div id="vApp" v-cloak v-bind:data-pending="pending">
+        <form action="/attendance/review/{{attendanceReview._id}}" method="POST">
+            <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+                <h2><u>{{employee.firstName}}</u> <u>{{employee.middleName}}</u> <u>{{employee.lastName}}</u> <u>{{employee.suffix}}</u></h2>
+                <p>{{employment.position}} - <em>{{employment.campus|capitalize}}</em></p>
+                <p>{{attendance.createdAt|format_date('ddd - MMM DD, YYYY')}}</p>
+                
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Attendance Type</th>
+                                <th>In</th>
+                                <th>Out</th>
+                                <th>In</th>
+                                <th>Out</th>
+                                <th>Schedule</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="text-success">
+                                <td>Current Logs</td>
+                                <td>{{attendance.type}}</td>
+                                <td>
+                                    {% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}
+                                </td>
+                                <td>
+                                    {% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}
+                                </td>
+                                <td>
+                                    {% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}
+                                </td>
+                                <td>
+                                    {% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}
+                                </td>
+                                <td>
+                                    {{workSchedule1.name}}
 
-                            </td>
-                        </tr>
-                        <tr class="text-info">
-                            <td>Pending Changes</td>
-                            <td>{{attendanceReview.type}}</td>
-                            <td>
-                                {% if attendanceReview.logs[0].dateTime %} {{attendanceReview.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}
-                            </td>
-                            <td>
-                                {% if attendanceReview.logs[1].dateTime %} {{attendanceReview.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}
-                            </td>
-                            <td>
-                                {% if attendanceReview.logs[2].dateTime %} {{attendanceReview.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}
-                            </td>
-                            <td>
-                                {% if attendanceReview.logs[3].dateTime %} {{attendanceReview.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}
-                            </td>
-                            <td>
-                                {{workSchedule2.name}}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <p>Reason: {{attendanceReview.correctionReason}}</p>
-            <p>Logsheet #: {{attendanceReview.logsheetNumber}}</p>
-            {% if attendanceReview.attachments.length > 0 %}
-                <p>Attachments: </p>
-                <div class="text-center p-3">
-                    {% if fileType == 'pdf' %}
-                        <a href="{{attendanceReview.attachments[0]|s3_url}}">View PDF</a>
-                    {% else %}
-                        <img src="{{attendanceReview.attachments[0]|s3_url}}" class="img-fluid">
-                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr class="text-info">
+                                <td>Pending Changes</td>
+                                <td>{{attendanceReview.type}}</td>
+                                <td>
+                                    {% if attendanceReview.logs[0].dateTime %} {{attendanceReview.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}
+                                </td>
+                                <td>
+                                    {% if attendanceReview.logs[1].dateTime %} {{attendanceReview.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}
+                                </td>
+                                <td>
+                                    {% if attendanceReview.logs[2].dateTime %} {{attendanceReview.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}
+                                </td>
+                                <td>
+                                    {% if attendanceReview.logs[3].dateTime %} {{attendanceReview.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}
+                                </td>
+                                <td>
+                                    {{workSchedule2.name}}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            {% else %}
-                <p>Attachments: None</p>
-            {% endif %}
+                <p>Reason: {{attendanceReview.correctionReason}}</p>
+                <p>Logsheet #: {{attendanceReview.logsheetNumber}}</p>
+                
+                
+                {% if attendanceReview.attachments.length > 0 %}
+                    <p>Attachments: </p>
+                    <div class="text-center p-3" style="overflow-x: hidden">
+                        {% if fileType == 'pdf' %}
+                            <a href="{{attendanceReview.attachments[0]|s3_url}}">View PDF</a>
+                        {% else %}
+                            
+                            
+                            <img v-bind:style="rotationCss" src="{{attendanceReview.attachments[0]|s3_url}}" class="img-fluid">
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <p>Attachments: None</p>
+                {% endif %}
 
-            <div class="form-row">
-                <div class="col-md-6 text-left">
-                    <button class="btn btn-sm btn-danger" name="action" value="reject">Reject</button>
-                    <select name="rejectReason" id="rejectReason">
-                        <option>No log sheet data.</option>
-                        <option>Unreadable log sheet data.</option>
-                        <option>Others.</option>
-                    </select>
+                {% if attendanceReview.status === 'pending' %}
+                <div class="d-flex justify-content-center mb-3 mt-3">
+                    <div class="btn-toolbar mb-2 mb-md-0 mr-5">
+                        <div class="btn-group mr-2">
+                            <div class="input-group">
+                                <select v-model="denyReason" name="denyReason" id="denyReason" class="form-control">
+                                <option value="">Select deny reason:</option>
+                                    <option>One of the time entered is invalid.</option>
+                                    <option>Unknown logsheet date (Indi kitaon ang logsheet date).</option>
+                                    <option>Invalid attachment (Utod ang file, sala ang file, wala imo ngalan, or indi mabasahan).</option>
+                                    <option>No attachment.</option>
+                                    <option>Nothing to change.</option>
+                                    <option>Others</option>
+                                </select>
+                            </div>
+                            <button v-bind:disabled="denyReason==''" class="btn btn-sm btn-danger" name="action" value="reject">👎 Deny</button>
+
+                        </div>
+                    </div>
+                    <div class="btn-toolbar mb-2 mb-md-0 ml-5">
+                        <div class="btn-group mr-2">
+                            {% if fileType != 'pdf' %}
+                            <button class="btn btn-sm btn-light btn-dark" type="button" v-on:click="rotate" title="Rotate">
+                                <svg style="width:18px;height:18px" viewBox="0 0 24 24">
+                                    <path fill="currentColor" d="M7.34,6.41L0.86,12.9L7.35,19.38L13.84,12.9L7.34,6.41M3.69,12.9L7.35,9.24L11,12.9L7.34,16.56L3.69,12.9M19.36,6.64C17.61,4.88 15.3,4 13,4V0.76L8.76,5L13,9.24V6C14.79,6 16.58,6.68 17.95,8.05C20.68,10.78 20.68,15.22 17.95,17.95C16.58,19.32 14.79,20 13,20C12.03,20 11.06,19.79 10.16,19.39L8.67,20.88C10,21.62 11.5,22 13,22C15.3,22 17.61,21.12 19.36,19.36C22.88,15.85 22.88,10.15 19.36,6.64Z" />
+                                </svg>
+                                <span>Rotate</span>
+                            </button>
+                            {% endif %}
+                            <button class="btn btn-sm btn-success" name="action" value="approve">👍 Approve</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6 text-right">
-                    <button class="btn btn-sm btn-success" name="action" value="approve">Approve</button>
-                </div>
+                {% elif attendanceReview.status == 'rejected' %}
+                <p>Status: <span class="text-danger">{{attendanceReview.status|capitalize}}</span> - {{attendanceReview.denyReason}}</p>
+
+                {% else %}
+                <p>Status: <span class="text-success">{{attendanceReview.status|capitalize}}</p>
+                {% endif %}
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 {% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            pending: false,
+            denyReason: '',
+            rotation: 0,
+        },
+        validations: {},
+        computed: {
+            rotationCss: function(){
+                return 'transform: rotate(-'+this.rotation+'deg); transition: transform 100ms ease-out;'
+            }
+        },
+        methods: {
+            rotate: function(){
+                var x = this.rotation + 90;
+                this.rotation = x;
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.pending = true
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+
+
 

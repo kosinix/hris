@@ -99,7 +99,13 @@
             <div class="form-group">
                 <label for="comment">Comments <span class="text-danger">*</span></label>
                 <div>
-                    <textarea v-model="comment" name="comment" id="comment" rows="1" class="form-control"></textarea>
+                    <select v-model="commentSelect" id="comment" class="form-control">
+                        <option>Copied from logsheet time.</option>
+                        <option>Inserted manually. Forgot ID.</option>
+                        <option>Write comment.</option>
+                    </select>
+                    <textarea v-if="commentSelect == 'Write comment.'" v-model="commentBox" rows="1" class="form-control"></textarea>
+                    <input type="hidden" v-model="comment" name="comment">
                     <small class="invalid-feedback">${getError('comment')}</small>
 
                 </div>
@@ -151,11 +157,20 @@
             workScheduleId: '',
             workSchedules: {{workSchedules|default([], true)|stringify|safe}},
             date: '',
-            comment: '',
+            commentSelect: '',
+            commentBox: '',
             log0: '',
             log1: '',
             log2: '',
             log3: '',
+        },
+        computed: {
+            comment: function(){
+                if(this.commentSelect === 'Write comment.'){
+                    return this.commentBox
+                }
+                return this.commentSelect
+            }
         },
         validations: {
             workScheduleId: {
@@ -172,21 +187,7 @@
                     return this.type === 'normal';
                 })
             },
-            log1: {
-                required: window.validators.requiredIf(function(){
-                    return this.type === 'normal';
-                })
-            },
-            log2: {
-                required: window.validators.requiredIf(function(){
-                    return this.type === 'normal';
-                })
-            },
-            log3: {
-                required: window.validators.requiredIf(function(){
-                    return this.type === 'normal';
-                })
-            },
+            
         },
         created: function(){
             var me = this;

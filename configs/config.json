@@ -98,8 +98,8 @@
     ],
     "correctionReasons": [
       {
-        "name": "Scanner has no internet.",
-        "value": "Scanner has no internet."
+        "name": "Scanner is offline.",
+        "value": "Scanner is offline."
       },
       {
         "name": "Scanner did not register my log.",
@@ -112,6 +112,10 @@
       {
         "name": "I don't have my ID.",
         "value": "I don't have my ID."
+      },
+      {
+        "name": "Other reasons.",
+        "value": "Other reasons."
       }
     ]
   },

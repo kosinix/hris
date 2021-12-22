@@ -284,6 +284,38 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
             return moment.utc().month(i).startOf('month')
         }); // 1-count
         // return res.send(days)
+
+        // compat link
+        let periodMonthYear = startMoment.clone().startOf('month').format('YYYY-MM-DD')
+        let periodSlice = 'all'
+        let mQuincena = startMoment.clone().startOf('month').days(15)
+        if (startMoment.isBefore(mQuincena) && endMoment.isAfter(mQuincena)) {
+            periodSlice = 'all'
+        } else if (startMoment.isSameOrBefore(mQuincena) && endMoment.isSameOrBefore(mQuincena)) {
+            periodSlice = '15th'
+        } else if (startMoment.isAfter(mQuincena)) {
+            periodSlice = '30th'
+        }
+        let periodWeekDays = 'All'
+        if (showWeekDays === 'Mon|Tue|Wed|Thu|Fri|Sat|Sun') {
+            periodWeekDays = 'All'
+        } else if (showWeekDays === 'Mon|Tue|Wed|Thu|Fri') {
+            periodWeekDays = 'Mon-Fri'
+        } else if (showWeekDays === 'Sat|Sun') {
+            periodWeekDays = 'Sat-Sun'
+        }
+        showTotalAs = 'time'
+        let countTimeBy = 'all'
+        let compatibilityUrl = [
+            `periodMonthYear=${periodMonthYear}`,
+            `periodSlice=${periodSlice}`,
+            `periodWeekDays=${periodWeekDays}`,
+            `showTotalAs=${showTotalAs}`,
+            `countTimeBy=${countTimeBy}`,
+        ]
+        compatibilityUrl = compatibilityUrl.join('&')
+
+
         res.render('attendance/employment.html', {
             flash: flash.get(req, 'attendance'),
             employee: employee,
@@ -298,12 +330,13 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
             startMoment: startMoment,
             endMoment: endMoment,
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
-            // matrix: kalendaryo.getMatrix(momentNow, 0)
+            compatibilityUrl: compatibilityUrl,
         });
     } catch (err) {
         next(err);
     }
 });
+
 router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -503,6 +536,92 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
 
         flash.ok(req, 'attendance', `Inserted new attendance.`)
         res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Print
+router.get('/attendance/employee/:employeeId/employment/:employmentId/print', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+        let employmentId = employment._id
+
+
+
+        let {
+            periodMonthYear,
+            periodSlice,
+            periodWeekDays,
+            showTotalAs,
+            showWeekDays,
+            startMoment,
+            endMoment,
+            countTimeBy,
+        } = res
+
+
+        let options = {
+            padded: true,
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
+        }
+
+        let { days, stats } = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
+
+        let periodMonthYearMoment = moment(periodMonthYear)
+        const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
+        let months = Array.from(range1.by('months')).reverse()
+
+        let periodMonthYearList = months.map((_moment) => {
+            let date = _moment.startOf('month')
+
+            return {
+                value: date.format('YYYY-MM-DD'),
+                text: date.format('MMM YYYY'),
+            }
+        })
+
+        let workSchedules = await workScheduler.getEmploymentWorkSchedule(db, employmentId)
+
+        let workSchedule = workSchedules.find(o => {
+            return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
+        })
+
+        let data = {
+            title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
+
+            flash: flash.get(req, 'employee'),
+
+            employee: employee,
+            employment: employment,
+
+            // Data that might change
+            days: days,
+            stats: stats,
+
+            showTotalAs: showTotalAs,
+            workSchedules: workSchedules,
+            periodMonthYearList: periodMonthYearList,
+            periodMonthYear: periodMonthYearMoment.format('YYYY-MM-DD'),
+            periodWeekDays: periodWeekDays,
+            periodSlice: periodSlice,
+            inCharge: employment.inCharge,
+            countTimeBy: countTimeBy,
+
+            startDate: startMoment.format('YYYY-MM-DD'),
+            endDate: endMoment.format('YYYY-MM-DD'),
+
+            workSchedule: workSchedule,
+            shared: false,
+
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+
+        }
+
+        // return res.send(days)
+        return res.render('e-profile/dtr-print.html', data)
     } catch (err) {
         next(err);
     }
@@ -911,10 +1030,10 @@ router.get('/attendance/review/:reviewId', middlewares.guardRoute(['update_atten
         })
 
         let fileType = 'image'
-        if(lodash.get(attendanceReview, 'attachments[0]', '').includes('pdf')){
+        if (lodash.get(attendanceReview, 'attachments[0]', '').includes('pdf')) {
             fileType = 'pdf'
         }
-        
+
         let data = {
             flash: flash.get(req, 'attendance'),
             attendanceReview: attendanceReview,
@@ -948,7 +1067,7 @@ router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_atte
 
         let action = lodash.get(req, 'body.action')
         if (action == 'reject') {
-            await db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, { 
+            await db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, {
                 status: 'rejected',
                 denyReason: lodash.get(req, 'body.denyReason'),
             })
@@ -990,11 +1109,11 @@ router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_atte
 
             let r = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
             // console.log(r.changeLogs, r.attendance)
-            if(r.attendance){
+            if (r.attendance) {
                 attendance = r.attendance
             }
 
-            await db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, { 
+            await db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, {
                 status: 'approved',
             })
 

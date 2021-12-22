@@ -43,7 +43,11 @@
             </div>
         </div>
         
-        <div class="text-right mb-2"><a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm">Insert Attendance</a></div>
+        <div class="text-right mb-2">
+            <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm">Insert Attendance</a>
+            <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/print?{{compatibilityUrl}}" class="btn btn-light btn-sm" target="_blank">Print DTR</a>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-dtr">
                 <tr>

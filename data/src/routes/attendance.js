@@ -614,7 +614,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId/print', mi
             endDate: endMoment.format('YYYY-MM-DD'),
 
             workSchedule: workSchedule,
-            shared: false,
+            shared: true,
 
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
 

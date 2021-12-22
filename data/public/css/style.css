@@ -88,6 +88,20 @@ div[data-pending="true"]:after {
     box-shadow: 0 0 0 3px rgba(255, 255, 255, .25);
 }
 
+.alert-time {
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+    margin: 0;
+    text-align: left;
+}
+.alert-time > div {
+    padding: 10px 15px;
+}
+.alert-time .grace-period {
+    background: rgba(255,255,255,0.6); 
+    font-size: 11px;
+}
 
 /* Forms */
 /* Login */

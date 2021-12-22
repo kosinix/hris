@@ -167,5 +167,19 @@
         "text": "RFID Card Scanner"
       }
     ]
-  }
+  },
+  "campuses": [
+    {
+      "value": "main",
+      "text": "Salvador (Main)"
+    },
+    {
+      "value": "mosqueda",
+      "text": "Mosqueda"
+    },
+    {
+      "value": "baterna",
+      "text": "Baterna"
+    }
+  ]
 }

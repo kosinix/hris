@@ -42,7 +42,9 @@
                                 {% if user.roles.includes('employee') == true %}
                                     {% set accountUrl = '/e-profile/account/password' %}
                                 {% endif %}
-                                Hi, <a href="{{accountUrl}}">{{user.username}}</a> | <a href="/logout">Logout</a>
+                                Hi, <a href="{{accountUrl}}">{{user.username}}</a> | <a onclick="return confirm('Are you sure you want to logout?')" title="Logout" href="/logout">
+                                    <img width="18px" src="/images/logout.png" alt="Logout">
+                                </a>
                             </div>
                         {% else %}
                             <div class="pl-3"><a href="/logout">Login</a></div>

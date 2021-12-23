@@ -251,7 +251,8 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
                             // Get current shift time worked
                             minutesWorked = shiftCurrent.end - startMinutes // Remove excess and use shiftCurrent.end
                             // Add next shift time worked
-                            minutesWorked += endMinutes - shiftNext.start
+
+                            // minutesWorked += endMinutes - shiftNext.start
                         } else {
                             // Nothing to compute
                         }
@@ -358,11 +359,11 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
 
         let isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
         let isWeekend = ['Sun', 'Sat'].includes(weekDay) ? true : false
-      
+
         // Push if PM login
         if (attendance) {
-            if(attendance.logs[0] && attendance.logs.length <= 2){
-                if('PM' === moment(attendance.logs[0].dateTime).format('A')){
+            if (attendance.logs[0] && attendance.logs.length <= 2) {
+                if ('PM' === moment(attendance.logs[0].dateTime).format('A')) {
                     attendance.logs.unshift(null)
                     attendance.logs.unshift(null)
                 }
@@ -666,8 +667,24 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
                 })
 
             }
+        } else {
+            if (attendance.logs[x]) {
+
+                let message = `${user.username} removed time log #${x + 1} ${moment(attendance.logs[x].dateTime).format('hh:mm A')}.`
+                changeLogs.push(message)
+                attendance.changes.push({
+                    summary: message,
+                    objectId: user._id,
+                    createdAt: moment().toDate()
+                })
+
+                attendance.logs[x].dateTime = null
+
+            }
         }
     }
+
+    attendance.logs.filter(o => o !== null)
 
     if (attendance.type !== attendancePatch.type) {
         let message = `${user.username} changed attendance type from ${attendance.type} to ${attendancePatch.type}.`

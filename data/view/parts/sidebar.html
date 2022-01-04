@@ -149,8 +149,13 @@
             </a>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link {{urlPath|active_class([r/^\/scanner\/create/, r/^\/entity\/([a-f\d]{24})/])}}" href="/scanner/create">
-                        Create
+                    <a class="nav-link {{urlPath|active_class([r/^\/scanner\/all/])}}" href="/scanner/all">
+                        All Scanners
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{urlPath|active_class([r/^\/scanner\/create/])}}" href="/scanner/create">
+                        Add Scanner
                     </a>
                 </li>
             </ul>

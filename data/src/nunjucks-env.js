@@ -27,6 +27,13 @@ env.addFilter('s3_url', function (value, sizePrefix = "") {
     return `/file-getter/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/${sizePrefix}${value}`
 })
 
+env.addFilter('view_url', function (value, sizePrefix = "") {
+    if (sizePrefix) {
+        sizePrefix += "-";
+    }
+    return `/file-viewer/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/${sizePrefix}${value}`
+})
+
 env.addFilter('customFilter', function (array, filterObj) {
     return lodash.filter(array, filterObj)
 })

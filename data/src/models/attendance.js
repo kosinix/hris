@@ -29,7 +29,8 @@ let schema = mongoose.Schema({
             type: String, // 'online', 'scanner'
             extra: {
                 lat: '',
-                lon: ''
+                lon: '',
+                photo: String,
             }
         }
     ],

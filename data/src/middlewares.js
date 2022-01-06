@@ -573,6 +573,8 @@ module.exports = {
                 return res.render('error.html', { error: "Sorry, invalid scan data." })
             }
 
+            let photo = lodash.get(req, 'body.photo', '')
+
             let employee = null
             let employment = null
 
@@ -602,6 +604,7 @@ module.exports = {
                 res.scanData = {
                     dataType: 'rfid',
                     code: code,
+                    photo: photo,
                     employee: employee,
                     employment: employment,
                 }

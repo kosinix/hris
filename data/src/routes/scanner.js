@@ -13,6 +13,7 @@ const db = require('../db');
 const dtrHelper = require('../dtr-helper');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
+const uploader = require('../uploader');
 
 // Router
 let router = express.Router()
@@ -218,7 +219,28 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
 
             let log = null
             try {
-                log = await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id)
+
+                let saveList = null
+                if(scanData.photo){
+                    let file = uploader.toReqFile(scanData.photo)
+                    let files = {
+                        photos: [file]
+                    }
+                    let localFiles = await uploader.handleExpressUploadLocalAsync(files, CONFIG.app.dirs.upload)
+                    let imageVariants = await uploader.resizeImagesAsync(localFiles, null, CONFIG.app.dirs.upload); // Resize uploaded images
+
+                    let uploadList = uploader.generateUploadList(imageVariants, localFiles)
+                    saveList = uploader.generateSaveList(imageVariants, localFiles)
+                    await uploader.uploadToS3Async(uploadList)
+                    await uploader.deleteUploadsAsync(localFiles, imageVariants)
+                    req.localFiles = localFiles
+                    req.imageVariants = imageVariants
+                    req.saveList = saveList
+
+                    console.log(uploadList, saveList)
+                }
+        
+                log = await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id, null, { photo: lodash.get(saveList, 'photos[0]', '') })
             } catch (err) {
                 throw new AppError(err.message) // Format for xhr
             }
@@ -236,7 +258,7 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
             })
             // }, 1000)
 
-        } else if(scanData.dataType === 'qr') {
+        } else if (scanData.dataType === 'qr') {
 
             let log = null
             try {

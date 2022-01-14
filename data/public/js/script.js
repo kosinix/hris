@@ -23,6 +23,8 @@ jQuery(document).ready(function ($) {
         $body.addClass('hide-menu');
         setCookie('hideNav', 'true');
     })
+
+    $('[data-toggle="tooltip"]').tooltip()
     
 });
 

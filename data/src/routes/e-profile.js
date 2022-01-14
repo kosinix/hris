@@ -300,7 +300,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             workSchedule: workSchedule,
             shared: false,
 
-            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal', 'wfh', 'pass'].includes(o)),
 
         }
 
@@ -340,9 +340,7 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
         let attendanceDenied = await db.main.AttendanceReview.findOne({
             attendanceId: attendanceId,
             status: 'rejected'
-        }).sort({_id:-1}).lean()
-
-        
+        }).sort({ _id: -1 }).lean()
 
 
         // Get attendance
@@ -355,6 +353,11 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
             throw new Error('Attendance not found.')
         }
 
+        // let now = moment()
+        // let created = moment(attendance.createdAt).add(8, 'hours')
+        // if(now.isSameOrBefore(created)){
+        //     throw new Error('Cannot correct today\'s attendance. Please wait for tomorrow to apply for correction.')
+        // }
         let workSchedule = await db.main.WorkSchedule.findById(
             lodash.get(attendance, 'workScheduleId')
         )
@@ -411,7 +414,7 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
             employment: employment,
             workSchedules: workSchedules,
             attendanceTypes: CONFIG.attendance.types,
-            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal', 'wfh'].includes(o)),
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal', 'wfh', 'pass'].includes(o)),
             correctionReasons: CONFIG.attendance.correctionReasons,
             attendanceDenied: attendanceDenied,
         });
@@ -638,11 +641,39 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
         let employment = res.employment
 
         // return res.send(req.body)
-        let extra = req.body
+        let body = req.body
+        let extra = {
+            lat: body.lat,
+            lon: body.lon,
+        }
+        let mode = body.mode
 
-        console.log(extra)
+        // Today attendance
+        let attendance = await db.main.Attendance.findOne({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            createdAt: {
+                $gte: moment().startOf('day').toDate(),
+                $lt: moment().endOf('day').toDate(),
+            }
+        }).lean()
+        if (attendance) {
+            let lastLog = attendance.logs[attendance.logs.length - 1]
+            if(lastLog.mode === mode){
+                let message = `You are already logged-in. Please refresh your HRIS account and try again.`
+                if(mode == 0) {
+                    message = `You are already logged out. Please refresh your HRIS account and try again.`
+                }
+                throw new Error(message)
+            }
+        }
+
         // Log
-        let log = await dtrHelper.logAttendance(db, employee, employment, null, 15, extra, 'online') // 15mins timeout
+        let source = {
+            id: res.user._id,
+            type: 'userAccount', // Online user account
+        }
+        let log = await dtrHelper.logAttendance(db, employee, employment, null, 15, extra, 'online', source) // 15mins timeout
 
         res.send(log)
     } catch (err) {

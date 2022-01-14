@@ -529,6 +529,7 @@
                         function(location){  
 
                             var body = {
+                                mode: logType,
                                 lat: _.get(location, 'coords.latitude'),
                                 lon: _.get(location, 'coords.longitude'),
                             };

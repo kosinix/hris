@@ -607,7 +607,7 @@ let compute = {
     }
 }
 
-const logAttendance = async (db, employee, employment, scannerId, waitTime = 15, extra = {}, logType = 'scanner', source = null) => {
+const logAttendance = async (db, employee, employment, scannerId, waitTime = 15, extra = {}, logType = 'scanner', source = {}) => {
     // Today attendance
     let attendance = await db.main.Attendance.findOne({
         employeeId: employee._id,

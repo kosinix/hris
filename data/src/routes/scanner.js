@@ -354,6 +354,7 @@ router.get('/scanner/:scannerUid/no-verify', middlewares.guardRoute(['use_scanne
         let scanData = res.scanData
 
         try {
+            // TODO: check params used here with params definition
             await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id)
         } catch (err) {
             throw new AppError(err.message) // Format for xhr

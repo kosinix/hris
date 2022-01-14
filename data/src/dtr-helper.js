@@ -773,7 +773,7 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
         }
     }
 
-    attendance.logs.filter(o => o !== null)
+    attendance.logs = attendance.logs.filter(o => o.dateTime !== null)
 
     if (attendance.type !== attendancePatch.type) {
         let message = `${user.username} changed attendance type from ${attendance.type} to ${attendancePatch.type}.`

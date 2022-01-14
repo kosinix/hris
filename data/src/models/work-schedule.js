@@ -32,6 +32,7 @@ const schema = new Schema({
             type: String, // "employment", "list"
         }
     ],
+    type: String, // 'weekdays', 'weekends'
     timeSegments: [{
         start: Number,
         end: Number,
@@ -46,6 +47,14 @@ const schema = new Schema({
             $type: Boolean,
             default: false
         },
+        weekDays: [],
+        breaks: [
+            {
+                type: String,
+                start: Number,
+                end: Number
+            }
+        ]
     }],
 }, { timestamps: true, typeKey: '$type' })
 

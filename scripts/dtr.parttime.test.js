@@ -46,7 +46,7 @@ global.CRED = credLoader.getConfig()
             let schedule = {}
             let attendance = {}
             let dtr = {}
-            function Logs(date, morningIn, morningOut, afternoonIn, afternoonOut, extendedIn, extendedOut, hours, minutes, sched) {
+            function Logs(date, morningIn, morningOut, afternoonIn, afternoonOut, extendedIn, extendedOut, hours, minutes, expected, sched) {
                 this.date = date || '';
                 this.morningIn = morningIn || '';
                 this.morningOut = morningOut || '';
@@ -56,7 +56,8 @@ global.CRED = credLoader.getConfig()
                 this.extendedOut = extendedOut || '';
                 this.hours = hours || '';
                 this.minutes = minutes || '';
-                this.sched = sched || '';
+                this.expected = expected || '';
+                // this.sched = sched || '';
             }
 
             const createAttendance = (log) => {
@@ -155,11 +156,11 @@ global.CRED = credLoader.getConfig()
             // logs.push(new Logs("2022-01-10", '7:30AM', '', '', '3:00PM', "", "", "", "", "7:30AM-12:00PM, 12:30PM-6:00PM (1:00PM-2:00PM, 3:30PM-5:00PM)"))
             // logs.push(new Logs("2022-01-10", '7:30AM', '', '', '12:29PM', "", "", "", "", "7:30AM-12:00PM, 12:30PM-6:00PM (1:00PM-2:00PM, 3:30PM-5:00PM)"))
 
-            logs.push(new Logs("2022-01-03", '7:30AM', '12:00PM', '12:30PM', '6:00PM'))
-            logs.push(new Logs("2022-01-04", '7:30AM', '12:00PM', '12:30PM', '1:30PM'))
-            logs.push(new Logs("2022-01-05", '7:00AM', '11:00AM', '', ''))
-            logs.push(new Logs("2022-01-06", '7:30AM', '12:00PM', '12:30PM', '6:00PM'))
-            logs.push(new Logs("2022-01-07", '7:30AM', '12:00PM', '1:00PM', '4:00PM'))
+            logs.push(new Logs("2022-01-03", '7:30AM', '12:00PM', '12:30PM', '6:00PM', '', '', '', '', 8.5))
+            logs.push(new Logs("2022-01-04", '7:30AM', '12:00PM', '12:30PM', '1:30PM', '', '', '', '', 4.5))
+            logs.push(new Logs("2022-01-05", '7:00AM', '11:00AM', '', '', '', '', '', '', 3))
+            logs.push(new Logs("2022-01-06", '7:30AM', '12:00PM', '12:30PM', '6:00PM', '', '', '', '', 8.5))
+            logs.push(new Logs("2022-01-07", '7:30AM', '12:00PM', '1:00PM', '4:00PM', '', '', '', '', 7.5))
 
             schedule = {
                 name: 'Part-timer Schedule',

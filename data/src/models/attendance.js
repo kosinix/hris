@@ -21,16 +21,21 @@ let schema = mongoose.Schema({
         $type: String,
         default: 'normal', // wfh, travel, pass, leave
     },
+    // Logs can be null for blank logs (half-day)
     logs: [
         {
             scannerId: mongoose.Schema.Types.ObjectId,
             dateTime: Date,
             mode: Number, // 1 = in, 0 = out
-            type: String, // 'online', 'scanner'
+            type: String, // 'online', 'scanner' // normal, wfh, travel, pass
             extra: {
-                lat: '',
-                lon: '',
+                lat: String,
+                lon: String,
                 photo: String,
+            },
+            source: {
+                id: mongoose.Schema.Types.ObjectId,
+                type: String, // 'scanner', 'userAccount', 'adminAccount'
             }
         }
     ],

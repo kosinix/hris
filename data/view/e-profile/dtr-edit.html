@@ -25,7 +25,7 @@
                 <h4 class="h3 mb-3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
                 <p class="text-left mb-3"><em class="mr-2">Employment:</em> <strong>{{employment.position}}</strong></p>
             </div>
-            <div class="alert alert-warning">Reminder: Please have your attendance corrected a day after your incorrect log transaction but not later than 3 days afterwards.</div>
+            <div class="alert alert-warning">Reminder: Please have your attendance corrected not later than 3 days after your incorrect log transaction.</div>
 
             <form id="vApp" v-cloak ref="form" enctype="multipart/form-data" v-on:submit.prevent="onSubmit" action="/e-profile/dtr/{{employment._id}}/attendance/{{attendance._id}}/edit" method="POST" class="form-default">
                 

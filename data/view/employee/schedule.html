@@ -1,0 +1,290 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'parts/employee-header.html' %}
+    {% include 'parts/employee-profile-photo.html' %}
+    {% include 'parts/employee-tabs.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/employment/{{employee._id}}/{{employment._id}}" method="POST" class="form-default">
+            <p>Work Schedules</p>
+           
+             <div class="table-responsive">
+                <table class="table table-striped">
+                    <tr>
+                        <th width="5%">Day of Week <span class="text-danger">*</span></th>
+                        <th>From <span class="text-danger">*</span></th>
+                        <th>To <span class="text-danger">*</span></th>
+                        <th>Grace Period</th>
+                        <th>Max</th>
+                        <th></th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="form-check form-check-inline" v-for="(weekDay, i) in weekDays" >
+                                <input v-model="timeSegment.weekDays[weekDay.name]" class="form-check-input" type="checkbox" v-bind:id="'weekDay' + i" v-bind:value="'timeSegment[weekDays][' + weekDay.name + ']'">
+                                <label class="form-check-label" v-bind:for="'weekDay' + i">${_.capitalize(weekDay.name)}</label>
+                            </div>
+                        </td>
+                        <td><input v-model="timeSegment.start" type="time" id="" class="form-control"></td>
+                        <td><input @blur="validateTimeSegment" v-model="timeSegment.end" type="time" id="timeSegmentEnd" class="form-control"></td>
+                        <td><input v-model="timeSegment.grace" min="0" step="1" placeholder="minutes" type="number" id="" class="form-control"></td>
+                        <td><input v-model="timeSegment.maxHours" min="0.00" step="0.01" placeholder="hours" type="number" id="" class="form-control"></td>
+                        <td>
+                            <button v-on:click="addTimeSegment" type="button" class="btn btn-sm btn-success">Add Time Segment</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm text-center">
+                    <tr>
+                        <th>Day</th>
+                        <th>AM</th>
+                        <th>PM</th>
+                        <th>Hours</th>
+                        <th>Remarks</th>
+                    </tr>
+                    <tr v-for="(timeSegment, i) in timeSegments">
+                        <td>Mon</td>
+                        <td>
+                            <div class="d-flex flex-wrap alert alert-success alert-time">
+                                <div v-if="timeSegment.grace" title="Grace period" class="grace-period">
+                                    ${timeSegment.grace} minutes
+                                </div>
+                                <div class="flex-grow-1">${timeSegment.start} - ${timeSegment.end} (${timeSegment.maxHours} hrs)</div>
+                            </div>
+                        </td>
+                        <td>
+                            {# <div class="d-flex flex-wrap alert alert-success alert-time">
+                                <div class="flex-grow-1">12:30PM - 06:00PM (4 hrs max)</div>
+                            </div> #}
+                        </td>
+                        <td>8.5</td>
+                        <td><p>03:30PM - 05:00PM Vacant</p></td>
+                    </tr>
+                    <tr>
+                        <td>Tue</td>
+                        <td>
+                            <div class="d-flex flex-wrap alert alert-success alert-time">
+                                <div class="flex-grow-1">07:30AM - 12:00PM (4.5 hrs)</div>
+                            </div>
+                        </td>
+                        <td></td>
+                        <td>4.5</td>
+                        <td></td>
+
+                    </tr>
+                    <tr>
+                        <td>Wed</td>
+                        <td>
+                            <div class="d-flex flex-wrap alert alert-success alert-time">
+                                <div class="flex-grow-1">07:30AM - 10:30PM (3 hrs)</div>
+                            </div>
+                        </td>
+                        <td></td>
+                        <td>3</td>
+                        <td></td>
+
+                    </tr>
+                    
+                    <tr>
+                        <td>Thu</td>
+                        <td>
+                            <div class="d-flex flex-wrap alert alert-success alert-time">
+                                <div class="flex-grow-1">07:30AM - 12:00PM (4.5 hrs)</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap alert alert-success alert-time">
+                                <div class="flex-grow-1">12:30PM - 06:00PM (4 hrs max)</div>
+                            </div>
+                        </td>
+                        <td>8.5</td>
+                        <td><p>3:30PM-5:00PM Vacant</p></td>
+
+                    </tr>
+                    <tr>
+                        <td>Fri</td>
+                        <td>
+                            <div class="d-flex flex-wrap alert alert-success alert-time">
+                                <div class="flex-grow-1">07:30AM - 12:00PM (4.5 hrs)</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap alert alert-success alert-time">
+                                <div class="flex-grow-1">01:00PM - 04:00PM (3 hrs)</div>
+                            </div>
+                        </td>
+                        <td>3</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Sat</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Sun</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="3"></td>
+                        <td>32  </td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between">
+                        <a href="/employee/employment/{{employee._id}}" class="btn btn-light">Cancel</a>
+                        <button class="btn btn-primary">Update Employment</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+{# {% include "parts/modal-employment.html" %} #}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{# {% include "parts/script-employment.html" %} #}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            weekDays: [
+                {name: 'mon'},
+                {name: 'tue'},
+                {name: 'wed'},
+                {name: 'thu'},
+                {name: 'fri'},
+                {name: 'sat'},
+                {name: 'sun'},
+            ],
+            timeSegment: {
+                start: '08:00',
+                end: '12:00',
+                grace: null,
+                maxHours: null,
+                flexible: false,
+                weekDays: {
+                    mon: false,
+                    tue: false,
+                    wed: false,
+                    thu: false,
+                    fri: false,
+                    sat: false,
+                    sun: false,
+                }
+            },
+            timeSegments: [],
+            workScheduleId: '{{employment.workScheduleId}}',
+            workSchedules: {{workSchedules|default([], true)|stringify|safe}},
+        },
+        validations: {
+            workScheduleId: {
+                required: window.validators.required
+            },
+            salary: {
+                required: window.validators.required,
+                isMoneyFormat: window.customValidators.isMoneyFormat('Not a valid money format.')
+            },
+        },
+        mounted: function(){
+            var me = this;
+        },
+        methods: {
+            initTimeSegment: function() {
+                var me = this;
+                me.timeSegment = {
+                    start: '',
+                    end: '',
+                    grace: null,
+                    maxHours: null,
+                    flexible: false,
+                    weekDays: {
+                        mon: false,
+                        tue: false,
+                        wed: false,
+                        thu: false,
+                        fri: false,
+                        sat: false,
+                        sun: false,
+                    }
+                }
+            },
+            validateTimeSegment: function(){
+                var me = this;
+                var mStart = moment(me.timeSegment.start, 'HH:mm')
+                var mEnd = moment(me.timeSegment.end, 'HH:mm')
+
+                if(mEnd.isSameOrBefore(mStart)){
+                    me.timeSegment.maxHours = null
+                    alert('Invalid time segment. End time of ' + mEnd.format('hh:mm A') + ' must be greater than start time.')
+                    document.getElementById("timeSegmentEnd").focus();
+                } else {
+                    me.timeSegment.maxHours = _.round(mEnd.diff(mStart, 'minutes') / 60, 2)
+                }
+            },
+            addTimeSegment: function(){
+                var me = this;
+                var pickedWeekDay = _.filter(me.timeSegment.weekDays, function(bool){
+                    return bool === true
+                }).length
+                if(!pickedWeekDay){
+                    alert('Please choose a Day of Week.')
+                    return
+                }
+                if(!me.timeSegment.start){
+                    alert('Please provide a starting time.')
+                    return
+                }
+                if(!me.timeSegment.end){
+                    alert('Please provide an ending time.')
+                    return
+                }
+                me.timeSegments.push(JSON.parse(JSON.stringify(me.timeSegment)))
+            },
+            deleteTimeSegment: function(i){
+                var me = this;
+                if(confirm('Remove time segment?')){
+                    Vue.delete(me.timeSegments, i)
+                }
+            },
+            toHtmlTime: function(hours, mins){
+                return String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0')
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

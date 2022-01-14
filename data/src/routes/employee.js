@@ -251,6 +251,22 @@ router.get('/employee/employment/:employeeId', middlewares.guardRoute(['read_emp
     }
 });
 
+router.get('/employee/:employeeId/employment/:employmentId/schedule', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment.toObject()
+
+        res.render('employee/schedule.html', {
+            flash: flash.get(req, 'employee'),
+            title: `Employee - ${employee.lastName} - Schedule`,
+            employee: employee,
+            employment: employment,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/employee/employment/:employeeId/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()

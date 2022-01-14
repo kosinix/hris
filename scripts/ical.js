@@ -24,7 +24,7 @@ const lodash = require('lodash')
 (async () => {
     try {
 
-        let events = await ical.async.fromURL('https://calendar.google.com/calendar/ical/en.philippines%23holiday%40group.v.calendar.google.com/public/basic.ics')
+        let events = await ical.async.fromURL('https://calendar.google.com/calendar/ical/c_3utb2ohfd40s98njoum9pt0g00%40group.calendar.google.com/public/basic.ics')
         console.log(events)
         lodash.each(events, (e)=>{
             console.log(e.summary, e.start)

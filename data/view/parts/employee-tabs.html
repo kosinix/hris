@@ -4,15 +4,11 @@
             <a class="nav-link {{urlPath|active_class([r/^\/employee\/personal\/(.)+/])}}" href="/employee/personal/{{employee._id}}">Personal Info</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{urlPath|active_class([r/^\/employee\/employment\/(.)+/])}}" href="/employee/employment/{{employee._id}}">Employment</a>
+            <a class="nav-link {{urlPath|active_class([r/^\/employee\/employment\/(.)+/,  r/^\/employee\/([a-f\d]{24})\/employment\/([a-f\d]{24})\/schedule/])}}" href="/employee/employment/{{employee._id}}">Employment</a>
         </li>
         <li class="nav-item">
             <a class="nav-link {{urlPath|active_class([r/^\/employee\/address\/(.)+/])}}" href="/employee/address/{{employee._id}}">Address</a>
         </li>
-        {# 
-        <li class="nav-item">
-            <a class="nav-link {{urlPath|active_class([r/^\/employee\/family\/(.)+/])}}" href="/employee/family/{{employee._id}}">Family</a>
-        </li> #}
         {# <li class="nav-item">
             <a class="nav-link {{urlPath|active_class([r/^\/employee\/id-card\/(.)+/])}}" href="/employee/id-card/{{employee._id}}">ID Card</a>
         </li> #}

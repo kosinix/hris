@@ -4,7 +4,7 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h3">Apply for DTR Correction <em>({{attendance.createdAt|format_date('MMMM, YYYY')}})</em></h1>
+            <h1 class="h3">Apply for DTR Correction <em>({{attendance.createdAt|format_date('MMMM DD, YYYY')}})</em></h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
@@ -20,65 +20,53 @@
                 Previous application was denied: <strong>{{attendanceDenied.denyReason}}</strong>
             </div>
         {% endif %}
-
         <div id="vApp" v-cloak v-bind:data-pending="pending" class="ml-auto mr-auto" >
             <div class="text-center">
                 <h4 class="h3 mb-3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
                 <p class="text-left mb-3"><em class="mr-2">Employment:</em> <strong>{{employment.position}}</strong></p>
             </div>
+            <div class="alert alert-warning">Reminder: Please have your attendance corrected a day after your incorrect log transaction but not later than 3 days afterwards.</div>
+
             <form id="vApp" v-cloak ref="form" enctype="multipart/form-data" v-on:submit.prevent="onSubmit" action="/e-profile/dtr/{{employment._id}}/attendance/{{attendance._id}}/edit" method="POST" class="form-default">
-                <div class="table-responsive">
-                    <table class="table table-dtr">
-                        <tr>
-                            <th class="text-center" rowspan="2">Day</th>
-                            <th class="text-center" rowspan="2">Type</th>
-                            <th class="text-center" colspan="2">AM</th>
-                            <th class="text-center" colspan="2">PM</th>
-                            <th class="text-center" rowspan="2">Schedule</th>
-
-                        </tr>
-                        <tr>
-                            <th>Arrival</th>
-                            <th>Departure</th>
-                            
-                            <th>Arrival</th>
-                            <th>Departure</th>
-
-                        </tr>
-                        <tr>
-                            <td class="text-center">${formatDate(_.get(attendance, 'createdAt'), 'D')}</td>
-                            <td>
-                                <select v-model="attendance.type" name="type" id="type">
-                                    <option v-for="attendanceType in attendanceTypes" v-bind:value="attendanceType.value">${attendanceType.name}</option>
-                                </select>
-                            </td>
-                            <template v-if="attendanceTypesList.includes(_.get(attendance, 'type'))">
-                                <td class="text-capitalize">${_.get(attendance, 'type')}</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </template>
-                            <template v-else >
-                                <td>
-                                    <input type="time" name="log0" v-model="attendance.ui.log0">
-                                </td>
-                                <td>
-                                    <input type="time" name="log1" v-model="attendance.ui.log1">
-                                </td>
-                                <td>
-                                    <input type="time" name="log2" v-model="attendance.ui.log2">
-                                </td>
-                                <td>
-                                    <input type="time" name="log3" v-model="attendance.ui.log3">
-                                </td>
-                            </template>
-                            <td>
-                                <select v-model="workScheduleId" name="workScheduleId" id="type">
-                                    <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.name}</option>
-                                </select>
-                            </td>
-                        </tr>
-                    </table>
+                
+                <div class="form-group">
+                    <label for="type" class="font-weight-bold">Attendance Type <span class="text-danger">*</span></label>
+                    <select v-model="attendance.type" name="type" id="type" class="form-control">
+                        <option v-for="attendanceType in attendanceTypes" v-bind:value="attendanceType.value">${attendanceType.name}</option>
+                    </select>
+                </div>
+                <div class="form-row" v-if="!attendanceTypesList.includes(_.get(attendance, 'type'))">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="log0" class="font-weight-bold">Morning In </label>
+                            <input type="time" name="log0" v-model="attendance.ui.log0" id="log0" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="log1" class="font-weight-bold">Morning Out </label>
+                            <input type="time" name="log1" v-model="attendance.ui.log1" id="log1" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="log2" class="font-weight-bold">Afternoon In </label>
+                            <input type="time" name="log2" v-model="attendance.ui.log2" id="log2" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="log3" class="font-weight-bold">Afternoon Out </label>
+                            <input type="time" name="log3" v-model="attendance.ui.log3" id="log3" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="workScheduleId" class="font-weight-bold">Work Schedule <span class="text-danger">*</span></label>
+                    <select v-model="workScheduleId" name="workScheduleId" id="workScheduleId" class="form-control">
+                        <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.name}</option>
+                    </select>
+                    <small class="invalid-feedback">${getError('workScheduleId')}</small>
                 </div>
                 <div class="form-group">
                     <label for="correctionReason" class="font-weight-bold">Reason for Correction <span class="text-danger">*</span></label>
@@ -90,7 +78,7 @@
                     </select>
                     <small class="invalid-feedback">${getError('correctionReason')}</small>
                 </div>
-                <div class="form-group" v-if="attendance.type === 'normal'">
+                <div class="form-group" v-if="['normal', 'pass'].includes(_.get(attendance, 'type'))">
                     <label for="logsheetNumber" class="font-weight-bold">Your Number on the Log Sheet</label>
                     <input type="number" v-model="logsheetNumber" name="logsheetNumber" id="logsheetNumber" class="form-control">
                     <small class="invalid-feedback">${getError('logsheetNumber')}</small>
@@ -145,9 +133,13 @@
             },
             attachmentLabel: function(){
                 if(this.type === 'normal'){
-                    return 'Log Sheet Photo'
+                    return 'Log Sheet Photo (Must include log sheet date and your name)'
+                }  else if(this.type === 'travel'){
+                    return 'Photo of Authority to Travel'
+                }   else if(this.type === 'pass'){
+                    return 'Photo of Pass Slip'
                 } 
-                return 'Attachment'
+                return 'Attachment (If any)'
             }
         },
         methods: {

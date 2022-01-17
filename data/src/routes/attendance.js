@@ -12,6 +12,7 @@ const momentExt = momentRange.extendMoment(moment)
 //// Modules
 const db = require('../db');
 const dtrHelper = require('../dtr-helper');
+const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
 const payrollCalc = require('../payroll-calc');
 const workScheduler = require('../work-scheduler');
@@ -144,9 +145,13 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance',
     }
 });
 
-router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
+router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
     try {
         let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
+        let attendanceTypes = lodash.get(req, 'query.byAttendanceType', ['normal', 'wfh', 'leave', 'pass', 'travel'])
+        if(!Array.isArray(attendanceTypes)){
+            attendanceTypes = [attendanceTypes]
+        }
         let mCalendar = moment(date)
 
         let query = {
@@ -179,6 +184,12 @@ router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', '
 
             query['employmentId'] = {
                 $in: _employmentIds
+            }
+        }
+
+        if(attendanceTypes.length > 0){
+            query['type'] = {
+                $in: attendanceTypes
             }
         }
 
@@ -223,15 +234,48 @@ router.get('/attendance/daily', middlewares.guardRoute(['read_all_attendance', '
         //console.log(aggr)
         attendances = await db.main.Attendance.aggregate(aggr)
         //return res.send(attendances)
+
+        if (req.originalUrl.includes('.xlsx')) {
+            let workbook = await excelGen.templateAttendanceDaily(mCalendar, attendances)
+
+            let buffer = await workbook.xlsx.writeBuffer();
+            res.set('Content-Disposition', `attachment; filename="attendance.xlsx"`)
+            res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            return res.send(buffer)
+        }   
         res.render('attendance/daily.html', {
             flash: flash.get(req, 'attendance'),
             mCalendar: mCalendar,
             attendances: attendances,
+            attendanceTypes: attendanceTypes,
+            attendanceTypesList: [
+                {
+                    key: 'normal',
+                    value: 'Normal'
+                },
+                {
+                    key: 'wfh',
+                    value: 'Work From Home'
+                },
+                {
+                    key: 'travel',
+                    value: 'On Travel'
+                },
+                {
+                    key: 'leave',
+                    value: 'On Leave'
+                },
+                {
+                    key: 'pass',
+                    value: 'Pass Slip'
+                }
+            ],
         });
     } catch (err) {
         next(err);
     }
 });
+
 
 router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {

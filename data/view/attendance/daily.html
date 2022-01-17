@@ -10,6 +10,25 @@
     <div class="tab-content pt-3 pb-2 pl-3 pr-3">
         <h1 class="text-center h4 mb-2">Attendance Sheet</h1>
         <p class="text-center mb-3">{{mCalendar|format_date('dddd - MMM DD, YYYY')}}</p>
+
+        <div>
+            <form action="">
+                <input name="date" type="hidden" value="{{mCalendar|format_date('YYYY-MM-DD')}}">
+                <h3 class="h5">Filter by</h3>
+                <div class="form-group">
+                    <label for="show" class="mr-2">Attendance types: </label>
+                    {% for attendanceType in attendanceTypesList %}
+                    <div class="form-check form-check-inline">
+                        <input {% if attendanceTypes|includes(attendanceType.key) %}checked{% else %}{% endif %} class="form-check-input" type="checkbox" id="byAttendance{{attendanceType.key}}" name="byAttendanceType[]" value="{{attendanceType.key}}">
+                        <label class="form-check-label" for="byAttendance{{attendanceType.key}}">{{attendanceType.value}}</label>
+                    </div>
+                    {% endfor %}
+                   
+                    <button class="btn btn-sm btn-success">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-sm">
                 <tr class="text-center">
@@ -124,11 +143,15 @@
                             <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
 
                         {% else %}
-                            <td colspan="8">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')|replace('Wfh', 'WFH')}}</td>
+                            <td colspan="8">{{attendance.type|capitalize|replace('Wfh', 'WFH')}}</td>
                         {% endif %}
                     </tr>
                 {% endfor %}
             </table>
+        </div>
+
+        <div>
+            <a class="btn btn-sm btn-light" href="/attendance/daily.xlsx?{{query|query_string}}">Download</a>
         </div>
     </div>
 </div>

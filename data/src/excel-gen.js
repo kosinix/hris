@@ -1484,9 +1484,62 @@ let templatePermanent = async (payroll) => {
 
 }
 
+let templateAttendanceDaily = async (mCalendar, attendances) => {
+
+    let workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/attendance/daily.xlsx`);
+    let slex = new Slex(workbook)
+
+    let worksheet = workbook.getWorksheet('main')
+    if (worksheet) {
+        slex.setSheet(worksheet)
+        slex.getCell('A2').value(`${mCalendar.format('dddd - MMM DD, YYYY')}`)
+
+        let offset = 5
+        for (x = 0; x < attendances.length; x++) {
+            let attendance = attendances[x]
+
+            row = offset + x
+            slex.getCell(`A${row}`).value(x + 1)
+            slex.getCell(`B${row}`).value(lodash.capitalize(attendance.employment.campus))
+            slex.getCell(`C${row}`).value(`${attendance.employee.firstName} ${attendance.employee.lastName} ${attendance.employee.suffix}`)
+            slex.getCell(`D${row}`).value((attendance.employee.gender === 'M' ? '✓' : ''))
+            slex.getCell(`E${row}`).value((attendance.employee.gender === 'F' ? '✓' : ''))
+
+            // 'hh:mm'
+            let morningIn = moment(lodash.get(attendance, 'logs[0].dateTime', null))
+            let morningOut = moment(lodash.get(attendance, 'logs[1].dateTime', null))
+            let afternoonIn = moment(lodash.get(attendance, 'logs[2].dateTime', null))
+            let afternoonOut = moment(lodash.get(attendance, 'logs[3].dateTime', null))
+
+            morningIn = morningIn.isValid() ? morningIn.format('hh:mm') : ''
+            morningOut = morningOut.isValid() ? morningOut.format('hh:mm') : ''
+            afternoonIn = afternoonIn.isValid() ? afternoonIn.format('hh:mm') : ''
+            afternoonOut = afternoonOut.isValid() ? afternoonOut.format('hh:mm') : ''
+
+            if (attendance.type === 'normal') {
+                slex.getCell(`F${row}`).value(morningIn)
+                slex.getCell(`H${row}`).value(morningOut)
+                slex.getCell(`J${row}`).value(afternoonIn)
+                slex.getCell(`L${row}`).value(afternoonOut)
+            } else {
+                slex.getCell(`F${row}`).value(`${attendance.type} ${morningIn}`)
+                slex.getCell(`H${row}`).value(morningOut)
+                slex.getCell(`J${row}`).value(afternoonIn)
+                slex.getCell(`L${row}`).value(afternoonOut)
+            }
+        }
+
+    }
+
+    return workbook
+
+}
+
 module.exports = {
     templateCos: templateCos,
     templateHdf: templateHdf,
     templatePds: templatePds,
     templatePermanent: templatePermanent,
+    templateAttendanceDaily: templateAttendanceDaily,
 }

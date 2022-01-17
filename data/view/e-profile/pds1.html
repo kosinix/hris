@@ -511,14 +511,14 @@
                                 {% set name = "'schools[' + index + '][periodFrom]'"|safe %}
                                 {% set vModel = 'school.periodFrom' %}
                                 {% set label = 'Attended <br>From'|safe %}
-                                {% include 'parts/form-group-date-vue.html' %}
+                                {% include 'parts/form-group-text-vue.html' %}
                                 {% set label = '' %}
                             </div>
                             <div class="col-md-2">
                                 {% set name = "'schools[' + index + '][periodTo]'"|safe %}
                                 {% set vModel = 'school.periodTo' %}
                                 {% set label = 'Attended <br>To'|safe %}
-                                {% include 'parts/form-group-date-vue.html' %}
+                                {% include 'parts/form-group-text-vue.html' %}
                                 {% set label = '' %}
                             </div>
                         </div>

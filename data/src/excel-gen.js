@@ -790,10 +790,10 @@ let templatePds = async (employee) => {
                 slex.getCell(`D${rowY}`).value(school.name)
                 slex.getCell(`G${rowY}`).value(school.course)
 
-                value = (school.periodFrom) ? moment(school.periodFrom).format('MM/DD/YYYY') : ''
+                value = school.periodFrom
                 slex.getCell(`J${rowY}`).value(value)
 
-                value = (school.periodTo) ? moment(school.periodTo).format('MM/DD/YYYY') : ''
+                value = school.periodTo
                 slex.getCell(`K${rowY}`).value(value)
 
                 slex.getCell(`L${rowY}`).value(school.unitsEarned)

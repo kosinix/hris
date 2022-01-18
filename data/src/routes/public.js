@@ -52,8 +52,7 @@ router.post('/login', async (req, res, next) => {
         // console.log(response.config, response.data)
         let score = lodash.get(response, 'data.score', 0.0)
         if (score < 0.5) {
-            // throw new Error(`Security error.`)
-
+            throw new Error(`Security error.`)
         }
 
         // Find admin

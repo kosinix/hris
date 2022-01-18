@@ -275,32 +275,42 @@
                     var gender = _.get(data, 'employee.gender')
                     var firstName = _.get(data, 'employee.firstName')
                     var lastName = _.get(data, 'employee.lastName')
-                    var speechSynthesisName = _.get(data, 'employee.speechSynthesisName', firstName)
-                    var profilePhoto = _.get(data, 'employee.profilePhoto')
+
+                    var speechSynthesisName = _.get(data, 'employee.speechSynthesisName');
+                    speechSynthesisName = speechSynthesisName ? speechSynthesisName : firstName;
+                    speechSynthesisName = speechSynthesisName.replace(/^Ma\./i, '');
+                    var profilePhoto = _.get(data, 'employee.profilePhoto');
                     if(log){
                         var momentLogTime = moment(log.dateTime)
                         me.time = momentLogTime.clone().format('hh:mm A');
                         me.name = firstName + ' ' + lastName;
                         me.profilePhoto = profilePhoto;
+
                         var morning = momentLogTime.clone().format('A') === 'AM' ? true : false;
                         var afternoon = momentLogTime.clone().format('A') === 'PM' ? true : false;
                         var evening = momentLogTime.clone().hours() >= 18 ? true : false;
-                        var message = '';
-                        var salute = '';
-                        if(gender === 'M') {
-                            salute = ' Sir ' + speechSynthesisName.replace(/^Ma\./i, '');
-                        } else if(gender === 'F'){
-                            salute = ' Maam ' + speechSynthesisName.replace(/^Ma\./i, '');
-                        }
+
+                        var message = [];
+                        
                         if(morning) {
-                            message += 'Good morning'+salute+'!';
+                            message.push('Good morning');
                         } else if(evening){
-                            message += 'Good evening'+salute+'!';
+                            message.push('Good evening');
                         } else if(afternoon) {
-                            message += 'Good afternoon'+salute+'!';
+                            message.push('Good afternoon');
                         }
-                        message += 'Your time is ' + momentLogTime.clone().format('hh:mm A')
-                        me.hambal(message)
+
+                        if(gender === 'M') {
+                            message.push('Sir');
+                        } else if(gender === 'F'){
+                            message.push('Maam');
+                        }
+
+                        message.push(speechSynthesisName + '!')
+                        message.push('Your time is')
+                        message.push(momentLogTime.clone().format('hh:mm A'))
+
+                        me.hambal(message.join(' '))
                     }
                     me.returnBalik(10)
                 }).catch(function (error) {

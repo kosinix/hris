@@ -188,7 +188,7 @@
                 <tr v-for="day in days" v-bind:class="dayCssClasses(day)">
                     <td class="text-center">
                         <template v-if="day.attendance">
-                            <a  data-toggle="tooltip" data-placement="top" title="Apply for Correction" :href="attendanceEditUrl(day)">${day.day}</a>
+                            <a data-toggle="tooltip" data-placement="top" title="Apply for Correction" :href="attendanceEditUrl(day)">${day.day}</a>
                         </template>
                         <template v-else>
                             <span class="text-dark">${day.day}</span>

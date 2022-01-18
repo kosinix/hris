@@ -283,10 +283,12 @@
         </div>
     </div>
 </div>
+{% include "parts/modal-consent-eprofile.html" %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
 <script src="{{app.url}}/js/axios.min.js"></script>
+{% include "parts/modal-consent-eprofile-script.html" %}
 <script>
     var geo = _.get(window, 'navigator.geolocation');
     var vApp = new Vue({

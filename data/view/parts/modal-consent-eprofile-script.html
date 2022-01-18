@@ -1,15 +1,26 @@
 <script>
+var privacyCountDownTimer = null
 var vAppModalConsent = new Vue({
     el: '#vAppModalConsent',
     delimiters: ["${", "}"],
     mixins: [],
     data: {
-        pending: false,
+        pending: true,
+        privacyCountDown: 60,
     },
     mounted: function(){
         {% if acceptedDataPrivacy === false %}
         jQuery('#vAppModalConsent').modal('show')
         {% endif %}
+
+        var me = this;
+        privacyCountDownTimer = setInterval(function(){
+            me.privacyCountDown -= 1
+            if(me.privacyCountDown <= 0) {
+                me.pending = false;
+                clearInterval(privacyCountDownTimer);
+            }
+        }, 1000)
     },
     methods: {
         submit: function(){

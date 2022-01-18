@@ -300,7 +300,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             workSchedule: workSchedule,
             shared: false,
 
-            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal', 'wfh', 'pass'].includes(o)),
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal', 'pass'].includes(o)),
 
         }
 

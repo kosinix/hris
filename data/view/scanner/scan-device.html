@@ -31,6 +31,7 @@
 <script src="{{app.url}}/js/popper.min.js"></script>
 <script src="{{app.url}}/js/bootstrap.min.js"></script>
 <script src="{{app.url}}/js/moment.min.js"></script>
+<script src="{{app.url}}/js/moment-timezone-with-data-10-year-range.min.js"></script>
 <script src="{{app.url}}/js/axios.min.js"></script>
 <script src="{{app.url}}/js/media-devices.js"></script>
 <script>
@@ -91,11 +92,12 @@
             }, 100)
 
             var tick = function(){
-                me.clock = moment().format('hh:mm:ss A')
-                me.date = moment().format('MMM D, dddd')
+                var now = moment().tz('Asia/Manila');
+                me.clock = now.format('hh:mm:ss A');
+                me.date = now.format('MMM D, dddd');
             }
             tick();
-            setInterval(tick, 1000);
+            setInterval(tick, 250);
 
         },
         watch: {

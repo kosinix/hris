@@ -159,6 +159,98 @@ router.post('/scanner/:scannerId/edit', middlewares.guardRoute(['read_scanner', 
         next(err);
     }
 });
+router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner', 'update_scanner']), middlewares.getScanner, async (req, res, next) => {
+    try {
+        let scanner = res.scanner.toObject()
+        scanner.user = await db.main.User.findById(scanner.userId)
+
+        // Scanner status today
+        let momentDate = lodash.get(req, 'query.date')
+        if (momentDate) {
+            momentDate = moment(momentDate)
+        } else {
+            momentDate = moment()
+        }
+
+        let scannerPings = await db.main.ScannerPing.find({
+            scannerId: scanner._id,
+            createdAt: {
+                $gte: momentDate.clone().startOf('day').toDate(),
+                $lte: momentDate.clone().endOf('day').toDate(),
+            }
+        }).lean()
+
+        await db.main.ScannerPing.deleteMany({
+            scannerId: scanner._id,
+            createdAt: {
+                $gte: momentDate.clone().startOf('day').toDate(),
+                $lte: momentDate.clone().endOf('day').toDate(),
+            }
+        })
+
+        let momentStart = null
+        let threshold = 60 // Sec
+        let downTimes = []
+        scannerPings.forEach((ping, index) => {
+            momentStart = moment(ping.createdAt)
+            let nextPing = scannerPings[index + 1]
+            if (nextPing) {
+                let momentEnd = moment(nextPing.createdAt)
+                let diff = momentEnd.diff(momentStart, 'seconds')
+                // let diff2 = momentEnd.diff(momentStart, 'minutes')
+
+                if (diff > threshold) {
+                    console.log(diff, 's')
+                    downTimes.push(`${momentStart.toISOString()}|${momentEnd.toISOString()}|${diff}`)
+                }
+            }
+        })
+
+        let scannerStatus = await db.main.ScannerStatus.findOne({
+            scannerId: scanner._id,
+            createdAt: {
+                $gte: momentDate.clone().startOf('day').toDate(),
+                $lte: momentDate.clone().endOf('day').toDate(),
+            }
+        }).lean()
+
+        if (scannerStatus) {
+            scannerStatus.downTimes.push(...downTimes)
+            scannerStatus.downTimes = lodash.uniq(scannerStatus.downTimes)
+            await db.main.ScannerStatus.updateOne({
+                scannerId: scanner._id,
+                createdAt: momentDate.clone().startOf('day').toDate(),
+            }, scannerStatus)
+        } else {
+            scannerStatus = await db.main.ScannerStatus.create({
+                scannerId: scanner._id,
+                createdAt: momentDate.clone().startOf('day').toDate(),
+                downTimes: downTimes
+            })
+        }
+
+        scannerStatus.downTimes = scannerStatus.downTimes.map((o) => {
+            let data = o.split('|')
+            let diff = parseInt(data[2]) / 60
+            if (Math.round(diff) > 0) {
+                diff = Math.round(diff)
+            }
+            return {
+                date: moment(data[0]).format('MMM DD, YYYY'),
+                start: moment(data[0]).format('hh:mm A'),
+                end: moment(data[1]).format('hh:mm A'),
+                diff: diff
+            }
+        })
+        res.render('scanner/status.html', {
+            flash: flash.get(req, 'scanner'),
+            scanner: scanner,
+            scannerStatus: scannerStatus,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 
 // Scanner front page
 router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, async (req, res, next) => {
@@ -221,7 +313,7 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
             try {
 
                 let saveList = null
-                if(scanData.photo){
+                if (scanData.photo) {
                     let file = uploader.toReqFile(scanData.photo)
                     let files = {
                         photos: [file]
@@ -239,7 +331,7 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
 
                     console.log(uploadList, saveList)
                 }
-        
+
                 log = await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id, undefined, { photo: lodash.get(saveList, 'photos[0]', '') })
             } catch (err) {
                 throw new AppError(err.message) // Format for xhr
@@ -287,6 +379,31 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
         next(err)
     }
 });
+
+router.get('/scanner/:scannerUid/ping', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, async (req, res, next) => {
+    let scanner = res.scanner
+
+    try {
+        // let now = moment().toISOString()
+
+        await db.main.ScannerPing.create({
+            scannerId: scanner._id
+        })
+
+        if (scanner.refresh) {
+            scanner.refresh = false
+            await scanner.save()
+            return res.send('refreshing')
+
+        }
+        // console.log(scanner.name, 'pinged on', now)
+        res.send('')
+
+    } catch (err) {
+        next(err)
+    }
+});
+
 
 router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.expandScanData, async (req, res, next) => {
     let scanner = res.scanner.toObject()

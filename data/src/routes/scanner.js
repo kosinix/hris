@@ -180,16 +180,19 @@ router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner',
             }
         }).lean()
 
-        await db.main.ScannerPing.deleteMany({
-            scannerId: scanner._id,
-            createdAt: {
-                $gte: momentDate.clone().startOf('day').toDate(),
-                $lte: momentDate.clone().endOf('day').toDate(),
-            }
-        })
+        if (scannerPings.length > 1) { // Delete if more than 1. We need 2 pings to do a proper diff.
+            await db.main.ScannerPing.deleteMany({
+                scannerId: scanner._id,
+                createdAt: {
+                    $gte: momentDate.clone().startOf('day').toDate(),
+                    $lte: momentDate.clone().endOf('day').toDate(),
+                }
+            })
+        }
 
         let momentStart = null
-        let threshold = 60 // Sec
+        let threshold = 5 // minutes
+        threshold *= 60 // to secs
         let downTimes = []
         scannerPings.forEach((ping, index) => {
             momentStart = moment(ping.createdAt)
@@ -197,7 +200,6 @@ router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner',
             if (nextPing) {
                 let momentEnd = moment(nextPing.createdAt)
                 let diff = momentEnd.diff(momentStart, 'seconds')
-                // let diff2 = momentEnd.diff(momentStart, 'minutes')
 
                 if (diff > threshold) {
                     console.log(diff, 's')

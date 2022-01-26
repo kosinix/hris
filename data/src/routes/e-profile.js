@@ -300,7 +300,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             workSchedule: workSchedule,
             shared: false,
 
-            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal', 'pass'].includes(o)),
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal'].includes(o)),
 
         }
 
@@ -680,6 +680,21 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
         next(new AppError(err.message));
     }
 });
+router.get('/e-profile/dtr/:employmentId/online', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+
+        
+
+        res.render('e-profile/map.html', {
+            employee: employee
+        })
+    } catch (err) {
+        next(new AppError(err.message));
+    }
+});
+
 
 router.get('/e-profile/dtr/share/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {

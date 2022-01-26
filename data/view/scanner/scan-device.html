@@ -38,6 +38,8 @@
     var timer = null
     var timer2 = null
     var returnTimer = null
+    var pingTimer = null
+    var pingTimeout = 60000; // seconds
     var reload = function(){
         window.location.reload(false); 
     }
@@ -54,7 +56,7 @@
             pending: false,
             page: 0,
             code: '',
-            useWebcam: false,
+            useWebcam: {{scanner.useCam|default(false, true)}},
             webcamPhotoSnapper: null,
             webcamLoaded: false,
             photo: '',
@@ -99,6 +101,25 @@
             tick();
             setInterval(tick, 250);
 
+            var pingHome = function(){
+                fetch('/scanner/{{scanner.uid}}/ping', {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
+                    response.text().then(function(text){
+                        console.log(text)
+                        if(text==='refreshing') setTimeout(reload, 1000)
+                    })
+
+                }).catch(function(error){
+                    console.log(error)
+                }).then(function(){
+                    if(pingTimer){
+                        clearTimeout(pingTimer);
+                        pingTimer = setTimeout(pingHome, pingTimeout);
+                    }
+                })
+            }
+            pingHome();
+            pingTimer = setTimeout(pingHome, pingTimeout);
+
         },
         watch: {
             code: function(newCode, oldCode){
@@ -124,7 +145,7 @@
                    
 
                 }
-                me.reloadOnIdle();
+                //me.reloadOnIdle();
             }
         },
         methods: {
@@ -159,10 +180,12 @@
                 }
             },
             reloadOnIdle: function(){
+                {#/*
+                // Move function to browser extensions
                 if(timer){
                     clearTimeout(timer);
                 }
-                timer = setTimeout(reload, 900000) // 15 mins
+                timer = setTimeout(reload, 900000) // 15 mins */#}
             },
             returnBalik: function(delay){
                 var me = this;

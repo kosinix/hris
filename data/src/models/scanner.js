@@ -34,6 +34,14 @@ let schema = mongoose.Schema({
     active: {
         $type: Boolean,
         default: true
+    },
+    refresh: { // Refresh browser of scanner
+        $type: Boolean,
+        default: false
+    },
+    useCam: { // Use webcam
+        $type: Boolean,
+        default: false
     }
 }, { timestamps: true, typeKey: '$type' })
 

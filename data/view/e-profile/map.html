@@ -1,0 +1,182 @@
+{% extends "document.html" %}
+{% block styles %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="   crossorigin=""/>
+{% endblock %}
+
+{% block body %}
+<div class="col-md-12" id="vApp" v-cloak v-bind:data-pending="pending">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Online Log Verification</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/e-profile/home" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <div class="mb-5">
+        {# <div class="alert alert-info">Before you begin your online log, please make sure you have enough time to perform the verification to avoid being late.</div>
+        <div class="alert alert-success">
+            Please make sure you have the following:
+            <ul class="mb-0">
+                <li>A phone with camera and location feature.</li>
+                <li>Mobile internet data. Results are much more accurate on mobile data.</li>
+            </ul>
+        </div> #}
+        <div id="map" style="height:400px"></div>
+
+        <div id="carousel-map" class="carousel slide" data-ride="carousel" data-touch="false" data-interval="false">
+            <ol class="carousel-indicators">
+                <li data-target="#carousel-map" data-slide-to="0" class="active"></li>
+                <li data-target="#carousel-map" data-slide-to="1"></li>
+                <li data-target="#carousel-map" data-slide-to="2"></li>
+                <li data-target="#carousel-map" data-slide-to="3"></li>
+            </ol>
+            <div class="carousel-inner p-3">
+                {# 0 #}
+                <div class="carousel-item active">
+                    <div class="alert alert-info">
+                        Prove that you are within the school campus by giving us your location.  
+                    </div>       
+
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-light">No</button>               
+                        <button class="btn btn-primary">Okay</button>               
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="text-center">
+                    </div>
+                </div>
+                {# 1 #}
+                <div class="carousel-item ">
+                    <div class="text-center">
+                        <div class="d-flex text-left justify-content-center">
+                            <div class="step">
+                                <div class="number">
+                                    <div>Step</div>
+                                    <div>02</div>
+                                </div>
+                                <div class="desc">
+                                    <h1 class="h5">TAKE A SELFIE</h1>
+                                    <p class="mb-0">Scan your ID again when you're ready.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <video id="webcam-feed"></video>
+                        <canvas id="webcam-snapshot"></canvas>
+                    </div>
+                </div>
+                {# 2 #}
+                <div class="carousel-item ">
+                    <div class="text-center">
+                        <div class="d-flex text-left justify-content-center">
+                            <div class="step">
+                                <div class="number">
+                                    <div>Step</div>
+                                    <div>03</div>
+                                </div>
+                                <div class="desc">
+                                    <h1 class="h5">Done!</h1>
+                                    <p class="mb-0">Please write your time in the logsheet as it appears on HRIS.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center scan-data">
+                        </div>
+                      
+                    </div>
+                </div>
+                {# 3 #}
+                <div class="carousel-item ">
+                    <div class="text-center">
+                        <h1>Error</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="   crossorigin=""></script>
+<script>
+
+    
+
+    
+   
+
+
+    var geo = _.get(window, 'navigator.geolocation');
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            pending: false,
+            page: 0,
+        },
+        validations: {
+            
+        },
+        mounted: function(){
+            var me = this;
+            var map = L.map('map').setView([10.6991822, 122.651331], 50);
+                            map.scrollWheelZoom.disable();
+                        var tiles = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia29zaW5peCIsImEiOiJjamFsd2t3Y3QydW05MzNxdXUyeWV6azhoIn0.aqHKe7JGKQrNMD5-WP8xDQ', {
+                            maxZoom: 18,
+                            attribution: 'Developed by <a href="https://mis.gsc.edu.ph">MIS</a>. Map data by <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>. ' +
+                                'Imagery by <a href="https://www.mapbox.com/">Mapbox</a>',
+                            id: 'mapbox/streets-v11',
+                            tileSize: 512,
+                            zoomOffset: -1
+                        }).addTo(map);
+        },
+        watch: {
+            page: function (newPage, oldPage) {
+                var me = this;
+                jQuery('#carousel-map').carousel(newPage)
+                
+                if(newPage === 0) {
+                    console.log('reset')
+                    setTimeout(function(){
+                        
+                    }, 1000)
+
+                } else if(newPage === 1) {
+
+                    console.log('location')
+                    
+                } else if(newPage === 2) {
+                    console.log('2')
+
+                } else if(newPage === 3) {
+                   console.log('3')
+
+                }
+            }
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

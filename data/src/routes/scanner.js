@@ -233,15 +233,17 @@ router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner',
 
         scannerStatus.downTimes = scannerStatus.downTimes.map((o) => {
             let data = o.split('|')
-            let diff = parseInt(data[2]) / 60
-            if (Math.round(diff) > 0) {
-                diff = Math.round(diff)
-            }
+            let diff = parseInt(data[2])
+            let hrs = diff / 3600
+            let mins = (hrs - Math.floor(hrs)) * 60
+
             return {
                 date: moment(data[0]).format('MMM DD, YYYY'),
                 start: moment(data[0]).format('hh:mm A'),
                 end: moment(data[1]).format('hh:mm A'),
-                diff: diff
+                diff: diff,
+                hrs: Math.floor(hrs),
+                mins: Math.round(mins),
             }
         })
         res.render('scanner/status.html', {

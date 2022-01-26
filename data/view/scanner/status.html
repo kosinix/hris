@@ -20,7 +20,7 @@
             <p>Active: {{scanner.active|capitalize}}</p>
             <ol>
                 {% for downTime in scannerStatus.downTimes %}
-                    <li><span class="text-danger">{{downTime.date}}</span> from <strong>{{downTime.start}}</strong> to <strong>{{downTime.end}}</strong> for <em class="text-danger">{{downTime.diff}}</em> minutes</li>
+                    <li><span class="text-danger">{{downTime.date}}</span> from <strong>{{downTime.start}}</strong> to <strong>{{downTime.end}}</strong> for <em class="text-danger">{{downTime.hrs}}</em> hrs <em class="text-danger">{{downTime.mins}}</em> minutes</li>
                 {% endfor %}
             </ol>
     </div>

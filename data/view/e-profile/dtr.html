@@ -430,7 +430,7 @@
             },
             showLogTime: function(dateTime) {
                 if(dateTime){
-                    return moment(dateTime).format('hh:mm');
+                    return moment(dateTime).tz('Asia/Manila').format('hh:mm');
                 }
                 return ''
             },

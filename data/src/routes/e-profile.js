@@ -22,6 +22,7 @@ const paginator = require('../paginator');
 const suffixes = require('../suffixes');
 const s3 = require('../aws-s3');
 const { AppError } = require('../errors');
+const uploader = require('../uploader');
 const workScheduler = require('../work-scheduler');
 
 // Router
@@ -300,7 +301,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             workSchedule: workSchedule,
             shared: false,
 
-            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal', 'pass'].includes(o)),
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal'].includes(o)),
 
         }
 
@@ -642,11 +643,13 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
 
         // return res.send(req.body)
         let body = req.body
-        let extra = {
-            lat: body.lat,
-            lon: body.lon,
-        }
+        
         let mode = body.mode
+        let lat = body.lat
+        let lon = body.lon
+        let webcamPhoto = body.webcamPhoto
+
+        
 
         // Today attendance
         let attendance = await db.main.Attendance.findOne({
@@ -659,19 +662,45 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
         }).lean()
         if (attendance) {
             let lastLog = attendance.logs[attendance.logs.length - 1]
-            if(lastLog.mode === mode){
+            if (lastLog.mode === mode) {
                 let message = `You are already logged-in. Please refresh your HRIS account and try again.`
-                if(mode == 0) {
+                if (mode == 0) {
                     message = `You are already logged out. Please refresh your HRIS account and try again.`
                 }
                 throw new Error(message)
             }
         }
 
+        // Photo
+        let saveList = null
+        if (webcamPhoto) {
+            let file = uploader.toReqFile(webcamPhoto)
+            let files = {
+                photos: [file]
+            }
+            let localFiles = await uploader.handleExpressUploadLocalAsync(files, CONFIG.app.dirs.upload)
+            let imageVariants = await uploader.resizeImagesAsync(localFiles, null, CONFIG.app.dirs.upload); // Resize uploaded images
+
+            let uploadList = uploader.generateUploadList(imageVariants, localFiles)
+            saveList = uploader.generateSaveList(imageVariants, localFiles)
+            await uploader.uploadToS3Async(uploadList)
+            await uploader.deleteUploadsAsync(localFiles, imageVariants)
+            req.localFiles = localFiles
+            req.imageVariants = imageVariants
+            req.saveList = saveList
+
+            console.log(uploadList, saveList)
+        }
+
         // Log
         let source = {
             id: res.user._id,
             type: 'userAccount', // Online user account
+        }
+        let extra = {
+            lat: lat,
+            lon: lon,
+            photo: lodash.get(saveList, 'photos[0]', ''),
         }
         let log = await dtrHelper.logAttendance(db, employee, employment, null, 15, extra, 'online', source) // 15mins timeout
 
@@ -680,6 +709,96 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
         next(new AppError(err.message));
     }
 });
+router.get('/e-profile/dtr/:employmentId/log-point', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+
+        // Today attendance
+        let attendance = await db.main.Attendance.findOne({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            createdAt: {
+                $gte: moment().startOf('day').toDate(),
+                $lt: moment().endOf('day').toDate(),
+            }
+        }).lean()
+
+        // Checkpoints
+        // 0 - no log
+        // 1 - morning in
+        // 2 - morning out
+        // 3 - afternoon in
+        // 4 - afternoon out
+        // 5 - extended in
+        // 6 - extended out
+        let checkPoint = lodash.get(attendance, 'logs.length', 0)
+
+        res.send({
+            checkPoint: checkPoint
+        })
+    } catch (err) {
+        next(new AppError(err.message));
+    }
+});
+router.get('/e-profile/dtr/:employmentId/map', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+
+        res.render('e-profile/map.html', {
+            employee: employee,
+            employment: employment,
+        })
+    } catch (err) {
+        next(new AppError(err.message));
+    }
+});
+
+router.get('/e-profile/dtr/:employmentId/online', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+
+
+
+        res.render('e-profile/map-1.html', {
+            employee: employee,
+            employment: employment,
+        })
+    } catch (err) {
+        next(new AppError(err.message));
+    }
+});
+
+router.post('/e-profile/dtr/:employmentId/location', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+        let body = req.body
+
+
+        let found = await db.main.Map.findOne({
+            geo: {
+                $geoIntersects: {
+                    $geometry: {
+                        "type": "Point",
+                        "coordinates": body.coordinates
+                    }
+                }
+            }
+        }).lean()
+
+        console.log('found',found)
+        if(!found){
+            return res.status(404).send('')
+        }
+        res.send(found.name)
+    } catch (err) {
+        next(new AppError(err.message));
+    }
+});
+
 
 router.get('/e-profile/dtr/share/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {

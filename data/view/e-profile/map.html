@@ -24,7 +24,7 @@
                 <li>Mobile internet data. Results are much more accurate on mobile data.</li>
             </ul>
         </div> #}
-        <div id="map" style="height:400px"></div>
+        <div id="map" style="height:600px"></div>
 
         <div id="carousel-map" class="carousel slide" data-ride="carousel" data-touch="false" data-interval="false">
             <ol class="carousel-indicators">
@@ -128,16 +128,64 @@
         },
         mounted: function(){
             var me = this;
-            var map = L.map('map').setView([10.6991822, 122.651331], 50);
-                            map.scrollWheelZoom.disable();
-                        var tiles = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia29zaW5peCIsImEiOiJjamFsd2t3Y3QydW05MzNxdXUyeWV6azhoIn0.aqHKe7JGKQrNMD5-WP8xDQ', {
-                            maxZoom: 18,
-                            attribution: 'Developed by <a href="https://mis.gsc.edu.ph">MIS</a>. Map data by <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>. ' +
-                                'Imagery by <a href="https://www.mapbox.com/">Mapbox</a>',
-                            id: 'mapbox/streets-v11',
-                            tileSize: 512,
-                            zoomOffset: -1
-                        }).addTo(map);
+            var map = L.map('map').setView([10.6991822, 122.651331], 17);
+                map.scrollWheelZoom.disable();
+            var tiles = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia29zaW5peCIsImEiOiJjamFsd2t3Y3QydW05MzNxdXUyeWV6azhoIn0.aqHKe7JGKQrNMD5-WP8xDQ', {
+                maxZoom: 18,
+                attribution: 'Developed by <a href="https://mis.gsc.edu.ph">MIS</a>. Map data by <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>. ' +
+                    'Imagery by <a href="https://www.mapbox.com/">Mapbox</a>',
+                id: 'mapbox/streets-v11',
+                tileSize: 512,
+                zoomOffset: -1
+            }).addTo(map);
+
+            var pin = L.icon({
+                iconUrl: '/images/marker-1.png',
+                iconSize:     [33, 50], // size of the icon
+                shadowSize:   [50, 64], // size of the shadow
+                iconAnchor:   [16.5, 50], // point of the icon which will correspond to marker's location
+            });
+            L.marker([10.6990108, 122.6498571], {icon: pin}).addTo(map).bindPopup("Your Location!");
+
+            var polygon = L.polygon([
+                [10.6990108, 122.6498571],
+                [10.6980449, 122.6508093],
+                [10.6984059, 122.6512063],
+                [10.6984389, 122.6511741],
+                [10.6984883, 122.6512230],
+                [10.6984369, 122.6512827],
+                [10.6991795, 122.6520860],
+                [10.7000703, 122.6511459],
+                [10.7003233, 122.6508602],
+                [10.7007516, 122.6503050],
+                [10.6998568, 122.6493314],
+                [10.6991544, 122.6500060],
+                [10.6990108, 122.6498571],
+            ], {color: 'green'}).bindPopup("Salvador Campus Boundaries");
+            polygon.addTo(map);
+
+            polygon = L.polygon([
+                [10.6194448, 122.5937879],
+                [10.6188743, 122.5976385],
+                [10.6177542, 122.5970157],
+                [10.6181925, 122.5933632],
+                [10.6194448, 122.5937879],
+            ], {color: 'green'}).bindPopup("Mosqueda Campus Boundaries");
+            polygon.addTo(map);
+
+            polygon = L.polygon([
+                [10.5838882, 122.6716331],
+                [10.5839687, 122.6713986],
+                [10.5842046, 122.6711531],
+                [10.5843011, 122.6711203],
+                [10.5837542, 122.6705312],
+                [10.5830785, 122.6699584],
+                [10.5828909, 122.6699966],
+                [10.5824511, 122.6706458],
+                [10.5824029, 122.6707549],
+                [10.5838882, 122.6716331],
+            ], {color: 'green'}).bindPopup("Baterna Campus Boundaries");
+            polygon.addTo(map);
         },
         watch: {
             page: function (newPage, oldPage) {

@@ -39,7 +39,7 @@ div[data-pending="true"]:before {
     right: 0;
     top: 0;
     bottom: 0;
-    z-index: 100;
+    z-index: 1001;
 }
 div[data-pending="true"]:after {
     content: "Processing... Please wait...";
@@ -47,7 +47,7 @@ div[data-pending="true"]:after {
     left: 0;
     right: 0;
     top: 50%;
-    z-index: 101;
+    z-index: 1002;
     text-align: center;
     color: #222;
     font-size: 18px;

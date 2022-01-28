@@ -703,7 +703,7 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
             photo: lodash.get(saveList, 'photos[0]', ''),
         }
         let log = await dtrHelper.logAttendance(db, employee, employment, null, 15, extra, 'online', source) // 15mins timeout
-
+        flash.ok(req, 'employee', 'Attendance saved.'),
         res.send(log)
     } catch (err) {
         next(new AppError(err.message));

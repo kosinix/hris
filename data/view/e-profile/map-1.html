@@ -82,18 +82,18 @@
                                 <div v-if="mapLocationErrorMode === 0">
                                     <p>You are inside ${mapLocationResultName}.</p>
                                 </div>
-                                <div v-if="mapLocationErrorMode === 1">
-                                    <p>Unfortunately, your detected location is outside of our school. If you think this is inaccurate, please try any of the following: </p>
+                                <div v-if="mapLocationErrorMode === 1" class="text-left">
+                                    <p>Unfortunately, your detected location is outside of our school. </p>
+                                    <p>If you think this is inaccurate, please try any of the following: </p>
                                     <ul>
-                                        <li>Use your phone,</li>
-                                        <li>connect with mobile data,</li>
-                                        <li>enable GPS,</li>
-                                        <li>or just go to one of our scanners and scan your ID.</li>
+                                        <li>Use your phone</li>
+                                        <li>Connect with mobile data</li>
+                                        <li>Enable GPS</li>
                                     </ul>
                                 </div>
                                 <div v-if="mapLocationErrorMode === 2">
                                     <p>You did not allow HRIS to get your location.</p>
-                                    <p>Please go to one of our scanners and scan your ID.</p>
+                                    <p>Please go to one of our scanners to log.</p>
                                 </div>
                                 <div v-if="mapLocationErrorMode === 3">
                                     <p>Service currently unavailable. Please go to one of our scanners to log.</p>
@@ -107,7 +107,10 @@
 
                                 <div class="text-center pt-5">
                                     <button v-if="mapLocationErrorMode===0" v-on:click="page=4-1" type="button" class="btn btn-full-width btn-primary">Next</button>
-                                    <button v-else v-on:click="detectLocation" type="button" class="btn btn-full-width btn-primary">Try Again</button>
+                                    <template v-else>
+                                        <button v-on:click="detectLocation" type="button" class="btn btn-full-width btn-primary mb-3">Try Again</button>
+                                        <a href="/e-profile/dtr/{{employment._id}}" class="btn btn-light btn-full-width">I'll just go to the scanner.</a>
+                                    </template>    
                                 </div>
                             </div>
                         </div>
@@ -484,7 +487,7 @@
                         me.pending = false;
 
                         alert(me.nextLogCheckPoint+' is not allowed online. Please use our scanners.')
-                        window.location.href = '/e-profile/dtr/{{employment._id}}/online';
+                        window.location.href = '/e-profile/dtr/{{employment._id}}';
                     }
                 }).catch(function (error) {
                     if (error.response) {

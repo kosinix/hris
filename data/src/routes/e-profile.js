@@ -643,13 +643,13 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
 
         // return res.send(req.body)
         let body = req.body
-        
+
         let mode = body.mode
         let lat = body.lat
         let lon = body.lon
         let webcamPhoto = body.webcamPhoto
 
-        
+
 
         // Today attendance
         let attendance = await db.main.Attendance.findOne({
@@ -704,7 +704,7 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
         }
         let log = await dtrHelper.logAttendance(db, employee, employment, null, 15, extra, 'online', source) // 15mins timeout
         flash.ok(req, 'employee', 'Attendance saved.'),
-        res.send(log)
+            res.send(log)
     } catch (err) {
         next(new AppError(err.message));
     }
@@ -741,25 +741,38 @@ router.get('/e-profile/dtr/:employmentId/log-point', middlewares.guardRoute(['us
         next(new AppError(err.message));
     }
 });
-router.get('/e-profile/dtr/:employmentId/map', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let employment = res.employment
-
-        res.render('e-profile/map.html', {
-            employee: employee,
-            employment: employment,
-        })
-    } catch (err) {
-        next(new AppError(err.message));
-    }
-});
 
 router.get('/e-profile/dtr/:employmentId/online', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employment = res.employment
 
+        // Add check point
+        // Today attendance
+        let attendance = await db.main.Attendance.findOne({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            createdAt: {
+                $gte: moment().startOf('day').toDate(),
+                $lt: moment().endOf('day').toDate(),
+            }
+        }).lean()
+
+        // Checkpoints
+        // 0 - no log
+        // 1 - morning in
+        // 2 - morning out
+        // 3 - afternoon in
+        // 4 - afternoon out
+        // 5 - extended in
+        // 6 - extended out
+        let checkPoint = lodash.get(attendance, 'logs.length', 0)
+
+        if (checkPoint <= 0) {
+            throw new Error('You need to log your Morning In first.')
+        } else if (checkPoint > 2) {
+            throw new Error('Service available for lunch breaks only.')
+        }
 
 
         res.render('e-profile/map-1.html', {
@@ -789,8 +802,8 @@ router.post('/e-profile/dtr/:employmentId/location', middlewares.guardRoute(['us
             }
         }).lean()
 
-        console.log('found',found)
-        if(!found){
+        console.log('found', found)
+        if (!found) {
             return res.status(404).send('')
         }
         res.send(found.name)

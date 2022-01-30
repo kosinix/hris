@@ -483,7 +483,7 @@ div.focusable:focus-within  {
     height: 100%;
     position: fixed;
     left: 0;
-    z-index: 100;
+    z-index: 1001;
     width: 270px;
     transition: all 300ms ease-out;
     overflow-y: auto;

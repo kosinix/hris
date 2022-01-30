@@ -199,6 +199,7 @@
             page: 0,
             latLon: [],
             map: null,
+            mapMarker: null,
             mapLocationErrorMode: 0,
             mapLocationResultName: '',
             locationMessage: '',
@@ -386,6 +387,20 @@
                             let body = {
                                 coordinates: [lon, lat],
                             }
+
+                            me.map.setView([lat, lon], 17);
+                            var pin = L.icon({
+                                iconUrl: '/images/marker-1.png',
+                                iconSize:     [33, 50], // size of the icon
+                                shadowSize:   [50, 64], // size of the shadow
+                                iconAnchor:   [16.5, 50], // point of the icon which will correspond to marker's location
+                            });
+
+                            if(me.mapMarker){
+                                me.map.removeLayer(me.mapMarker)
+                            }
+                            me.mapMarker = L.marker([lat, lon], {icon: pin}).bindPopup("Your Location!").addTo(me.map);
+
                             axios.post('/e-profile/dtr/{{employment._id}}/location', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
                                 var data = _.get(response, 'data')
                                 console.log(data)
@@ -393,16 +408,6 @@
                                 me.mapLocationResultName = data
                                 me.latLon = [lat, lon]
                                 me.locationMessage = 'Your are inside ' + data + '.'
-
-                                me.map.setView([lat, lon], 17);
-                                var pin = L.icon({
-                                    iconUrl: '/images/marker-1.png',
-                                    iconSize:     [33, 50], // size of the icon
-                                    shadowSize:   [50, 64], // size of the shadow
-                                    iconAnchor:   [16.5, 50], // point of the icon which will correspond to marker's location
-                                });
-                                L.marker([lat, lon], {icon: pin}).addTo(me.map).bindPopup("Your Location!");
-
 
                             }).catch(function (error) {
                                 if (error.response) {
@@ -426,17 +431,7 @@
                                 me.latLon = [lat, lon]
                                 me.locationMessage = ''
 
-                                me.map.setView([lat, lon], 17);
-                                var pin = L.icon({
-                                    iconUrl: '/images/marker-1.png',
-                                    iconSize:     [33, 50], // size of the icon
-                                    shadowSize:   [50, 64], // size of the shadow
-                                    iconAnchor:   [16.5, 50], // point of the icon which will correspond to marker's location
-                                });
-                                L.marker([lat, lon], {icon: pin}).addTo(me.map).bindPopup("Your Location!");
-
                                 me.pending = false;
-
 
                             }).then(function(){
                                 me.pending = false;

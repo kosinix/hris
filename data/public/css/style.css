@@ -922,6 +922,11 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
 
 /* Nav */
 
+
+.leaflet-control.leaflet-control-attribution > a:first-child {
+    display: none;
+}
+
 /* Breakpoints */
 /* ≥1200px Extra large */
 @media (max-width:1200px){

@@ -769,7 +769,7 @@ router.get('/e-profile/dtr/:employmentId/online', middlewares.guardRoute(['use_e
         let checkPoint = lodash.get(attendance, 'logs.length', 0)
 
         if (checkPoint <= 0) {
-            //throw new Error('You need to log your Morning In first.')
+            throw new Error('You need to log your Morning In first.')
         } else if (checkPoint > 2) {
             throw new Error('Service available for lunch breaks only.')
         }

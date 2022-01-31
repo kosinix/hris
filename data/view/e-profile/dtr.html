@@ -202,13 +202,15 @@
                             ${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}
 
                             <div v-if="isTimeOutShown(day)">
-                                <button v-on:click="logTime(0)" class="btn-sm" style="font-size:10px">OUT</button>
+                                <a href="/e-profile/dtr/{{employment._id}}/online" class="btn btn-sm btn-light">OUT</a>
+                                {# <button v-on:click="logTime(0)" class="btn-sm" style="font-size:10px">OUT</button> #}
                             </div>
                         </td>
                         <td class="text-center">
                             ${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}
                             <div v-if="isTimeInShown(day)">
-                                <button v-on:click="logTime(1)" class="btn-sm" style="font-size:10px">IN</button>
+                                <a href="/e-profile/dtr/{{employment._id}}/online" class="btn btn-sm btn-light">IN</a>
+                                {# <button v-on:click="logTime(1)" class="btn-sm" style="font-size:10px">IN</button> #}
                             </div>
                         </td>
                         <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>

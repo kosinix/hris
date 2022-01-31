@@ -100,7 +100,8 @@ MediaDevicesPresets.createWebcamPhotoSnapper = function (videoEl, canvasEl, opti
             context = canvasEl.getContext("2d");
 
             if (options.mirrored) {
-                videoEl.style.setProperty('transform', 'rotateY(180deg)');
+                var t = videoEl.style.getPropertyValue('transform');
+                videoEl.style.setProperty('transform', t + ' rotateY(180deg)');
                 context.scale(-1, 1);
             }
 

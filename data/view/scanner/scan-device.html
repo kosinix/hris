@@ -299,7 +299,8 @@
                     var log = _.get(data, 'log')
                     var gender = _.get(data, 'employee.gender')
                     var firstName = _.get(data, 'employee.firstName')
-                    var lastName = _.get(data, 'employee.lastName')
+                    var lastName = _.trim(_.get(data, 'employee.lastName'))
+                    var birthDate = _.get(data, 'employee.birthDate')
 
                     var speechSynthesisName = _.get(data, 'employee.speechSynthesisName');
                     speechSynthesisName = speechSynthesisName ? speechSynthesisName : firstName;
@@ -317,12 +318,26 @@
 
                         var message = [];
                         
+                        var mBirthDate = moment(birthDate)
+                        var mToday = moment().startOf('day')
+                        var greetB = ''
+                        if(mBirthDate.isValid()){
+                            if(mBirthDate.format('MM-DD') === mToday.format('MM-DD')){
+                                greetB = 'and happy birthday'
+                            }
+                        }
+
+                        
                         if(morning) {
                             message.push('Good morning');
                         } else if(evening){
                             message.push('Good evening');
                         } else if(afternoon) {
                             message.push('Good afternoon');
+                        }
+
+                        if(greetB && lastName === 'Alminaza'){
+                            message.push(greetB)
                         }
 
                         if(gender === 'M') {
@@ -333,7 +348,8 @@
 
                         message.push(speechSynthesisName + '!')
                         message.push('Your time is')
-                        message.push(momentLogTime.clone().format('hh:mm A'))
+                        message.push(momentLogTime.clone().format('hh:mm A') + '.')
+
 
                         me.hambal(message.join(' '))
                     }

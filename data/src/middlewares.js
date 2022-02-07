@@ -149,15 +149,23 @@ module.exports = {
     },
     allowIp: allowIp,
     antiCsrfCheck: antiCsrfCheck,
-    guardRoute: (permissions) => {
+    guardRoute: (permissions, condition = 'and') => {
         return async (req, res, next) => {
             try {
                 let user = res.user
                 let rolesList = await db.main.Role.find()
-                if (!access.and(user, permissions, rolesList)) {
-                    return res.render('error.html', {
-                        error: `Access denied. Required permissions: ${permissions.join(', ')}.`
-                    })
+                if (condition === 'or') {
+                    if (!access.or(user, permissions, rolesList)) {
+                        return res.render('error.html', {
+                            error: `Access denied. Must have one of these permissions: ${permissions.join(', ')}.`
+                        })
+                    }
+                } else {
+                    if (!access.and(user, permissions, rolesList)) {
+                        return res.render('error.html', {
+                            error: `Access denied. Required all these permissions: ${permissions.join(', ')}.`
+                        })
+                    }
                 }
                 next()
             } catch (err) {

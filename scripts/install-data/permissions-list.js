@@ -113,4 +113,9 @@ module.exports = [
     'read_own_account',
     'update_own_password',
 
+    // support
+    'can_register_rfid',
+    'can_password_reset',
+    'can_change_rfid',
+
 ]

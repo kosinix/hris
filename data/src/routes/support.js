@@ -164,7 +164,7 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
         })
 
         flash.ok(req, 'support', 'Employee registered and verified.')
-        return res.send('/support/register')
+        res.redirect('/support/register')
 
     } catch (err) {
         next(err);

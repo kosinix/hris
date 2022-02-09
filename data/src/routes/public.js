@@ -1,4 +1,5 @@
 //// Core modules
+const crypto = require('crypto');
 const url = require('url');
 
 //// External modules
@@ -33,6 +34,8 @@ router.get('/login', async (req, res, next) => {
 });
 router.post('/login', async (req, res, next) => {
     try {
+        await new Promise(resolve => setTimeout(resolve, 5000)) // Rate limit 
+
         let post = req.body;
 
         let username = lodash.get(post, 'username', '');
@@ -67,7 +70,7 @@ router.post('/login', async (req, res, next) => {
 
         // Check password
         let passwordHash = passwordMan.hashPassword(password, user.salt);
-        if (passwordHash !== user.passwordHash) {
+        if (!crypto.timingSafeEqual(Buffer.from(passwordHash, 'utf8'), Buffer.from(user.passwordHash, 'utf8'))) {
             throw new Error('Incorrect password.');
         }
 

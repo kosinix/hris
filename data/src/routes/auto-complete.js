@@ -141,7 +141,7 @@ router.get('/auto-complete/address', async (req, res, next) => {
 
 // Limit by permissions
 // Get employment given search string
-router.get('/auto-complete/employee', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+router.get('/auto-complete/employee', middlewares.guardRoute(['read_all_employee', 'read_employee', 'can_register_rfid'], 'or'), async (req, res, next) => {
     try {
         let search = lodash.get(req, 'query.s', '')
         let showSalary = lodash.get(req, 'query.salary', 1)

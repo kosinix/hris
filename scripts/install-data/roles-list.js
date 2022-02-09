@@ -212,6 +212,22 @@ const ROLES = [
             'update_own_password',
         ]
     },
+    {
+        key: 'support',
+        name: 'Support Staff',
+        description: 'Can register ID and reset passwords.',
+        permissions: [
+
+            // Own account related - admin users
+            'read_own_account',
+            'update_own_password',
+
+            // support
+            'can_password_reset',
+            'can_change_rfid',
+            'can_register_rfid'
+        ]
+    },
 ]
 
 module.exports = ROLES

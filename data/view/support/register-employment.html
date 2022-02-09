@@ -26,11 +26,11 @@
             <div class="form-group">
                 <label for="uid">RFID Number <span class="text-danger">*</span></label>
                 <div style="position: relative;">
-                    <div id="uidcover" style="position: absolute; left:0; top:0; right:0; bottom:0; background: #fff; opacity: 0.6">
+                    <div id="uidcover" style="position: absolute; left:0; top:0; right:0; bottom:0; background: #fff; ">
                         <em>${message}</em>
                     </div>
+                    <textarea v-on:keyup.enter="onEnter" v-on:blur="trim" name="uid" id="uid" v-model="uid" rows="1" class="form-control"></textarea>
                 </div>
-                <textarea v-on:keyup.enter="onEnter" v-on:blur="trim" name="uid" id="uid" v-model="uid" rows="1" class="form-control"></textarea>
                 <small class="invalid-feedback">${getError('uid')}</small>
             </div>
 
@@ -86,7 +86,7 @@
         computed: {
             message: function(){
                 if(this.uid){
-                    return '****'
+                    return new Array(this.uid.length + 1).join( '*' );
                 }
                 return 'Click here and scan ID on scanner. Scanner must attached to this device.'
             }

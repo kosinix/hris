@@ -742,10 +742,47 @@ router.get('/e-profile/dtr/:employmentId/log-point', middlewares.guardRoute(['us
     }
 });
 
+router.get('/e-profile/dtr/:employmentId/on1ine', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+
+        let getRandomArbitrary = (min, max) => {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        let timeOut = getRandomArbitrary(10, 60) * 1000
+        // console.log(timeOut)
+        await new Promise(resolve => setTimeout(resolve, timeOut)) // Rate limit 
+        let employment = res.employment
+
+        let t = getRandomArbitrary(0, 3)
+
+        if(t === 0) {
+            flash.error(req, 'employee', `Request timed-out. Please try again.`)
+            res.redirect(`/e-profile/home`)
+        } else if (t === 1) {
+            flash.error(req, 'employee', `Request timed-out. Please try again.`)
+            res.redirect(`/e-profile/dtr/${employment._id}`)
+        } else if (t === 2) {
+            flash.error(req, 'employee', `Request timed-out. Please try again.`)
+            res.redirect(`/e-profile/dtr/${employment._id}`)
+        } else {
+            res.redirect(`/e-profile/out`)
+        }
+    } catch (err) {
+        next(new AppError(err.message));
+    }
+});
+
 router.get('/e-profile/dtr/:employmentId/online', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
+        let user = res.user.toObject()
         let employee = res.employee.toObject()
         let employment = res.employment
+
+        if(!lodash.get(user, 'settings.ol', true)){
+            return res.redirect(`/e-profile/dtr/${employment._id}/on1ine`)
+        }
 
         // Add check point
         // Today attendance

@@ -202,14 +202,14 @@
                             ${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}
 
                             <div v-if="isTimeOutShown(day)">
-                                <a href="/e-profile/dtr/{{employment._id}}/online" class="btn btn-sm btn-light">OUT</a>
+                                <a v-on:click="onlineLog" href="/e-profile/dtr/{{employment._id}}/online" class="btn btn-sm btn-light">OUT</a>
                                 {# <button v-on:click="logTime(0)" class="btn-sm" style="font-size:10px">OUT</button> #}
                             </div>
                         </td>
                         <td class="text-center">
                             ${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}
                             <div v-if="isTimeInShown(day)">
-                                <a href="/e-profile/dtr/{{employment._id}}/online" class="btn btn-sm btn-light">IN</a>
+                                <a v-on:click="onlineLog" href="/e-profile/dtr/{{employment._id}}/online" class="btn btn-sm btn-light">IN</a>
                                 {# <button v-on:click="logTime(1)" class="btn-sm" style="font-size:10px">IN</button> #}
                             </div>
                         </td>
@@ -512,6 +512,11 @@
             isCurrentDay: function(dtrDay){
                 return _.get(dtrDay, 'date') === moment().format('YYYY-MM-DD');
             },
+
+            onlineLog: function(){
+                this.pending = true;
+            },
+
             logTime: function(logType){
                 var me = this;
 

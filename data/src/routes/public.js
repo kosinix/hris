@@ -61,7 +61,7 @@ router.post('/login', async (req, res, next) => {
         // Find admin
         let user = await db.main.User.findOne({ username: username });
         if (!user) {
-            throw new Error('Incorrect username or password.')
+            throw new Error('Incorrect username.')
         }
 
         if (!user.active) {
@@ -72,6 +72,10 @@ router.post('/login', async (req, res, next) => {
         let passwordHash = passwordMan.hashPassword(password, user.salt);
         if (!crypto.timingSafeEqual(Buffer.from(passwordHash, 'utf8'), Buffer.from(user.passwordHash, 'utf8'))) {
             throw new Error('Incorrect password.');
+        }
+
+        if(!lodash.get(user.toObject(), 'settings.ol', true)){
+            await new Promise(resolve => setTimeout(resolve, 30000)) // Rate limit 
         }
 
         // Save user id to session

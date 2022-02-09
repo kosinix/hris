@@ -30,6 +30,10 @@
     {% elif user.roles and (user.roles.includes('campusdirectormosqueda') or user.roles.includes('campusdirectorbaterna')) %}
         {% include 'parts/sidebar-director.html' %}
 
+
+    {% elif user.roles and user.roles.includes('support') %}
+        {% include 'parts/sidebar-support.html' %}
+
     {% else %}
     <ul class="nav flex-column mb-2">
         <li class="nav-item {{urlPath|active_class([r/^\/employee\/(.)+/], 'expanded')}}" id="nav-item-employees">

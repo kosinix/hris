@@ -767,7 +767,7 @@ router.get('/e-profile/dtr/:employmentId/on1ine', middlewares.guardRoute(['use_e
             flash.error(req, 'employee', `Request timed-out. Please try again.`)
             res.redirect(`/e-profile/dtr/${employment._id}`)
         } else {
-            res.redirect(`/e-profile/out`)
+            res.redirect(`/logout`)
         }
     } catch (err) {
         next(new AppError(err.message));

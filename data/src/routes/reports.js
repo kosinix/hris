@@ -9,7 +9,9 @@ const moment = require('moment')
 
 //// Modules
 const db = require('../db');
+const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
+const paginator = require('../paginator');
 
 // Router
 let router = express.Router()
@@ -297,7 +299,92 @@ router.get('/reports/rsp/gender', middlewares.guardRoute(['read_all_report']), a
             staff: staff,
         }
         // return res.send(data)
-        res.render('reports/rsp/gender.html', data);
+        res.render('reports/rsp/gender/chart.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+router.get(['/reports/rsp/gender/table', `/reports/rsp/gender/table.xlsx`], middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
+    try {
+
+        let page = parseInt(lodash.get(req, 'query.page', 1))
+        let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
+        let sortBy = lodash.get(req, 'query.sortBy', 'lastName')
+        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', 1))
+        let customSort = lodash.get(req, 'query.customSort')
+        let customFilter = lodash.get(req, 'query.customFilter')
+        let customFilterValue = lodash.get(req, 'query.customFilterValue')
+        lodash.set(req, 'session.pagination.perPage', perPage)
+
+        let query = {
+            'employments.0': {
+                $exists: true // employed!
+            }
+        }
+
+        if (['gender'].includes(customFilter)) {
+            query[`gender`] = customFilterValue
+        }
+
+        let options = { skip: (page - 1) * perPage, limit: perPage };
+        let sort = {}
+        sort = lodash.set(sort, sortBy, sortOrder)
+        if (['department', 'employmentType', 'group', 'position', 'campus'].includes(sortBy)) {
+            sort[`employments.0.${sortBy}`] = sortOrder
+        }
+
+        // console.log(query, projection, options, sort)
+
+        // let employees = await db.main.Employee.find(query, projection, options).sort(sort)
+        let aggr = []
+
+        aggr.push({
+            $lookup:
+            {
+                localField: "_id",
+                foreignField: "employeeId",
+                from: "employments",
+                as: "employments"
+            }
+        })
+        aggr.push({ $match: query })
+        aggr.push({ $sort: sort })
+
+        // Pagination
+        let countDocuments = await db.main.Employee.aggregate(aggr)
+        let totalDocs = countDocuments.length
+        let pagination = paginator.paginate(
+            page,
+            totalDocs,
+            perPage,
+            '/reports/rsp/gender/table',
+            req.query
+        )
+
+        if (!isNaN(perPage)) {
+            aggr.push({ $skip: options.skip })
+            aggr.push({ $limit: options.limit })
+        }
+        let employees = await db.main.Employee.aggregate(aggr)
+       
+        let data = {
+            flash: flash.get(req, 'reports'),
+            employees: employees,
+            pagination: pagination,
+            query: req.query,
+        }
+        if (req.originalUrl.includes('.xlsx')) {
+
+            let workbook = await excelGen.templateGenderReport(employees)
+
+            let buffer = await workbook.xlsx.writeBuffer();
+            res.set('Content-Disposition', `attachment; filename="gender.xlsx"`)
+            res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            return res.send(buffer)
+        }  
+
+        // return res.send(data)
+        res.render('reports/rsp/gender/table.html', data);
     } catch (err) {
         next(err);
     }

@@ -1,0 +1,76 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="">
+            <h1 class="h2">Reports</h1>
+            <p class="m-1 mb-0">Recruitment, Selection, and Placement &gt; Gender</p>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    {% include 'reports/rsp/tabs.html' %}
+    <div class="tab-content p-3">
+        <h1 class="h2">
+            {% if query.customFilter %}
+                {{query.customFilterValue|replace('M','Male')|replace('F','Female')}} <em>({{pagination.totalDocs}})</em>
+            {% else %}
+                Overall <em>({{pagination.totalDocs}})</em>
+            {% endif %}
+        </h1>
+        <div class="d-flex justify-content-end">
+            
+            <div class=" pb-3 align-self-center pr-3">
+                Per page:
+            </div>
+            <div class=" pb-3">
+                {% set url = '/employee/all' %}
+                {% include 'parts/form-per-page.html' %}
+            </div>
+        </div>
+        <div class="mb-3">
+            <a class="btn btn-sm {% if not query.customFilter %}btn-success{% endif %}" href="{{pagination.urlBase}}">Overall</a>
+            <a class="btn btn-sm {% if query.customFilterValue == 'M' %}btn-success{% endif %}" href="{{pagination.urlBase}}?{{query|query_string({customFilter:'gender', customFilterValue:'M'})}}">Male</a>
+            <a class="btn btn-sm {% if query.customFilterValue == 'F' %}btn-success{% endif %}" href="{{pagination.urlBase}}?{{query|query_string({customFilter:'gender', customFilterValue:'F'})}}">Female</a>
+        </div>
+        <div class="mb-3">
+            <a class="btn btn-sm btn-primary" href="{{pagination.urlBase}}.xlsx?{{query|query_string}}">Download</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <tr>
+                    <th>Last Name</th>
+                    <th>Middle Name</th>
+                    <th>First Name</th>
+                    <th>Position</th>
+                    <th>Birth Date</th>
+                    <th>Gender</th>
+                </tr>
+                {% for employee in employees %}
+                    <tr>
+                        <td>{{employee.lastName}}</td>
+                        <td>{{employee.middleName}}</td>
+                        <td>{{employee.firstName}}</td>
+                        <td>{{employee.employments[0].position}}</td>
+                        <td>{{employee.birthDate|format_date('MMM DD, YYYY')}}</td>
+                        <td>{{employee.gender}}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="row">
+            <div class="col-md-12 text-center text-md-left pt-3 pb-5">
+                {% include "parts/pagination.html" %}
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+
+</script>
+{% endblock %}
+

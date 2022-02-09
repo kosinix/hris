@@ -1536,10 +1536,49 @@ let templateAttendanceDaily = async (mCalendar, attendances) => {
 
 }
 
+let templateGenderReport = async (employees) => {
+
+    let workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/reports/rsp/gender/table.xlsx`);
+    let slex = new Slex(workbook)
+
+    let worksheet = workbook.getWorksheet('Sheet1')
+    if (worksheet) {
+        slex.setSheet(worksheet)
+
+        let offset = 2
+        for (x = 0; x < employees.length; x++) {
+            let employee = employees[x]
+
+            row = offset + x
+            slex.getCell(`A${row}`).value(x + 1)
+
+            let lastName = employee.lastName
+            lastName = (employee.suffix) ? lodash.capitalize(lastName) + ', ' + employee.suffix : lodash.capitalize(lastName)
+
+            slex.getCell(`B${row}`).value(lastName)
+            slex.getCell(`C${row}`).value(lodash.capitalize(employee.middleName))
+            slex.getCell(`D${row}`).value(lodash.capitalize(employee.firstName))
+            slex.getCell(`E${row}`).value(lodash.get(employee, 'employments[0].position', ''))
+
+            let birthDate = moment(lodash.get(employee, 'birthDate', null))
+            birthDate = (birthDate.isValid()) ? birthDate.format('MMM DD, YYYY') : ''
+            slex.getCell(`F${row}`).value(birthDate)
+            slex.getCell(`G${row}`).value(lodash.get(employee, 'gender', ''))
+
+        }
+
+    }
+
+    return workbook
+
+}
+
 module.exports = {
     templateCos: templateCos,
     templateHdf: templateHdf,
     templatePds: templatePds,
     templatePermanent: templatePermanent,
     templateAttendanceDaily: templateAttendanceDaily,
+    templateGenderReport: templateGenderReport,
 }

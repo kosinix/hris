@@ -4,14 +4,15 @@
  */
 
 //// Core modules
-const crypto = require('crypto');
-const util = require('util');
+const crypto = require('crypto')
+const buffer = require('buffer')
+const util = require('util')
 
 //// External modules
-const lodash = require('lodash');
+const lodash = require('lodash')
 
 //// Modules
-let randomBytesAsync = util.promisify(crypto.randomBytes);
+let randomBytesAsync = util.promisify(crypto.randomBytes)
 
 module.exports = {
     randomStringAsync: async (length = 32) => {
@@ -53,5 +54,10 @@ module.exports = {
         }
         hex[randLocation2] = upperChars[crypto.randomInt(0, upperChars.length)]
         return hex.join('')
+    },
+    genPassUpperCase: function(length = 10) {
+        const buf = buffer.Buffer.alloc(length / 2)
+        crypto.randomFillSync(buf)
+        return buf.toString('hex').toUpperCase()
     }
 }

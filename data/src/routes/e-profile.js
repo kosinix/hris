@@ -758,13 +758,13 @@ router.get('/e-profile/dtr/:employmentId/on1ine', middlewares.guardRoute(['use_e
         let t = getRandomArbitrary(0, 3)
 
         if(t === 0) {
-            flash.error(req, 'employee', `Request timed-out. Please try again.`)
+            flash.error(req, 'employee', `Request timed-out. Please check your internet connection and try again.`)
             res.redirect(`/e-profile/home`)
         } else if (t === 1) {
-            flash.error(req, 'employee', `Request timed-out. Please try again.`)
+            flash.error(req, 'employee', `Request timed-out. Please check your internet connection and try again.`)
             res.redirect(`/e-profile/dtr/${employment._id}`)
         } else if (t === 2) {
-            flash.error(req, 'employee', `Request timed-out. Please try again.`)
+            flash.error(req, 'employee', `Request timed-out. Please check your internet connection and try again.`)
             res.redirect(`/e-profile/dtr/${employment._id}`)
         } else {
             res.redirect(`/logout`)

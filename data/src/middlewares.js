@@ -670,4 +670,18 @@ module.exports = {
             next(err)
         }
     },
+    getHoliday: async (req, res, next) => {
+        try {
+            let holidayId = lodash.get(req, 'params.holidayId', '')
+            let holiday = await db.main.Holiday.findById(holidayId)
+            if (!holiday) {
+                throw new Error('Holiday not found.')
+            }
+            res.holiday = holiday
+
+            next();
+        } catch (err) {
+            next(err)
+        }
+    },
 }

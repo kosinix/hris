@@ -94,6 +94,10 @@
       {
         "name": "Pass Slip",
         "value": "pass"
+      },
+      {
+        "name": "Holiday",
+        "value": "holiday"
       }
     ],
     "correctionReasons": [

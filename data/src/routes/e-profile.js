@@ -1206,7 +1206,7 @@ router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_empl
         let employment = res.employment
         let attendanceType = lodash.get(req, 'query.type')
 
-        if (!['wfh', 'travel', 'leave', 'pass'].includes(attendanceType)) {
+        if (!['wfh', 'travel', 'leave', 'pass', 'holiday'].includes(attendanceType)) {
             throw new Error('Invalid attendance type.')
         }
         // Today attendance
@@ -1234,6 +1234,8 @@ router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_empl
                 message = `Attendance set to Leave. Please secure your supporting documents.`
             } else if ('pass' === attendanceType) {
                 message = `Attendance set to Pass Slip. Please secure your supporting documents such as your Pass Slip.`
+            } else if ('holiday' === attendanceType) {
+                message = `Attendance set to Holiday.`
             }
 
             attendance = new db.main.Attendance({

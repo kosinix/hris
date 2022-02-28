@@ -922,5 +922,7 @@ module.exports = {
     getTimeBreakdown: getTimeBreakdown,
     getDtrByDateRange: getDtrByDateRange,
     momentToMinutes: momentToMinutes,
-    minutesToMoments: minutesToMoments
+    minutesToMoments: minutesToMoments,
+    mToTime: mToTime,
+    timeToM: timeToM,
 }

@@ -149,7 +149,7 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
     try {
         let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
         let attendanceTypes = lodash.get(req, 'query.byAttendanceType', ['normal', 'wfh', 'leave', 'pass', 'travel'])
-        if(!Array.isArray(attendanceTypes)){
+        if (!Array.isArray(attendanceTypes)) {
             attendanceTypes = [attendanceTypes]
         }
         let mCalendar = moment(date)
@@ -187,7 +187,7 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
             }
         }
 
-        if(attendanceTypes.length > 0){
+        if (attendanceTypes.length > 0) {
             query['type'] = {
                 $in: attendanceTypes
             }
@@ -242,7 +242,7 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
             res.set('Content-Disposition', `attachment; filename="attendance.xlsx"`)
             res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             return res.send(buffer)
-        }   
+        }
         res.render('attendance/daily.html', {
             flash: flash.get(req, 'attendance'),
             mCalendar: mCalendar,
@@ -1180,5 +1180,143 @@ router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_atte
         next(err);
     }
 });
+
+// Holidays
+router.get('/attendance/holiday/all', middlewares.guardRoute(['read_all_attendance', 'update_attendance']), async (req, res, next) => {
+    try {
+
+        let year = lodash.get(req, 'query.year', moment().startOf('year').format('YYYY'))
+
+        let startMoment = moment().year(year).startOf('year')
+        let endMoment = moment().year(year).endOf('year')
+
+        if (!startMoment.isValid()) {
+            throw new Error(`Invalid start date.`)
+        }
+        if (!endMoment.isValid()) {
+            throw new Error(`Invalid end date.`)
+        }
+
+        if (endMoment.isBefore(startMoment)) {
+            throw new Error(`Invalid end date. Must not be less than the start date.`)
+        }
+
+        let aggr = [
+            {
+                $match: {
+                    date: { // event date
+                        $gte: startMoment.toDate(),
+                        $lte: endMoment.toDate(),
+                    }
+                }
+            },
+        ]
+        let holidays = await db.main.Holiday.aggregate(aggr)
+
+        let data = {
+            flash: flash.get(req, 'attendance'),
+            holidays: holidays,
+            year: startMoment.format('YYYY'),
+            start: startMoment.format('YYYY-MM-DD'),
+            end: endMoment.format('YYYY-MM-DD'),
+        }
+        // return res.send(data)
+        res.render('attendance/holiday/all.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/attendance/holiday/create', middlewares.guardRoute(['create_attendance']), async (req, res, next) => {
+    try {
+        let data = {
+            flash: flash.get(req, 'attendance'),
+            now: moment().format('YYYY-MM-DD'),
+        }
+        // return res.send(data)
+        res.render('attendance/holiday/create.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/holiday', middlewares.guardRoute(['update_attendance']),  async (req, res, next) => {
+    try {
+        let body = lodash.get(req, 'body')
+        // return res.send(body)
+
+        let date = lodash.get(body, 'date')
+        let name = lodash.get(body, 'name')
+        let type = lodash.get(body, 'type')
+
+        let holiday = await db.main.Holiday.create({
+            date: date,
+            name: lodash.trim(name),
+            type: type
+        })
+
+        flash.ok(req, 'attendance', `${holiday.name} added.`)
+        res.redirect(`/attendance/holiday/create`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.post('/attendance/holiday/:holidayId/delete', middlewares.guardRoute(['delete_attendance']), middlewares.getHoliday, async (req, res, next) => {
+    try {
+        let holiday = res.holiday
+
+        let message = `${holiday.name} removed.`
+        await holiday.remove()
+
+        flash.ok(req, 'attendance', message)
+        res.redirect(`/attendance/holiday/all`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/attendance/holiday/:holidayId', middlewares.guardRoute(['read_attendance']), middlewares.getHoliday, async (req, res, next) => {
+    try {
+        let holiday = res.holiday
+
+        let data = {
+            flash: flash.get(req, 'attendance'),
+            holiday: holiday.toObject(),
+        }
+
+        // return res.send(data)
+        res.render('attendance/holiday/update.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/holiday/:holidayId', middlewares.guardRoute(['update_attendance']), middlewares.getHoliday, async (req, res, next) => {
+    try {
+        let holiday = res.holiday
+        let body = lodash.get(req, 'body')
+        // return res.send(body)
+
+        let date = lodash.get(body, 'date')
+        let name = lodash.get(body, 'name')
+        let type = lodash.get(body, 'type')
+
+        await db.main.Holiday.updateOne(
+            {
+            _id: holiday._id
+            }, 
+            {
+            date: date,
+            name: lodash.trim(name),
+            type: type
+        }
+        )
+
+        flash.ok(req, 'attendance', `${holiday.name} updated.`)
+        res.redirect(`/attendance/holiday/${holiday._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+
 
 module.exports = router;

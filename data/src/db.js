@@ -33,6 +33,7 @@ main.Employment = main.model('Employment', require('./models/employment'));
 main.Map = main.model('Map', require('./models/map'));
 main.Memo = main.model('Memo', require('./models/memo'));
 main.HealthDeclaration = main.model('HealthDeclaration', require('./models/health-declaration'));
+main.Holiday = main.model('Holiday', require('./models/holiday'));
 main.Login = main.model('Login', require('./models/login'));
 main.Pass = main.model('Pass', require('./models/pass'));
 main.Payroll = main.model('Payroll', require('./models/payroll'));

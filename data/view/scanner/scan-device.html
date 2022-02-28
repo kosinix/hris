@@ -355,6 +355,7 @@
                     }
                     me.returnBalik(10)
                 }).catch(function (error) {
+                    me.hambal('Log failed, please take note of the error message.')
                     if (error.response) {
                         // Request made, server responded with a status code outside of 2xx
                         // console.error(error.response.status)
@@ -364,7 +365,7 @@
                         me.returnBalik(7);
 
                     } else if (error.request) {
-                        var msg = 'The request was made but no response was received'
+                        var msg = 'We sent your log but no response was received from our server.'
                         console.error(msg);
                         me.page = 3;
                         me.error = msg;

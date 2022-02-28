@@ -95,13 +95,15 @@
                   
                 </table>
             </div>
-
             <div class="form-group">
                 <label for="comment">Comments <span class="text-danger">*</span></label>
                 <div>
                     <select v-model="commentSelect" id="comment" class="form-control">
-                        <option>Copied from logsheet time.</option>
-                        <option>Inserted manually. Forgot ID.</option>
+                        <option>Scanner was offline according to employee.</option>
+                        <option>Scanner did not register log according to employee.</option>
+                        <option>Inserted manually. Employee forgot to log.</option>
+                        <option>Inserted manually. Employee did not have ID.</option>
+                        <option>Set to Holiday.</option>
                         <option>Write comment.</option>
                     </select>
                     <textarea v-if="commentSelect == 'Write comment.'" v-model="commentBox" rows="1" class="form-control"></textarea>

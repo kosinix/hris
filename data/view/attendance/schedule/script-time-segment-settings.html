@@ -1,0 +1,180 @@
+<script>
+    var vModalTimeSegmentSettings = new Vue({
+        el: '#modal-time-segment-settings',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.customValidationMixin,
+        ],
+        data: {
+            pending: false,
+            path: '',
+
+            weekDay: {},
+            dayType: 2,
+            morningIn: '08:00',
+            morningOut: '12:00',
+            morningGrace: null,
+            afternoonIn: '12:00',
+            afternoonOut: '17:00',
+            afternoonGrace: null,
+            breaks: [],
+
+            validations: {
+                dayType: {
+                    message: '',
+                    validate: function(v, value, app){
+                        v.message = '';
+                        if(!value){
+                            v.message = 'Please select type.';
+                        }
+                    }
+                },
+                morningIn: {
+                    message: '',
+                    validate: function(v, value, app){
+                        v.message = '';
+                        if(value){
+                            var morningIn = moment(app.morningIn, 'HH:mm')
+                            var morningOut = moment(app.morningOut, 'HH:mm')
+                            if(morningIn.isSameOrAfter(morningOut)){
+                                v.message = 'Morning-In must be less than Morning-Out.'
+                            }
+                        }
+                    }
+                },
+                morningOut: {
+                    message: '',
+                    validate: function(v, value, app){
+                        v.message = '';
+                        if(value){
+                            var morningIn = moment(app.morningIn, 'HH:mm')
+                            var morningOut = moment(app.morningOut, 'HH:mm')
+                            if(morningIn.isSameOrAfter(morningOut)){
+                                v.message = 'Morning-Out must be greater than Morning-In.'
+                            }
+                        }
+                    }
+                },
+                afternoonIn: {
+                    message: '',
+                    validate: function(v, value, app){
+                        v.message = '';
+                        if(value){
+                            var afternoonIn = moment(app.afternoonIn, 'HH:mm')
+                            var afternoonOut = moment(app.afternoonOut, 'HH:mm')
+                            if(afternoonIn.isSameOrAfter(afternoonOut)){
+                                v.message = 'Afternoon-In must be less than Afternoon-Out.'
+                            }
+                        }
+                    }
+                },
+                afternoonOut: {
+                    message: '',
+                    validate: function(v, value, app){
+                        v.message = '';
+                        if(value){
+                            var afternoonIn = moment(app.afternoonIn, 'HH:mm')
+                            var afternoonOut = moment(app.afternoonOut, 'HH:mm')
+                            if(afternoonIn.isSameOrAfter(afternoonOut)){
+                                v.message = 'Afternoon-Out must be greater than Afternoon-In.'
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        
+        watch: {
+            dayType: function (value) {
+                this.validateOne('dayType')
+            },
+            morningIn: function (value) {
+                this.validateOne('morningIn')
+                this.validateOne('morningOut')
+            },
+            morningOut: function (value) {
+                this.validateOne('morningOut')
+                this.validateOne('morningIn')
+            },
+            afternoonIn: function (value) {
+                this.validateOne('afternoonIn')
+                this.validateOne('afternoonOut')
+            },
+            afternoonOut: function (value) {
+                this.validateOne('afternoonOut')
+                this.validateOne('afternoonIn')
+            },
+        },
+        methods: {
+            clearForm: function(name){
+                this.weekDay = {};
+                this.path = '';
+                this.dayType = null;
+                this.morningIn = '';
+                this.morningOut ='';
+                this.morningGrace = '';
+                this.afternoonIn = '';
+                this.afternoonOut ='';
+                this.afternoonGrace = '';
+                this.breaks = [];
+                
+            },
+            hideModal: function(){
+                jQuery('#modal-time-segment-settings').modal('hide')
+            },
+            insertBreak: function(){
+                var me = this;
+                me.breaks.push({
+                    start: '',
+                    end: ''
+                })
+            },
+            onSubmit: function () {
+                var me = this;
+
+                me.pending = true;
+                me.validate()
+                if (me.hasValidationError) {
+                    alert("Please correct the errors to continue...")
+                } else {
+                    me.$nextTick(function() {
+                        var morningIn = (me.morningIn) ? (me.morningIn) : null;
+                        var morningOut = (me.morningOut) ? (me.morningOut) : null;
+                        var afternoonIn = (me.afternoonIn) ? (me.afternoonIn) : null;
+                        var afternoonOut = (me.afternoonOut) ? (me.afternoonOut) : null;
+                        
+                        _.set(vApp, me.path + '.type', me.dayType);
+                        
+                        _.set(vApp, me.path + '.timeSegments[0].start', morningIn);
+                        _.set(vApp, me.path + '.timeSegments[0].end', morningOut);
+                        _.set(vApp, me.path + '.timeSegments[0].grace', me.morningGrace);
+
+                        _.set(vApp, me.path + '.timeSegments[1].start', afternoonIn);
+                        _.set(vApp, me.path + '.timeSegments[1].end', afternoonOut);
+                        _.set(vApp, me.path + '.timeSegments[1].grace', me.afternoonGrace);
+
+                        // Clear breaks
+                        _.each(_.get(vApp, me.path + '.timeSegments'), function(timeSegment, i){
+                            timeSegment.breaks = []
+                        })
+                        _.each(me.breaks, function(br){
+                            br.type = 'vacant'
+                            br.start = (br.start)
+                            br.end = (br.end)
+
+                            _.each(_.get(vApp, me.path + '.timeSegments'), function(timeSegment, i){
+
+                                if(br.end < timeSegment.end && br.start > timeSegment.start){
+                                    timeSegment.breaks.push(br)
+                                }
+                            })
+                        })
+
+                        me.pending = false;
+                        me.hideModal()
+                    });
+                }
+            },
+        }
+    });
+</script>

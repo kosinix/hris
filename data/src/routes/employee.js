@@ -256,12 +256,171 @@ router.get('/employee/:employeeId/employment/:employmentId/schedule', middleware
         let employee = res.employee.toObject()
         let employment = res.employment.toObject()
 
+        // Convert from minutes from midnight into HTML time input HH:mm
+        let mToTime = (minutes, format) => {
+            if(!minutes) return 0
+            format = format || 'HH:mm'
+            return moment().startOf('year').startOf('day').add(minutes, 'minutes').format(format)
+        }
+
+        // Convert from HTML time input HH:mm into minutes from midnight
+        let timeToM = (time, format) => {
+            format = format || 'HH:mm'
+            var momentDayStart = moment().startOf('day')
+
+            var timeParser = moment(time, format)
+            var momentTime = momentDayStart.clone().hours(timeParser.hours()).minutes(timeParser.minutes())
+
+            return momentTime.diff(momentDayStart, 'minutes')
+        }
+
+        let timeSegmentsTemplate =  [
+            {
+                start: 0,
+                end: 0,
+                grace: 0,
+                maxHours: 0,
+                flexible: false,
+                breaks: []
+            },
+            {
+                start: null,
+                end: null,
+                grace: null,
+                maxHours: 0,
+                flexible: false,
+                breaks: []
+            },
+        ]
+        let workScheduleTemplate = {
+            weekDays: {
+                mon: {
+                    id: 'mon',
+                    name: 'Mon',
+                    type: 1, // 1 - normal, 2 - rest
+                    timeSegments: timeSegmentsTemplate,
+                },
+                tue: {
+                    id: 'tue',
+                    name: 'Tue',
+                    type: 1, // 1 - normal, 2 - rest
+                    timeSegments: timeSegmentsTemplate,
+                },
+                wed: {
+                    id: 'wed',
+                    name: 'Wed',
+                    type: 1, // 1 - normal, 2 - rest
+                    timeSegments: timeSegmentsTemplate,
+                },
+                thu: {
+                    id: 'thu',
+                    name: 'Thu',
+                    type: 1, // 1 - normal, 2 - rest
+                    timeSegments: timeSegmentsTemplate,
+                },
+                fri: {
+                    id: 'fri',
+                    name: 'Fri',
+                    type: 1, // 1 - normal, 2 - rest
+                    timeSegments: timeSegmentsTemplate,
+                },
+                sat: {
+                    id: 'sat',
+                    name: 'Sat',
+                    type: 2, // 1 - normal, 2 - rest
+                    timeSegments: timeSegmentsTemplate,
+                },
+                sun: {
+                    id: 'sun',
+                    name: 'Sun',
+                    type: 2, // 1 - normal, 2 - rest
+                    timeSegments: timeSegmentsTemplate,
+                },
+            }
+        };
+
+        workScheduleTemplate.weekDays = lodash.mapValues(workScheduleTemplate.weekDays, (weekDay) => {
+            weekDay.timeSegments = lodash.map(weekDay.timeSegments, (timeSegment) => {
+                timeSegment.maxHours = timeSegment.end - timeSegment.start
+                timeSegment.start = mToTime(timeSegment.start)
+                timeSegment.end = mToTime(timeSegment.end)
+                timeSegment.breaks = lodash.map(timeSegment.breaks, (br) => {
+                    br.start = mToTime(br.start)
+                    br.end = mToTime(br.end)
+                    return br
+                })
+                return timeSegment
+            })
+            return weekDay
+        })
+        // return res.send(workSchedule.weekDays.mon)
         res.render('employee/schedule.html', {
             flash: flash.get(req, 'employee'),
             title: `Employee - ${employee.lastName} - Schedule`,
             employee: employee,
             employment: employment,
+            workSchedule: workScheduleTemplate,
         });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment.toObject()
+
+        let workSchedule = JSON.parse(lodash.get(req, 'body.workSchedule', {}))
+
+        // Convert from minutes from midnight into HTML time input HH:mm
+        let mToTime = (minutes, format) => {
+            if(!minutes) return 0
+            format = format || 'HH:mm'
+            return moment().startOf('year').startOf('day').add(minutes, 'minutes').format(format)
+        }
+
+        // Convert from HTML time input HH:mm into minutes from midnight
+        let timeToM = (time, format) => {
+            format = format || 'HH:mm'
+            var momentDayStart = moment().startOf('day')
+
+            var timeParser = moment(time, format)
+            var momentTime = momentDayStart.clone().hours(timeParser.hours()).minutes(timeParser.minutes())
+
+            return momentTime.diff(momentDayStart, 'minutes')
+        }
+
+
+        workSchedule.weekDays = lodash.mapValues(workSchedule.weekDays, (weekDay) => {
+            weekDay.timeSegments = lodash.map(weekDay.timeSegments, (timeSegment) => {
+                timeSegment.start = timeToM(timeSegment.start)
+                timeSegment.end = timeToM(timeSegment.end)
+                timeSegment.maxHours = timeSegment.end - timeSegment.start
+                timeSegment.breaks = lodash.map(timeSegment.breaks, (br) => {
+                    br.start = timeToM(br.start)
+                    br.end = timeToM(br.end)
+                    return br
+                })
+                return timeSegment
+            })
+            return weekDay
+        })
+
+        workSchedule.name = `${employee.firstName} ${employee.lastName} - ${employment.position}`
+        workSchedule.visibility = 'members'
+        workSchedule.members = [
+            {
+                "objectId" : employment._id,
+                "name" : `${employee.firstName} ${employee.lastName} - ${employment.group}`,
+                "type" : "employment"
+            }
+        ]
+
+        workSchedule = await db.main.WorkSchedule.create(workSchedule)
+
+        return res.send(workSchedule)
+      
     } catch (err) {
         next(err);
     }
@@ -272,7 +431,7 @@ router.get('/employee/employment/:employeeId/create', middlewares.guardRoute(['c
         let employee = res.employee.toObject()
 
         let workSchedules = await db.main.WorkSchedule.find().lean()
-        workSchedules = workSchedules.map((w)=>{
+        workSchedules = workSchedules.map((w) => {
             return {
                 value: w._id,
                 text: w.name
@@ -323,7 +482,7 @@ router.get('/employee/employment/:employeeId/:employmentId', middlewares.guardRo
         let employment = res.employment
 
         let workSchedules = await db.main.WorkSchedule.find().lean()
-        workSchedules = workSchedules.map((w)=>{
+        workSchedules = workSchedules.map((w) => {
             return {
                 value: w._id,
                 text: w.name

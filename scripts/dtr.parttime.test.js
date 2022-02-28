@@ -160,40 +160,50 @@ global.CRED = credLoader.getConfig()
             logs.push(new Logs("2022-01-04", '7:30AM', '12:00PM', '12:30PM', '1:30PM', '', '', '', '', 4.5))
             logs.push(new Logs("2022-01-05", '7:00AM', '11:00AM', '', '', '', '', '', '', 3))
             logs.push(new Logs("2022-01-06", '7:30AM', '12:00PM', '12:30PM', '6:00PM', '', '', '', '', 8.5))
-            logs.push(new Logs("2022-01-07", '7:30AM', '12:00PM', '1:00PM', '4:00PM', '', '', '', '', 7.5))
+            logs.push(new Logs("2022-01-07", '7:30AM', '12:00PM', '1:00PM', '11:00PM', '', '', '', '', 7.5))
 
-            schedule = {
-                name: 'Part-timer Schedule',
-                timeSegments: [
-                    dtrHelper.createTimeSegment('7:30AM', '12:00PM', 0, { weekDays: ['Mon', 'Thu'] }),
-                    dtrHelper.createTimeSegment('12:30PM', '6:00PM', 0, {
-                        weekDays: ['Mon', 'Thu'],
-                        breaks: [
-                            // dtrHelper.createTimeSegmentBreaks('1:00PM', '2:00PM'),
-                            dtrHelper.createTimeSegmentBreaks('3:30PM', '5:00PM')
-                        ]
-                    }),
-                    dtrHelper.createTimeSegment('7:30AM', '12:00PM', 0, { weekDays: ['Tue'] }),
-                    dtrHelper.createTimeSegment('7:30AM', '10:30AM', 0, { weekDays: ['Wed'] }),
-                    dtrHelper.createTimeSegment('7:30AM', '12:00PM', 0, { weekDays: ['Fri'] }),
-                    dtrHelper.createTimeSegment('1:00PM', '4:00PM', 0, { weekDays: ['Fri'] }),
-                ],
-            }
+            schedule = dtrHelper.createWorkScheduleTemplate()
+            schedule.weekDays.mon.timeSegments = [
+                dtrHelper.createTimeSegment('7:30AM', '12:00PM'),
+                dtrHelper.createTimeSegment('12:30PM', '6:00PM', 0, {
+                    breaks: [
+                        // dtrHelper.createTimeSegmentBreaks('1:00PM', '2:00PM'),
+                        dtrHelper.createTimeSegmentBreaks('3:30PM', '5:00PM')
+                    ]
+                }),
+            ]
+            schedule.weekDays.tue.timeSegments = [
+                dtrHelper.createTimeSegment('7:30AM', '12:00PM'),
+            ]
+            schedule.weekDays.wed.timeSegments = [
+                dtrHelper.createTimeSegment('7:30AM', '10:30AM'),
+            ]
+            schedule.weekDays.thu.timeSegments = [
+                dtrHelper.createTimeSegment('7:30AM', '12:00PM'),
+                dtrHelper.createTimeSegment('12:30PM', '6:00PM', 0, {
+                    breaks: [
+                        // dtrHelper.createTimeSegmentBreaks('1:00PM', '2:00PM'),
+                        dtrHelper.createTimeSegmentBreaks('3:30PM', '5:00PM')
+                    ]
+                }),
+            ]
+            schedule.weekDays.fri.timeSegments = [
+                dtrHelper.createTimeSegment('7:30AM', '12:00PM'),
+                dtrHelper.createTimeSegment('1:00PM', '4:00PM'),
+            ]
 
             logs = logs.map(log => {
                 let isoWeekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
                 let attendance = createAttendance(log)
                 let momentAttendanceDate = moment(attendance.createdAt)
-                let weekDay = isoWeekdays[momentAttendanceDate.isoWeekday() - 1]
-                let timeSegments = schedule.timeSegments.filter(segment => {
-                    return segment.weekDays.includes(weekDay)
-                })
-                // console.log(weekDay, timeSegments)
+                let weekDay = isoWeekdays[momentAttendanceDate.isoWeekday() - 1].toLowerCase()
+                let timeSegments = lodash.get(schedule, 'weekDays.' + weekDay + '.timeSegments')
+                console.log(weekDay, timeSegments)
                 // throw 's'
                 dtr = dtrHelper.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments)
                 // console.log(dtr.totalInHours, `hrs`, `OR`, `${dtr.renderedDays} days ${dtr.renderedHours} hrs ${dtr.renderedMinutes} mins`)
 
-                log.sched = timeSegments.map(t => {
+                log.sched = timeSegments.map((t) => {
                     let startTimes = dtrHelper.minutesToMoments(t.start).format('h:mmA')
                     let breaks = t.breaks.map(b => {
                         return dtrHelper.minutesToMoments(b.start).format('h:mmA') + '-' + dtrHelper.minutesToMoments(b.end).format('h:mmA')
@@ -204,7 +214,7 @@ global.CRED = credLoader.getConfig()
                     if (breaks) {
                         startTimes += ` (${breaks})`
                     }
-                    return startTimes + ' ' + t.weekDays.join('|')
+                    return startTimes + ' ' 
                 }).join(', ')
 
                 log.hours = Math.floor(dtr.totalInHours)

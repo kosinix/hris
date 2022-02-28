@@ -44,47 +44,43 @@ const createShift = (start, end, gracePeriod, settings) => {
 
 const createTimeSegment = (start, end, gracePeriod = 0, settings) => {
     // Note: Be careful with assigning default values to array, lodash.merge will merged it with @param settings. 
-    //  See weekDays on how it should be implemented.
-    settings = lodash.merge({ flexible: false, maxHours: null, breaks: [], weekDays: [] }, settings)
-    let momentDayStart = moment().startOf('day')
+    settings = lodash.merge({ 
+        flexible: false, 
+        max: null, 
+        breaks: [],
+        format: 'h:mmA'
+    }, settings)
+    
+    let startTime = timeToM(start, settings.format) // string to minutes
+    let endTime = timeToM(end, settings.format) // string to minutes
 
-    let timeParser = moment(start, 'h:mmA')
-    let startTime = momentDayStart.clone().hours(timeParser.hours()).minutes(timeParser.minutes())
-
-    timeParser = moment(end, 'h:mmA')
-    let endTime = momentDayStart.clone().hours(timeParser.hours()).minutes(timeParser.minutes())
-
-    let maxHours = settings.maxHours
-    if (!maxHours) {
-        maxHours = endTime.diff(startTime, 'minutes') / 60
+    let max = settings.max
+    if (!max) {
+        max = endTime - startTime
     }
 
     return {
-        start: startTime.diff(momentDayStart, 'minutes'),
-        end: endTime.diff(momentDayStart, 'minutes'),
+        start: startTime,
+        end: endTime,
         grace: gracePeriod,
         flexible: settings.flexible,
         breaks: settings.breaks,
-        weekDays: settings.weekDays.length > 0 ? settings.weekDays : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-        maxHours: maxHours,
-        maxMinutes: maxHours * 60, // Derived property. Depends on maxHours, this is more accurate than maxHours.
+        max: max,
     }
 }
 
 const createTimeSegmentBreaks = (start, end, settings) => {
-    settings = lodash.merge({ type: 'vacant' }, settings)
+    settings = lodash.merge({ 
+        type: 'vacant',
+        format: 'h:mmA'
+    }, settings)
 
-    let momentDayStart = moment().startOf('day')
-
-    let timeParser = moment(start, 'h:mmA')
-    let startTime = momentDayStart.clone().hours(timeParser.hours()).minutes(timeParser.minutes())
-
-    timeParser = moment(end, 'h:mmA')
-    let endTime = momentDayStart.clone().hours(timeParser.hours()).minutes(timeParser.minutes())
+    let startTime = timeToM(start, settings.format) // string to minutes
+    let endTime = timeToM(end, settings.format) // string to minutes
 
     return {
-        start: startTime.diff(momentDayStart, 'minutes'),
-        end: endTime.diff(momentDayStart, 'minutes'),
+        start: startTime,
+        end: endTime,
         type: settings.type,
     }
 }
@@ -250,6 +246,8 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
     } else if (attendance.type === 'leave') {
         minutes += travelPoints
     } else if (attendance.type === 'pass') {
+        minutes += travelPoints
+    } else if (attendance.type === 'holiday') {
         minutes += travelPoints
     } else { // normal, hybrid
         // roll logs 
@@ -809,12 +807,111 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
     }
 }
 
+// Convert from minutes from midnight into HTML time input HH:mm
+let mToTime = (minutes, format) => {
+    if(!minutes) return 0
+    format = format || 'HH:mm'
+    return moment().startOf('year').startOf('day').add(minutes, 'minutes').format(format)
+}
+
+// Convert from HTML time input HH:mm into minutes from midnight
+let timeToM = (time, format) => {
+    format = format || 'HH:mm'
+    var momentDayStart = moment().startOf('day')
+
+    var timeParser = moment(time, format)
+    var momentTime = momentDayStart.clone().hours(timeParser.hours()).minutes(timeParser.minutes())
+
+    return momentTime.diff(momentDayStart, 'minutes')
+}
+
+const createWorkScheduleTemplate = () => {
+
+    let timeSegmentTemplate = {
+        start: 0,
+        end: 0,
+        grace: 0,
+        maxHours: 0,
+        flexible: false,
+        breaks: []
+    }
+    let timeSegmentsTemplate =  [
+        timeSegmentTemplate, // morning
+        timeSegmentTemplate, // afternoon
+        // timeSegmentTemplate, // extended service
+    ]
+    let workScheduleTemplate = {
+        weekDays: {
+            mon: {
+                id: 'mon',
+                name: 'Mon',
+                type: 1, // 1 - normal, 2 - rest
+                timeSegments: timeSegmentsTemplate,
+            },
+            tue: {
+                id: 'tue',
+                name: 'Tue',
+                type: 1, // 1 - normal, 2 - rest
+                timeSegments: timeSegmentsTemplate,
+            },
+            wed: {
+                id: 'wed',
+                name: 'Wed',
+                type: 1, // 1 - normal, 2 - rest
+                timeSegments: timeSegmentsTemplate,
+            },
+            thu: {
+                id: 'thu',
+                name: 'Thu',
+                type: 1, // 1 - normal, 2 - rest
+                timeSegments: timeSegmentsTemplate,
+            },
+            fri: {
+                id: 'fri',
+                name: 'Fri',
+                type: 1, // 1 - normal, 2 - rest
+                timeSegments: timeSegmentsTemplate,
+            },
+            sat: {
+                id: 'sat',
+                name: 'Sat',
+                type: 2, // 1 - normal, 2 - rest
+                timeSegments: timeSegmentsTemplate,
+            },
+            sun: {
+                id: 'sun',
+                name: 'Sun',
+                type: 2, // 1 - normal, 2 - rest
+                timeSegments: timeSegmentsTemplate,
+            },
+        }
+    };
+
+    workScheduleTemplate.weekDays = lodash.mapValues(workScheduleTemplate.weekDays, (weekDay) => {
+        weekDay.timeSegments = lodash.map(weekDay.timeSegments, (timeSegment) => {
+            timeSegment.maxHours = timeSegment.end - timeSegment.start
+            timeSegment.start = mToTime(timeSegment.start)
+            timeSegment.end = mToTime(timeSegment.end)
+            timeSegment.breaks = lodash.map(timeSegment.breaks, (br) => {
+                br.start = mToTime(br.start)
+                br.end = mToTime(br.end)
+                return br
+            })
+            return timeSegment
+        })
+        return weekDay
+    })
+
+    return workScheduleTemplate
+}
+
 module.exports = {
     logAttendance: logAttendance,
     editAttendance: editAttendance,
     compute: compute,
     calcDailyAttendance: calcDailyAttendance,
     calcTimeRecord: getTimeBreakdown, //@deprecated. Use getTimeBreakdown
+    createWorkScheduleTemplate: createWorkScheduleTemplate,
     createShift: createShift,
     createTimeSegment: createTimeSegment,
     createTimeSegmentBreaks: createTimeSegmentBreaks,

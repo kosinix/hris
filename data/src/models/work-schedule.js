@@ -15,6 +15,34 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
+const weekDaySchema = {
+    type: Number, // 1 - normal, 2 - rest
+    timeSegments: [
+        {
+            start: Number,
+            end: Number,
+            grace: {
+                $type: Number,
+                default: 0
+            },
+            max: {
+                $type: Number, // if present, limit max minutes per time segment to this
+            },
+            flexible: {
+                $type: Boolean,
+                default: false
+            },
+            breaks: [
+                {
+                    type: String, // vacant, personal
+                    start: Number,
+                    end: Number
+                }
+            ]
+        }
+    ],
+}
+
 const schema = new Schema({
     name: {
         $type: String,
@@ -56,6 +84,18 @@ const schema = new Schema({
             }
         ]
     }],
+    // New schedule feb 2022
+    dateStart: Date, // Schedule date range
+    dateEnd: Date, // Schedule date range
+    weekDays: {
+        mon: weekDaySchema,
+        tue: weekDaySchema,
+        wed: weekDaySchema,
+        thu: weekDaySchema,
+        fri: weekDaySchema,
+        sat: weekDaySchema,
+        sun: weekDaySchema,
+    }
 }, { timestamps: true, typeKey: '$type' })
 
 //// Virtuals

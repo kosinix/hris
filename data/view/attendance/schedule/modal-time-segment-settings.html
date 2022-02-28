@@ -1,0 +1,119 @@
+<div id="modal-time-segment-settings" v-bind:data-pending="pending" class="modal fade" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form ref="form" v-on:click="isFormTouched=true" v-on:submit.prevent="onSubmit" method="GET">
+                <div class="modal-header">
+                    <h5 class="modal-title">Time Segment Settings</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pl-4 pr-4">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="dayType" class="font-weight-bold">${weekDay.name} is: <span class="text-danger">*</span></label>
+                                        <div>
+                                            <select v-model="dayType" name="dayType" id="dayType" class="form-control">
+                                                <option value="1">Work Day</option>
+                                                <option value="2">Rest Day</option>
+                                            </select>
+                                            <small class="invalid-feedback">${getError('dayType')}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="morningIn" class="font-weight-bold">Morning-In</label>
+                                        <div>
+                                            <input v-model="morningIn" type="time" id="morningIn" class="form-control">
+                                            <small class="invalid-feedback">${getError('morningIn')}</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="morningOut" class="font-weight-bold">Morning-Out</label>
+                                        <div>
+                                            <input v-model="morningOut" type="time" id="morningOut" class="form-control">
+                                            <small class="invalid-feedback">${getError('morningOut')}</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="morningGrace" class="font-weight-bold">Morning Grace</label>
+                                        <div>
+                                            <input v-model="morningGrace" placeholder="minutes" type="number" id="morningGrace" class="form-control">
+                                            <small class="invalid-feedback">${getError('morningGrace')}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {# Aftie #}
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="afternoonIn" class="font-weight-bold">Afternoon-In</label>
+                                        <div>
+                                            <input v-model="afternoonIn" type="time" id="afternoonIn" class="form-control">
+                                            <small class="invalid-feedback">${getError('afternoonIn')}</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="afternoonOut" class="font-weight-bold">Afternoon-Out</label>
+                                        <div>
+                                            <input v-model="afternoonOut" type="time" id="afternoonOut" class="form-control">
+                                            <small class="invalid-feedback">${getError('afternoonOut')}</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="afternoonGrace" class="font-weight-bold">Afternoon Grace</label>
+                                        <div>
+                                            <input v-model="afternoonGrace" placeholder="minutes" type="number" id="afternoonGrace" class="form-control">
+                                            <small class="invalid-feedback">${getError('afternoonGrace')}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <h2 class="h5 col-md-12 text-center text-info">Breaks</h2>
+                                <template v-for="(br, i) in breaks">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label v-bind:for="'break'+i" class="font-weight-bold">Start</label>
+                                            <div>
+                                                <input v-model="br.start" type="time" v-bind:id="'break'+i" class="form-control">
+                                                <small class="invalid-feedback">${getError('breaks['+ i +'].start')}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label v-bind:for="'break'+i" class="font-weight-bold">End</label>
+                                            <div>
+                                                <input v-model="br.end" type="time" v-bind:id="'break'+i" class="form-control">
+                                                <small class="invalid-feedback">${getError('breaks['+ i +'].end')}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div class="col-md-12">
+                                    <button v-on:click="insertBreak()" type="button">Insert Break Time</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button data-dismiss="modal" aria-label="Close" class="btn btn-light" type="button">
+                        <span class="mr-2">Cancel</span>
+                    </button>
+                    <button v-bind:disabled="hasValidationError" class="ml-2 btn btn-success d-flex">
+                        <span class="mr-2">Set Time Segment</span>
+                        <svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8s8,3.59,8,8 S16.41,20,12,20z M12.5,7H11v6l5.2,3.2l0.8-1.3l-4.5-2.7V7z"/></svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

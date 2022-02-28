@@ -8,6 +8,7 @@
 !script-axios-extend.js
 !script-cookies.js
 !script-password.js
+!script-custom-validation.js
 !vuelidate-extend.js
 !vue-ph-address.js
 !vue-payroll.js

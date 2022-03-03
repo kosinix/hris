@@ -615,7 +615,7 @@ const logAttendance = async (db, employee, employment, scannerId, waitTime = 15,
             $lt: moment().endOf('day').toDate(),
         }
     }).lean()
-    if (!attendance) {
+    if (!attendance || attendance.logs <= 0) {
         let log = {
             scannerId: scannerId,
             dateTime: moment().toDate(),

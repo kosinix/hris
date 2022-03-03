@@ -68,12 +68,11 @@
             returnCountdown: 0,
             voicesReady: false,
             clock: '',
-            date: '',
+            date: ''
         },
         validations: {
 
         },
-        
         mounted: function(){
             var me = this;
 
@@ -85,7 +84,7 @@
            
             // Voices
             var timer3 = setInterval(function(){
-                voices = synth.getVoices();
+                voices = _.invoke(synth, 'getVoices') || [];
 
                 if(voices.length > 0){
                     clearInterval(timer3)
@@ -134,10 +133,10 @@
 
                 } else if(newPage === 1) {
 
-                    me.webcamStart();
+                    if(me.useWebcam) me.webcamStart();
 
                 } else if(newPage === 2) {
-                    me.webcamSnap();
+                    if(me.useWebcam) me.webcamSnap();
 
                     me.log()
 
@@ -213,7 +212,7 @@
                     me.pending = true
                     MediaDevicesPresets.createWebcamPhotoSnapper(
                         document.getElementById("webcam-feed"),
-                        document.getElementById("webcam-snapshot"),
+                        document.getElementById("webcam-snapshot")
                     ).then(function(webcamPhotoSnapper){
                         me.pending = false
                         me.webcamPhotoSnapper = webcamPhotoSnapper

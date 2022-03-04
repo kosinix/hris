@@ -239,9 +239,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
     // Daily minutes
     let minutes = 0
     let underMinutes = 0
-    if (attendance.type === 'travel') {
-        minutes += travelPoints
-    } else if (attendance.type === 'wfh') {
+    if (attendance.type === 'wfh') {
         minutes += travelPoints
     } else if (attendance.type === 'leave') {
         minutes += travelPoints
@@ -256,6 +254,15 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
         let endMinutes = null
         let shiftCurrent = null
 
+        if (attendance.type === 'travel') {
+            if (attendance.logs.length >= 2) {
+                minutes += travelPoints / 2
+
+            } else {
+                minutes += travelPoints
+                console.log(minutes)
+            }
+        }
         for (let l = 0; l < attendance.logs.length; l++) {
             let log = attendance.logs[l]
             if (log.mode === 1) { // in
@@ -440,14 +447,14 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         let isWeekend = ['Sun', 'Sat'].includes(weekDay) ? true : false
 
         // Push if PM login
-        if (attendance) {
-            if (attendance.logs[0] && attendance.logs.length <= 2) {
-                if ('PM' === moment(attendance.logs[0].dateTime).format('A')) {
-                    attendance.logs.unshift(null)
-                    attendance.logs.unshift(null)
-                }
-            }
-        }
+        // if (attendance) {
+        //     if (attendance.logs[0] && attendance.logs.length <= 2) {
+        //         if ('PM' === moment(attendance.logs[0].dateTime).format('A')) {
+        //             attendance.logs.unshift(null)
+        //             attendance.logs.unshift(null)
+        //         }
+        //     }
+        // }
         return {
             date: date,
             year: year,
@@ -615,7 +622,7 @@ const logAttendance = async (db, employee, employment, scannerId, waitTime = 15,
             $lt: moment().endOf('day').toDate(),
         }
     }).lean()
-    if (!attendance || attendance.logs <= 0) {
+    if (!attendance) {
         let log = {
             scannerId: scannerId,
             dateTime: moment().toDate(),
@@ -635,15 +642,24 @@ const logAttendance = async (db, employee, employment, scannerId, waitTime = 15,
             workScheduleId: employment.workScheduleId,
         })
     } else {
-        if (attendance.logs.length >= 4) {
-            throw new Error('Max scans already.') // Max 4 log
+        let maxScans = 4
+        if (attendance.type === 'travel') {
+            maxScans = 3
         }
+
+        if (attendance.logs.length >= maxScans) {
+            throw new Error('Max scans already.')
+        }
+
         if (attendance.logs.length <= 0) {
             throw new Error('Bad attendance data.') // should have at least 1 log
         }
         let lastLog = attendance.logs[attendance.logs.length - 1]
 
         // Throttle to avoid double scan
+        if (attendance.type === 'travel' && attendance.logs.length === 1) {
+            waitTime = 0
+        }
         let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
         if (diff < waitTime) {
             throw new Error(`You have just logged. Please wait ${waitTime - diff} minute(s) and try again later.`)

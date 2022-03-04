@@ -44,13 +44,13 @@ const createShift = (start, end, gracePeriod, settings) => {
 
 const createTimeSegment = (start, end, gracePeriod = 0, settings) => {
     // Note: Be careful with assigning default values to array, lodash.merge will merged it with @param settings. 
-    settings = lodash.merge({ 
-        flexible: false, 
-        max: null, 
+    settings = lodash.merge({
+        flexible: false,
+        max: null,
         breaks: [],
         format: 'h:mmA'
     }, settings)
-    
+
     let startTime = timeToM(start, settings.format) // string to minutes
     let endTime = timeToM(end, settings.format) // string to minutes
 
@@ -70,7 +70,7 @@ const createTimeSegment = (start, end, gracePeriod = 0, settings) => {
 }
 
 const createTimeSegmentBreaks = (start, end, settings) => {
-    settings = lodash.merge({ 
+    settings = lodash.merge({
         type: 'vacant',
         format: 'h:mmA'
     }, settings)
@@ -623,7 +623,7 @@ const logAttendance = async (db, employee, employment, scannerId, waitTime = 15,
             mode: 1, // in
             // type: logType,
         }
-        if(source.id && source.type){
+        if (source.id && source.type) {
             log.source = source
         }
         attendance = await db.main.Attendance.create({
@@ -658,7 +658,7 @@ const logAttendance = async (db, employee, employment, scannerId, waitTime = 15,
             extra: extra,
             // type: logType,
         }
-        if(source.id && source.type){
+        if (source.id && source.type) {
             log.source = source
         }
         attendance.logs.push(log)
@@ -809,7 +809,7 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
 
 // Convert from minutes from midnight into HTML time input HH:mm
 let mToTime = (minutes, format) => {
-    if(!minutes) return 0
+    if (!minutes) return 0
     format = format || 'HH:mm'
     return moment().startOf('year').startOf('day').add(minutes, 'minutes').format(format)
 }
@@ -835,7 +835,7 @@ const createWorkScheduleTemplate = () => {
         flexible: false,
         breaks: []
     }
-    let timeSegmentsTemplate =  [
+    let timeSegmentsTemplate = [
         timeSegmentTemplate, // morning
         timeSegmentTemplate, // afternoon
         // timeSegmentTemplate, // extended service

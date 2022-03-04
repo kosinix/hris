@@ -65,7 +65,23 @@
         <td class="text-center" width="10%">{{day.day}}</td>
         <td class="text-center weekday" width="10%">{{day.weekDay}}</td>
         {% if attendanceTypesList.includes(attendance.type) %}
-            <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass','Pass Slip')|replace('Wfh', 'WFH')}}</td>
+            {% if attendance.type === 'travel' and attendance.logs.length > 1 %}
+                {% if attendance.logs[0].type === 'travel' %}
+                    <td class="text-center" colspan="2">
+                        Travel
+                    </td>
+                    <td class="text-center">{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                    <td class="text-center">{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                {% else %}
+                    <td class="text-center">{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                    <td class="text-center">{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                    <td class="text-center" colspan="2">
+                        Travel
+                    </td>
+                {% endif %}
+            {% else %}
+                <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass','Pass Slip')|replace('Wfh', 'WFH')}}</td>
+            {% endif %}
             <td>
                 {% set res = 0 %}
                 {% if (attendance.logs.length > 1 or attendanceTypesList.includes(attendance.type)) %}

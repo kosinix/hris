@@ -757,7 +757,7 @@ router.get('/e-profile/dtr/:employmentId/on1ine', middlewares.guardRoute(['use_e
 
         let t = getRandomArbitrary(0, 3)
 
-        if(t === 0) {
+        if (t === 0) {
             flash.error(req, 'employee', `Request timed-out. Please check your internet connection and try again.`)
             res.redirect(`/e-profile/home`)
         } else if (t === 1) {
@@ -780,7 +780,7 @@ router.get('/e-profile/dtr/:employmentId/online', middlewares.guardRoute(['use_e
         let employee = res.employee.toObject()
         let employment = res.employment
 
-        if(!lodash.get(user, 'settings.ol', true)){
+        if (!lodash.get(user, 'settings.ol', true)) {
             return res.redirect(`/e-profile/dtr/${employment._id}/on1ine`)
         }
 
@@ -1219,36 +1219,50 @@ router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_empl
             }
         })
 
-        if (attendance) {
+        if (attendance && attendanceType != 'travel') {
             flash.error(req, 'employee', `You already have an attendance for today.`)
             return res.redirect(`/e-profile/dtr/${employment._id}`)
-
+        }
+        let message = ''
+        if (attendance) {
+            if ('travel' === attendanceType && attendance.type === 'normal') {
+                attendance.type = 'travel'
+                attendance.logs.push({
+                    scannerId: null,
+                    dateTime: moment().toDate(),
+                    type: 'travel'
+                })
+                await attendance.save()
+                message = 'Attendance changed to travel.'
+            }
         } else {
-            let message = ''
+            let logs = []
 
             if ('wfh' === attendanceType) {
                 message = `Attendance set to WFH. Please secure your accomplishment report and other supporting documents.`
-            } else if ('travel' === attendanceType) {
-                message = `Attendance set to Travel. Please secure your appearance and other supporting documents.`
             } else if ('leave' === attendanceType) {
                 message = `Attendance set to Leave. Please secure your supporting documents.`
             } else if ('pass' === attendanceType) {
                 message = `Attendance set to Pass Slip. Please secure your supporting documents such as your Pass Slip.`
             } else if ('holiday' === attendanceType) {
                 message = `Attendance set to Holiday.`
+            } else if ('travel' === attendanceType) {
+                logs = [{
+                    scannerId: null,
+                    dateTime: moment().toDate(),
+                    type: 'travel'
+                }]
+                message = `Attendance set to Travel. Please secure your appearance and other supporting documents.`
             }
 
-            attendance = new db.main.Attendance({
+            await db.main.Attendance.create({
                 employeeId: employee._id,
                 employmentId: employment._id,
                 type: attendanceType,
-                logs: [
-                ]
+                logs: logs
             })
-            await attendance.save()
-            flash.ok(req, 'employee', `${message}`)
         }
-
+        flash.ok(req, 'employee', `${message}`)
         return res.redirect(`/e-profile/dtr/${employment._id}`)
     } catch (err) {
         next(err);

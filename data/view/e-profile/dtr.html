@@ -218,6 +218,29 @@
                         </td>
                         <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>
                     </template>
+                    <template v-else-if="_.get(day, 'attendance.type') === 'travel'">
+                        <template v-if="_.get(day, 'attendance.logs[0].type') == 'travel'">
+                            <template v-if="_.get(day, 'attendance.logs.length') > 1">
+                                <td class="text-center" colspan="2">
+                                    Travel
+                                </td>
+                                <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}</td>
+                                <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}</td>
+                            </template>
+                            <template v-else>
+                                <td class="text-center" colspan="4">
+                                    Travel
+                                </td>
+                            </template>
+                        </template>
+                        <template v-else>
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[0].dateTime'))}</td>
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}</td>
+                            <td class="text-center" colspan="2">
+                                Travel
+                            </td>
+                        </template>
+                    </template>
                     <template v-else>
                         <td colspan="4" class="text-center">
                             ${showLogType(_.get(day, 'attendance.type'))}

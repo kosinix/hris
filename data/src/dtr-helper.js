@@ -362,7 +362,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
 
     // Upper limit
     let maxMinutes = shifts.map((shift) => {
-        return shift.maxMinutes
+        return lodash.get(shift, 'maxHours', 0) * 60
     }).reduce((result, maxMinutes) => {
         return result + maxMinutes
     }, 0)
@@ -370,6 +370,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
     if (minutes > maxMinutes) {
         minutes = maxMinutes
     }
+
     // TODO: check under time logic
     underMinutes = 60 * hoursPerDay - minutes
     return getTimeBreakdown(minutes, underMinutes, hoursPerDay)

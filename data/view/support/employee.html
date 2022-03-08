@@ -4,7 +4,7 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h2">Register ID </h1>
+            <h1 class="h2">Print DTR</h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
@@ -15,7 +15,6 @@
     {% include 'parts/flash.html' %}
 
     <div id="vApp" v-cloak class="tab-content p-3">
-
         <div class="form-group pb-5 mb-5">
             <label for="employmentId">Select Employee <span class="text-danger">*</span></label>
             <div>
@@ -59,7 +58,7 @@
         methods: {
             // vuejs autocomplete
             onSelect: function(o){
-                window.location = '/support/register/' + o.value
+                window.location = '/support/dtr/' + o.value
                 this.employeeName = o.display
             },
             dataSource: function(input) {

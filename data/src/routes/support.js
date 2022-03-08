@@ -171,4 +171,110 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
     }
 });
 
+
+// Register ID
+router.get('/support/dtr', middlewares.guardRoute(['read_attendance', 'update_attendance']), async (req, res, next) => {
+    try {
+        res.render('support/employee.html', {
+            flash: flash.get(req, 'support'),
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/support/dtr/:employmentId', middlewares.guardRoute(['read_attendance', 'update_attendance']), async (req, res, next) => {
+    try {
+
+        let employment = await db.main.Employment.findById(req.params.employmentId)
+        if(!employment){
+            throw new Error('Employment not found.')
+        }
+        let employee = await db.main.Employee.findOne({
+            _id: employment.employeeId 
+        })
+        if(!employee){
+            throw new Error('Employee not found.')
+        }
+
+        return res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}`)
+        
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Change ID
+router.get('/support/id-change', middlewares.guardRoute(['read_attendance', 'update_attendance']), async (req, res, next) => {
+    try {
+        res.render('support/id-change.html', {
+            flash: flash.get(req, 'support'),
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/support/id-change/:employmentId', middlewares.guardRoute(['read_attendance', 'update_attendance']), async (req, res, next) => {
+    try {
+
+        let employment = await db.main.Employment.findById(req.params.employmentId)
+        if(!employment){
+            throw new Error('Employment not found.')
+        }
+        let employee = await db.main.Employee.findOne({
+            _id: employment.employeeId 
+        })
+        if(!employee){
+            throw new Error('Employee not found.')
+        }
+
+        res.render('support/id-change-id.html', {
+            flash: flash.get(req, 'support'),
+            employment: employment,
+            employee: employee,
+        });
+        
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/support/id-change/:employmentId', middlewares.guardRoute(['can_register_rfid']), middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let employment = res.employment.toObject()
+        let employee = await db.main.Employee.findOne({
+            _id: employment.employeeId
+        }).lean()
+        if(!employee){
+            throw new Error('Employee not found.')
+        }
+
+        let rfid = lodash.trim(lodash.get(req, 'body.uid'))
+        let employmentId = employment._id
+
+
+        if(lodash.isNaN(rfid)){
+            throw new Error('Invalid RFID format.')
+        }
+        if(lodash.size(rfid) !== 10){
+            throw new Error('Invalid RFID length.')
+        }
+
+        let userAccount = await db.main.User.findById(employee.userId).lean()
+        if (!userAccount) {
+            throw new Error('You dont have an user account.')
+        }
+
+
+        // Associate
+        await db.main.Employee.updateOne({ _id: employee._id }, {
+            uid: rfid
+        })
+
+
+        flash.ok(req, 'support', 'Employee ID changed.')
+        res.redirect('/support/id-change')
+
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

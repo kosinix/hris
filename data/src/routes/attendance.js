@@ -23,7 +23,7 @@ let router = express.Router()
 
 router.use('/attendance', middlewares.requireAuthUser)
 
-router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
+router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
     try {
         let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
         let mCalendar = moment(date)
@@ -277,7 +277,7 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
 });
 
 
-router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewares.guardRoute(['read_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employment = res.employment
@@ -586,7 +586,7 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
 });
 
 // Print
-router.get('/attendance/employee/:employeeId/employment/:employmentId/print', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
+router.get('/attendance/employee/:employeeId/employment/:employmentId/print', middlewares.guardRoute(['read_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employment = res.employment

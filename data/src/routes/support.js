@@ -173,7 +173,7 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
 
 
 // Register ID
-router.get('/support/dtr', middlewares.guardRoute(['read_attendance', 'update_attendance']), async (req, res, next) => {
+router.get('/support/dtr', middlewares.guardRoute(['read_attendance']), async (req, res, next) => {
     try {
         res.render('support/employee.html', {
             flash: flash.get(req, 'support'),
@@ -182,7 +182,7 @@ router.get('/support/dtr', middlewares.guardRoute(['read_attendance', 'update_at
         next(err);
     }
 });
-router.get('/support/dtr/:employmentId', middlewares.guardRoute(['read_attendance', 'update_attendance']), async (req, res, next) => {
+router.get('/support/dtr/:employmentId', middlewares.guardRoute(['read_attendance']), async (req, res, next) => {
     try {
 
         let employment = await db.main.Employment.findById(req.params.employmentId)
@@ -204,7 +204,7 @@ router.get('/support/dtr/:employmentId', middlewares.guardRoute(['read_attendanc
 });
 
 // Change ID
-router.get('/support/id-change', middlewares.guardRoute(['read_attendance', 'update_attendance']), async (req, res, next) => {
+router.get('/support/id-change', middlewares.guardRoute(['read_attendance']), async (req, res, next) => {
     try {
         res.render('support/id-change.html', {
             flash: flash.get(req, 'support'),
@@ -213,7 +213,7 @@ router.get('/support/id-change', middlewares.guardRoute(['read_attendance', 'upd
         next(err);
     }
 });
-router.get('/support/id-change/:employmentId', middlewares.guardRoute(['read_attendance', 'update_attendance']), async (req, res, next) => {
+router.get('/support/id-change/:employmentId', middlewares.guardRoute(['read_attendance']), async (req, res, next) => {
     try {
 
         let employment = await db.main.Employment.findById(req.params.employmentId)

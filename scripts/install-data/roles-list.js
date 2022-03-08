@@ -225,7 +225,10 @@ const ROLES = [
             // support
             'can_password_reset',
             'can_change_rfid',
-            'can_register_rfid'
+            'can_register_rfid',
+
+            // Attendance
+            'read_attendance',
         ]
     },
 ]

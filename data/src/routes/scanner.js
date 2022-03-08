@@ -13,6 +13,7 @@ const db = require('../db');
 const dtrHelper = require('../dtr-helper');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
+const passwordMan = require('../password-man');
 const uploader = require('../uploader');
 
 // Router
@@ -85,20 +86,36 @@ router.post('/scanner/create', middlewares.guardRoute(['create_scanner']), async
         let body = req.body
         let patch = {}
 
-        let user = await db.main.Employee.findById(body.userId);
-        if (user) {
-            throw new Error("Sorry, user not found.")
+        let user = await db.main.User.findOne({
+            username: body.username
+        });
+        let password = passwordMan.genPassword(12)
+
+        if (!user) {
+            let salt = passwordMan.randomString(16)
+            let passwordHash = passwordMan.hashPassword(password, salt)
+            user = await db.main.User.create({
+                username: body.username,
+                email: 'mis+scanner@gsc.edu.ph',
+                firstName: body.name,
+                lastName: 'Scanner',
+                passwordHash: passwordHash,
+                salt: salt,
+                active: true,
+                roles: [
+                    'checker'
+                ]
+            })
         }
 
         lodash.set(patch, 'name', lodash.get(body, 'name'))
         lodash.set(patch, 'campus', lodash.get(body, 'campus'))
         lodash.set(patch, 'device', lodash.get(body, 'device'))
-        lodash.set(patch, 'userId', lodash.get(body, 'userId'))
-
+        lodash.set(patch, 'userId', user._id)
 
         let scanner = await db.main.Scanner.create(patch)
 
-        flash.ok(req, 'scanner', `Added scanner "${scanner.name}".`)
+        flash.ok(req, 'scanner', `Added scanner "${scanner.name}" with username "${user.username}" and password "${password}". Please take note of the password as you will only see this once.`)
         res.redirect(`/scanner/${scanner._id}`)
     } catch (err) {
         next(err);
@@ -136,20 +153,18 @@ router.post('/scanner/:scannerId/edit', middlewares.guardRoute(['read_scanner', 
     try {
         let scanner = res.scanner.toObject()
         let body = req.body
-        let patch = scanner
+        let patch = {}
 
-        let user = await db.main.Employee.findById(body.userId);
-        if (user) {
-            throw new Error("Sorry, user not found.")
-        }
-
+        let refresh = lodash.get(body, 'refresh')
+        let useCam = lodash.get(body, 'useCam')
         lodash.set(patch, 'name', lodash.get(body, 'name'))
         lodash.set(patch, 'campus', lodash.get(body, 'campus'))
         lodash.set(patch, 'device', lodash.get(body, 'device'))
-        lodash.set(patch, 'userId', lodash.get(body, 'userId'))
         lodash.set(patch, 'active', lodash.get(body, 'active'))
-        lodash.set(patch, 'verification', lodash.get(body, 'verification'))
+        lodash.set(patch, 'refresh', refresh === 'true' ? true : false)
+        lodash.set(patch, 'useCam', useCam === 'true' ? true : false)
 
+        // return res.send(patch)
 
         await db.main.Scanner.updateOne({ _id: scanner._id }, patch)
 

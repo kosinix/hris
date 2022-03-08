@@ -14,10 +14,13 @@
     </div>
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
         <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/scanner/create" method="POST" class="form-default">
-            {% set name = 'name' %}
-            {% set label = 'Scanner Name' %}
-            {% include 'parts/form-group-text.html' %}
-            {% set label = '' %}
+            <div class="form-group">
+                <label for="name">Scanner Name</label>
+                <div>
+                    <input v-on:keyup="changeUsername" v-on:change="changeUsername" name="name" id="name" v-model="name" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('name')}</small>
+                </div>
+            </div>
 
             {% set name = 'campus' %}
             {% set label = 'Campus' %}
@@ -32,24 +35,13 @@
             {% set label = '' %}
 
             <div class="form-group">
-                <label for="userId">Assign User <span class="text-danger">*</span></label>
-                <div class="alert alert-info"><em>Reminder: User must have an "use_scanner" permission.</em></div>
+                <label for="username">Username</label>
                 <div>
-                    <autocomplete v-model="userId"
-                        name="userId"
-                        initial-value="{{''}}"
-                        initial-display="{{''}}"
-                        placeholder="Type user email..."
-                        :source="dataSource"
-                        input-class="form-control"
-                        :request-headers="headers"
-                        v-on:selected="onSelect"
-                        >
-                    </autocomplete>
-                    <small class="invalid-feedback">${getError('userId')}</small>
+                    <input readonly name="username" id="username" v-model="username" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('username')}</small>
                 </div>
-
             </div>
+
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
                     <button class="btn btn-primary">Create New Scanner</button>
@@ -61,7 +53,6 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-<script src="{{app.url}}/js/vue-ph-address.js"></script>
 <script>
     var vApp = new Vue({
         el: '#vApp',
@@ -69,7 +60,6 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
-            VuePhAddress.mixin
         ],
         components: {
             'autocomplete': window["vuejs-autocomplete"]
@@ -77,8 +67,8 @@
         data: {
             name: '',
             campus: 'main',
-            device: 'webcam',
-            userId: '',
+            device: 'rfid',
+            username: '',
         },
         validations: {
             name: {
@@ -90,13 +80,15 @@
             device: {
                 required: window.validators.required
             },
-            userId: {
+            username: {
                 required: window.validators.required
             },
         },
         methods: {
-            dataSource: function(input) {
-                return '/users?s=' + input
+            
+            changeUsername: function(){
+                var me = this;
+                me.username = me.name.toLowerCase().replace(/[^\w ]/g, '').replace(/\s\s+/g, ' ').replace(/ /g, '.') // remove spaces for maam josephine "de asis"
             },
             onSubmit: function(){
                 var me = this;

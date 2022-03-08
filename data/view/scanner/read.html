@@ -15,16 +15,11 @@
     {% include 'parts/flash.html' %}
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
-            <p>Campus: {{scanner.campus|capitalize}}</p>
-            <p>Device: {{scanner.device|capitalize}}</p>
-            <p>Active: {{scanner.active|capitalize}}</p>
-            <p>Assigned To: {{scanner.user.email}}</p>
-            {# <p>Type: {% if scanner.type === 1 %}Entrance{% elif scanner.type === 2 %}Exit{% endif %}</p> #}
-            <p>How to Scan:</p>
-            <ol>
-                <li>Log into <span class="text-success">{{CONFIG.app.url}}/login</span> using the checker account "{{scanner.user.email}}". </li>
-                <li>Go to the scanner at: <a href="{{CONFIG.app.url}}/scanner/{{scanner.uid}}/scan" class="text-success">{{CONFIG.app.url}}/scanner/{{scanner.uid}}/scan</a></li>
-            </ol>
+        <p>Scanning Device: {{scanner.device|capitalize}}</p>
+        <p>Active: {{scanner.active|capitalize}}</p>
+        <p>Campus: {{scanner.campus|capitalize}}</p>
+        <p>Refresh Pending: {{scanner.refresh|capitalize}}</p>
+        <p>Username: {{scanner.user.username}}</p>
     </div>
 
 </div>

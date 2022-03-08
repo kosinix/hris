@@ -12,7 +12,7 @@
             </div>
         </div>
     </div>
-    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+    <div class="tab-content p-3">
         <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/scanner/{{scanner._id}}/edit" method="POST" class="form-default">
             {% set name = 'name' %}
             {% set label = 'Scanner Name' %}
@@ -31,41 +31,55 @@
             {% include 'parts/form-group-select.html' %}
             {% set label = '' %}
 
-            <div class="form-group">
-                <label for="userId">Assign User <span class="text-danger">*</span></label>
-                <div class="alert alert-info"><em>Reminder: User must have an "use_scanner" permission.</em></div>
-                <div>
-                    <autocomplete v-model="userId"
-                        name="userId"
-                        initial-value="{{scanner.userId}}"
-                        initial-display="{{scanner.user.email}}"
-                        placeholder="Type user email..."
-                        :source="dataSource"
-                        input-class="form-control"
-                        :request-headers="headers"
-                        v-on:selected="onSelect"
-                        >
-                    </autocomplete>
-                    <small class="invalid-feedback">${getError('userId')}</small>
-                </div>
-
-            </div>
-
             {% set name = 'active' %}
             {% set options = [{value: true, text: 'Yes'}, {value: false, text: 'No'}] %}
             {% include 'parts/form-group-select.html' %}
             {% set label = '' %}
 
-            {% set name = 'verification' %}
-            {% set label = 'Verification Step' %}
-            {% set options = [{value:'', text:''}, {value:'manual', text:'Manual'}, {value:'auto', text:'Automatic'}] %}
-            {% include 'parts/form-group-select.html' %}
-            {% set label = '' %}
-            <div class="alert alert-info"><em>Reminder: Device must have a webcam for "automatic" verification.</em></div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <div>
+                    <input readonly name="username" id="username" v-model="username" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('username')}</small>
+                </div>
+            </div>
 
-
+           <div class="form-group">
+                <label for="useCam">Use Webcam?</label>
+                <div>
+                    <div class="form-check">
+                        <input name="useCam" id="useCam" v-model="useCam" class="form-check-input" type="checkbox" value="true">
+                        <label class="form-check-label" for="useCam">
+                            Yes
+                        </label>
+                    </div>
+                    <small class="invalid-feedback">${getError('useCam')}</small>
+                </div>
+            </div>
+           <div class="form-group">
+                <label for="refresh">Refresh?</label>
+                <div>
+                    {% if scanner.refresh %}
+                    <div class="alert alert-warning">Scanner refresh pending...</div>
+                    {% else %}
+                    <div class="form-check">
+                        <input name="refresh" id="refresh" v-model="refresh" class="form-check-input" type="checkbox" value="true">
+                        <label class="form-check-label" for="refresh">
+                            Yes - reload scanner remotely
+                        </label>
+                    </div>
+                    {% endif %}
+                    <small class="invalid-feedback">${getError('refresh')}</small>
+                </div>
+            </div>
+            
+          
             <div class="form-row pt-3 pb-3">
-                <div class="col-md-12">
+                <div class="col-md-6">
+                    <a href="/scanner/all" class="btn btn-light">Cancel</a>
+                </div>
+                <div class="col-md-6 text-right">
+                    <a href="/scanner/{{scanner._id}}/password" class="btn btn-light">Change Password</a>
                     <button class="btn btn-primary">Update Scanner</button>
                 </div>
             </div>
@@ -83,7 +97,6 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
-            VuePhAddress.mixin
         ],
         components: {
             'autocomplete': window["vuejs-autocomplete"]
@@ -92,9 +105,10 @@
             name: '{{scanner.name}}',
             campus: '{{scanner.campus}}',
             device: '{{scanner.device}}',
-            userId: '{{scanner.userId}}',
             active: '{{scanner.active}}',
-            verification: '{{scanner.verification}}',
+            username: '{{scanner.user.username}}',
+            refresh: {{scanner.refresh|default(false, true)}},
+            useCam: {{scanner.useCam|default(false, true)}},
         },
         validations: {
             name: {
@@ -106,20 +120,11 @@
             device: {
                 required: window.validators.required
             },
-            userId: {
-                required: window.validators.required
-            },
             active: {
-                required: window.validators.required
-            },
-            verification: {
                 required: window.validators.required
             },
         },
         methods: {
-            dataSource: function(input) {
-                return '/users?s=' + input
-            },
             onSubmit: function(){
                 var me = this;
                 me.$v.$touch()

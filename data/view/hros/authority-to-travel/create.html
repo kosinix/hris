@@ -1,0 +1,169 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Get Authority to Travel</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/hros/at/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <div class="mb-5">
+        {% include 'parts/flash.html' %}
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/hros/at/create" method="POST" class="form-default">
+            <div class="form-row">
+                <div class="col-md-12">
+                    <label for="periodOfTravel">Period of Travel</label>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="periodOfTravel">From</label>
+                        <div>
+                            <input v-on:change="syncDates" name="periodOfTravel" id="periodOfTravel" v-model="periodOfTravel" type="date" class="form-control">
+                            <small class="invalid-feedback">${getError('periodOfTravel')}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="periodOfTravelEnd">To</label>
+                        <div>
+                            <input name="periodOfTravelEnd" id="periodOfTravelEnd" v-model="periodOfTravelEnd" type="date" class="form-control">
+                            <small class="invalid-feedback">${getError('periodOfTravelEnd')}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                {% set name = 'destination' %}
+                {% include 'parts/form-group-text.html' %}
+            </div>
+            <div class="form-group">
+                {% set name = 'natureOfBusiness' %}
+                {% include 'parts/form-group-textarea.html' %}
+            </div>
+            <div class="form-group">
+                {% set name = 'designation' %}
+                {% set label = 'Your Designation' %}
+                {% include 'parts/form-group-text.html' %}
+            </div>
+            <div class="form-group">
+                {% set name = 'officialStation' %}
+                {% set label = 'Your Official Station' %}
+                {% include 'parts/form-group-text.html' %}
+                {% set label = '' %}
+            </div>
+            
+            <div class="form-group">
+                {% set name = 'endorser' %}
+                {% include 'parts/form-group-text.html' %}
+            </div>
+            <div class="form-group">
+                {% set name = 'endorserDesignation' %}
+                {% include 'parts/form-group-text.html' %}
+            </div>
+            <div class="form-group">
+                {% set name = 'approver' %}
+                {% include 'parts/form-group-text.html' %}
+                {% set label = '' %}
+            </div>
+            <div class="form-group">
+                {% set name = 'approverDesignation' %}
+                {% include 'parts/form-group-text.html' %}
+                {% set label = '' %}
+            </div>
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-6 mb-3">
+                    <a href="/hros/at/all" class="btn btn-light">Cancel</a>
+                </div>
+                <div class="col-md-6 mb-3 text-right">
+                    <button class="btn btn-primary">Apply</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            designation: '',
+            officialStation: '',
+            destination: '',
+            periodOfTravel: '',
+            periodOfTravelEnd: '',
+            natureOfBusiness: '',
+            endorser: '',
+            endorserDesignation: '',
+            approver: '',
+            approverDesignation: '',
+        },
+        validations: {
+            designation: {
+                required: window.validators.required
+            },
+            officialStation: {
+                required: window.validators.required
+            },
+            destination: {
+                required: window.validators.required
+            },
+            periodOfTravel: {
+                required: window.validators.required
+            },
+            periodOfTravelEnd: {
+                required: window.validators.required
+            },
+            natureOfBusiness: {
+                required: window.validators.required
+            },
+            endorser: {
+                required: window.validators.required
+            },
+            endorserDesignation: {
+                required: window.validators.required
+            },
+            approver: {
+                required: window.validators.required
+            },
+            approverDesignation: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            syncDates: function(){
+                var me = this;
+                var mDate1 = moment(me.periodOfTravel)
+                var mDate2 = moment(me.periodOfTravelEnd)
+                if(mDate1.isValid() && mDate1.isAfter(mDate2)){
+                    me.periodOfTravelEnd = me.periodOfTravel
+                }
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

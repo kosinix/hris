@@ -129,3 +129,25 @@ img {
     border: 0;
 }
 
+/* HROS */
+.hros.authority-to-travel {
+    font-family: "Times New Roman", serif;
+    font-size: 16px;
+}
+.hros.authority-to-travel h1 {
+    text-transform: uppercase;
+    font-size: 16px;
+    font-weight: bold;
+}
+.hros.authority-to-travel p {
+    margin-bottom: 0;
+}
+.hros.authority-to-travel .underline {
+    border-bottom: 1px solid #000;
+    padding-top: 3px;
+    padding-left: 3px;
+    padding-bottom: 3px;
+}
+.hros.authority-to-travel .legend {
+    font-size: 11px;
+}

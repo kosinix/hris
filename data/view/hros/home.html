@@ -1,0 +1,32 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div>
+            <h1 class="h2">Human Resource Online Services</h1>
+            <p class="mb-3 pl-1">Click one of the many services provided.</p>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    
+    
+    <div class="tab-content p-3">
+        
+        <div class="d-flex align-items-start">
+            <div class="card m-2" style="max-width: 250px">
+                <img src="/images/help/authority-to-travel.jpg" class="img-fluid border border-success rounded-sm m-3" alt="Preview">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Authority to Travel</h5>
+                    <div class="text-center">
+                        <a href="/hros/at/create" class="btn btn-success">Apply</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+{% endblock %}
+

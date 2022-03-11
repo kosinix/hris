@@ -1,0 +1,92 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">Authority to Travel</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/hros/at/create" class="btn btn-sm btn-outline-primary">Apply for Authority to Travel</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    
+    {% if ats.length <= 0 %}
+        <p>No previous online "Authority to Travel" found. <a class="btn btn-success btn-sm" href="/hros/at/create">Apply Online</a></p>
+    {% else %}
+        <div class="tab-content p-3">
+            <div class="d-flex justify-content-end">
+                <div class=" pb-3 align-self-center pr-3">
+                    Per page:
+                </div>
+                <div class=" pb-3">
+                    {% set url = '/hros/at/all' %}
+                    {% include 'parts/form-per-page.html' %}
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>
+                                Travel Date
+                            </th>
+                            <th>
+                                Destination
+                            </th>
+                            <th>
+                                Nature of Business
+                            </th>
+                            <th>Control No.</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for at in ats %}
+                        <tr>
+                            <td class="text-center">{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
+                            <td>
+                                {{at.periodOfTravel|format_date('MMMM DD, YYYY')}}
+                                {% if at.periodOfTravel|format_date('MMMM DD, YYYY') !== at.periodOfTravelEnd|format_date('MMMM DD, YYYY') %}
+                                    to {{at.periodOfTravelEnd|format_date('MMMM DD, YYYY')}}
+                                {% endif%}
+                            </td>
+                            <td>
+                                {{at.data.destination}}
+                            </td>
+                            <td>
+                                {{at.data.natureOfBusiness}}
+                            </td>
+                            <td>
+                                {{at.controlNumber}}
+                            </td>
+                            <td>
+                                {% if at.status === 1 %}
+                                    <span class="text-warning">Awaiting Control Number</span>
+                                    <a href="/hros/at/{{at._id}}/delete" onclick="return confirm('Are you sure you want to cancel your application?')" class="btn btn-sm btn-danger">Cancel</a>
+                                {% elif at.status === 2 %}
+                                    <span class="text-success">Approved</span>
+                                    <a href="/hros/at/{{at._id}}/print" class="btn btn-sm btn-success">Print</a>
+                                    <!-- <a href="/hros/at/{{at._id}}" class="btn btn-sm btn-success">Share</a> -->
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12 text-center text-md-left pt-3 pb-5">
+                    {% include "parts/pagination.html" %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

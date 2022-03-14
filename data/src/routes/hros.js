@@ -137,14 +137,18 @@ router.get('/hros/at/create', middlewares.guardRoute(['use_employee_profile']), 
 router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
+        let user = res.user.toObject()
         let body = req.body
 
+        
+
+        // return res.send(body)
         if (moment(body.periodOfTravelEnd).isBefore(moment(body.periodOfTravel))) {
             flash.error(req, 'hros', 'Invalid period of travel. Please check your "To" and "From" dates.')
             return res.redirect('/hros/at/create')
         }
-        if (lodash.toString(body.natureOfBusiness).length > 300) {
-            flash.error(req, 'hros', 'Nature Of Business must not exceed 300 characters.')
+        if (lodash.toString(body.natureOfBusiness).length > 180) {
+            flash.error(req, 'hros', 'Nature Of Business must not exceed 180 characters.')
             return res.redirect('/hros/at/create')
         }
 
@@ -181,6 +185,31 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             }
         })
 
+        if(lodash.get(body, 'autoset', false)){
+            let a = body.periodOfTravel
+            let b = body.periodOfTravelEnd
+            // If you want an inclusive end date (fully-closed interval)
+            for (var m = moment(a); m.diff(b, 'days') <= 0; m.add(1, 'days')) {
+                console.log(m.format('YYYY-MM-DD'));
+                let attendance = {
+                    employeeId: employee._id,
+                    employmentId: employee.employments[0]._id, // TODO: Associate properly
+                    type: 'travel',
+                    workScheduleId: employee.employments[0].workScheduleId,
+                    createdAt: m.toDate(),
+                    logs: [],
+                    changes: [],
+                    comments: [],
+                }
+                attendance.changes.push({
+                    summary: `${user.username} inserted a new attendance.`,
+                    objectId: user._id,
+                    createdAt: m.toDate()
+                })
+                await db.main.Attendance.create(attendance)
+            }
+        }
+
         let autoApprove = true
         if (autoApprove) {
             let ats = await db.main.AuthorityToTravel.find({
@@ -197,7 +226,16 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             at.controlNumber = moment().format('YY-MM-') + counter.padStart(3, '0') + ' (Online)'
             at.status = 2
             await at.save()
-            flash.ok(req, 'hros', 'Authority to Travel submitted. Please dont forget to set your attendance to "Travel" on the said date(s). Please print your Authority to Travel and have it signed.')
+            let message = `Authority to Travel submitted. `
+            if(lodash.get(body, 'autoset', false)){
+                message += `1.) Please print your Authority to Travel and have it signed. `
+                message += `2.) Attached it when submitting your DTR. `
+            } else {
+                message += `1.) Please dont forget to set your attendance to "Travel" on the day(s) of your travel. `
+                message += `2.) Please print your Authority to Travel and have it signed. `
+                message += `3.) Attached it when submitting your DTR. `
+            }
+            flash.ok(req, 'hros', message)
             return res.redirect(`/hros/at/all`)
         }
         flash.ok(req, 'hros', 'Authority to Travel submitted. Please wait for HR approval. Refresh this page later to check.')
@@ -249,9 +287,9 @@ router.get('/hros/at/:authorityToTravelId/print', middlewares.guardRoute(['use_e
 
 
         let words = at.data.natureOfBusiness.replace(/\s\s+/g, ' ').split(' ')
-        if (words.length > 32) {
-            at.data.natureOfBusiness1 = words.splice(0, 32).join(' ')
-            at.data.natureOfBusiness2 = words.splice(0, 25).join(' ')
+        if (words.length > 18) {
+            at.data.natureOfBusiness1 = words.splice(0, 18).join(' ')
+            at.data.natureOfBusiness2 = words.splice(0, 18).join(' ')
 
         } else {
             at.data.natureOfBusiness1 = words.join(' ')

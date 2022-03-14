@@ -1,6 +1,12 @@
 /* See https://stackoverflow.com/questions/49785039/printing-bootstrap-4-html-page-in-chrome-cuts-off-chrome-header-footers */
 @page {
-    size: auto;
+    size: A4;
+}
+@media print {
+    html, body {
+        width: 210mm;
+        height: 297mm;
+    }
 }
 
 body {

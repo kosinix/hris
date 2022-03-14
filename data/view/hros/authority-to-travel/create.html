@@ -45,6 +45,7 @@
             approver: '',
             approverDesignation: '',
             autoset: '',
+            charLength: 180
         },
         validations: {
             designation: {
@@ -79,9 +80,6 @@
             },
         },
         computed: {
-            charLength: function () {
-                return 180-((this.natureOfBusiness + '').split('').length)
-            },
             travelPeriod: function () {
                 var me = this;
                 var mDate1 = moment(me.periodOfTravel)
@@ -115,11 +113,15 @@
                 }
             }
         },
+        mounted: function(){
+            this.charLength = 180 - ((this.natureOfBusiness + '').split('').length)
+        },
         methods: {
             limitChars: function (max, e) {
                 if (e.target.value.length >= max) {
                     this.natureOfBusiness = e.target.value.substring(0, max);
                 }
+                this.charLength = 180 - ((this.natureOfBusiness + '').split('').length)
             },
             nextPage: function (page) {
                 var me = this;

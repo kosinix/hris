@@ -119,6 +119,7 @@
             pingHome();
             pingTimer = setTimeout(pingHome, pingTimeout);
 
+            if(me.useWebcam) me.webcamStart();
         },
         watch: {
             code: function(newCode, oldCode){
@@ -133,7 +134,7 @@
 
                 } else if(newPage === 1) {
 
-                    if(me.useWebcam) me.webcamStart();
+                    
 
                 } else if(newPage === 2) {
                     if(me.useWebcam) me.webcamSnap();
@@ -271,9 +272,9 @@
                 var before = me.page;
                 var after = me.page + 1;
                 if(after === 1){
-                    if(!me.useWebcam){
+                    //if(!me.useWebcam){
                         after = 2
-                    }
+                    //}
                 } else if(after === 2){
                     if(!me.webcamLoaded && me.useWebcam){
                         return

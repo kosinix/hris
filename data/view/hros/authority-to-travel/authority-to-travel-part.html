@@ -28,42 +28,42 @@
         </div>
     </div>
     <div class="row align-items-end">
-        <div class="col-2">
+        <div class="col-3">
             <strong>Name of Official:</strong>
         </div>
-        <div class="col-10">
-            <div class="underline pl-3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</div>
+        <div class="col-9">
+            <div class="underline pl-3">{{employee.firstName}} {{employee.middleName|first}}. {{employee.lastName}}</div>
         </div>
     </div>
     <div class="row align-items-end">
-        <div class="col-2">
+        <div class="col-3">
             <strong>Designation:</strong>
         </div>
-        <div class="col-10">
+        <div class="col-9">
             <div class="underline pl-3">{{at.data.designation}}</div>
         </div>
     </div>
     <div class="row align-items-end">
-        <div class="col-2">
+        <div class="col-3">
             <strong>Official Station:</strong>
         </div>
-        <div class="col-10">
+        <div class="col-9">
             <div class="underline pl-3">{{at.data.officialStation}}</div>
         </div>
     </div>
     <div class="row align-items-end">
-        <div class="col-2">
+        <div class="col-3">
             <strong>Destination:</strong>
         </div>
-        <div class="col-10">
+        <div class="col-9">
             <div class="underline pl-3">{{at.data.destination}}</div>
         </div>
     </div>
     <div class="row align-items-end">
-        <div class="col-2">
+        <div class="col-3">
             <strong>Period of Travel:</strong>
         </div>
-        <div class="col-10">
+        <div class="col-9">
             <div class="underline pl-3">{{at.periodOfTravel|format_date('MMMM DD, YYYY')}} 
                 {% if at.periodOfTravel|format_date('MMMM DD, YYYY') !== at.periodOfTravelEnd|format_date('MMMM DD, YYYY') %}
                     to {{at.periodOfTravelEnd|format_date('MMMM DD, YYYY')}} 
@@ -72,10 +72,10 @@
         </div>
     </div>
     <div class="row mb-4">
-        <div class="col-2 pt-2">
+        <div class="col-3 pt-2">
             <strong>Nature of Business:</strong>
         </div>
-        <div class="col-10">
+        <div class="col-9">
             <div class="underline pl-3">{{at.data.natureOfBusiness1}}</div>
             <div class="underline pl-3">{{at.data.natureOfBusiness2}}&nbsp;</div>
         </div>
@@ -89,7 +89,7 @@
         <div class="col-4"></div>
         <div class="col-4">
             <div>Requested by:</div>
-            <div class="underline text-center text-uppercase pt-4">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</div>
+            <div class="underline text-center text-uppercase pt-4">{{employee.firstName}} {{employee.middleName|first}}. {{employee.lastName}}</div>
             <div class="text-center">Traveling Personnel</div>
         </div>
     </div>

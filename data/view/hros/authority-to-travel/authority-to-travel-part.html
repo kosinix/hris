@@ -83,7 +83,7 @@
     <div class="row">
         <div class="col-4">
             <div>Favorably endorsed for approval:</div>
-            <div class="underline text-center text-uppercase pt-4">{{at.data.endorser}}</div>
+            <div class="underline text-center pt-4">{{at.data.endorser|upper|replace('PH.D.', 'Ph.D.')}}</div>
             <div class="text-center">{{at.data.endorserDesignation}}</div>
         </div>
         <div class="col-4"></div>
@@ -99,8 +99,8 @@
             
         </div>
         <div class="col-4">
-            <div class="underline text-center text-uppercase pt-4">{{at.data.approver}}</div>
-            <div class="text-center">{{at.data.approverDesignation|replace('PH.D.', 'Ph.D.')}}</div>
+            <div class="underline text-center pt-4">{{at.data.approver|upper|replace('PH.D.', 'Ph.D.')}}</div>
+            <div class="text-center">{{at.data.approverDesignation}}</div>
         </div>
         <div class="col-4">
             

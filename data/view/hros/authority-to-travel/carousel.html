@@ -52,7 +52,7 @@
                 <div class="form-group">
                     <label for="natureOfBusiness" class="font-weight-bold">Nature of Business <em>(${charLength} characters left)</em> <span class="text-danger">*</span></label>
                     <div>
-                        <textarea v-on:input="limitChars(180, $event)" v-on:keyup="limitChars(180, $event)" v-model="natureOfBusiness" name="natureOfBusiness" id="natureOfBusiness" cols="30" rows="2" class="form-control"></textarea>
+                        <textarea v-on:input="limitChars(180, $event)" v-on:change="limitChars(180, $event)" v-model="natureOfBusiness" name="natureOfBusiness" id="natureOfBusiness" cols="30" rows="2" class="form-control"></textarea>
                         <small class="invalid-feedback">${getError('natureOfBusiness')}</small>
                     </div>
                 </div>

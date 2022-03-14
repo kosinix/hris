@@ -140,7 +140,7 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
         let user = res.user.toObject()
         let body = req.body
 
-        
+
 
         // return res.send(body)
         if (moment(body.periodOfTravelEnd).isBefore(moment(body.periodOfTravel))) {
@@ -154,12 +154,21 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
 
         let ats = await db.main.AuthorityToTravel.find({
             employeeId: employee._id,
-            periodOfTravel: {
-                $gte: body.periodOfTravel,
-            },
-            periodOfTravelEnd: {
-                $lte: body.periodOfTravelEnd,
-            }
+            $or: [
+                {
+                    periodOfTravel: {
+                        $gte: moment(body.periodOfTravel).toDate(),
+                        $lte: moment(body.periodOfTravelEnd).toDate(),
+                    },
+                },
+                {
+                    periodOfTravelEnd: {
+                        $gte: moment(body.periodOfTravel).toDate(),
+                        $lte: moment(body.periodOfTravelEnd).toDate(),
+                    }
+                }
+            ]
+
         })
         if (ats.length > 0) {
             flash.error(req, 'hros', 'Cannot create Authority to Travel on the provided period. There is an overlap with another Authority to Travel.')
@@ -170,8 +179,8 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
         let at = await db.main.AuthorityToTravel.create({
             employeeId: employee._id,
             status: 1,
-            periodOfTravel: body.periodOfTravel,
-            periodOfTravelEnd: body.periodOfTravelEnd,
+            periodOfTravel: moment(body.periodOfTravel).toDate(),
+            periodOfTravelEnd: moment(body.periodOfTravelEnd).toDate(),
             controlNumber: '',
             data: {
                 designation: body.designation,
@@ -185,7 +194,7 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             }
         })
 
-        if(lodash.get(body, 'autoset', false)){
+        if (lodash.get(body, 'autoset', false)) {
             let a = body.periodOfTravel
             let b = body.periodOfTravelEnd
             // If you want an inclusive end date (fully-closed interval)
@@ -227,7 +236,7 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             at.status = 2
             await at.save()
             let message = `Authority to Travel submitted. `
-            if(lodash.get(body, 'autoset', false)){
+            if (lodash.get(body, 'autoset', false)) {
                 message += `1.) Please print your Authority to Travel and have it signed. `
                 message += `2.) Attached it when submitting your DTR. `
             } else {

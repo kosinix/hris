@@ -118,14 +118,14 @@ router.get('/hros/at/all', middlewares.guardRoute(['use_employee_profile']), mid
 router.get('/hros/at/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
+        let employments = employee.employments
 
         let data = {
             title: 'Human Resource Online Services (HROS) - Authority to Travel',
             flash: flash.get(req, 'hros'),
             employee: employee,
-            at: {
-                controlNumber: moment().format('YY-MM-') + '123'
-            },
+            employments: employments,
+            employmentId: employments[0]._id,
             momentNow: moment(),
         }
         res.render('hros/authority-to-travel/create.html', data);
@@ -151,9 +151,16 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             flash.error(req, 'hros', 'Nature Of Business must not exceed 180 characters.')
             return res.redirect('/hros/at/create')
         }
+        let employmentId = lodash.get(body, 'employmentId')
+        let employment = await db.main.Employment.findById(employmentId).lean()
+        if (!employment) {
+            flash.error(req, 'hros', 'Employment not found.')
+            return res.redirect('/hros/at/create')
+        }
 
         let ats = await db.main.AuthorityToTravel.find({
             employeeId: employee._id,
+            employmentId: employment._id,
             $or: [
                 {
                     periodOfTravel: {
@@ -178,6 +185,7 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
 
         let at = await db.main.AuthorityToTravel.create({
             employeeId: employee._id,
+            employmentId: employment._id,
             status: 1,
             periodOfTravel: moment(body.periodOfTravel).toDate(),
             periodOfTravelEnd: moment(body.periodOfTravelEnd).toDate(),
@@ -199,12 +207,12 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             let b = body.periodOfTravelEnd
             // If you want an inclusive end date (fully-closed interval)
             for (var m = moment(a); m.diff(b, 'days') <= 0; m.add(1, 'days')) {
-                console.log(m.format('YYYY-MM-DD'));
+                // console.log(m.format('YYYY-MM-DD'));
                 let attendance = {
                     employeeId: employee._id,
-                    employmentId: employee.employments[0]._id, // TODO: Associate properly
+                    employmentId: employment._id,
                     type: 'travel',
-                    workScheduleId: employee.employments[0].workScheduleId,
+                    workScheduleId: employment.workScheduleId,
                     createdAt: m.toDate(),
                     logs: [],
                     changes: [],
@@ -358,8 +366,8 @@ router.get('/hros/at.docx', middlewares.guardRoute(['use_employee_profile']), mi
 });
 
 
-
-router.get('/hros/coax', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+// Cert of appearance
+router.get('/hros/coa', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employment = res.employment

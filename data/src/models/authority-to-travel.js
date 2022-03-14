@@ -9,6 +9,9 @@ let schema = mongoose.Schema({
     employeeId: {
         $type: mongoose.Schema.Types.ObjectId
     },
+    employmentId: {
+        $type: mongoose.Schema.Types.ObjectId
+    },
     status: {
         $type: Number, // 1 - pending, 2 - ok
     },

@@ -34,6 +34,8 @@
         data: {
             pending: false,
             page: 0,
+            employments: {{employments|default([], true)|stringify|safe}},
+            employmentId: '{{employmentId}}',
             designation: '',
             officialStation: '',
             destination: '',

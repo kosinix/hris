@@ -2,6 +2,17 @@
     <div class="carousel-inner">
         {# 0 #}
         <div class="carousel-item active">
+            <div class="form-group">
+                <div class="form-group">
+                    <label for="employmentId" class="font-weight-bold">Employment <span class="text-danger">*</span></label>
+                    <div>
+                        <select v-model="employmentId" name="employmentId" id="employmentId" class="form-control">
+                            <option v-for="employment in employments" v-bind:value="employment._id">${employment.position}</option>
+                        </select>
+                        <small class="invalid-feedback">${getError('employmentId')}</small>
+                    </div>
+                </div>
+            </div>
             <div class="form-row">
                 <div class="col-md-12">
                     <label for="periodOfTravel" class="font-weight-bold">Period of Travel <span class="text-danger">*</span></label>
@@ -117,10 +128,10 @@
                 </div>
             </div>
             <div class="form-row pt-3 pb-3">
-                <div class="col-md-6 mb-3">
+                <div class="col-6 mb-3">
                     <a href="/hros/at/all" class="btn btn-light">Cancel</a>
                 </div>
-                <div class="col-md-6 mb-3 text-right">
+                <div class="col-6 mb-3 text-right">
                     <button v-on:click="nextPage(1)" class="btn btn-primary" type="button">Next</button>
                 </div>
             </div>
@@ -174,21 +185,14 @@
                 </table>
             </div>
             <div class="form-row pt-3 pb-3">
-                <div class="col-md-6 mb-3">
+                <div class="col-6 mb-3">
                     <button v-on:click="page=0"class="btn btn-light" type="button">Back</button>
                 </div>
-                <div class="col-md-6 mb-3 text-right">
+                <div class="col-6 mb-3 text-right">
                     <button class="btn btn-primary">Apply</button>
                 </div>
             </div>
         </div>
         {# 2 #}
-        <div class="carousel-item ">
-            3
-        </div>
-        {# 3 #}
-        <div class="carousel-item ">
-            4
-        </div>
     </div>
 </div>

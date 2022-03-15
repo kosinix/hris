@@ -346,151 +346,20 @@ router.get('/hros/at/:authorityToTravelId/delete', middlewares.guardRoute(['use_
     }
 });
 
-router.get('/hros/at.docx', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-
-        let data = {
-            title: 'Human Resource Online Services (HROS) - Authority to Travel',
-            employee: employee,
-            at: {
-                controlNumber: moment().format('YY-MM-') + '123'
-            },
-            momentNow: moment(),
-        }
-        res.render('hros/authority-to-travel.html', data);
-
-    } catch (err) {
-        next(err);
-    }
-});
-
 
 // Cert of appearance
-router.get('/hros/coa', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+router.get('/hros/coa', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let employment = res.employment
 
-        res.render('hros/dtr-edit.html', {
+        res.render('hros/certificate-of-appearance/certificate-of-appearance.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
-            employment: employment,
         });
     } catch (err) {
         next(err);
     }
 });
-router.post('/hros/coa', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, fileUpload(), middlewares.handleExpressUploadMagic, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let employmentId = res.employmentId
-        let employment = res.employment
-        let attendanceId = lodash.get(req, 'params.attendanceId')
 
-        // Get pending
-        let attendanceReview = await db.main.AttendanceReview.findOne({
-            attendanceId: attendanceId,
-            status: 'pending'
-        }).lean()
-
-        if (attendanceReview) {
-            throw new Error('Attendance correction application for this date is still under review.')
-        }
-
-        // Get attendance
-        let attendance = await db.main.Attendance.findOne({
-            _id: attendanceId,
-            employmentId: employmentId,
-        }).lean()
-
-        if (!attendance) {
-            throw new Error('Attendance not found.')
-        }
-
-        let saveList = lodash.get(req, 'saveList')
-        let attachments = lodash.get(saveList, 'photo')
-        let body = lodash.get(req, 'body')
-
-
-        // ORIG
-        let orig = JSON.parse(JSON.stringify(attendance))
-        delete orig._id
-
-        // PATCH
-        let patch = JSON.parse(JSON.stringify(attendance))
-        delete patch._id
-
-        patch.attendanceId = attendance._id.toString()
-        patch.attachments = attachments
-        patch.type = body.type
-        patch.correctionReason = body.correctionReason
-        patch.logsheetNumber = body.logsheetNumber
-        patch.workScheduleId = body.workScheduleId
-        patch.status = 'pending'
-
-        let getMode = (x) => {
-            let mode = 1
-            if (x === 0) {
-                mode = 1
-            } else if (x === 1) {
-                mode = 0
-            } else if (x === 2) {
-                mode = 1
-            } else if (x === 3) {
-                mode = 0
-            }
-            return mode
-        }
-
-        // Merge 4 logs
-        for (let x = 0; x < 4; x++) {
-            let origLog = lodash.get(orig, `logs[${x}]`)
-            let patchLog = lodash.get(body, `log${x}`)
-            let newLog = origLog
-            let momentLog = moment(patchLog, 'HH:mm', true) // Turn to moment or null if fails
-            if (momentLog.isValid()) {
-
-                let dateTime = moment(attendance.createdAt).hours(momentLog.hours()).minutes(momentLog.minutes()).toDate()
-                let mode = getMode(x)
-                if (origLog) {
-                    newLog.dateTime = dateTime
-                    newLog.mode = mode
-                } else { // undefined
-                    newLog = {
-                        _id: db.mongoose.Types.ObjectId(),
-                        scannerId: null,
-                        dateTime: dateTime,
-                        mode: mode,
-                        type: 'online',
-
-                    }
-                }
-
-            }
-
-            patch.logs[x] = newLog
-        }
-        // Remove undefined
-        patch.logs = patch.logs.filter(o => o !== undefined)
-        patch = JSON.parse(JSON.stringify(patch))
-
-        // return res.send(patch)
-        let merged = lodash.merge(orig, patch)
-        let review = await db.main.AttendanceReview.create(merged)
-
-        // return res.send({
-        //     orig: JSON.parse(JSON.stringify(attendance)),
-        //     patch: patch,
-        //     merged: merged,
-        //     review: review,
-        // })
-
-        flash.ok(req, 'employee', 'Application submitted.')
-        res.redirect(`/e-profile/dtr/${employmentId}`)
-    } catch (err) {
-        next(err);
-    }
-});
 
 module.exports = router;

@@ -6,10 +6,10 @@ body {
     background: #F1F1F1;
 }
 body.body-public {
-    /* background: hsla(95, 47%, 71%, 1); */
-    /* background: linear-gradient(135deg, hsla(95, 47%, 71%, 1) 0%, hsla(168, 41%, 50%, 1) 28%, hsla(184, 62%, 39%, 1) 44%, rgb(37, 117, 182) 54%, hsla(211, 80%, 33%, 1) 100%) fixed; */
-    background: rgb(128,0,128);
-    background: linear-gradient(135deg, rgba(128,0,128,1) 0%, rgba(255,126,255,1) 100%) fixed;
+    background: hsla(95, 47%, 71%, 1);
+    background: linear-gradient(135deg, hsla(95, 47%, 71%, 1) 0%, hsla(168, 41%, 50%, 1) 28%, hsla(184, 62%, 39%, 1) 44%, rgb(37, 117, 182) 54%, hsla(211, 80%, 33%, 1) 100%) fixed;
+    /* background: rgb(128,0,128); */
+    /* background: linear-gradient(135deg, rgba(128,0,128,1) 0%, rgba(255,126,255,1) 100%) fixed; */
 }
 body, pre {
     color: #4b4b4b;
@@ -764,8 +764,8 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     display: flex;
 }
 .scanner-rfid .step .number {
-    /* background: #115195; */
-    background: purple;
+    background: #115195;
+    /* background: purple; */
     border-radius: 100%;
     text-align: center;
     color: #fff;
@@ -776,8 +776,8 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     margin-right: 18px;
 }
 .scanner-rfid .step .number div:first-child {
-    /* color: #b0d893; */
-    color: #ffff;
+    color: #b0d893;
+    /* color: #ffff; */
     padding-top: 20px;
     margin-bottom: 0;
     font-size: 22px;
@@ -787,32 +787,32 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
 }
 
 .scanner-rfid .step .desc .h5{
-    /* color: #115195; */
-    color: purple;
+    color: #115195;
+    /* color: purple; */
     font-size: 33px;
     font-weight: bold;
     margin-bottom: 5px;
 }
 .scanner-rfid .step .desc p{
-    /* color: #2699a2; */
-    color: purple;
+    color: #2699a2;
+    /* color: purple; */
     font-weight: 500;
     font-size: 16px;
 }
 .scanner-rfid p.alt {
-    color: purple;
-    /* color: #115195; */
+    /* color: purple; */
+    color: #115195;
 }
 .scanner-rfid .scan-data .h5 {
-    /* color: #115195; */
-    color: purple;
+    color: #115195;
+    /* color: purple; */
     font-size: 33px;
     font-weight: bold;
     margin-bottom: 5px;
 }
 .scanner-rfid .scan-data .h5 span {
-    /* color: #2699a2; */
-    color: purple;
+    color: #2699a2;
+    /* color: purple; */
 }
 
 

@@ -218,10 +218,21 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
                     changes: [],
                     comments: [],
                 }
+                let date = m.toDate()
                 attendance.changes.push({
                     summary: `${user.username} inserted a new attendance.`,
                     objectId: user._id,
-                    createdAt: m.toDate()
+                    createdAt: date
+                })
+                attendance.changes.push({
+                    summary: `${user.username} added a new comment.`,
+                    objectId: user._id,
+                    createdAt: date
+                })
+                attendance.comments.push({
+                    summary: `Nature of business: ${at.data.natureOfBusiness}`,
+                    objectId: user._id,
+                    createdAt: date
                 })
                 await db.main.Attendance.create(attendance)
             }

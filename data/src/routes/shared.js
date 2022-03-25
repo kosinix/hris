@@ -219,7 +219,7 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
     }
 });
 
-router.get('/shared/att/:authorityToTravelId', middlewares.decodeSharedResource, async (req, res, next) => {
+router.get('/shared/authority-to-travel/print/:secureKey', middlewares.decodeSharedResource, async (req, res, next) => {
     try {
 
         let payload = res.payload
@@ -227,40 +227,67 @@ router.get('/shared/att/:authorityToTravelId', middlewares.decodeSharedResource,
         let employmentId = payload.employmentId
 
         // Employee
-        let employee = await db.main.Employee.findOne({
-            _id: employeeId
-        }).lean()
+        let employee = await db.main.Employee.findById(employeeId).lean()
         if (!employee) {
             throw new Error('Employee not found.')
         }
 
-        // Employments
-        let employments = await db.main.Employment.find({
-            employeeId: employee._id
-        }).lean()
-
         // Employment
-        let employment = employments.find((e) => {
-            return e._id.toString() === employmentId
-        })
+        let employment = await db.main.Employment.findById(employmentId).lean()
         if (!employment) {
             throw new Error('Employment not found.')
         }
 
-        let att = await db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
-        if (!att) {
+        let at = await db.main.AuthorityToTravel.findById(payload.atId)
+        if (!at) {
             throw new Error('Authority To Travel not found.')
         }
 
-        att.data.natureOfBusiness1 = att.data.natureOfBusiness.substr(0, 150)
-        att.data.natureOfBusiness2 = att.data.natureOfBusiness.substr(150)
+        let words = at.data.natureOfBusiness.replace(/\s\s+/g, ' ').split(' ')
+        if (words.length > 18) {
+            at.data.natureOfBusiness1 = words.splice(0, 18).join(' ')
+            at.data.natureOfBusiness2 = words.splice(0, 18).join(' ')
+
+        } else {
+            at.data.natureOfBusiness1 = words.join(' ')
+            at.data.natureOfBusiness2 = ''
+
+        }
+
         let data = {
-            title: 'Human Resource Online Services (HROS) - Authority to Travel',
+            title: `Authority to Travel - ${employee.firstName} ${employee.lastName} - ${at.controlNumber}`,
             employee: employee,
             at: at,
+            shared: true,
             momentNow: moment(),
         }
         res.render('hros/authority-to-travel/authority-to-travel.html', data);
+
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/shared/certificate-of-appearance/print/:secureKey', middlewares.decodeSharedResource, async (req, res, next) => {
+    try {
+
+        let payload = res.payload
+        let employeeId = payload.employeeId
+
+        // Employee
+        let employee = await db.main.Employee.findById(employeeId).lean()
+        if (!employee) {
+            throw new Error('Employee not found.')
+        }
+
+
+        let data = {
+            title: `Certificate of Appearance - ${employee.firstName} ${employee.lastName}`,
+            employee: employee,
+            shared: true,
+            momentNow: moment(),
+        }
+        res.render('hros/certificate-of-appearance/certificate-of-appearance.html', data);
 
     } catch (err) {
         next(err);

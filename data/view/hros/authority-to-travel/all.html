@@ -4,7 +4,7 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h2">Authority to Travel</h1>
+            <h1 class="h4">Authority to Travel</h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
@@ -61,7 +61,7 @@
                                 {% elif at.status === 2 %}
                                     <span class="text-success">Approved</span>
                                     <a href="/hros/at/{{at._id}}/print" class="btn btn-sm btn-success">Print</a>
-                                    <!-- <a href="/hros/at/{{at._id}}" class="btn btn-sm btn-success">Share</a> -->
+                                    <a href="/hros/at/{{at._id}}/share" class="btn btn-sm btn-success">Share</a>
                                 {% endif %}
                             </td>
                         </tr>

@@ -15,6 +15,7 @@ const db = require('../db');
 const dtrHelper = require('../dtr-helper');
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
+const passwordMan = require('../password-man');
 const nunjucksEnv = require('../nunjucks-env');
 const paginator = require('../paginator');
 const suffixes = require('../suffixes');
@@ -313,7 +314,6 @@ router.get('/hros/at/:authorityToTravelId/print', middlewares.guardRoute(['use_e
             throw new Error('Authority To Travel not found.')
         }
 
-
         let words = at.data.natureOfBusiness.replace(/\s\s+/g, ' ').split(' ')
         if (words.length > 18) {
             at.data.natureOfBusiness1 = words.splice(0, 18).join(' ')
@@ -329,6 +329,7 @@ router.get('/hros/at/:authorityToTravelId/print', middlewares.guardRoute(['use_e
             title: `Authority to Travel - ${employee.firstName} ${employee.lastName} - ${at.controlNumber}`,
             employee: employee,
             at: at,
+            shared: false,
             momentNow: moment(),
         }
         res.render('hros/authority-to-travel/authority-to-travel.html', data);
@@ -356,7 +357,43 @@ router.get('/hros/at/:authorityToTravelId/delete', middlewares.guardRoute(['use_
         next(err);
     }
 });
+router.get('/hros/at/:authorityToTravelId/share', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let at = await db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
+        if (!at) {
+            throw new Error('Authority To Travel not found.')
+        }
 
+
+        let secureKey = await passwordMan.randomStringAsync(12)
+        let url = `${CONFIG.app.url}/shared/authority-to-travel/print/${secureKey}`
+        // let hash = passwordMan.hashSha256(url)
+        // url = url + '?hash=' + hash
+        let share = await db.main.Share.create({
+            secureKey: secureKey,
+            expiredAt: moment().add(1, 'hour').toDate(),
+            createdBy: res.user._id,
+            payload: {
+                url: url,
+                employeeId: employee._id,
+                employmentId: at.employmentId,
+                atId: at._id,
+            }
+        })
+
+        let data = {
+            title: `Authority to Travel - ${employee.firstName} ${employee.lastName} - ${at.controlNumber}`,
+            employee: employee,
+            share: share,
+            momentNow: moment(),
+        }
+        res.render('hros/authority-to-travel/share.html', data);
+
+    } catch (err) {
+        next(err);
+    }
+});
 
 // Cert of appearance
 router.get('/hros/coa', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
@@ -364,6 +401,7 @@ router.get('/hros/coa', middlewares.guardRoute(['use_employee_profile']), middle
         let employee = res.employee.toObject()
 
         res.render('hros/certificate-of-appearance/certificate-of-appearance.html', {
+            title: `Certificate of Appearance - ${employee.firstName} ${employee.lastName}`,
             flash: flash.get(req, 'employee'),
             employee: employee,
         });
@@ -371,6 +409,36 @@ router.get('/hros/coa', middlewares.guardRoute(['use_employee_profile']), middle
         next(err);
     }
 });
+router.get('/hros/coa/share', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
 
+
+        let secureKey = await passwordMan.randomStringAsync(12)
+        let url = `${CONFIG.app.url}/shared/certificate-of-appearance/print/${secureKey}`
+        // let hash = passwordMan.hashSha256(url)
+        // url = url + '?hash=' + hash
+        let share = await db.main.Share.create({
+            secureKey: secureKey,
+            expiredAt: moment().add(1, 'hour').toDate(),
+            createdBy: res.user._id,
+            payload: {
+                url: url,
+                employeeId: employee._id,
+            }
+        })
+
+        let data = {
+            title: `Certificate of Appearance - ${employee.firstName} ${employee.lastName}`,
+            employee: employee,
+            share: share,
+            momentNow: moment(),
+        }
+        res.render('hros/certificate-of-appearance/share.html', data);
+
+    } catch (err) {
+        next(err);
+    }
+});
 
 module.exports = router;

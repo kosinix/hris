@@ -135,6 +135,15 @@ img {
     border: 0;
 }
 
+.min-w-100 {
+    min-width: 100px;
+}
+.min-w-200 {
+    min-width: 200px;
+}
+.min-w-300 {
+    min-width: 300px;
+}
 /* HROS */
 .hros.authority-to-travel {
     font-family: "Times New Roman", serif;
@@ -162,10 +171,11 @@ img {
     font-family: "Times New Roman", serif;
     font-size: 16px;
     border: 1px solid green;
+    padding: 2px;
 }
 .hros.certificate-of-appearance .border-thick {
     border: 3px solid green;
-    padding: 1px;
+    padding: 3px;
     margin: 1px;
 }
 .hros.certificate-of-appearance .border-thin {
@@ -178,10 +188,9 @@ img {
 }
 .hros.certificate-of-appearance .underline {
     border-bottom: 1px solid #000;
-    padding-top: 3px;
-    padding-left: 3px;
+    padding: 4px;
+    padding-top: 1px;
     padding-bottom: 1px;
-    min-width: 250px;
     display: inline-block;
 }
 .hros.certificate-of-appearance .underline-min {

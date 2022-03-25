@@ -556,9 +556,21 @@ module.exports = {
             let share = await db.main.Share.findOne({
                 secureKey: secureKey
             })
+            console.log({
+                secureKey: secureKey
+            })
             if (!share) {
                 throw new Error('Cannot find shared resource.')
             }
+
+            // Delete expired
+            let deleted = await db.main.Share.deleteMany({
+                expiredAt: {
+                    $lte: moment().toDate()
+                }
+            })
+            console.log('deleted', deleted)
+
 
             if (moment().isSameOrAfter(moment(share.expiredAt))) {
                 await share.remove()

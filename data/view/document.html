@@ -19,7 +19,7 @@
 {% else %}
 <body class="hide-menu {% if user.username == 'gsc.mis' or user.username == 'gsc.mis.amarilla' %}privacy-on{% endif %}">
 {% endif %}
-<main role="main" class="main">
+<main role="main" class="main privacy-on">
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12 bg-light pt-2 pb-2">
@@ -43,7 +43,7 @@
                                 {% if user.roles.includes('employee') == true %}
                                     {% set accountUrl = '/e-profile/account/password' %}
                                 {% endif %}
-                                Hi, <a href="{{accountUrl}}">{{user.username}}</a> | <a onclick="return confirm('Are you sure you want to logout?')" title="Logout" href="/logout">
+                                Hi, <a class="privy-name" href="{{accountUrl}}">{{user.username}}</a> | <a onclick="return confirm('Are you sure you want to logout?')" title="Logout" href="/logout">
                                     <img width="18px" src="/images/logout.png" alt="Logout">
                                 </a>
                             </div>

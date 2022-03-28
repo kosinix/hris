@@ -1,0 +1,89 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h4">Authority to Travel</h1>
+        </div>
+        <!-- <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/online-services/at/create" class="btn btn-sm btn-outline-primary">Apply for Authority to Travel</a>
+            </div>
+        </div> -->
+    </div>
+    {% include 'parts/flash.html' %}
+    
+    {% if ats.length <= 0 %}
+        <p>No previous online "Authority to Travel" found.
+    {% else %}
+        <div class="tab-content p-3">
+            <div class="d-flex justify-content-end">
+                <div class=" pb-3 align-self-center pr-3">
+                    Per page:
+                </div>
+                <div class=" pb-3">
+                    {% set url = '/online-services/at/all' %}
+                    {% include 'parts/form-per-page.html' %}
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>
+                                Control No.
+                            </th>
+                            <th>
+                                Date Applied
+                            </th>
+                            <th>
+                                Name
+                            </th>
+                            <th>
+                                Travel Date
+                            </th>
+                            <th>
+                                Purpose
+                            </th>
+                            <th>
+                                Destination
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for at in ats %}
+                        <tr>
+                            <td class="text-center">{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
+                            <td>{{at.controlNumber}}</td>
+                            <td>{{at.createdAt|format_date('MMMM DD, YYYY')}}</td>
+                            <td><a href="/employee/personal/{{at.employee._id}}">{{at.employee.lastName}}, {{at.employee.firstName}}</a></td>
+                            <td>
+                                {{at.periodOfTravel|format_date('MMMM DD, YYYY')}}
+                                {% if at.periodOfTravel|format_date('MMMM DD, YYYY') !== at.periodOfTravelEnd|format_date('MMMM DD, YYYY') %}
+                                    to {{at.periodOfTravelEnd|format_date('MMMM DD, YYYY')}}
+                                {% endif%}
+                            </td>
+                            <td>
+                                {{at.data.natureOfBusiness}}
+                            </td>
+                            <td>
+                                {{at.data.destination}}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12 text-center text-md-left pt-3 pb-5">
+                    {% include "parts/pagination.html" %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

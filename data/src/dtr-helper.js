@@ -686,7 +686,21 @@ const logAttendance = async (db, employee, employment, scannerId, waitTime = 15,
         }
         attendance.logs.push(log)
     }
-    await db.main.Attendance.updateOne({ _id: attendance._id }, attendance)
+
+    let dbOpRes = await db.main.Attendance.collection.updateOne({ 
+        _id: attendance._id 
+    }, {
+        $set: {
+            logs: attendance.logs
+        }
+    })
+    if(dbOpRes.modifiedCount <= 0){
+        throw new Error('Failed to save.')
+    }
+    if(dbOpRes.matchedCount <= 0){
+        throw new Error('Could not find attendance.')
+    }
+    
     return attendance.logs[attendance.logs.length - 1]
 }
 

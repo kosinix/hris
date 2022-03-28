@@ -70,7 +70,7 @@
                             {% set log = attendance.logs[0] %}
                             
                             <td>
-                            {{attendance.logs[0].dateTime|default(true, '')|format_date('hh:mm')}}
+                            {{attendance.logs[0].dateTime|default('', true)|format_date('hh:mm')}}
 
                             {% if log.extra.photo %} 
                                 <a href="{{log.extra.photo|view_url}}" target="_blank">
@@ -87,7 +87,7 @@
 
                                 <div class="d-flex">
 
-                                {{log.dateTime|default(true, '')|format_date('hh:mm')}}  
+                                {{log.dateTime|default('', true)|format_date('hh:mm')}}  
                                 {% if log.extra.lat %}
                                     <a data-toggle="tooltip" data-placement="top" title="View Location" href="https://nominatim.openstreetmap.org/ui/reverse.html?lat={{log.extra.lat}}&lon={{log.extra.lon}}"> 
                                         <svg style="width:18px;height:18px" viewBox="0 0 24 24">
@@ -109,7 +109,7 @@
                             </td>
                             <td>
                                 {% set log = attendance.logs[2] %}
-                                {{log.dateTime|default(true, '')|format_date('hh:mm')}}  
+                                {{log.dateTime|default('', true)|format_date('hh:mm')}}  
 
                                 {% if log.extra.lat %}
                                     <a data-toggle="tooltip" data-placement="top" title="View Location" href="https://nominatim.openstreetmap.org/ui/reverse.html?lat={{log.extra.lat}}&lon={{log.extra.lon}}"> 
@@ -130,7 +130,7 @@
                             <td>{#<img src="/images/signature-sample.jpeg" alt="sign">#}</td>
                             <td>
                                 {% set log = attendance.logs[3] %}
-                                {{log.dateTime|default(true, '')|format_date('hh:mm')}}
+                                {{log.dateTime|default('', true)|format_date('hh:mm')}}
 
                                 {% if log.extra.photo %} 
                                     <a href="{{log.extra.photo|view_url}}" target="_blank">

@@ -1,0 +1,157 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div id="vApp" v-cloak class="col-md-12" v-bind:data-pending="pending">
+    <div
+        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h4">Get Authority to Travel</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/hros/at/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <div class="mb-5">
+        {% include 'parts/flash.html' %}
+        <form ref="form" v-on:submit.prevent="onSubmit" action="/hros/at/create" method="POST" class="form-default">
+            {% include 'hros/authority-to-travel/carousel.html' %}
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            pending: false,
+            page: 0,
+            employments: {{employments|default([], true)|stringify|safe}},
+            employmentId: '{{employmentId}}',
+            designation: '',
+            officialStation: '',
+            destination: '',
+            periodOfTravel: '',
+            periodOfTravelEnd: '',
+            natureOfBusiness: '',
+            endorser: '',
+            endorserDesignation: '',
+            approver: '',
+            approverDesignation: '',
+            autoset: true,
+            charLength: 180
+        },
+        validations: {
+            designation: {
+                required: window.validators.required
+            },
+            officialStation: {
+                required: window.validators.required
+            },
+            destination: {
+                required: window.validators.required
+            },
+            periodOfTravel: {
+                required: window.validators.required
+            },
+            periodOfTravelEnd: {
+                required: window.validators.required
+            },
+            natureOfBusiness: {
+                required: window.validators.required
+            },
+            approver: {
+                required: window.validators.required
+            },
+            approverDesignation: {
+                required: window.validators.required
+            },
+        },
+        computed: {
+            travelPeriod: function () {
+                var me = this;
+                var mDate1 = moment(me.periodOfTravel)
+                var mDate2 = moment(me.periodOfTravelEnd)
+
+                var d1 = mDate1.format('MMMM DD, YYYY')
+                var d2 = mDate2.format('MMMM DD, YYYY')
+                if (d1 === d2) {
+                    return d1
+                }
+                return d1 + ' to ' + d2
+
+            }
+        },
+        watch: {
+            page: function (newPage, oldPage) {
+                var me = this;
+                jQuery('#carousel-travel').carousel(newPage)
+
+                if (newPage === 0) {
+
+                } else if (newPage === 1) {
+
+
+                } else if (newPage === 2) {
+
+
+                } else if (newPage === 3) {
+
+
+                }
+            }
+        },
+        mounted: function(){
+            this.charLength = 180 - ((this.natureOfBusiness + '').split('').length)
+        },
+        methods: {
+            limitChars: function (max, e) {
+                if (e.target.value.length >= max) {
+                    this.natureOfBusiness = e.target.value.substring(0, max);
+                }
+                this.charLength = 180 - ((this.natureOfBusiness + '').split('').length)
+            },
+            nextPage: function (page) {
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.page = page
+                }
+            },
+            syncDates: function () {
+                var me = this;
+                var mDate1 = moment(me.periodOfTravel)
+                var mDate2 = moment(me.periodOfTravelEnd)
+                if (mDate1.isValid() && !mDate2.isValid()) {
+                    me.periodOfTravelEnd = me.periodOfTravel
+                }
+                if (mDate1.isValid() && mDate1.isAfter(mDate2)) {
+                    me.periodOfTravelEnd = me.periodOfTravel
+                }
+            },
+            onSubmit: function () {
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.pending = true
+                    me.$nextTick(function () {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

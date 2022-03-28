@@ -1,0 +1,25 @@
+{% extends "document-print.html" %}
+
+{% block body %}
+<div class="col-12" >
+    <div class="d-print-none d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="">
+            <h1 class="h3 mb-3">Certificate of Appearance</h1>
+            <p class="alert alert-warning"><em>Press CTRL + P to open printer options. You must be on a laptop or desktop computer.</em></p>
+        </div>
+        {% if shared == false %}
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/hros/home" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    <div class="d-none d-md-block d-print-block">
+        {% include 'hros/certificate-of-appearance/certificate-of-appearance-part.html' %}
+        <hr>
+        {% include 'hros/certificate-of-appearance/certificate-of-appearance-part.html' %}
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,31 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div>
+            <h1 class="h2">Human Resource Online Services</h1>
+            <p class="mb-3 pl-1">Choose from one of the online services of the HRMO.</p>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    <div class="tab-content p-3">
+        <div class="form-row">
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <a href="/online-services/at/all" class="d-block p-3">  
+                        <img src="/images/help/authority-to-travel.jpg" class="img-fluid border rounded-sm" alt="Preview">
+                    </a>
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Authority to Travel <br>&nbsp;</h5>
+                        <div class="text-center">
+                            <a href="/online-services/at/all" class="btn btn-success btn-sm">View</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

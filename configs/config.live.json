@@ -2,6 +2,12 @@
   "app": {
     "url": "https://hris.gsc.edu.ph"
   },
+  "nunjucks": {
+    "loader": {
+      "watch": false,
+      "noCache": false
+    }
+  },
   "aws": {
     "region": "ap-southeast-1",
     "bucket1": {

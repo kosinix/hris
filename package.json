@@ -1,7 +1,7 @@
 {
-  "name": "hr-is-payroll",
+  "name": "hris",
   "version": "1.0.0",
-  "description": "HR-IS",
+  "description": "HRIS",
   "main": "index.js",
   "scripts": {
     "dev": "set NODE_ENV=dev&& node ./scripts/open.js&& nodemon --ignore data/view --ignore data/public index.js",

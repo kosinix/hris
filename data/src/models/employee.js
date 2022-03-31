@@ -3,7 +3,6 @@
 //// External modules
 const mongoose = require('mongoose');
 const lodash = require('lodash');
-const phAddress = require('ph-address')
 const uuid = require('uuid');
 
 //// Modules

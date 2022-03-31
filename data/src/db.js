@@ -27,7 +27,6 @@ main.Attendance = main.model('Attendance', require('./models/attendance'));
 main.AttendanceReview = main.model('AttendanceReview', require('./models/attendance-review'));
 main.AuthorityToTravel = main.model('AuthorityToTravel', require('./models/authority-to-travel'));
 main.App = main.model('App', require('./models/app'));
-main.Application = main.model('Application', require('./models/application'));
 main.Employee = main.model('Employee', require('./models/employee'));
 main.EmployeeList = main.model('EmployeeList', require('./models/employee-list'));
 main.Employment = main.model('Employment', require('./models/employment'));

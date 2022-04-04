@@ -13,6 +13,11 @@
       "upload": "${APP_DIR}/data/upload"
     }
   },
+  "socketio": {
+    "cors": {
+      "origin": "https://scanner.localhost:9095"
+    }
+  },
   "express": {
     "trustProxy": false
   },

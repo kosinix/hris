@@ -42,6 +42,10 @@ let schema = mongoose.Schema({
     useCam: { // Use webcam
         $type: Boolean,
         default: false
+    },
+    online: { // If scanner is connected to server
+        $type: Boolean,
+        default: false
     }
 }, { timestamps: true, typeKey: '$type' })
 

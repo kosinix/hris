@@ -2,17 +2,16 @@
 
 //// External modules
 const mongoose = require('mongoose');
-const uuid = require('uuid');
 
 //// Modules
-const uid = require('../uid');
 
 let schema = mongoose.Schema({
-    scannerId: {
-        $type: mongoose.Schema.Types.ObjectId,
-    },
-    downTimes: []
-}, { timestamps: true, typeKey: '$type' })
+    scannerId: mongoose.Schema.Types.ObjectId,
+    online: { // If scanner is connected to server
+        $type: Boolean,
+        default: false
+    }
+}, { timestamps: { createdAt: true, updatedAt: false }, typeKey: '$type' })
 
 //// Instance methods
 

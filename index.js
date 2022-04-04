@@ -1,3 +1,8 @@
+/**
+ * Load configuration and credentials depending on environment.
+ * Load server module.
+ */
+
 //// Core modules
 const path = require('path');
 
@@ -13,7 +18,7 @@ const packageJson = require('./package.json');
 global.APP_DIR = path.resolve(__dirname).replace(/\\/g, '/'); // Turn back slash to slash for cross-platform compat
 global.ENV = lodash.get(process, 'env.NODE_ENV', 'dev')
 
-const configLoader = new pigura.ConfigLoader({ 
+const configLoader = new pigura.ConfigLoader({
     configName: './configs/config.json',
     appDir: APP_DIR,
     env: ENV,
@@ -21,7 +26,7 @@ const configLoader = new pigura.ConfigLoader({
 })
 global.CONFIG = configLoader.getConfig()
 
-const credLoader = new pigura.ConfigLoader({ 
+const credLoader = new pigura.ConfigLoader({
     configName: './credentials/credentials.json',
     appDir: APP_DIR,
     env: ENV,
@@ -31,10 +36,8 @@ global.CRED = credLoader.getConfig()
 global.PACKAGE_JSON = packageJson
 
 //// Create our app
-let server = require('./data/src/express');
-server.listen(CONFIG.app.port, function () {
-    console.log(`App running in "${ENV}" mode at "${CONFIG.app.url}"`);
-});
-server.keepAliveTimeout = 60000 * 2;
+require('./data/src/server');
+
+
 
 

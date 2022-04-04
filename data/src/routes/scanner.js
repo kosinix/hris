@@ -164,7 +164,8 @@ router.post('/scanner/:scannerId/edit', middlewares.guardRoute(['read_scanner', 
         lodash.set(patch, 'refresh', refresh === 'true' ? true : false)
         lodash.set(patch, 'useCam', useCam === 'true' ? true : false)
 
-        // return res.send(patch)
+        // socket io refresh whoa
+        req.io.emit('refresh', { scanner: scanner._id })
 
         await db.main.Scanner.updateOne({ _id: scanner._id }, patch)
 
@@ -187,41 +188,25 @@ router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner',
             momentDate = moment()
         }
 
-        let scannerPings = await db.main.ScannerPing.find({
-            scannerId: scanner._id,
-            createdAt: {
-                $gte: momentDate.clone().startOf('day').toDate(),
-                $lte: momentDate.clone().endOf('day').toDate(),
-            }
-        }).lean()
+        
 
-        if (scannerPings.length > 1) { // Delete if more than 1. We need 2 pings to do a proper diff.
-            await db.main.ScannerPing.deleteMany({
-                scannerId: scanner._id,
-                createdAt: {
-                    $gte: momentDate.clone().startOf('day').toDate(),
-                    $lte: momentDate.clone().endOf('day').toDate(),
-                }
-            })
-        }
+        // let momentStart = null
+        // let threshold = 5 // minutes
+        // threshold *= 60 // to secs
+        // let downTimes = []
+        // scannerPings.forEach((ping, index) => {
+        //     momentStart = moment(ping.createdAt)
+        //     let nextPing = scannerPings[index + 1]
+        //     if (nextPing) {
+        //         let momentEnd = moment(nextPing.createdAt)
+        //         let diff = momentEnd.diff(momentStart, 'seconds')
 
-        let momentStart = null
-        let threshold = 5 // minutes
-        threshold *= 60 // to secs
-        let downTimes = []
-        scannerPings.forEach((ping, index) => {
-            momentStart = moment(ping.createdAt)
-            let nextPing = scannerPings[index + 1]
-            if (nextPing) {
-                let momentEnd = moment(nextPing.createdAt)
-                let diff = momentEnd.diff(momentStart, 'seconds')
-
-                if (diff > threshold) {
-                    console.log(diff, 's')
-                    downTimes.push(`${momentStart.toISOString()}|${momentEnd.toISOString()}|${diff}`)
-                }
-            }
-        })
+        //         if (diff > threshold) {
+        //             console.log(diff, 's')
+        //             downTimes.push(`${momentStart.toISOString()}|${momentEnd.toISOString()}|${diff}`)
+        //         }
+        //     }
+        // })
 
         let scannerStatus = await db.main.ScannerStatus.findOne({
             scannerId: scanner._id,
@@ -406,7 +391,7 @@ router.get('/scanner/:scannerUid/ping', middlewares.guardRoute(['use_scanner']),
         // let now = moment().toISOString()
 
         await db.main.ScannerPing.create({
-            scannerId: scanner._id
+            scannerId: scanner._id,
         })
 
         if (scanner.refresh) {

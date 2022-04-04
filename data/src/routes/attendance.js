@@ -1318,5 +1318,18 @@ router.post('/attendance/holiday/:holidayId', middlewares.guardRoute(['update_at
     }
 });
 
+router.get('/attendance/calc', middlewares.guardRoute(['read_attendance']), async (req, res, next) => {
+    try {
+
+        let data = {
+            flash: flash.get(req, 'attendance'),
+        }
+
+        // return res.send(data)
+        res.render('attendance/calc.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
 
 module.exports = router;

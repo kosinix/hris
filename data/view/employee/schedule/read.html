@@ -1,0 +1,156 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'parts/employee-header.html' %}
+    {% include 'parts/employee-profile-photo.html' %}
+    {% include 'parts/employee-tabs.html' %}
+
+    <div class="tab-content p-3">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/employment/{{employment._id}}/schedule" method="POST"  enctype="multipart/form-data" class="form-default">
+            <p>Work Schedule Settings</p>
+            <div class="table table-responsive">
+                <table class="table">
+                    <tr>
+                        <th>Day</th>
+                        <th>AM In</th>
+                        <th>AM Out</th>
+                        <th>AM Grace</th>
+                        <th>AM Breaks</th>
+                        <th>PM In</th>
+                        <th>PM Out</th>
+                        <th>PM Grace</th>
+                        <th>PM Breaks</th>
+                        <th>Type</th>
+                    </tr>
+                    <tr>
+                        <td>Mon</td>
+                        <td>{{workSchedule.weekDays.mon.timeSegments[0].start}}</td>
+                        <td>{{workSchedule.weekDays.mon.timeSegments[0].end}}</td>
+                        <td>{{workSchedule.weekDays.mon.timeSegments[0].grace}}</td>
+                        <td>{{workSchedule.weekDays.mon.timeSegments[0].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.mon.timeSegments[1].start}}</td>
+                        <td>{{workSchedule.weekDays.mon.timeSegments[1].end}}</td>
+                        <td>{{workSchedule.weekDays.mon.timeSegments[1].grace}}</td>
+                        <td>{{workSchedule.weekDays.mon.timeSegments[1].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.mon.type}}</td>
+                    </tr>
+                    <tr>
+                        <td>Tue</td>
+                        <td>{{workSchedule.weekDays.tue.timeSegments[0].start}}</td>
+                        <td>{{workSchedule.weekDays.tue.timeSegments[0].end}}</td>
+                        <td>{{workSchedule.weekDays.tue.timeSegments[0].grace}}</td>
+                        <td>{{workSchedule.weekDays.tue.timeSegments[0].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.tue.timeSegments[1].start}}</td>
+                        <td>{{workSchedule.weekDays.tue.timeSegments[1].end}}</td>
+                        <td>{{workSchedule.weekDays.tue.timeSegments[1].grace}}</td>
+                        <td>{{workSchedule.weekDays.tue.timeSegments[1].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.tue.type}}</td>
+                    </tr>
+                    <tr>
+                        <td>Wed</td>
+                        <td>{{workSchedule.weekDays.wed.timeSegments[0].start}}</td>
+                        <td>{{workSchedule.weekDays.wed.timeSegments[0].end}}</td>
+                        <td>{{workSchedule.weekDays.wed.timeSegments[0].grace}}</td>
+                        <td>{{workSchedule.weekDays.wed.timeSegments[0].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.wed.timeSegments[1].start}}</td>
+                        <td>{{workSchedule.weekDays.wed.timeSegments[1].end}}</td>
+                        <td>{{workSchedule.weekDays.wed.timeSegments[1].grace}}</td>
+                        <td>{{workSchedule.weekDays.wed.timeSegments[1].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.wed.type}}</td>
+                    </tr>
+                    <tr>
+                        <td>Thu</td>
+                        <td>{{workSchedule.weekDays.thu.timeSegments[0].start}}</td>
+                        <td>{{workSchedule.weekDays.thu.timeSegments[0].end}}</td>
+                        <td>{{workSchedule.weekDays.thu.timeSegments[0].grace}}</td>
+                        <td>{{workSchedule.weekDays.thu.timeSegments[0].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.thu.timeSegments[1].start}}</td>
+                        <td>{{workSchedule.weekDays.thu.timeSegments[1].end}}</td>
+                        <td>{{workSchedule.weekDays.thu.timeSegments[1].grace}}</td>
+                        <td>{{workSchedule.weekDays.thu.timeSegments[1].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.thu.type}}</td>
+                    </tr>
+                    <tr>
+                        <td>Fri</td>
+                        <td>{{workSchedule.weekDays.fri.timeSegments[0].start}}</td>
+                        <td>{{workSchedule.weekDays.fri.timeSegments[0].end}}</td>
+                        <td>{{workSchedule.weekDays.fri.timeSegments[0].grace}}</td>
+                        <td>{{workSchedule.weekDays.fri.timeSegments[0].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.fri.timeSegments[1].start}}</td>
+                        <td>{{workSchedule.weekDays.fri.timeSegments[1].end}}</td>
+                        <td>{{workSchedule.weekDays.fri.timeSegments[1].grace}}</td>
+                        <td>{{workSchedule.weekDays.fri.timeSegments[1].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.fri.type}}</td>
+                    </tr>
+                    <tr>
+                        <td>Sat</td>
+                        <td>{{workSchedule.weekDays.sat.timeSegments[0].start}}</td>
+                        <td>{{workSchedule.weekDays.sat.timeSegments[0].end}}</td>
+                        <td>{{workSchedule.weekDays.sat.timeSegments[0].grace}}</td>
+                        <td>{{workSchedule.weekDays.sat.timeSegments[0].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.sat.timeSegments[1].start}}</td>
+                        <td>{{workSchedule.weekDays.sat.timeSegments[1].end}}</td>
+                        <td>{{workSchedule.weekDays.sat.timeSegments[1].grace}}</td>
+                        <td>{{workSchedule.weekDays.sat.timeSegments[1].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.sat.type}}</td>
+                    </tr>
+                    <tr>
+                        <td>Sun</td>
+                        <td>{{workSchedule.weekDays.sun.timeSegments[0].start}}</td>
+                        <td>{{workSchedule.weekDays.sun.timeSegments[0].end}}</td>
+                        <td>{{workSchedule.weekDays.sun.timeSegments[0].grace}}</td>
+                        <td>{{workSchedule.weekDays.sun.timeSegments[0].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.sun.timeSegments[1].start}}</td>
+                        <td>{{workSchedule.weekDays.sun.timeSegments[1].end}}</td>
+                        <td>{{workSchedule.weekDays.sun.timeSegments[1].grace}}</td>
+                        <td>{{workSchedule.weekDays.sun.timeSegments[1].breaks|scheduleBreaks}}</td>
+                        <td>{{workSchedule.weekDays.sun.type}}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between">
+                        <a href="/employee/employment/{{employee._id}}" class="btn btn-light">Cancel</a>
+                        <input type="hidden" name="workSchedule" v-model="workScheduleString">
+                        <button class="btn btn-primary">Update Employment</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+        },
+        computed: {
+            
+        },
+        mounted: function(){
+            var me = this;
+            
+        },
+        methods: {
+           
+            onSubmit: function(){
+                var me = this;
+                me.$nextTick(function() {
+                    me.$refs.form.submit();
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}
+

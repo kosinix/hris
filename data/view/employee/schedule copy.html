@@ -8,13 +8,71 @@
     {% include 'parts/employee-tabs.html' %}
 
     <div class="tab-content p-3">
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/employment/{{employment._id}}/schedule" method="POST"  enctype="multipart/form-data" class="form-default">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/employment/{{employment._id}}/schedule" method="POST" class="form-default">
             <p>Work Schedule Settings</p>
-            <div class="form-group">
-                <label for="excel">Excel File</label>
-                <div>
-                    <input name="excel" id="excel" ref="file_excel" type="file" class="form-control">
-                </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm text-center">
+                    <tr>
+                        <th width="5%">Day</th>
+                        <th width="5%">Type</th>
+                        <th width="25%"colspan="2">Morning</th>
+                        <th width="25%" colspan="2">Afternoon</th>
+                        <th width="25%">Breaks</th>
+                        <th width="5%">Hours</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th>In</th>
+                        <th>Out</th>
+                        <th>In</th>
+                        <th>Out</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    
+                    <tr v-for="(weekDay, weekDayId) in workSchedule.weekDays">
+                        <td v-bind:class="dayTypeClass(weekDay)">${weekDay.name}</td>
+                        <td v-bind:class="dayTypeClass(weekDay)">
+                            ${getTypeString(weekDayId)}
+                        </td>
+                        <td class="text-left">
+                            <span v-if="getMorningIn(weekDayId)">
+                                ${getMorningIn(weekDayId, 'hh:mmA')}
+                                <em v-if="getGrace(weekDayId, 0)" title="Grace Period">(${getGrace(weekDayId, 0)})</em>
+                            </span>
+                        </td>
+                        <td class="text-left">
+                            ${getMorningOut(weekDayId, 'hh:mmA')}
+                        </td>
+                        <td class="text-left">
+                            ${getAfternoonIn(weekDayId, 'hh:mmA')}
+                            <em v-if="getGrace(weekDayId, 1)" title="Grace Period">(${getGrace(weekDayId, 1)})</em>
+                        </td>
+                        <td class="text-left">
+                            ${getAfternoonOut(weekDayId, 'hh:mmA')}
+                        </td>
+                        <td class="text-left">
+                            <div v-for="br in getBreaks(weekDayId)">
+                                ${mToTime(br.start, 'h:mmA')}-${mToTime(br.end, 'h:mmA')} ${br.type} 
+                            </div>
+                        </td>
+                        <td>
+                            <button v-if="getTimeSegmentHours(weekDayId)" v-on:click="modalTimeSegmentShow(weekDay)" class="btn btn-sm btn-light" type="button">
+                                ${getTimeSegmentHours(weekDayId)}
+                            </button>
+                            <button v-else v-on:click="modalTimeSegmentShow(weekDay)" class="btn btn-sm btn-success" type="button">
+                                <svg style="width:16px;height:16px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8s8,3.59,8,8 S16.41,20,12,20z M12.5,7H11v6l5.2,3.2l0.8-1.3l-4.5-2.7V7z"/></svg>
+                            </button>
+                        </td>
+                    </tr>{# end v-for #}
+
+                    <tr>
+                        <td colspan="7" class="text-right">Total Weekly Hours</td>
+                        <td>${getWeeklyHours()}</td>
+                    </tr>
+                </table>
             </div>
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">

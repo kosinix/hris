@@ -1,0 +1,81 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <div>
+                <h1>Calc </h1>
+                <p class="mb-0 pl-1"></p>
+            </div>
+        </div>
+    </div>
+    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3">
+        {% include 'parts/flash.html' %}
+        <div class="form-row">
+            <div class="col-md-2">
+                <input v-model="time1" type="text" class="form-control" placeholder="8:00AM">
+            </div>
+            <div class="col-md-1">
+                to
+            </div>
+            <div class="col-md-2">
+                <input v-model="time2" type="text" class="form-control" placeholder="5:00PM">
+            </div>
+            <div class="col-md-7">
+                <input v-model="time3" type="text" class="form-control">
+                <input v-model="time4" type="text" class="form-control">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            time1: '8:00AM',
+            time2: '12:00PM',
+        },
+        computed: {
+            time3: function(){
+                var me = this;
+                var m1 = moment(me.time1, 'h:mmA')
+                var m2 = moment(me.time2, 'h:mmA')
+                var duration = moment.duration(m2.diff(m1))
+                return duration.as('hours') + ' ' + 'hrs'
+            },
+            time4: function(){
+                var me = this;
+                var m1 = moment(me.time1, 'h:mmA')
+                var m2 = moment(me.time2, 'h:mmA')
+                var duration = moment.duration(m2.diff(m1))
+                var hrs = duration.as('hours')
+                var mins = duration.as('m')
+                var hrsOnly = Math.floor(hrs)
+                var minsOnly = Math.floor((hrs - hrsOnly) * 60)
+                return hrsOnly + ' hrs and ' + minsOnly + ' mins'
+            }
+        },
+        validations: {
+           
+            
+        },
+        created: function(){
+            var me = this;
+            
+        },
+        methods: {
+            
+        }
+    });
+</script>
+{% endblock %}
+

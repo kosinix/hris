@@ -3,6 +3,7 @@ const fs = require('fs')
 const util = require('util')
 
 //// External modules
+const ExcelJS = require('exceljs');
 const express = require('express')
 const fileUpload = require('express-fileupload')
 const flash = require('kisapmata')
@@ -12,11 +13,13 @@ const qr = require('qr-image')
 
 //// Modules
 const db = require('../db');
+const dtrHelper = require('../dtr-helper');
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
 const passwordMan = require('../password-man');
 const s3 = require('../aws-s3');
+const uploader = require('../uploader');
 
 // Router
 let router = express.Router()
@@ -257,7 +260,7 @@ router.get('/employee/:employeeId/employment/:employmentId/schedule', middleware
 
         // Convert from minutes from midnight into HTML time input HH:mm
         let mToTime = (minutes, format) => {
-            if(!minutes) return 0
+            if (!minutes) return 0
             format = format || 'HH:mm'
             return moment().startOf('year').startOf('day').add(minutes, 'minutes').format(format)
         }
@@ -273,7 +276,7 @@ router.get('/employee/:employeeId/employment/:employmentId/schedule', middleware
             return momentTime.diff(momentDayStart, 'minutes')
         }
 
-        let timeSegmentsTemplate =  [
+        let timeSegmentsTemplate = [
             {
                 start: 0,
                 end: 0,
@@ -365,21 +368,26 @@ router.get('/employee/:employeeId/employment/:employmentId/schedule', middleware
     }
 });
 
-router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, middlewares.getEmployment, fileUpload(), async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employment = res.employment.toObject()
+        let files = lodash.get(req, 'files', [])
 
-        let workSchedule = JSON.parse(lodash.get(req, 'body.workSchedule', {}))
+        // return res.send(files)
+        let localFiles = await uploader.handleExpressUploadLocalAsync(files, CONFIG.app.dirs.upload, ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"])
+        // Excel containing graduate list
+        let workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(lodash.get(localFiles, 'excel.0.filePath'));
+        // Select worksheet to use
+        let sheet = await workbook.getWorksheet('Sheet1')
 
-        // Convert from minutes from midnight into HTML time input HH:mm
-        let mToTime = (minutes, format) => {
-            if(!minutes) return 0
-            format = format || 'HH:mm'
-            return moment().startOf('year').startOf('day').add(minutes, 'minutes').format(format)
+        
+
+        // UTC date to time
+        let toTime = (utcDate) => {
+            return moment.utc(utcDate).format('h:mmA')
         }
-
-        // Convert from HTML time input HH:mm into minutes from midnight
         let timeToM = (time, format) => {
             format = format || 'HH:mm'
             var momentDayStart = moment().startOf('day')
@@ -390,15 +398,125 @@ router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewar
             return momentTime.diff(momentDayStart, 'minutes')
         }
 
+        let parseBreaks = (workBreaks) => {
+            let workBreaksArray = []
+            if ((typeof workBreaks) === 'string') {
+                workBreaks = workBreaks.replace(/\s\s+/g, '') // Remove spaces
+                workBreaksArray = workBreaks.split(',')
+                workBreaksArray = workBreaksArray.map((workBreak) => {
+                    return workBreak.split('-')
+                })
+            }
+            return workBreaksArray
+        }
+
+        let weekDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+        let workSchedule = dtrHelper.createWorkScheduleTemplate()
+        let rowOffset = 2
+
+        // workSchedule.weekDays = lodash.mapValues(workSchedule.weekDays, (weekDay, i) => {
+        //     let rowIndex = rowOffset + i
+        //     let amIn = toTime(sheet.getCell(`B${rowIndex}`).value)
+        //     let amOut = toTime(sheet.getCell(`C${rowIndex}`).value)
+        //     let amGrace = sheet.getCell(`D${rowIndex}`).value || 0
+        //     let amBreaks = sheet.getCell(`E${rowIndex}`).value
+        //     let pmIn = toTime(sheet.getCell(`F${rowIndex}`).value)
+        //     let pmOut = toTime(sheet.getCell(`G${rowIndex}`).value)
+        //     let pmGrace = sheet.getCell(`H${rowIndex}`).value || 0
+        //     let pmBreaks = sheet.getCell(`I${rowIndex}`).value
+        //     let workType = sheet.getCell(`J${rowIndex}`).value
+
+        //     amBreaks = parseBreaks(amBreaks)
+        //     pmBreaks = parseBreaks(pmBreaks)
+
+        //     weekDay.timeSegments = lodash.map(weekDay.timeSegments, (timeSegment) => {
+        //         timeSegment.start = timeToM(timeSegment.start)
+        //         timeSegment.end = timeToM(timeSegment.end)
+        //         timeSegment.maxHours = timeSegment.end - timeSegment.start
+        //         timeSegment.breaks = lodash.map(timeSegment.breaks, (br) => {
+        //             br.start = timeToM(br.start)
+        //             br.end = timeToM(br.end)
+        //             return br
+        //         })
+        //         return timeSegment
+        //     })
+        //     return weekDay
+        // })
+
+        weekDays.forEach((weekDay, i) => {
+            let rowIndex = rowOffset + i
+            let amIn = toTime(sheet.getCell(`B${rowIndex}`).value)
+            let amOut = toTime(sheet.getCell(`C${rowIndex}`).value)
+            let amGrace = sheet.getCell(`D${rowIndex}`).value || 0
+            let amBreaks = sheet.getCell(`E${rowIndex}`).value
+            let pmIn = toTime(sheet.getCell(`F${rowIndex}`).value)
+            let pmOut = toTime(sheet.getCell(`G${rowIndex}`).value)
+            let pmGrace = sheet.getCell(`H${rowIndex}`).value || 0
+            let pmBreaks = sheet.getCell(`I${rowIndex}`).value
+            let workType = sheet.getCell(`J${rowIndex}`).value
+
+            amBreaks = parseBreaks(amBreaks)
+            pmBreaks = parseBreaks(pmBreaks)
+            console.log(amIn, amOut, amGrace, amBreaks, pmIn, pmOut, pmGrace, pmBreaks)
+
+            workSchedule.weekDays[weekDay].timeSegments = []
+
+            if (amIn && amOut) {
+                let ts = dtrHelper.createTimeSegment(amIn, amOut, amGrace)
+                amBreaks.forEach((br) => {
+                    ts.breaks.push(dtrHelper.createTimeSegmentBreaks(...br))
+                })
+                workSchedule.weekDays[weekDay].timeSegments.push(ts)
+            }
+            if (pmIn && pmOut) {
+                let ts = dtrHelper.createTimeSegment(pmIn, pmOut, pmGrace)
+                pmBreaks.forEach((br) => {
+                    ts.breaks.push(dtrHelper.createTimeSegmentBreaks(...br))
+                })
+                workSchedule.weekDays[weekDay].timeSegments.push(ts)
+            }
+
+
+        })
+
+        await uploader.deleteUploadsAsync(localFiles, [])
+
+
+
+
+        workSchedule.name = `${employee.firstName} ${employee.lastName} - ${employment.position}`
+        workSchedule.visibility = 'members'
+        workSchedule.members = [
+            {
+                "objectId": employment._id,
+                "name": `${employee.firstName} ${employee.lastName} - ${employment.group}`,
+                "type": "employment"
+            }
+        ]
+
+        workSchedule = await db.main.WorkSchedule.create(workSchedule)
+
+        return res.redirect(`/employee/${employee._id}/employment/${employment._id}/schedule/${workSchedule._id}`)
+
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/employee/:employeeId/employment/:employmentId/schedule/:scheduleId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getSchedule, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment.toObject()
+        let workSchedule = res.schedule.toObject()
 
         workSchedule.weekDays = lodash.mapValues(workSchedule.weekDays, (weekDay) => {
             weekDay.timeSegments = lodash.map(weekDay.timeSegments, (timeSegment) => {
-                timeSegment.start = timeToM(timeSegment.start)
-                timeSegment.end = timeToM(timeSegment.end)
-                timeSegment.maxHours = timeSegment.end - timeSegment.start
+                timeSegment.start = dtrHelper.mToTime(timeSegment.start, 'h:mmA')
+                timeSegment.end = dtrHelper.mToTime(timeSegment.end, 'h:mmA')
+                // timeSegment.maxHours = timeSegment.end - timeSegment.start
                 timeSegment.breaks = lodash.map(timeSegment.breaks, (br) => {
-                    br.start = timeToM(br.start)
-                    br.end = timeToM(br.end)
+                    br.start = dtrHelper.mToTime(br.start, 'h:mmA')
+                    br.end = dtrHelper.mToTime(br.end, 'h:mmA')
                     return br
                 })
                 return timeSegment
@@ -406,20 +524,14 @@ router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewar
             return weekDay
         })
 
-        workSchedule.name = `${employee.firstName} ${employee.lastName} - ${employment.position}`
-        workSchedule.visibility = 'members'
-        workSchedule.members = [
-            {
-                "objectId" : employment._id,
-                "name" : `${employee.firstName} ${employee.lastName} - ${employment.group}`,
-                "type" : "employment"
-            }
-        ]
-
-        workSchedule = await db.main.WorkSchedule.create(workSchedule)
-
-        return res.send(workSchedule)
-      
+        // return res.send(workSchedule.weekDays.mon)
+        res.render('employee/schedule/read.html', {
+            flash: flash.get(req, 'employee'),
+            title: `Employee - ${employee.lastName} - Schedule`,
+            employee: employee,
+            employment: employment,
+            workSchedule: workSchedule,
+        });
     } catch (err) {
         next(err);
     }

@@ -4,6 +4,7 @@
 const lodash = require('lodash');
 const nunjucks = require('nunjucks');
 const nunjucksFilters = require('nunjucks-filters');
+const moment = require('moment');
 
 //// Modules
 
@@ -53,6 +54,17 @@ env.addFilter('maybePluralize', function (count, noun, suffix = 's') {
 })
 env.addFilter('includes', function (array, value) {
     return array.includes(value);
+})
+env.addFilter('mToTime', function (minutes, format) {
+    if (!minutes) return 0
+    format = format || 'h:mmA'
+    return moment().startOf('year').startOf('day').add(minutes, 'minutes').format(format)
+})
+env.addFilter('scheduleBreaks', function (breaks) {
+    breaks = breaks.map((br)=>{
+        return br.start + ' - ' + br.end
+    })
+    return breaks.join(', ')
 })
 
 //// Export

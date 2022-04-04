@@ -332,7 +332,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
 
                         } else if (endMinutes >= shiftNext.start && endMinutes <= shiftNext.end) { // Logged out within NEXT shift (forgot to logout and login)
                             // Get current shift time worked
-                            // minutesWorked = shiftCurrent.end - startMinutes // Remove excess and use shiftCurrent.end
+                            minutesWorked = shiftCurrent.end - startMinutes // Remove excess and use shiftCurrent.end
                             /*
                             // Add next shift time worked
                             minutesWorked += endMinutes - shiftNext.start

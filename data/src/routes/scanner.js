@@ -390,9 +390,7 @@ router.get('/scanner/:scannerUid/ping', middlewares.guardRoute(['use_scanner']),
     try {
         // let now = moment().toISOString()
 
-        await db.main.ScannerPing.create({
-            scannerId: scanner._id,
-        })
+       
 
         if (scanner.refresh) {
             scanner.refresh = false

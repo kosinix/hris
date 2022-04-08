@@ -1,5 +1,6 @@
 
 //// Core modules
+let { timingSafeEqual } = require('crypto')
 
 //// External modules
 const access = require('acrb')
@@ -110,42 +111,58 @@ module.exports = {
     api: {
         getAuthApp: async (req, res, next) => {
             try {
+                await new Promise(resolve => setTimeout(resolve, 5000)) // Rate limit 
+
                 // Uses Basic Auth for mambu compat
                 let authorization = lodash.get(req, 'headers.authorization', '').replace('Basic', '').replace(' ', '')
                 let decoded = Buffer.from(authorization, 'base64').toString();
                 let split = decoded.split(':')
-                let publicId = lodash.get(split, '0', '')
+                let username = lodash.get(split, '0', '')
                 let password = lodash.get(split, '1', '')
 
-                if (!publicId || !password) {
+                if (!username || !password) {
                     throw new Error('Invalid credentials.')
                 }
 
-                if (!db.mongoose.Types.ObjectId.isValid(publicId)) {
-                    throw new Error('Invalid credentials.')
-                }
-
-                let user = await db.main.App.findOne({
-                    _id: publicId,
-                    active: true
-                });
+                // Find admin
+                let user = await db.main.User.findOne({ username: username });
                 if (!user) {
-                    throw new Error('App not found.')
+                    throw new Error('Incorrect username.')
+                }
+
+                if (!user.active) {
+                    throw new Error('Your account is deactivated.');
                 }
 
                 // Check password
                 let passwordHash = passwordMan.hashPassword(password, user.salt);
-                if (passwordHash !== user.passwordHash) {
-                    throw new Error('Incorrect password.')
+                if (!timingSafeEqual(Buffer.from(passwordHash, 'utf8'), Buffer.from(user.passwordHash, 'utf8'))) {
+                    throw new Error('Incorrect password.');
                 }
 
-                res.authApp = user;
+                res.user = user;
 
                 next();
             } catch (err) {
                 next(err);
             }
         },
+        requireJwt: async (req, res, next) => {
+            let authorization = ''
+            try {
+                authorization = lodash.get(req, 'headers.authorization', '').replace('Bearer', '').replace(' ', '')
+        
+                res.jwt = jwt.verify(authorization, CRED.jwt.secret);
+        
+                next()
+            } catch (err) {
+                if (authorization) {
+                    console.error(`JWT: ${authorization}`)
+                }
+        
+                next(err)
+            }
+        }
     },
     allowIp: allowIp,
     antiCsrfCheck: antiCsrfCheck,

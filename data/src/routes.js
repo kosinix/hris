@@ -7,6 +7,7 @@ const express = require('express');
 
 // Routes
 let router = express.Router();
+router.use(require('./routes/api'));
 router.use(require('./routes/public'));
 router.use(require('./routes/shared'));
 router.use(require('./routes/register'));

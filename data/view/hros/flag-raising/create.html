@@ -1,0 +1,576 @@
+{% extends "document.html" %}
+{% block styles %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="   crossorigin=""/>
+{% endblock %}
+
+{% block body %}
+<div class="col-md-12" id="vApp" v-cloak v-bind:data-pending="pending">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h4 h3-md">Online Log Verification</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/hros/flag/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <div class="mb-5 tab-content p-3">
+        <div id="carousel-map" class="carousel slide" data-ride="carousel" data-touch="false" data-interval="false">
+            {# <ol class="carousel-indicators">
+                <li data-target="#carousel-map" data-slide-to="0" class="active"></li>
+                <li data-target="#carousel-map" data-slide-to="1"></li>
+                <li data-target="#carousel-map" data-slide-to="2"></li>
+                <li data-target="#carousel-map" data-slide-to="3"></li>
+            </ol> #}
+            <div class="carousel-inner p-3">
+                {# 1 #}
+                <div class="carousel-item active">
+                    <div class="row">
+                        <div class="col-md-5 text-center text-md-right pt-5 pb-5">
+                            <img src="/images/phone-loc2.jpg" alt="">
+                        </div>
+                        <div class="col-md-7 pt-md-5 pb-5 text-left">
+                            <div class="col-lg-6">
+                                <h1 class="h2 mb-5 text-center text-md-left">Before You Begin...</h1>
+                                <p>We encourage you to use your mobile phone for a smoother log transaction.</p>
+                                <p>Your device must have a camera.</p>
+                                <p>You must allow HRIS to use your device location and camera.</p>
+                                <p>A desktop or laptop computer can be used but the location services might not work properly.</p>
+                                <p>How your location and photos are used is detailed in our Data Privacy statement.</p>
+                                <div class="form-check pt-3">
+                                        <input v-model="dontme" class="form-check-input" type="checkbox" value="1" id="dontme">
+                                        <label class="form-check-label" for="dontme">
+                                            Do not show again
+                                        </label>
+                                    </div>
+                                <div class="text-center pt-3">
+                                    
+                                    <button v-on:click="page=2-1" type="button" class="btn btn-full-width btn-primary">Understood. Let's Start! </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {# 2 #}
+                <div class="carousel-item">
+                    <div class="row">
+                        <div class="col-md-5 text-center text-md-right pt-5 pb-5">
+                            <img src="/images/phone-loc.jpg" alt="">
+                        </div>
+                        <div class="col-md-7 pt-md-5 pb-5 text-center text-md-left">
+                            <div class="col-lg-6">
+                                <h1 class="h2 mb-5">Verify Location</h1>
+                                <p>We need to verify that you are within the school campus.</p>
+                                <div class="text-center pt-5">
+                                    <button v-on:click="page=3-1" type="button" class="btn btn-full-width btn-primary">Detect Location</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {# 3 #}
+                <div class="carousel-item ">
+                    <div class="row">
+                        <div class="col-md-7 text-center text-md-right pt-5 pb-5">
+                            <div id="map" style="height:300px"></div>
+                        </div>
+                        <div class="col-md-5 pt-md-5 pb-5 text-center text-md-left">
+                            <div class="col-lg-9">
+                                <h1 v-if="mapLocationErrorMode === 0" class="h2 mb-5">Location Verified</h1>
+                                <h1 v-else class="h2 mb-5">Location Result</h1>
+                                <div v-if="mapLocationErrorMode === 0">
+                                    <p>You are inside ${mapLocationResultName}.</p>
+                                </div>
+                                <div v-if="mapLocationErrorMode === 1" class="text-left">
+                                    <p>Unfortunately, your detected location is outside of our school. </p>
+                                    <p>If you think this is inaccurate, please try any of the following: </p>
+                                    <ul>
+                                        <li>Use your phone</li>
+                                        <li>Connect with mobile data</li>
+                                        <li>Enable GPS</li>
+                                    </ul>
+                                </div>
+                                <div v-if="mapLocationErrorMode === 2">
+                                    <p>You did not allow HRIS to get your location.</p>
+                                    <p>Please go to one of our scanners to log.</p>
+                                </div>
+                                <div v-if="mapLocationErrorMode === 3">
+                                    <p>Service currently unavailable. Please go to one of our scanners to log.</p>
+                                </div>
+                                <div v-if="mapLocationErrorMode === 4">
+                                    <p>Location service failed. Please try again later or go to one of our scanners to log.</p>
+                                </div>
+                                <div v-if="mapLocationErrorMode === 5">
+                                    <p>Unknown error. Please go to one of our scanners to log.</p>
+                                </div>
+
+                                <div class="text-center pt-5">
+                                    <button v-if="mapLocationErrorMode===0" v-on:click="page=4-1" type="button" class="btn btn-full-width btn-primary">Next</button>
+                                    <template v-else>
+                                        <button v-on:click="detectLocation" type="button" class="btn btn-full-width btn-primary mb-3">Try Again</button>
+                                        <a href="/hros/flag/all" class="btn btn-light btn-full-width">I'll just log on the attendance sheet.</a>
+                                    </template>    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {# 4 #}
+                <div class="carousel-item ">
+                    <div class="row">
+                        <div class="col-md-5 text-center text-md-right pt-5 pb-5">
+                            <div style="position: relative; width: 245px; height: 500px; display:inline-block;">
+                                <div style="position: absolute; left: 15px; top:62px; width: 215px; height:285px; overflow: hidden;">
+                                <img v-if="webcamPhoto" style="position: absolute; left:50%; transform: translateX(-50%); top: 0; z-index:5; height:100%" v-bind:src="webcamPhoto" alt="photo">
+                                <video id="webcam-feed" style="position: absolute; left:50%; transform: translateX(-50%); top: 0;"></video>
+                                <canvas id="webcam-snapshot"></canvas>
+                                </div>
+                                <img src="/images/phone-cam.jpg" alt="">
+                            </div>
+
+                        </div>
+                        <div class="col-md-7 pt-md-5 pb-5 text-center text-md-left">
+                            <div class="col-lg-6">
+                                <h1 v-if="!webcamPhoto" class="h2 mb-5">Identity Verification</h1>
+                                <h1 v-else class="h2 mb-5">Ready to Submit</h1>
+
+                                <div v-if="webcamError">
+                                    <p>${webcamError}</p>
+                                    <div class="text-center pt-5">
+                                        <button v-on:click="webcamStart" type="button" class="btn btn-full-width btn-primary">Try Again</button>
+                                    </div>
+                                </div>
+                                <div v-else>
+                                    <div v-if="!webcamPhoto">
+                                        <p>We need to know its you. Please take a selfie.</p>
+                                    </div>
+                                    <div v-else>
+                                        <p>Flag Raising Time-In: <strong>${time}</strong><br>
+                                        Location: <em>${mapLocationResultName}</em></p>
+                                    </div>
+                                   
+                                    <div class="text-center">
+                                        <button v-if="!webcamPhoto" v-on:click="snap" type="button" class="mt-5 btn btn-full-width btn-primary">Take Selfie</button>
+                                        <div v-else>
+                                            
+                                            <button v-on:click="log" type="button" class="btn btn-full-width btn-primary">Submit Attendance to HR (${countdown})</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
+<script src="{{app.url}}/js/media-devices.js"></script>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="   crossorigin=""></script>
+<script>
+    var employmentId = '{{employment._id}}';
+    var employeeId = '{{employee._id}}';
+</script>
+<script>
+
+    var geo = _.get(window, 'navigator.geolocation');
+    var initPage = 0
+    var firstRun = localStorage.getItem('hrisOnlineLogFirstRun');
+    if(firstRun){
+        initPage = 1
+    }
+
+    var countdownTimer = null;
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            pending: false,
+            page: 0,
+            latLon: [],
+            map: null,
+            mapMarker: null,
+            mapLocationErrorMode: 0,
+            mapLocationResultName: '',
+            locationMessage: '',
+
+            webcamPhotoSnapper: null,
+            webcamLoaded: false,
+            webcamPhoto: '',
+            webcamError: '',
+
+            time: '',
+            countdown: 20,
+            dontme: 0,
+            currentLogCheckPoint: 0,
+        },
+        validations: {
+            
+        },
+        created: function(){
+            this.page = initPage
+        },
+        computed: {
+            nextLogCheckPoint: function(){
+                if(this.currentLogCheckPoint === 0){
+                    return 'Morning In'
+                } else if(this.currentLogCheckPoint === 1){
+                    return 'Morning Out'
+                } else if(this.currentLogCheckPoint === 2){
+                    return 'Afternoon In'
+                } else if(this.currentLogCheckPoint === 3){
+                    return 'Afternoon Out'
+                } else if(this.currentLogCheckPoint === 4){
+                    return 'Extended In'
+                } else if(this.currentLogCheckPoint === 5){
+                    return 'Extended Out'
+                }
+            }
+        },
+        mounted: function(){
+
+            var me = this;
+
+            document.getElementById("webcam-feed").addEventListener('loadedmetadata', function(e){
+                me.webcamLoaded = true
+            })
+
+            jQuery('#carousel-map').on('slide.bs.carousel', function (e) {
+                me.page = e.to
+            })
+
+            setInterval(function(){
+                me.time = moment.tz('Asia/Manila').format('hh:mm A')
+            }, 1000)
+
+            
+        },
+        watch: {
+            page: function (newPage, oldPage) {
+                var me = this;
+                jQuery('#carousel-map').carousel(newPage)
+                
+                if(newPage === 0) { // 1
+
+                } else if(newPage === 1) { // 2
+                    if(me.dontme){
+                        localStorage.setItem('hrisOnlineLogFirstRun', true);
+                    }
+                    me.webcamStop()
+
+                } else if(newPage ===2) { // 3
+                    me.loadMap()
+                    me.detectLocation()
+                    
+                } else if(newPage === 3) { // 4
+                    me.webcamStart()
+
+                } else if(newPage === 4) { // 5
+                    
+
+                }
+            }
+        },
+        methods: {
+            startTimer: function(){
+                var me = this;
+                if(countdownTimer){
+                    clearInterval(countdownTimer)
+                    me.countdown = 20
+                }
+                countdownTimer = setInterval(function(){
+                    me.countdown -= 1
+                    if(me.countdown <= 0) {
+                        clearInterval(countdownTimer)
+                        me.pending = true
+                        me.log()
+                    }
+                }, 1000)
+            },
+            log: function(){
+                var me = this;
+                me.pending = true;
+
+                var body = {
+                    webcamPhoto: me.webcamPhoto,
+                    lat: _.get(me, 'latLon.0'),
+                    lon: _.get(me, 'latLon.1'),
+                };
+
+                axios.post('/hros/flag/log', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
+                    var data = _.get(response, 'data')
+                    window.location.href = '/hros/flag/all';
+                }).catch(function (error) {
+                    if (error.response) {
+                        // Request made, server responded with a status code outside of 2xx
+                        // console.error(error.response.status)
+                        var err = error.response.data;
+                        console.error(err)
+                        alert(err)
+
+                    } else if (error.request) {
+                        var msg = 'The request was made but no response was received'
+                        console.error(msg);
+
+                    } else {
+                        var msg = 'Something happened in setting up the request that triggered an Error.'
+                        console.error(msg, error.message);
+
+                    }
+                    me.pending = false;
+                    window.location.href = '/hros/flag/create';
+                }).then(function () {
+                })
+            },
+            snap: function(){
+                this.webcamSnap()
+                this.startTimer()
+            },
+            detectLocation: function(){
+                var me = this;
+
+                if (!geo) {
+                    alert("Your browser does not support the online time-in/time-out. Please go to the scanner to log.");
+                } else { 
+
+                    me.pending = true;
+
+                    geo.getCurrentPosition(
+                        function(location){  
+                            let lat = _.get(location, 'coords.latitude');
+                            let lon = _.get(location, 'coords.longitude');
+
+                            /*
+                            // mosqueda
+                            lat = 10.61821
+                            lon = 122.59340
+
+                            // baterna
+                            lat = 10.58386
+                            lon = 122.67105 
+
+                            // salvador
+                            lat = 10.69994
+                            lon = 122.65108  
+                            */
+
+                            let body = {
+                                coordinates: [lon, lat],
+                            }
+
+                            me.map.setView([lat, lon], 17);
+                            var pin = L.icon({
+                                iconUrl: '/images/marker-1.png',
+                                iconSize:     [33, 50], // size of the icon
+                                shadowSize:   [50, 64], // size of the shadow
+                                iconAnchor:   [16.5, 50], // point of the icon which will correspond to marker's location
+                            });
+
+                            if(me.mapMarker){
+                                me.map.removeLayer(me.mapMarker)
+                            }
+                            me.mapMarker = L.marker([lat, lon], {icon: pin}).bindPopup("Your Location!").addTo(me.map);
+
+                            axios.post('/hros/flag/location', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
+                                var data = _.get(response, 'data')
+                                console.log(data)
+                                me.mapLocationErrorMode = 0
+                                me.mapLocationResultName = data
+                                me.latLon = [lat, lon]
+                                me.locationMessage = 'Your are inside ' + data + '.'
+
+                            }).catch(function (error) {
+                                if (error.response) {
+                                    // Request made, server responded with a status code outside of 2xx
+                                    // console.error(error.response.status)
+                                    var err = error.response.data;
+                                    console.error(err)
+
+                                } else if (error.request) {
+                                    var msg = 'The request was made but no response was received'
+                                    console.error(msg);
+
+                                } else {
+                                    var msg = 'Something happened in setting up the request that triggered an Error.'
+                                    console.error(msg, error.message);
+
+                                }
+
+                                me.mapLocationResultName = ''
+                                me.mapLocationErrorMode = 1
+                                me.latLon = [lat, lon]
+                                me.locationMessage = ''
+
+                                me.pending = false;
+
+                            }).then(function(){
+                                me.pending = false;
+                            })
+
+                        }, 
+                        function(positionError) {
+
+                            var code = _.get(positionError, 'code', 0)
+                            
+                            var err = ''
+                            if (code === 1) { // PERMISSION_DENIED
+                                me.mapLocationErrorMode = 2
+                                err = "You must allow this permission \nto use the service: \nPermissions > Location > Allow\nOtherwise, you can go to one of our scanner to log."
+                            } else if (code === 2) { // POSITION_UNAVAILABLE
+                                me.mapLocationErrorMode = 3
+                                err = "Service currently unavailable. Please go to the scanner to log."
+                            } else if (code === 3) { // TIMEOUT
+                                me.mapLocationErrorMode = 4
+                                err = "Location failed. Please try again later or go to the scanner to log."
+                            } else {
+                                err = "Unknown error. Please go to the scanner to log."
+                            }
+
+
+                            me.pending = false;
+
+                        },
+                        { 
+                            timeout: 5000,
+                            enableHighAccuracy: true
+                        }
+                    ); 
+
+                }
+            },
+            
+            loadMap: function(){
+                var me = this;
+                if(!me.map){
+                    me.map = L.map('map');
+                } else {
+                    return ;
+                }
+                var map = me.map
+                map.setView([10.69951, 122.65067], 15);
+                map.scrollWheelZoom.disable();
+                var tiles = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia29zaW5peCIsImEiOiJjamFsd2t3Y3QydW05MzNxdXUyeWV6azhoIn0.aqHKe7JGKQrNMD5-WP8xDQ', {
+                    maxZoom: 18,
+                    attribution: 'Developed by the <a target="_blank" href="https://mis.gsc.edu.ph">MIS</a>.',
+                    id: 'mapbox/streets-v11',
+                    tileSize: 512,
+                    zoomOffset: -1
+                }).addTo(map);
+
+                var polygon = L.polygon([
+                    [10.6990108, 122.6498571],
+                    [10.6980449, 122.6508093],
+                    [10.6984059, 122.6512063],
+                    [10.6984389, 122.6511741],
+                    [10.6984883, 122.6512230],
+                    [10.6984369, 122.6512827],
+                    [10.6991795, 122.6520860],
+                    [10.7000703, 122.6511459],
+                    [10.7003233, 122.6508602],
+                    [10.7007516, 122.6503050],
+                    [10.6998568, 122.6493314],
+                    [10.6991544, 122.6500060],
+                    [10.6990108, 122.6498571],
+                ], {color: 'green'}).bindPopup("Salvador Campus Boundaries");
+                polygon.addTo(map);
+
+                polygon = L.polygon([
+                    [10.6194448, 122.5937879],
+                    [10.6188743, 122.5976385],
+                    [10.6177542, 122.5970157],
+                    [10.6181925, 122.5933632],
+                    [10.6194448, 122.5937879],
+                ], {color: 'green'}).bindPopup("Mosqueda Campus Boundaries");
+                polygon.addTo(map);
+
+                polygon = L.polygon([
+                    [10.5838882, 122.6716331],
+                    [10.5839687, 122.6713986],
+                    [10.5842046, 122.6711531],
+                    [10.5843011, 122.6711203],
+                    [10.5837542, 122.6705312],
+                    [10.5830785, 122.6699584],
+                    [10.5828909, 122.6699966],
+                    [10.5824511, 122.6706458],
+                    [10.5824029, 122.6707549],
+                    [10.5838882, 122.6716331],
+                ], {color: 'green'}).bindPopup("Baterna Campus Boundaries");
+                polygon.addTo(map);
+            },
+
+
+            webcamStart: function(){
+                var me = this
+                if(!me.webcamPhotoSnapper){
+                    me.pending = true
+                    MediaDevicesPresets.createWebcamPhotoSnapper(
+                        document.getElementById("webcam-feed"),
+                        document.getElementById("webcam-snapshot"),
+                        {
+                            width: 352,
+                            height: 285,
+                            imageWidth: 352,
+                            imageHeight: 285,
+                        }
+                    ).then(function(webcamPhotoSnapper){
+                        me.pending = false
+                        me.webcamPhotoSnapper = webcamPhotoSnapper
+                        me.webcamError = ''
+                    }).catch(function(err){
+                        me.webcamError = err.message;
+
+                        if (err.name == "NotFoundError" || err.name == "DevicesNotFoundError") {
+                            //required track is missing 
+                            me.webcamError += '. Please check if you have a camera.';
+
+                        } else if (err.name == "NotReadableError" || err.name == "TrackStartError") {
+                            //webcam or mic are already in use 
+                            me.webcamError += '. Please close the other app that is using the camera';
+                      
+                        } else if (err.name == "NotAllowedError" || err.name == "PermissionDeniedError") {
+                            //permission denied in browser 
+                            me.webcamError += '. Please allow HRIS to use your camera.';
+                            
+                        }
+
+                    }).then(function(){
+                        me.pending = false
+                    })
+                }
+            },
+            webcamPause: function(){
+                var me = this
+                if(me.webcamPhotoSnapper){
+                    document.getElementById("webcam-feed").pause()
+                }
+            },
+            webcamSnap: function(){
+                var me = this
+                if(me.webcamPhotoSnapper){
+                    me.webcamPhoto = me.webcamPhotoSnapper.snap()
+                }
+            },
+            webcamStop: function(){
+                var me = this
+                if(me.webcamPhotoSnapper){
+                    me.webcamPhotoSnapper.stop()
+                    me.webcamPhotoSnapper = null
+                }
+            }
+        }
+    });
+</script>
+{# https://obfuscator.io/ #}
+{% endblock %}
+

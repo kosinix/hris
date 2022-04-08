@@ -276,6 +276,67 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
     }
 });
 
+// Flag raising
+router.get(['/attendance/flag/all', '/attendance/flag.xlsx'], middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
+    try {
+
+        let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
+        let mCalendar = moment(date)
+
+        let query = {
+            createdAt: {
+                $gte: mCalendar.clone().startOf('day').toDate(),
+                $lte: mCalendar.clone().endOf('day').toDate(),
+            }
+        }
+
+        let aggr = []
+        aggr.push({ $match: query })
+        aggr.push({
+            $lookup: {
+                from: "employees",
+                localField: "employeeId",
+                foreignField: "_id",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                },
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+            }
+        })
+
+        //console.log(aggr)
+        attendances = await db.main.AttendanceFlag.aggregate(aggr)
+        //return res.send(attendances)
+
+        if (req.originalUrl.includes('.xlsx')) {
+            let workbook = await excelGen.templateAttendanceFlag(mCalendar, attendances)
+
+            let buffer = await workbook.xlsx.writeBuffer();
+            res.set('Content-Disposition', `attachment; filename="attendance-flag-${mCalendar.format('YYYY-MM-DD')}.xlsx"`)
+            res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            return res.send(buffer)
+        }
+
+        res.render('attendance/flag-raising/all.html', {
+            flash: flash.get(req, 'attendance'),
+            mCalendar: mCalendar,
+            attendances: attendances,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 
 router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewares.guardRoute(['read_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
@@ -576,7 +637,7 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
 
         attendance = await db.main.Attendance.create(attendance)
 
-        console.log(attendance)
+        // console.log(attendance)
 
         flash.ok(req, 'attendance', `Inserted new attendance.`)
         res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)

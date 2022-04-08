@@ -24,6 +24,7 @@ main.on('disconnected', () => {
 
 main.Address = main.model('Address', require('./models/address'));
 main.Attendance = main.model('Attendance', require('./models/attendance'));
+main.AttendanceFlag = main.model('AttendanceFlag', require('./models/attendance-flag'));
 main.AttendanceReview = main.model('AttendanceReview', require('./models/attendance-review'));
 main.AuthorityToTravel = main.model('AuthorityToTravel', require('./models/authority-to-travel'));
 main.App = main.model('App', require('./models/app'));

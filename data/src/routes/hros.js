@@ -441,4 +441,206 @@ router.get('/hros/coa/share', middlewares.guardRoute(['use_employee_profile']), 
     }
 });
 
+
+// Flag raising
+router.get('/hros/flag/all', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        // let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
+        let mCalendar = moment()
+
+
+        let query = {
+            createdAt: {
+                $gte: mCalendar.clone().startOf('day').toDate(),
+                $lte: mCalendar.clone().endOf('day').toDate(),
+            }
+        }
+
+        let aggr = []
+        aggr.push({ $match: query })
+        aggr.push({
+            $lookup: {
+                from: "employees",
+                localField: "employeeId",
+                foreignField: "_id",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                },
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+            }
+        })
+
+        //console.log(aggr)
+        attendances = await db.main.AttendanceFlag.aggregate(aggr)
+        //return res.send(attendances)
+
+        if (req.originalUrl.includes('.xlsx')) {
+            let workbook = await excelGen.templateAttendanceDaily(mCalendar, attendances)
+
+            let buffer = await workbook.xlsx.writeBuffer();
+            res.set('Content-Disposition', `attachment; filename="attendance.xlsx"`)
+            res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            return res.send(buffer)
+        }
+
+        // Today attendance
+        let alreadyLogged = false
+        let attendance = await db.main.AttendanceFlag.findOne({
+            employeeId: employee._id,
+            createdAt: {
+                $gte: mCalendar.clone().startOf('day').toDate(),
+                $lt: mCalendar.clone().endOf('day').toDate(),
+            }
+        }).lean()
+        if (attendance) {
+            alreadyLogged = true
+        }
+
+        res.render('hros/flag-raising/all.html', {
+            flash: flash.get(req, 'attendance'),
+            mCalendar: mCalendar,
+            attendances: attendances,
+            alreadyLogged: alreadyLogged,
+            isMonday: mCalendar.format('ddd') === 'Mon'
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let user = res.user.toObject()
+        let employee = res.employee.toObject()
+
+        let momentNow = moment()
+
+        // Today attendance
+        let attendance = await db.main.AttendanceFlag.findOne({
+            employeeId: employee._id,
+            createdAt: {
+                $gte: momentNow.clone().startOf('day').toDate(),
+                $lt: momentNow.clone().endOf('day').toDate(),
+            }
+        }).lean()
+        if (attendance) {
+            throw new Error('You have already logged.')
+        }
+        
+
+        let data = {
+            title: 'Human Resource Online Services (HROS) - Flag',
+            flash: flash.get(req, 'hros'),
+            user: user,
+            employee: employee,
+            momentNow: moment(),
+        }
+        res.render('hros/flag-raising/create.html', data)
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/hros/flag/location', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let body = req.body
+
+        let found = await db.main.Map.findOne({
+            geo: {
+                $geoIntersects: {
+                    $geometry: {
+                        "type": "Point",
+                        "coordinates": body.coordinates
+                    }
+                }
+            }
+        }).lean()
+
+        if (!found) {
+            return res.status(404).send('')
+        }
+        res.send(found.name)
+    } catch (err) {
+        next(new AppError(err.message));
+    }
+});
+router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        // return res.send(req.body)
+        let body = req.body
+
+        let lat = body.lat
+        let lon = body.lon
+        let webcamPhoto = body.webcamPhoto
+
+        let momentNow = moment()
+
+        // Today attendance
+        let attendance = await db.main.AttendanceFlag.findOne({
+            employeeId: employee._id,
+            createdAt: {
+                $gte: momentNow.clone().startOf('day').toDate(),
+                $lt: momentNow.clone().endOf('day').toDate(),
+            }
+        }).lean()
+        if (attendance) {
+            throw new Error('You have already logged.')
+        }
+
+        // Photo
+        let saveList = null
+        if (webcamPhoto) {
+            let file = uploader.toReqFile(webcamPhoto)
+            let files = {
+                photos: [file]
+            }
+            let localFiles = await uploader.handleExpressUploadLocalAsync(files, CONFIG.app.dirs.upload)
+            let imageVariants = await uploader.resizeImagesAsync(localFiles, null, CONFIG.app.dirs.upload); // Resize uploaded images
+
+            let uploadList = uploader.generateUploadList(imageVariants, localFiles)
+            saveList = uploader.generateSaveList(imageVariants, localFiles)
+            await uploader.uploadToS3Async(uploadList)
+            await uploader.deleteUploadsAsync(localFiles, imageVariants)
+            req.localFiles = localFiles
+            req.imageVariants = imageVariants
+            req.saveList = saveList
+
+            // console.log(uploadList, saveList)
+        }
+
+        // Log
+        attendance = await db.main.AttendanceFlag.create({
+            employeeId: employee._id,
+            dateTime: momentNow.toDate(),
+            type: 'online',
+            extra: {
+                lat: lat,
+                lon: lon,
+                photo: lodash.get(saveList, 'photos[0]', ''),
+            },
+            source: {
+                id: res.user._id,
+                type: 'userAccount', // Online user account
+            }
+        })
+
+        flash.ok(req, 'attendance', 'Flag raising attendance saved.')
+        res.send(attendance)
+    } catch (err) {
+        next(new AppError(err.message));
+    }
+});
 module.exports = router;

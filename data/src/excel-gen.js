@@ -1535,6 +1535,39 @@ let templateAttendanceDaily = async (mCalendar, attendances) => {
     return workbook
 
 }
+let templateAttendanceFlag = async (mCalendar, attendances) => {
+
+    let workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/attendance/flag.xlsx`);
+    let slex = new Slex(workbook)
+
+    let worksheet = workbook.getWorksheet('main')
+    if (worksheet) {
+        slex.setSheet(worksheet)
+        slex.getCell('A2').value(`${mCalendar.format('dddd - MMM DD, YYYY')}`)
+
+        let offset = 4
+        for (x = 0; x < attendances.length; x++) {
+            let attendance = attendances[x]
+
+            row = offset + x
+            slex.getCell(`A${row}`).value(x + 1)
+            slex.getCell(`B${row}`).value(`${attendance.employee.firstName} ${attendance.employee.lastName} ${attendance.employee.suffix}`)
+            slex.getCell(`C${row}`).value((attendance.employee.gender === 'M' ? 'M' : 'F'))
+
+            // 'hh:mm'
+            let morningIn = moment(lodash.get(attendance, 'dateTime', null))
+            morningIn = morningIn.isValid() ? morningIn.format('hh:mm A') : ''
+          
+            slex.getCell(`D${row}`).value(morningIn)
+                
+        }
+
+    }
+
+    return workbook
+
+}
 
 let templateGenderReport = async (employees) => {
 
@@ -1580,5 +1613,6 @@ module.exports = {
     templatePds: templatePds,
     templatePermanent: templatePermanent,
     templateAttendanceDaily: templateAttendanceDaily,
+    templateAttendanceFlag: templateAttendanceFlag,
     templateGenderReport: templateGenderReport,
 }

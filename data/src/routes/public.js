@@ -1,5 +1,5 @@
 //// Core modules
-const crypto = require('crypto');
+let { timingSafeEqual } = require('crypto')
 const url = require('url');
 
 //// External modules
@@ -52,6 +52,7 @@ router.post('/login', async (req, res, next) => {
                 "Content-Type": "application/x-www-form-urlencoded"
             }
         })
+        
         // console.log(response.config, response.data)
         let score = lodash.get(response, 'data.score', 0.0)
         if (score < 0.5) {
@@ -70,11 +71,11 @@ router.post('/login', async (req, res, next) => {
 
         // Check password
         let passwordHash = passwordMan.hashPassword(password, user.salt);
-        if (!crypto.timingSafeEqual(Buffer.from(passwordHash, 'utf8'), Buffer.from(user.passwordHash, 'utf8'))) {
+        if (!timingSafeEqual(Buffer.from(passwordHash, 'utf8'), Buffer.from(user.passwordHash, 'utf8'))) {
             throw new Error('Incorrect password.');
         }
 
-        if(!lodash.get(user.toObject(), 'settings.ol', true)){
+        if (!lodash.get(user.toObject(), 'settings.ol', true)) {
             await new Promise(resolve => setTimeout(resolve, 30000)) // Rate limit 
         }
 

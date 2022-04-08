@@ -181,23 +181,29 @@ io.on('connection', function (socket) {
 app.use(routes);
 
 // Error handler
+// XHR error handler (Ajax)
+// HTTP headers: {'X-Requested-With': 'XMLHttpRequest'}
+app.use(function (error, req, res, next) {
+    if (res.headersSent) { // Delegate to the default Express error handler, when the headers have already been sent to the client
+        return next(error)
+    }
+    if (req.xhr) {
+        console.error(error)
+        res.statusMessage = error.message
+        return res.status(400).send(error.message)
+    }
+
+    next(error)
+});
+
 app.use(function (error, req, res, next) {
     try {
-        if (res.headersSent) {
-            return next(error);
-        }
         req.socket.on("error", function (err) {
             logger.error(err);
         });
         res.socket.on("error", function (err) {
             logger.error(err);
         });
-
-        if (req.xhr) { // response when req was ajax
-            console.log(error)
-            let httpStatus = lodash.get(error, 'data.httpStatus', 400)
-            return res.status(httpStatus).json(error)
-        }
 
         error = errors.normalizeError(error);
         logger.error(req.originalUrl)

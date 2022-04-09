@@ -140,7 +140,6 @@ router.get('/registration/approve/:registrationId', middlewares.guardRoute(['cre
         }
 
         let info = await mailer.send('verified.html', data)
-        console.log(info)
 
         await db.main.RegistrationForm.updateOne({ _id: registration._id }, {
             status: 'verified'
@@ -231,7 +230,6 @@ router.post('/registration/create', middlewares.guardRoute(['create_user', 'upda
         }
 
         let info = await mailer.send('verified.html', data)
-        console.log(info)
 
         await db.main.RegistrationForm.updateOne({ _id: registrationForm._id }, {
             status: 'verified'

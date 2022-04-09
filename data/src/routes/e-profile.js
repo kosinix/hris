@@ -619,7 +619,7 @@ router.patch('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employ
                 workScheduleId: workScheduleId
             })
 
-            console.log('updatedAttendances', rA, attendanceIds)
+            // console.log('updatedAttendances', rA, attendanceIds)
         }
         if (inCharge) {
             patch.inCharge = inCharge
@@ -629,7 +629,7 @@ router.patch('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employ
             _id: employment._id
         }, patch)
 
-        console.log('updated employment', rE)
+        // console.log('updated employment', rE)
 
         res.send('ok')
     } catch (err) {
@@ -689,7 +689,7 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
             req.imageVariants = imageVariants
             req.saveList = saveList
 
-            console.log(uploadList, saveList)
+            // console.log(uploadList, saveList)
         }
 
         // Log
@@ -840,7 +840,7 @@ router.post('/e-profile/dtr/:employmentId/location', middlewares.guardRoute(['us
             }
         }).lean()
 
-        console.log('found', found)
+        // console.log('found', found)
         if (!found) {
             return res.status(404).send('')
         }

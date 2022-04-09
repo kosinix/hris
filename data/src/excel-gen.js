@@ -1084,7 +1084,7 @@ let templatePermanent = async (payroll) => {
 
             let grossPayAllowance = payrollJs.getCellValue(row, 'grossPayAllowance', payrollJs.formulas, payroll.columns)
 
-            console.log(`A${curRowIndex}`, numbering)
+            // console.log(`A${curRowIndex}`, numbering)
             slex.getCell(`A${curRowIndex}`)
                 .value(numbering)
 
@@ -1221,7 +1221,7 @@ let templatePermanent = async (payroll) => {
 
             let grossPayAllowance = payrollJs.getCellValue(row, 'grossPayAllowance', payrollJs.formulas, payroll.columns)
 
-            console.log(`A${curRowIndex}`, numbering)
+            // console.log(`A${curRowIndex}`, numbering)
             slex.getCell(`A${curRowIndex}`)
                 .value(numbering)
 
@@ -1359,7 +1359,7 @@ let templatePermanent = async (payroll) => {
 
             let grossPayAllowance = payrollJs.getCellValue(row, 'grossPayAllowance', payrollJs.formulas, payroll.columns)
 
-            console.log(`A${curRowIndex}`, numbering)
+            // console.log(`A${curRowIndex}`, numbering)
             slex.getCell(`A${curRowIndex}`)
                 .value(numbering)
 

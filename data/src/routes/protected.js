@@ -313,7 +313,7 @@ router.get('/users', middlewares.requireAuthUser, async (req, res, next) => {
             ]
         }
 
-        console.log(util.inspect(query, false, null, true /* enable colors */))
+        // console.log(util.inspect(query, false, null, true /* enable colors */))
         // raw ops
         let users = await db.main.User.collection.find(query).limit(10).toArray()
         users = lodash.map(users, (o) => {

@@ -260,7 +260,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
 
             } else {
                 minutes += travelPoints
-                console.log(minutes)
+                // console.log(minutes)
             }
         }
         for (let l = 0; l < attendance.logs.length; l++) {
@@ -295,7 +295,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
                 // Different conditions
                 if (endMinutes < shiftCurrent.start) { // Invalid. Logged out before current shift starts! 
 
-                    console.log('Logging out before shift starts!')
+                    // console.log('Logging out before shift starts!')
 
                 } else if (endMinutes >= shiftCurrent.start && endMinutes <= shiftCurrent.end) { // Logged out within current shift
 

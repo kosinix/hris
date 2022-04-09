@@ -160,12 +160,12 @@ router.get('/register/long-poll/:registrationFormId', async (req, res, next) => 
 
         let longPoll = () => {
             x++
-            console.log(`${x} of ${maxX}`);
+            // console.log(`${x} of ${maxX}`);
 
             db.main.RegistrationForm.findById(registrationFormId).then((r) => {
                 if (r.status === 'started') {
                     clearInterval(intervalObj)
-                    console.log('r', r)
+                    // console.log('r', r)
                     res.send('done')
                 }
             }).catch(function (error) {

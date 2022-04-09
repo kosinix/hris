@@ -457,7 +457,7 @@ router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewar
 
             amBreaks = parseBreaks(amBreaks)
             pmBreaks = parseBreaks(pmBreaks)
-            console.log(amIn, amOut, amGrace, amBreaks, pmIn, pmOut, pmGrace, pmBreaks)
+            // console.log(amIn, amOut, amGrace, amBreaks, pmIn, pmOut, pmGrace, pmBreaks)
 
             workSchedule.weekDays[weekDay].timeSegments = []
 

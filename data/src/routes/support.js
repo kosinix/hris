@@ -156,7 +156,6 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
         }
 
         let info = await mailer.send('verified.html', data)
-        console.log(info)
 
         await db.main.RegistrationForm.updateOne({ _id: registrationForm._id }, {
             status: 'verified'

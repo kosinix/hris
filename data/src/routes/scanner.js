@@ -333,7 +333,7 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
                     req.imageVariants = imageVariants
                     req.saveList = saveList
 
-                    console.log(uploadList, saveList)
+                    // console.log(uploadList, saveList)
                 }
 
                 log = await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id, undefined, { photo: lodash.get(saveList, 'photos[0]', '') })

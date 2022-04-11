@@ -5,6 +5,7 @@ let { timingSafeEqual } = require('crypto')
 //// External modules
 const access = require('acrb')
 const flash = require('kisapmata')
+const jwt = require('jsonwebtoken')
 const lodash = require('lodash')
 const moment = require('moment')
 
@@ -156,10 +157,6 @@ module.exports = {
         
                 next()
             } catch (err) {
-                if (authorization) {
-                    console.error(`JWT: ${authorization}`)
-                }
-        
                 next(err)
             }
         }

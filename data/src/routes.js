@@ -31,7 +31,7 @@ router.use(require('./routes/reports'));
 // 404 Page
 router.use((req, res) => {
     res.status(404)
-    if (req.xhr) { // response when req was ajax
+    if (req.xhr || /^\/api\//.test(req.originalUrl)) {
         return res.send("Page not found.")
     }
     res.render('error.html', { error: "Page not found." });

@@ -42,10 +42,8 @@
                     {% for attendance in attendances %}
                         <tr>
                             <td class="text-center">{{loop.index}}</td>
-                            <td>
-                                <a class="privy-name text-left d-block" href="/attendance/employee/{{attendance.employeeId}}/employment/{{attendance.employmentId}}?start={{mCalendar.startOf('month').format('YYYY-MM-DD')}}&amp;end={{mCalendar.endOf('month').format('YYYY-MM-DD')}}&amp;showWeekDays=Mon|Tue|Wed|Thu|Fri|Sat|Sun">
-                                    {{attendance.employee.firstName}} {{attendance.employee.lastName}} {{attendance.employee.suffix}}
-                                </a>
+                            <td class="privy-name">
+                                {{attendance.employee.firstName}} {{attendance.employee.lastName}} {{attendance.employee.suffix}}
                             </td>
                             <td class="text-center">{% if attendance.employee.gender == 'M' %}M{% else %}F{% endif %}</td>
                             <td class="text-center">

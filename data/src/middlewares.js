@@ -153,13 +153,70 @@ module.exports = {
             try {
                 authorization = lodash.get(req, 'headers.authorization', '').replace('Bearer', '').replace(' ', '')
         
-                res.jwt = jwt.verify(authorization, CRED.jwt.secret);
+                res.jwt = authorization
+                res.jwtDecoded = jwt.verify(authorization, CRED.jwt.secret)
         
                 next()
             } catch (err) {
                 next(err)
             }
-        }
+        },
+        expandScanData: async (req, res, next) => {
+            try {
+                let jwtDecoded = res.jwtDecoded
+                let scanner = jwtDecoded.scanner
+                let code = (req.body.code + '') || ''
+                if (!code) {
+                    throw new AppError('Sorry, invalid scan data.', {
+                        scanner: scanner,
+                        timeOut: 10
+                    })
+                }
+                code = code.trim()
+                console.log(code, code.length)
+                if (code.length !== 10) { // Plain number
+                    throw new AppError('Sorry, invalid RFID number.', {
+                        scanner: scanner,
+                        timeOut: 10
+                    })
+                }
+    
+                let photo = lodash.get(req, 'body.photo', '')
+    
+                let employee = await db.main.Employee.findOne({
+                    uid: code
+                }).lean()
+                if (!employee) {
+                    throw new AppError('Sorry, ID card is not registered.', {
+                        scanner: scanner,
+                        timeOut: 10
+                    })
+                }
+    
+                // TODO: Allow choose employment for rfid
+                let employment = await db.main.Employment.findOne({
+                    employeeId: employee._id
+                }).lean()
+                if (!employment) {
+                    throw new AppError('Employment not found from RFID.', {
+                        scanner: scanner,
+                        timeOut: 10
+                    })
+                }
+    
+                res.scanData = {
+                    dataType: 'rfid',
+                    code: code,
+                    photo: photo,
+                    employee: employee,
+                    employment: employment,
+                }
+    
+                next();
+            } catch (err) {
+                next(err);
+            }
+        },
     },
     allowIp: allowIp,
     antiCsrfCheck: antiCsrfCheck,

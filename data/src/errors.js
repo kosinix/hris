@@ -92,6 +92,22 @@ class AppError extends Error {
         this.data = data
     }
 }
+// See: https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify/18391400#18391400
+if (!('toJSON' in AppError.prototype)){
+	Object.defineProperty(AppError.prototype, 'toJSON', {
+		value: function () {
+			var alt = {};
+
+			Object.getOwnPropertyNames(this).forEach(function (key) {
+				alt[key] = this[key];
+			}, this);
+
+			return alt;
+		},
+		configurable: true,
+		writable: true
+	});
+}
 
 // Export
 module.exports = {

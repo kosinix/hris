@@ -197,7 +197,7 @@ app.use(function (error, req, res, next) {
         if (/^\/api\//.test(req.originalUrl)) {
             console.error('/api error', error)
         }
-        return res.status(400).send(error.message)
+        return res.status(400).send(error.message) // KISS - return only plain text error message
     }
 
 

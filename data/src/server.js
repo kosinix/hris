@@ -12,7 +12,6 @@ const { Server } = require('socket.io')
 //// Modules
 const db = require('./db')
 const errors = require('./errors')
-const logger = require('./logger')
 const nunjucksEnv = require('./nunjucks-env')
 const routes = require('./routes')
 const session = require('./session')
@@ -181,17 +180,26 @@ io.on('connection', function (socket) {
 app.use(routes);
 
 // Error handler
-// XHR error handler (Ajax)
-// HTTP headers: {'X-Requested-With': 'XMLHttpRequest'}
+/**
+ * Handle error for Ajax requests (HTTP headers: {'X-Requested-With': 'XMLHttpRequest'})
+ * or
+ * If request urls start with /api
+ */
 app.use(function (error, req, res, next) {
     if (res.headersSent) { // Delegate to the default Express error handler, when the headers have already been sent to the client
         return next(error)
     }
-    if (req.xhr) {
-        console.error(error)
-        res.statusMessage = error.message
+
+    if (req.xhr || /^\/api\//.test(req.originalUrl)) {
+        if (req.xhr) {
+            console.error('req.xhr error', error)
+        }
+        if (/^\/api\//.test(req.originalUrl)) {
+            console.error('/api error', error)
+        }
         return res.status(400).send(error.message)
     }
+
 
     next(error)
 });
@@ -199,19 +207,16 @@ app.use(function (error, req, res, next) {
 app.use(function (error, req, res, next) {
     try {
         req.socket.on("error", function (err) {
-            logger.error(err);
+            console.error(err);
         });
         res.socket.on("error", function (err) {
-            logger.error(err);
+            console.error(err);
         });
 
         error = errors.normalizeError(error);
-        logger.error(req.originalUrl)
-        logger.error(error)
-
-        if (/^\/api\//.test(req.originalUrl)) {
-            return res.status(500).send('API error...');
-        }
+        console.error(req.originalUrl)
+        console.error(error)
+       
         if (/^\/register\//.test(req.originalUrl)) {
             return res.status(500).render('error-public.html', { error: error.message });
         }
@@ -221,8 +226,8 @@ app.use(function (error, req, res, next) {
     } catch (err) {
         // If an error handler had an error!! 
         error = errors.normalizeError(err);
-        logger.error(req.originalUrl)
-        logger.error(error)
+        console.error(req.originalUrl)
+        console.error(error)
         res.status(500).send('Unexpected error!');
     }
 });

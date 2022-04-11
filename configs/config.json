@@ -49,7 +49,12 @@
     "connections": {
       "admin": {
         "host": "127.0.0.1:27017",
-        "db": "admin"
+        "db": "admin",
+        "options": {
+          "useCreateIndex": true,
+          "useNewUrlParser": true,
+          "useUnifiedTopology": true
+        }
       },
       "main": {
         "host": "127.0.0.1:27017",

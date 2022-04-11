@@ -8,9 +8,8 @@ let cred = CRED.mongodb.connections.main
 let conf = CONFIG.mongodb.connections.main
 let opts = conf.options
 opts.promiseLibrary = Promise // Use ES6 Promise
-opts.retryWrites = false
 
-let main = mongoose.createConnection(`mongodb://${cred.username}:${cred.password}@${conf.host}/${conf.db}?retryWrites=false`, opts);
+let main = mongoose.createConnection(`mongodb://${cred.username}:${cred.password}@${conf.host}/${conf.db}`, opts);
 
 main.on('connected', () => {
     console.log('Database connected to', conf.host + '/' + conf.db);

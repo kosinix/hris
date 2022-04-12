@@ -191,13 +191,17 @@ app.use(function (error, req, res, next) {
     }
 
     if (req.xhr || /^\/api\//.test(req.originalUrl)) {
+        res.status(400)
+        let publicMessage = 'XHR Error...'
         if (req.xhr) {
-            console.error('req.xhr error', error)
+            console.log(publicMessage)
         }
         if (/^\/api\//.test(req.originalUrl)) {
-            console.error('/api error', error)
+            publicMessage = 'API Error...'
+            console.log(publicMessage)
         }
-        return res.status(400).send(error.message) // KISS - return only plain text error message
+        console.error(error)
+        return res.send(publicMessage)
     }
 
 

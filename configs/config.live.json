@@ -8,6 +8,11 @@
       "noCache": false
     }
   },
+  "mongodb": {
+    "dir": {
+      "bin": "/usr/bin"
+    }
+  },
   "aws": {
     "region": "ap-southeast-1",
     "bucket1": {

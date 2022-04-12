@@ -5,6 +5,8 @@
 //// Core modules
 const crypto = require('crypto');
 const url = require('url');
+const { promisify } = require('util');
+const execAsync = promisify(require('child_process').exec);
 
 //// External modules
 const express = require('express')
@@ -83,6 +85,27 @@ router.post('/api/login', async (req, res, next) => {
     }
 });
 
+router.get('/api/employees/export', async (req, res, next) => {
+    try {
+        if (req.query.key !== CRED.recaptchav3.secret) {
+            throw new Error('Not allowed.')
+        }
+
+        let collections = [
+            'employees', 'employments'
+        ].map((collection)=>{
+            return execAsync(`mongoexport --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@127.0.0.1:27017/hrmo?authSource=admin" --collection=${collection} --out=${CONFIG.app.dirs.upload}/${collection}.json --jsonArray --pretty`,
+            {
+                cwd: `${CONFIG.mongodb.dir.bin}`
+            })
+        })
+        let results = await Promise.all(collections)
+        // console.log(results)
+        res.send('Export done.')
+    } catch (err) {
+        next(err)
+    }
+});
 router.get('/api/employee/count', async (req, res, next) => {
     try {
         if (req.query.key !== CRED.recaptchav3.secret) {

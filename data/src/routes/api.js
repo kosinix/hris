@@ -103,20 +103,36 @@ router.get('/api/export', async (req, res, next) => {
             throw new Error('Collection invalid.')
         }
 
-        await execAsync(`mongoexport --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@127.0.0.1:27017/hrmo?authSource=admin" --collection=${collection} --out=${CONFIG.app.dirs.upload}/${collection}.json --jsonArray --pretty`,
+        await execAsync(`mongodump --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@${CONFIG.mongodb.connections.main.host}/${CONFIG.mongodb.connections.main.db}?authSource=admin" --collection=employees --out=${CONFIG.app.dirs.upload}/dbdump --gzip`,
+        {
+            cwd: `${CONFIG.mongodb.dir.bin}`
+        })
+        await execAsync(`mongodump --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@${CONFIG.mongodb.connections.main.host}/${CONFIG.mongodb.connections.main.db}?authSource=admin" --collection=employments --out=${CONFIG.app.dirs.upload}/dbdump --gzip`,
         {
             cwd: `${CONFIG.mongodb.dir.bin}`
         })
 
-        res.set('Content-Disposition', `attachment; filename="${collection}_${moment().format('YYYY-MM-DD')}.json"`)
-        res.set('Content-Type', 'application/json')
-        let buffer = await readFileAsync(`${CONFIG.app.dirs.upload}/${collection}.json`)
+        if(ENV === 'dev'){
+            await execAsync(`powershell.exe Compress-Archive ${CONFIG.app.dirs.upload}/dbdump/* ${CONFIG.app.dirs.upload}/dbdump.zip -Force`,{
+                cwd: `${CONFIG.app.dirs.upload}`
+            })
+        } else {
+            // Must run sudo apt-get install zip
+            await execAsync(`zip -r ${CONFIG.app.dirs.upload}/dbdump/ ${CONFIG.app.dirs.upload}/dbdump.zip`,{
+                cwd: `${CONFIG.app.dirs.upload}`
+            })
+        }
+
+        // res.send('Ok')
+        res.set('Content-Disposition', `attachment; filename="dbdump.zip"`)
+        res.set('Content-Type', 'application/zip')
+        let buffer = await readFileAsync(`${CONFIG.app.dirs.upload}/dbdump.zip`)
         res.send(buffer)
     } catch (err) {
         next(err)
     }
 });
-
+/*
 router.get('/api/import', async (req, res, next) => {
     try {
         if (req.query.key !== CRED.recaptchav3.secret) {
@@ -143,7 +159,7 @@ router.get('/api/import', async (req, res, next) => {
         next(err)
     }
 });
-
+*/
 router.get('/api/count', async (req, res, next) => {
     try {
         if (req.query.key !== CRED.recaptchav3.secret) {

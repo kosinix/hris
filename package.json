@@ -4,7 +4,7 @@
   "description": "HRIS",
   "main": "index.js",
   "scripts": {
-    "dev": "set NODE_ENV=dev&& nodemon --ignore data/view --ignore data/public --ignore data/log --ignore data/upload index.js",
+    "dev": "set NODE_ENV=dev&& nodemon --ignore data/view/ --ignore data/public/ --ignore data/log/ --ignore data/upload/ index.js",
     "postinstall": "node ./scripts/copy-front-js-css.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

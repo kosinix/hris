@@ -7,12 +7,14 @@ const crypto = require('crypto');
 const url = require('url');
 const { promisify } = require('util');
 const execAsync = promisify(require('child_process').exec);
+const readFileAsync = promisify(require('fs').readFile);
 
 //// External modules
+const axios = require('axios')
 const express = require('express')
 const jwt = require('jsonwebtoken')
 const lodash = require('lodash')
-const axios = require('axios')
+const moment = require('moment')
 
 //// Modules
 const AppError = require('../errors').AppError
@@ -26,7 +28,7 @@ const uploader = require('../uploader')
 // Router
 let router = express.Router()
 
-
+// Public API
 router.post('/api/login', async (req, res, next) => {
     try {
         if (ENV !== 'dev') await new Promise(resolve => setTimeout(resolve, 5000)) // Rate limit 
@@ -85,33 +87,84 @@ router.post('/api/login', async (req, res, next) => {
     }
 });
 
-router.get('/api/employees/export', async (req, res, next) => {
+router.get('/api/export', async (req, res, next) => {
     try {
         if (req.query.key !== CRED.recaptchav3.secret) {
             throw new Error('Not allowed.')
         }
+        if (!req.query.collection) {
+            throw new Error('Collection missing.')
+        }
+        let collection = req.query.collection
 
-        let collections = [
-            'employees', 'employments'
-        ].map((collection)=>{
-            return execAsync(`mongoexport --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@127.0.0.1:27017/hrmo?authSource=admin" --collection=${collection} --out=${CONFIG.app.dirs.upload}/${collection}.json --jsonArray --pretty`,
-            {
-                cwd: `${CONFIG.mongodb.dir.bin}`
-            })
+        // Prevent command injection
+        let allowedCollections = ['employees', 'employments']
+        if (!allowedCollections.includes(collection)) {
+            throw new Error('Collection invalid.')
+        }
+
+        await execAsync(`mongoexport --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@127.0.0.1:27017/hrmo?authSource=admin" --collection=${collection} --out=${CONFIG.app.dirs.upload}/${collection}.json --jsonArray --pretty`,
+        {
+            cwd: `${CONFIG.mongodb.dir.bin}`
         })
-        let results = await Promise.all(collections)
-        // console.log(results)
-        res.send('Export done.')
+
+        res.set('Content-Disposition', `attachment; filename="${collection}_${moment().format('YYYY-MM-DD')}.json"`)
+        res.set('Content-Type', 'application/json')
+        let buffer = await readFileAsync(`${CONFIG.app.dirs.upload}/${collection}.json`)
+        res.send(buffer)
     } catch (err) {
         next(err)
     }
 });
-router.get('/api/employee/count', async (req, res, next) => {
+
+router.get('/api/import', async (req, res, next) => {
     try {
         if (req.query.key !== CRED.recaptchav3.secret) {
             throw new Error('Not allowed.')
         }
-        let count = await db.main.Employee.count()
+        if (!req.query.collection) {
+            throw new Error('Collection missing.')
+        }
+        let collection = req.query.collection
+
+        // Prevent command injection
+        let allowedCollections = ['employees', 'employments']
+        if (!allowedCollections.includes(collection)) {
+            throw new Error('Collection invalid.')
+        }
+
+        let result = await execAsync(`mongoimport --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@127.0.0.1:27017/hrmo?authSource=admin" --collection=${collection}2 --file=${CONFIG.app.dirs.upload}/${collection}.json --jsonArray --drop`,
+        {
+            cwd: `${CONFIG.mongodb.dir.bin}`
+        })
+
+        res.send(result)
+    } catch (err) {
+        next(err)
+    }
+});
+
+router.get('/api/count', async (req, res, next) => {
+    try {
+        if (req.query.key !== CRED.recaptchav3.secret) {
+            throw new Error('Not allowed.')
+        }
+        if (!req.query.collection) {
+            throw new Error('Collection missing.')
+        }
+        let collection = req.query.collection
+
+        // Prevent command injection
+        let allowedCollections = ['employees', 'employments']
+        if (!allowedCollections.includes(collection)) {
+            throw new Error('Collection invalid.')
+        }
+        let count = 0
+        if(collection === 'employees'){
+            count = await db.main.Employee.count()
+        } else if(collection === 'employments'){
+            count = await db.main.Employment.count()
+        }
         return res.send({
             count: count
         })
@@ -119,47 +172,8 @@ router.get('/api/employee/count', async (req, res, next) => {
         next(err)
     }
 });
-router.get('/api/employment/count', async (req, res, next) => {
-    try {
-        if (req.query.key !== CRED.recaptchav3.secret) {
-            throw new Error('Not allowed.')
-        }
-        let count = await db.main.Employment.count()
-        return res.send({
-            count: count
-        })
-    } catch (err) {
-        next(err)
-    }
-});
 
-router.get('/api/employees', async (req, res, next) => {
-    try {
-        if (req.query.key !== CRED.recaptchav3.secret) {
-            throw new Error('Not allowed.')
-        }
-        let employees = await db.main.Employee.find()
-        res.set('Content-Disposition', `attachment; filename="employees.json"`)
-        res.set('Content-Type', 'application/json')
-        return res.json(employees)
-    } catch (err) {
-        next(err)
-    }
-});
-router.get('/api/employments', async (req, res, next) => {
-    try {
-        if (req.query.key !== CRED.recaptchav3.secret) {
-            throw new Error('Not allowed.')
-        }
-        let employments = await db.main.Employment.find()
-        res.set('Content-Disposition', `attachment; filename="employments.json"`)
-        res.set('Content-Type', 'application/json')
-        return res.json(employments)
-    } catch (err) {
-        next(err)
-    }
-});
-
+// API behind JWT
 router.use('/api', middlewares.api.requireJwt)
 
 router.get('/api/status', async (req, res, next) => {

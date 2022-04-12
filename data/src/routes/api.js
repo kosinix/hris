@@ -161,9 +161,9 @@ router.get('/api/count', async (req, res, next) => {
         }
         let count = 0
         if(collection === 'employees'){
-            count = await db.main.Employee.count()
+            count = await db.main.Employee.countDocuments()
         } else if(collection === 'employments'){
-            count = await db.main.Employment.count()
+            count = await db.main.Employment.countDocuments()
         }
         return res.send({
             count: count

@@ -108,7 +108,7 @@ router.get('/api/export', async (req, res, next) => {
             })
         } else {
             // Must run sudo apt-get install zip
-            await execAsync(`zip -r ${CONFIG.app.dirs.upload}/dbdump.zip ${CONFIG.app.dirs.upload}/dbdump`,{
+            await execAsync(`zip -r dbdump.zip dbdump`,{
                 cwd: `${CONFIG.app.dirs.upload}`
             })
         }

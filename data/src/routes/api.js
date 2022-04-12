@@ -92,16 +92,6 @@ router.get('/api/export', async (req, res, next) => {
         if (req.query.key !== CRED.recaptchav3.secret) {
             throw new Error('Not allowed.')
         }
-        if (!req.query.collection) {
-            throw new Error('Collection missing.')
-        }
-        let collection = req.query.collection
-
-        // Prevent command injection
-        let allowedCollections = ['employees', 'employments']
-        if (!allowedCollections.includes(collection)) {
-            throw new Error('Collection invalid.')
-        }
 
         await execAsync(`mongodump --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@${CONFIG.mongodb.connections.main.host}/${CONFIG.mongodb.connections.main.db}?authSource=admin" --collection=employees --out=${CONFIG.app.dirs.upload}/dbdump --gzip`,
         {

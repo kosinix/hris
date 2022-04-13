@@ -120,5 +120,6 @@ scripts/install-data/import.txt
 
 # scratch file
 scripts/scratch.js
+*.sh
 
 backlogs.*

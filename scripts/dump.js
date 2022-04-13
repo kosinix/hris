@@ -44,7 +44,8 @@ global.CRED = credLoader.getConfig()
     try {
         let result = await execAsync(`mongodump --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@${CONFIG.mongodb.connections.main.host}/${CONFIG.mongodb.connections.main.db}?authSource=admin" --out=${CONFIG.app.dirs.upload}/dbdump_${moment().format('YYYYMMDD')} --gzip`,
         {
-            cwd: `${CONFIG.mongodb.dir.bin}`
+            cwd: `${CONFIG.mongodb.dir.bin}`,
+            uid: 0 // sudo
         })
         console.log(result)
     } catch (err) {

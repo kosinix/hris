@@ -112,8 +112,7 @@ router.get('/registration/email', middlewares.guardRoute(['create_user']), async
             to: 'juan@example.com',
             firstName: 'Juan',
             username: username,
-            password: passwordMan.genPassword(8),
-            loginUrl: `${CONFIG.app.url}/login?username=${username}`,
+            password: passwordMan.genPassword(10),
             appUrl: `${CONFIG.app.url}`,
         });
     } catch (err) {
@@ -126,7 +125,7 @@ router.get('/registration/approve/:registrationId', middlewares.guardRoute(['cre
         let registration = res.registration
 
         let username = registration.userAccount.username
-        let password = passwordMan.genPassword(8)
+        let password = passwordMan.genPassword(10)
         let passwordHash = passwordMan.hashPassword(password, registration.userAccount.salt)
 
         await db.main.User.updateOne({ _id: registration.userAccount._id }, {
@@ -143,7 +142,7 @@ router.get('/registration/approve/:registrationId', middlewares.guardRoute(['cre
             firstName: registration.employee.firstName,
             username: username,
             password: password,
-            loginUrl: `${CONFIG.app.url}/login?username=${username}`
+            appUrl: `${CONFIG.app.url}`,
         }
 
         let info = await mailer.send('verified.html', data)

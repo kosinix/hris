@@ -107,7 +107,14 @@ router.get('/registration/all', middlewares.guardRoute(['read_all_user', 'read_u
 router.get('/registration/email', middlewares.guardRoute(['create_user']), async (req, res, next) => {
     try {
 
+        let username = 'juan.cruz'
         res.render('emails/verified.html', {
+            to: 'juan@example.com',
+            firstName: 'Juan',
+            username: username,
+            password: passwordMan.genPassword(8),
+            loginUrl: `${CONFIG.app.url}/login?username=${username}`,
+            appUrl: `${CONFIG.app.url}`,
         });
     } catch (err) {
         next(err);

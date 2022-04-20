@@ -1293,6 +1293,157 @@ router.get('/attendance/holiday/all', middlewares.guardRoute(['read_all_attendan
     }
 });
 
+router.get('/attendance/holiday/all-set-attendances', middlewares.guardRoute(['update_attendance']), async (req, res, next) => {
+    try {
+        // Get holidays
+        let year = lodash.get(req, 'query.year', moment().startOf('year').format('YYYY'))
+
+        let startMoment = moment().year(year).startOf('year')
+        let endMoment = moment().year(year).endOf('year')
+
+        if (!startMoment.isValid()) {
+            throw new Error(`Invalid start date.`)
+        }
+        if (!endMoment.isValid()) {
+            throw new Error(`Invalid end date.`)
+        }
+
+        if (endMoment.isBefore(startMoment)) {
+            throw new Error(`Invalid end date. Must not be less than the start date.`)
+        }
+
+        let aggr = [
+            {
+                $match: {
+                    date: { // event date
+                        $gte: startMoment.toDate(),
+                        $lte: endMoment.toDate(),
+                    }
+                }
+            },
+            {
+                $sort: {
+                    date: 1
+                }
+            }
+        ]
+        let holidays = await db.main.Holiday.aggregate(aggr)
+
+
+        // Permanent employees
+        let employments = await db.main.Employment.aggregate([
+            {
+                $match: {
+                    employmentType: 'permanent',
+                }
+            },
+            {
+                $lookup: {
+                    localField: 'employeeId',
+                    foreignField: '_id',
+                    from: 'employees',
+                    as: 'employees'
+                }
+            },
+            {
+                $addFields: {
+                    "employee": {
+                        $arrayElemAt: ["$employees", 0]
+                    }
+                }
+            },
+            {
+                $project: {
+                    employees: 0
+                }
+            }
+        ])
+        employments = employments.map((employment) => {
+            return {
+                _id: employment._id,
+                employeeId: employment.employeeId,
+            }
+        })
+
+        let holidayName = lodash.get(req, 'query.holiday', '')
+
+        let results = []
+        for (let x = 0; x < holidays.length; x++) {
+            let holiday = holidays[x]
+            if (holiday.name == holidayName) {
+                for (let e = 0; e < employments.length; e++) {
+                    let employment = employments[e]
+
+                    let attendances = await db.main.Attendance.find({
+                        type: 'holiday',
+                        employmentId: employment._id,
+                        createdAt: {
+                            $gte: moment(holiday.date).startOf('day').toDate(),
+                            $lte: moment(holiday.date).endOf('day').toDate(),
+                        }
+                    }).lean()
+
+                    // Insert if dont have holiday attendance
+                    if (attendances.length <= 0) {
+                        let att = await db.main.Attendance.create({
+                            "type": "holiday",
+                            "employeeId": employment.employeeId,
+                            "employmentId": employment._id,
+                            "logs": [],
+                            "changes": [],
+                            "comments": [],
+                            "createdAt": moment(holiday.date).startOf('day').toDate()
+                        })
+                        results.push(`Insert holiday "${holidayName}" attId:${att._id} for employmentId:${employment._id}, `)
+
+                    }
+
+                }
+            }
+        }
+
+        // let attendances = await db.main.Attendance.aggregate([
+        //     {
+        //         $match: {
+        //             type: 'holiday',
+        //             employmentId: {
+        //                 $in: employmentIds
+        //             },
+        //             createdAt: {
+        //                 $gte: moment(holiday.date).startOf('day').toDate(),
+        //                 $lte: moment(holiday.date).endOf('day').toDate(),
+        //             }
+        //         }
+        //     },
+        // ])
+
+        // attendances = attendances.filter((attendance)=>{
+        //     return attendance.employment.employmentType === 'permanent'
+        // })
+
+        return res.send(results)
+        // let data = {
+        //     flash: flash.get(req, 'attendance'),
+        //     holiday: holiday.toObject(),
+        // }
+
+        // let permanentStaff
+        // db.main.Attendance.create({
+        //     "_id": ObjectId("6257f9958c32966ae20b5d0c"),
+        //     "type": "holiday",
+        //     "employeeId": ObjectId("61513763e1d53f182a5d7b72"),
+        //     "employmentId": ObjectId("615137aeb78600185b6096af"),
+        //     "logs": [],
+        //     "changes": [],
+        //     "comments": [],
+        //     "createdAt": ISODate("2022-04-14T10:38:13.584Z")
+        // })
+        // // return res.send(data)
+        // res.render('attendance/holiday/set-attendances.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
 router.get('/attendance/holiday/create', middlewares.guardRoute(['create_attendance']), async (req, res, next) => {
     try {
         let data = {
@@ -1305,7 +1456,7 @@ router.get('/attendance/holiday/create', middlewares.guardRoute(['create_attenda
         next(err);
     }
 });
-router.post('/attendance/holiday', middlewares.guardRoute(['update_attendance']),  async (req, res, next) => {
+router.post('/attendance/holiday', middlewares.guardRoute(['update_attendance']), async (req, res, next) => {
     try {
         let body = lodash.get(req, 'body')
         // return res.send(body)
@@ -1368,13 +1519,13 @@ router.post('/attendance/holiday/:holidayId', middlewares.guardRoute(['update_at
 
         await db.main.Holiday.updateOne(
             {
-            _id: holiday._id
-            }, 
+                _id: holiday._id
+            },
             {
-            date: date,
-            name: lodash.trim(name),
-            type: type
-        }
+                date: date,
+                name: lodash.trim(name),
+                type: type
+            }
         )
 
         flash.ok(req, 'attendance', `${holiday.name} updated.`)
@@ -1383,6 +1534,7 @@ router.post('/attendance/holiday/:holidayId', middlewares.guardRoute(['update_at
         next(err);
     }
 });
+
 
 router.get('/attendance/calc', middlewares.guardRoute(['read_attendance']), async (req, res, next) => {
     try {

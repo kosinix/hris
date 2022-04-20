@@ -1271,6 +1271,11 @@ router.get('/attendance/holiday/all', middlewares.guardRoute(['read_all_attendan
                     }
                 }
             },
+            {
+                $sort: {
+                    date: 1
+                }
+            }
         ]
         let holidays = await db.main.Holiday.aggregate(aggr)
 

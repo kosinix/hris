@@ -1029,6 +1029,11 @@ router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_empl
             }
         })
 
+        if (employment.employmentType != 'permanent') {
+            flash.error(req, 'employee', `Only permanent employees can tap Holiday.`)
+            return res.redirect(`/e-profile/dtr/${employment._id}`)
+        }
+
         if (attendance && attendanceType != 'travel') {
             flash.error(req, 'employee', `You already have an attendance for today.`)
             return res.redirect(`/e-profile/dtr/${employment._id}`)

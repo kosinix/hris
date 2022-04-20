@@ -1,0 +1,53 @@
+{% extends "document-public.html" %}
+
+{% block body %}
+<div class="container container-first height-medium">
+    <div class="row">
+        <div class="col-md-6 ml-auto mr-auto pt-5 login-height mb-5">
+            <div class="login-form">
+                <div class="text-center position-relative mb-4">
+                    <img class="rotate" src="/images/logo-gear.png" alt="GSC Gear">
+                    <img class="position-relative" width="100" src="/images/logo-inner.png" alt="GSC Logo">
+                </div>
+                <h1 class="text-center h5 mb-2">Quick Start Guide</h1>
+                <p class="text-center mb-4 font-italic">Follow the steps below to access your HRIS account.</p>
+                <div class="p-2">
+                    <ol style="list-style-position: inside; padding:0">
+                        <li class="mb-3">Copy the link below: <br>
+                            <div class="input-group mb-2 mt-2">
+                                <input id="sharedUrl" type="text" readonly class="form-control" value="{{CONFIG.app.url}}/login?username={{username}}" />
+                                <div class="input-group-append">
+                                    <button id="copy" class="btn btn-secondary">Copy</button>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="mb-3">Open Google Chrome or Firefox and paste the link in the URL bar:
+                            <div class="text-center mb-3 mt-1"><img style="max-width:100%; border: 2px solid teal; border-radius: 10px" src="/images/start.gif" alt="screen record"></div>
+                        </li>
+                        <li class="mb-3">Copy the password from your HRIS email into the password field.</li>
+                        <li class="mb-0">Tap the Login button.</li>
+                    </ol>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{app.url}}/js/jquery.min.js"></script>
+{{ super() }}
+<script>
+    jQuery(document).ready(function ($) {
+        $('#sharedUrl').select()
+        $('#sharedUrl').on('focus', function(){
+            this.select()
+        })
+        $('#copy').on('click', function () {
+            $('#sharedUrl').select()
+            document.execCommand('copy');
+            alert('Link copied.')
+        });
+    })
+</script>
+{% endblock %}

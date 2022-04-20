@@ -16,6 +16,20 @@ const passwordMan = require('../password-man')
 // Router
 let router = express.Router()
 
+router.get('/start', async (req, res, next) => {
+    try {
+        if (lodash.get(req, 'session.authUserId')) {
+            return res.redirect(`/`)
+        }
+        let username = req.query.username
+        // console.log(req.session)
+        res.render('start.html', {
+            username: username
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 router.get('/login', async (req, res, next) => {
     try {
         if (lodash.get(req, 'session.authUserId')) {

@@ -1375,7 +1375,6 @@ router.get('/attendance/holiday/all-set-attendances', middlewares.guardRoute(['u
                     let employment = employments[e]
 
                     let attendances = await db.main.Attendance.find({
-                        type: 'holiday',
                         employmentId: employment._id,
                         createdAt: {
                             $gte: moment(holiday.date).startOf('day').toDate(),
@@ -1383,15 +1382,29 @@ router.get('/attendance/holiday/all-set-attendances', middlewares.guardRoute(['u
                         }
                     }).lean()
 
-                    // Insert if dont have holiday attendance
+                    // Insert if dont have attendance yet on holidate
+                    let momentNow = moment()
                     if (attendances.length <= 0) {
                         let att = await db.main.Attendance.create({
                             "type": "holiday",
                             "employeeId": employment.employeeId,
                             "employmentId": employment._id,
                             "logs": [],
-                            "changes": [],
-                            "comments": [],
+                            "changes": [{
+                                "summary" : `${res.user.username} inserted a new attendance.`,
+                                "objectId" : res.user._id,
+                                "createdAt" : momentNow.toDate()
+                            }, 
+                            {
+                                "summary" : `${res.user.username} inserted a new attendance.`,
+                                "objectId" : res.user._id,
+                                "createdAt" : momentNow.toDate()
+                            }],
+                            "comments": [{
+                                "summary" : `Set to Holiday.`,
+                                "objectId" : res.user._id,
+                                "createdAt" : momentNow.toDate()
+                            }],
                             "createdAt": moment(holiday.date).startOf('day').toDate()
                         })
                         results.push(`Insert holiday "${holidayName}" attId:${att._id} for employmentId:${employment._id}, `)

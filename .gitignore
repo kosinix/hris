@@ -120,6 +120,9 @@ scripts/install-data/import.txt
 
 # scratch file
 scripts/scratch.js
+
+# db export import
 *.sh
+dbrestore.txt
 
 backlogs.*

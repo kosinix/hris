@@ -384,29 +384,6 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
     }
 });
 
-router.get('/scanner/:scannerUid/ping', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, async (req, res, next) => {
-    let scanner = res.scanner
-
-    try {
-        // let now = moment().toISOString()
-
-       
-
-        if (scanner.refresh) {
-            scanner.refresh = false
-            await scanner.save()
-            return res.send('refreshing')
-
-        }
-        // console.log(scanner.name, 'pinged on', now)
-        res.send('')
-
-    } catch (err) {
-        next(err)
-    }
-});
-
-
 router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, middlewares.expandScanData, async (req, res, next) => {
     let scanner = res.scanner.toObject()
 

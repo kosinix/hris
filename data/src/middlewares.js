@@ -217,6 +217,14 @@ module.exports = {
                 next(err);
             }
         },
+        rateLimit: async (req, res, next) => {
+            try {
+                if (ENV !== 'dev') await new Promise(resolve => setTimeout(resolve, 5000)) // Rate limit if on live 
+                next();
+            } catch (err) {
+                next(err)
+            }
+        },
     },
     allowIp: allowIp,
     antiCsrfCheck: antiCsrfCheck,

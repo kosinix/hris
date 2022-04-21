@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const url = require('url');
 const { promisify } = require('util');
 const execAsync = promisify(require('child_process').exec);
+const rmAsync = promisify(require('fs').rm);
 const readFileAsync = promisify(require('fs').readFile);
 
 //// External modules
@@ -29,9 +30,8 @@ const uploader = require('../uploader')
 let router = express.Router()
 
 // Public API
-router.post('/api/login', async (req, res, next) => {
+router.post('/api/login', middlewares.api.rateLimit, async (req, res, next) => {
     try {
-        if (ENV !== 'dev') await new Promise(resolve => setTimeout(resolve, 5000)) // Rate limit 
 
         let post = req.body;
 
@@ -87,93 +87,77 @@ router.post('/api/login', async (req, res, next) => {
     }
 });
 
-router.get('/api/export', async (req, res, next) => {
+router.get('/api/export', middlewares.api.rateLimit, async (req, res, next) => {
     try {
         if (req.query.key !== CRED.recaptchav3.secret) {
             throw new Error('Not allowed.')
         }
 
-        await execAsync(`mongodump --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@${CONFIG.mongodb.connections.main.host}/${CONFIG.mongodb.connections.main.db}?authSource=admin" --collection=employees --out=${CONFIG.app.dirs.upload}/dbdump --gzip`,
-        {
-            cwd: `${CONFIG.mongodb.dir.bin}`
-        })
-        await execAsync(`mongodump --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@${CONFIG.mongodb.connections.main.host}/${CONFIG.mongodb.connections.main.db}?authSource=admin" --collection=employments --out=${CONFIG.app.dirs.upload}/dbdump --gzip`,
-        {
-            cwd: `${CONFIG.mongodb.dir.bin}`
-        })
+        let dumpDir = `dbdump`
+        let zipFile = `dbdump.zip`
 
-        if(ENV === 'dev'){
-            await execAsync(`powershell.exe Compress-Archive ${CONFIG.app.dirs.upload}/dbdump/* ${CONFIG.app.dirs.upload}/dbdump.zip -Force`,{
+        // Clear old files if present
+        let promises = [
+            rmAsync(`${CONFIG.app.dirs.upload}/${dumpDir}`, { recursive: true, force: true }),
+            rmAsync(`${CONFIG.app.dirs.upload}/${zipFile}`, { recursive: true, force: true })
+        ]
+        await Promise.all(promises)
+
+        await execAsync(`mongodump --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@${CONFIG.mongodb.connections.main.host}/${CONFIG.mongodb.connections.main.db}?authSource=admin" --collection=employees --out=${CONFIG.app.dirs.upload}/${dumpDir} --gzip`,
+            {
+                cwd: `${CONFIG.mongodb.dir.bin}`
+            })
+        await execAsync(`mongodump --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@${CONFIG.mongodb.connections.main.host}/${CONFIG.mongodb.connections.main.db}?authSource=admin" --collection=employments --out=${CONFIG.app.dirs.upload}/${dumpDir} --gzip`,
+            {
+                cwd: `${CONFIG.mongodb.dir.bin}`
+            })
+
+        if (ENV === 'dev') {
+            await execAsync(`powershell.exe Compress-Archive ${CONFIG.app.dirs.upload}/${dumpDir}/* ${CONFIG.app.dirs.upload}/${zipFile} -Force`, {
                 cwd: `${CONFIG.app.dirs.upload}`
             })
         } else {
             // Must run sudo apt-get install zip
-            await execAsync(`zip -FSr dbdump.zip dbdump`,{
+            await execAsync(`zip -FSr ${zipFile} ${dumpDir}`, {
                 cwd: `${CONFIG.app.dirs.upload}`
             })
         }
 
         // res.send('Ok')
-        res.set('Content-Disposition', `attachment; filename="dbdump.zip"`)
+        res.set('Content-Disposition', `attachment; filename="${zipFile}"`)
         res.set('Content-Type', 'application/zip')
-        let buffer = await readFileAsync(`${CONFIG.app.dirs.upload}/dbdump.zip`)
+        let buffer = await readFileAsync(`${CONFIG.app.dirs.upload}/${zipFile}`)
         res.send(buffer)
     } catch (err) {
         next(err)
     }
 });
-/*
-router.get('/api/import', async (req, res, next) => {
+
+router.get('/api/count', middlewares.api.rateLimit, async (req, res, next) => {
     try {
         if (req.query.key !== CRED.recaptchav3.secret) {
             throw new Error('Not allowed.')
         }
-        if (!req.query.collection) {
-            throw new Error('Collection missing.')
-        }
-        let collection = req.query.collection
 
-        // Prevent command injection
-        let allowedCollections = ['employees', 'employments']
-        if (!allowedCollections.includes(collection)) {
-            throw new Error('Collection invalid.')
+        let count = {
+            employees: 0,
+            employeeLastUpdatedAt: 0,
+            employments: 0,
+            employmentLastUpdatedAt: 0,
+            hash: 0,
         }
 
-        let result = await execAsync(`mongoimport --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@127.0.0.1:27017/hrmo?authSource=admin" --collection=${collection}2 --file=${CONFIG.app.dirs.upload}/${collection}.json --jsonArray --drop`,
-        {
-            cwd: `${CONFIG.mongodb.dir.bin}`
-        })
+        count.employees = await db.main.Employee.countDocuments()
+        count.employeeLastUpdatedAt = await db.main.Employee.findOne({}, { updatedAt: 1 }).sort({ updatedAt: -1 }).lean()
+        count.employeeLastUpdatedAt = JSON.parse(JSON.stringify(count.employeeLastUpdatedAt))
+        count.employeeLastUpdatedAt = lodash.get(count.employeeLastUpdatedAt, 'updatedAt', 0)
+        count.employments = await db.main.Employment.countDocuments()
+        count.employmentLastUpdatedAt = await db.main.Employment.findOne({}, { updatedAt: 1 }).sort({ updatedAt: -1 }).lean()
+        count.employmentLastUpdatedAt = JSON.parse(JSON.stringify(count.employmentLastUpdatedAt))
+        count.employmentLastUpdatedAt = lodash.get(count.employmentLastUpdatedAt, 'updatedAt', 0)
+        count.hash = `${count.employees}-${count.employeeLastUpdatedAt}-${count.employments}-${count.employmentLastUpdatedAt}`
 
-        res.send(result)
-    } catch (err) {
-        next(err)
-    }
-});
-*/
-router.get('/api/count', async (req, res, next) => {
-    try {
-        if (req.query.key !== CRED.recaptchav3.secret) {
-            throw new Error('Not allowed.')
-        }
-        if (!req.query.collection) {
-            throw new Error('Collection missing.')
-        }
-        let collection = req.query.collection
-
-        // Prevent command injection
-        let allowedCollections = ['employees', 'employments']
-        if (!allowedCollections.includes(collection)) {
-            throw new Error('Collection invalid.')
-        }
-        let count = 0
-        if(collection === 'employees'){
-            count = await db.main.Employee.countDocuments()
-        } else if(collection === 'employments'){
-            count = await db.main.Employment.countDocuments()
-        }
-        return res.send({
-            count: count
-        })
+        res.send(count)
     } catch (err) {
         next(err)
     }

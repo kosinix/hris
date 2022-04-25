@@ -3,19 +3,19 @@
  */
 
 //// Core modules
-const crypto = require('crypto');
-const url = require('url');
-const { promisify } = require('util');
-const execAsync = promisify(require('child_process').exec);
-const rmAsync = promisify(require('fs').rm);
-const readFileAsync = promisify(require('fs').readFile);
+const crypto = require('crypto')
+const url = require('url')
+const { promisify } = require('util')
+const execAsync = promisify(require('child_process').exec)
+const rmAsync = promisify(require('fs').rm)
+const readFileAsync = promisify(require('fs').readFile)
 
 //// External modules
 const axios = require('axios')
 const express = require('express')
+const fileUpload = require('express-fileupload')
 const jwt = require('jsonwebtoken')
 const lodash = require('lodash')
-const moment = require('moment')
 
 //// Modules
 const AppError = require('../errors').AppError
@@ -26,16 +26,38 @@ const jwtHelper = require('../jwt-helper')
 const passwordMan = require('../password-man')
 const uploader = require('../uploader')
 
+const getDiffHash = async (db) => {
+    let count = {
+        employees: 0,
+        employeeLastUpdatedAt: 0,
+        employments: 0,
+        employmentLastUpdatedAt: 0,
+        hash: 0,
+    }
+
+    count.employees = await db.main.Employee.countDocuments()
+    count.employeeLastUpdatedAt = await db.main.Employee.findOne({}, { updatedAt: 1 }).sort({ updatedAt: -1 }).lean()
+    count.employeeLastUpdatedAt = JSON.parse(JSON.stringify(count.employeeLastUpdatedAt))
+    count.employeeLastUpdatedAt = lodash.get(count.employeeLastUpdatedAt, 'updatedAt', 0)
+    count.employments = await db.main.Employment.countDocuments()
+    count.employmentLastUpdatedAt = await db.main.Employment.findOne({}, { updatedAt: 1 }).sort({ updatedAt: -1 }).lean()
+    count.employmentLastUpdatedAt = JSON.parse(JSON.stringify(count.employmentLastUpdatedAt))
+    count.employmentLastUpdatedAt = lodash.get(count.employmentLastUpdatedAt, 'updatedAt', 0)
+    return `${count.employees}-${count.employeeLastUpdatedAt}-${count.employments}-${count.employmentLastUpdatedAt}`
+}
+
 // Router
 let router = express.Router()
 
+router.use('/api', middlewares.api.rateLimit)
+
 // Public API
-router.post('/api/login', middlewares.api.rateLimit, async (req, res, next) => {
+router.post('/api/login', async (req, res, next) => {
     try {
 
-        let post = req.body;
+        let post = req.body
 
-        let username = lodash.get(post, 'username', '');
+        let username = lodash.get(post, 'username', '')
         let password = lodash.trim(lodash.get(post, 'password', ''))
         let recaptchaToken = lodash.trim(lodash.get(post, 'recaptchaToken', ''))
 
@@ -43,7 +65,7 @@ router.post('/api/login', middlewares.api.rateLimit, async (req, res, next) => {
         let params = new url.URLSearchParams({
             secret: CRED.recaptchav3.secret,
             response: recaptchaToken
-        });
+        })
         let response = await axios.post(`https://www.google.com/recaptcha/api/siteverify`, params.toString(), {
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
@@ -63,20 +85,20 @@ router.post('/api/login', middlewares.api.rateLimit, async (req, res, next) => {
         }
 
         if (!user.active) {
-            throw new Error('Your account is deactivated.');
+            throw new Error('Your account is deactivated.')
         }
 
         // Check password
-        let passwordHash = passwordMan.hashPassword(password, user.salt);
+        let passwordHash = passwordMan.hashPassword(password, user.salt)
         if (!crypto.timingSafeEqual(Buffer.from(passwordHash, 'utf8'), Buffer.from(user.passwordHash, 'utf8'))) {
-            throw new Error('Incorrect password.');
+            throw new Error('Incorrect password.')
         }
 
         let scanner = await db.main.Scanner.findOne({
             userId: user._id
         }).lean()
         if (!scanner) {
-            throw new Error('Your account dont have a scanner assigned.');
+            throw new Error('Your account dont have a scanner assigned.')
         }
 
         let payload = jwtHelper.createPayload(user, scanner)
@@ -85,94 +107,10 @@ router.post('/api/login', middlewares.api.rateLimit, async (req, res, next) => {
     } catch (err) {
         next(err)
     }
-});
+})
 
-router.get('/api/export', middlewares.api.rateLimit, async (req, res, next) => {
-    try {
-        if (req.query.key !== CRED.recaptchav3.secret) {
-            throw new Error('Not allowed.')
-        }
-
-        let dumpDir = `dbdump`
-        let zipFile = `dbdump.zip`
-
-        // Clear old files if present
-        let promises = [
-            rmAsync(`${CONFIG.app.dirs.upload}/${dumpDir}`, { recursive: true, force: true }),
-            rmAsync(`${CONFIG.app.dirs.upload}/${zipFile}`, { recursive: true, force: true })
-        ]
-        await Promise.all(promises)
-
-        await execAsync(`mongodump --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@${CONFIG.mongodb.connections.main.host}/${CONFIG.mongodb.connections.main.db}?authSource=admin" --collection=employees --out=${CONFIG.app.dirs.upload}/${dumpDir} --gzip`,
-            {
-                cwd: `${CONFIG.mongodb.dir.bin}`
-            })
-        await execAsync(`mongodump --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@${CONFIG.mongodb.connections.main.host}/${CONFIG.mongodb.connections.main.db}?authSource=admin" --collection=employments --out=${CONFIG.app.dirs.upload}/${dumpDir} --gzip`,
-            {
-                cwd: `${CONFIG.mongodb.dir.bin}`
-            })
-
-        if (ENV === 'dev') {
-            await execAsync(`powershell.exe Compress-Archive ${CONFIG.app.dirs.upload}/${dumpDir}/* ${CONFIG.app.dirs.upload}/${zipFile} -Force`, {
-                cwd: `${CONFIG.app.dirs.upload}`
-            })
-        } else {
-            // Must run sudo apt-get install zip
-            await execAsync(`zip -FSr ${zipFile} ${dumpDir}`, {
-                cwd: `${CONFIG.app.dirs.upload}`
-            })
-        }
-
-        // res.send('Ok')
-        res.set('Content-Disposition', `attachment; filename="${zipFile}"`)
-        res.set('Content-Type', 'application/zip')
-        let buffer = await readFileAsync(`${CONFIG.app.dirs.upload}/${zipFile}`)
-        res.send(buffer)
-    } catch (err) {
-        next(err)
-    }
-});
-
-router.get('/api/count', middlewares.api.rateLimit, async (req, res, next) => {
-    try {
-        if (req.query.key !== CRED.recaptchav3.secret) {
-            throw new Error('Not allowed.')
-        }
-
-        let count = {
-            employees: 0,
-            employeeLastUpdatedAt: 0,
-            employments: 0,
-            employmentLastUpdatedAt: 0,
-            hash: 0,
-        }
-
-        count.employees = await db.main.Employee.countDocuments()
-        count.employeeLastUpdatedAt = await db.main.Employee.findOne({}, { updatedAt: 1 }).sort({ updatedAt: -1 }).lean()
-        count.employeeLastUpdatedAt = JSON.parse(JSON.stringify(count.employeeLastUpdatedAt))
-        count.employeeLastUpdatedAt = lodash.get(count.employeeLastUpdatedAt, 'updatedAt', 0)
-        count.employments = await db.main.Employment.countDocuments()
-        count.employmentLastUpdatedAt = await db.main.Employment.findOne({}, { updatedAt: 1 }).sort({ updatedAt: -1 }).lean()
-        count.employmentLastUpdatedAt = JSON.parse(JSON.stringify(count.employmentLastUpdatedAt))
-        count.employmentLastUpdatedAt = lodash.get(count.employmentLastUpdatedAt, 'updatedAt', 0)
-        count.hash = `${count.employees}-${count.employeeLastUpdatedAt}-${count.employments}-${count.employmentLastUpdatedAt}`
-
-        res.send(count)
-    } catch (err) {
-        next(err)
-    }
-});
-
-// API behind JWT
+// API protected by JWT
 router.use('/api', middlewares.api.requireJwt)
-
-router.get('/api/status', async (req, res, next) => {
-    try {
-        res.send('online')
-    } catch (err) {
-        next(err);
-    }
-});
 
 router.post('/api/scanner/scan', middlewares.api.expandScanData, async (req, res, next) => {
     try {
@@ -192,7 +130,7 @@ router.post('/api/scanner/scan', middlewares.api.expandScanData, async (req, res
                         photos: [file]
                     }
                     let localFiles = await uploader.handleExpressUploadLocalAsync(files, CONFIG.app.dirs.upload)
-                    let imageVariants = await uploader.resizeImagesAsync(localFiles, null, CONFIG.app.dirs.upload); // Resize uploaded images
+                    let imageVariants = await uploader.resizeImagesAsync(localFiles, null, CONFIG.app.dirs.upload) // Resize uploaded images
 
                     let uploadList = uploader.generateUploadList(imageVariants, localFiles)
                     saveList = uploader.generateSaveList(imageVariants, localFiles)
@@ -249,8 +187,93 @@ router.post('/api/scanner/scan', middlewares.api.expandScanData, async (req, res
     } catch (err) {
         next(err)
     }
-});
+})
+
+router.get('/api/status', async (req, res, next) => {
+    try {
+        res.send('online')
+    } catch (err) {
+        next(err)
+    }
+})
+
+// Protected by API secret
+// Export employee and attendance
+router.get('/api/export', middlewares.api.requireApiKey, async (req, res, next) => {
+    try {
+
+        let dumpDir = `dbdump`
+        let zipFile = `dbdump.zip`
+
+        let myHash = await getDiffHash(db)
+        console.log(req.query.hash, myHash)
+        if(req.query.hash === myHash){
+            throw new Error('No difference. Abort download.')
+        }
+        
+        // Clear old files if present
+        await Promise.all([
+            rmAsync(`${CONFIG.app.dirs.upload}/${dumpDir}`, { recursive: true, force: true }),
+            rmAsync(`${CONFIG.app.dirs.upload}/${zipFile}`, { recursive: true, force: true })
+        ])
+
+        await execAsync(`mongodump --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@${CONFIG.mongodb.connections.main.host}/${CONFIG.mongodb.connections.main.db}?authSource=admin" --collection=employees --out=${CONFIG.app.dirs.upload}/${dumpDir} --gzip`, {
+            cwd: `${CONFIG.mongodb.dir.bin}`
+        })
+        await execAsync(`mongodump --uri="mongodb://${CRED.mongodb.connections.admin.username}:${CRED.mongodb.connections.admin.password}@${CONFIG.mongodb.connections.main.host}/${CONFIG.mongodb.connections.main.db}?authSource=admin" --collection=employments --out=${CONFIG.app.dirs.upload}/${dumpDir} --gzip`, {
+            cwd: `${CONFIG.mongodb.dir.bin}`
+        })
+
+        if (ENV === 'dev') {
+            await execAsync(`powershell.exe Compress-Archive ${CONFIG.app.dirs.upload}/${dumpDir}/* ${CONFIG.app.dirs.upload}/${zipFile} -Force`, {
+                cwd: `${CONFIG.app.dirs.upload}`
+            })
+        } else {
+            // Must run sudo apt-get install zip
+            await execAsync(`zip -FSr ${zipFile} ${dumpDir}`, {
+                cwd: `${CONFIG.app.dirs.upload}`
+            })
+        }
+
+        // res.send('Ok')
+        res.set('Content-Disposition', `attachment; filename="${zipFile}"`)
+        res.set('Content-Type', 'application/zip')
+        let buffer = await readFileAsync(`${CONFIG.app.dirs.upload}/${zipFile}`)
+        res.send(buffer)
+    } catch (err) {
+        res.status(400).send(err.message)
+    }
+})
+
+// Receive uploaded attendance file
+router.post('/api/import', middlewares.api.requireApiKey, fileUpload(), async (req, res, next) => {
+    try {
+
+        let jsonFile = `attendanceexport.json`
+
+        // Move to upload dir
+        let files = lodash.get(req, 'files', [])
+        let localFiles = await uploader.handleExpressUploadLocalAsync(files, CONFIG.app.dirs.upload, ['application/json'], () => `${jsonFile}`)
+
+        // Import to hrmo db
+        await execAsync(`mongoimport --uri="mongodb://${CRED.mongodb.connections.main.username}:${CRED.mongodb.connections.main.password}@${CONFIG.mongodb.connections.main.host}/${CONFIG.mongodb.connections.main.db}?authSource=hrmo" --collection="attendanceofflines" --file=${CONFIG.app.dirs.upload}/${jsonFile} --jsonArray`,
+            {
+                cwd: `${CONFIG.mongodb.dir.bin}`
+            }
+        )
+
+        // Cleanup files when done
+        await Promise.all([
+            rmAsync(`${CONFIG.app.dirs.upload}/${jsonFile}`, { recursive: true, force: true }),
+        ])
+
+        res.send({
+            localFiles: localFiles,
+        })
+    } catch (err) {
+        next(err)
+    }
+})
 
 
-
-module.exports = router;
+module.exports = router

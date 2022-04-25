@@ -201,7 +201,7 @@ app.use(function (error, req, res, next) {
             console.log(publicMessage)
         }
         console.error(error)
-        return res.send(publicMessage)
+        return res.send(error.message)
     }
 
 

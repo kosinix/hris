@@ -161,6 +161,17 @@ module.exports = {
                 next(err)
             }
         },
+        requireApiKey: async (req, res, next) => {
+            try {
+                if (req.query.key !== CRED.api.secret) {
+                    throw new Error('Not allowed. API keys dont match.')
+                }
+        
+                next()
+            } catch (err) {
+                next(err)
+            }
+        },
         expandScanData: async (req, res, next) => {
             try {
                 let jwtDecoded = res.jwtDecoded
@@ -173,7 +184,7 @@ module.exports = {
                     })
                 }
                 code = code.trim()
-                console.log(code, code.length)
+                // console.log(code, code.length)
                 if (code.length !== 10) { // Plain number
                     throw new AppError('Sorry, invalid RFID number.', {
                         scanner: scanner,

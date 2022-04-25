@@ -217,6 +217,12 @@ app.use(function (error, req, res, next) {
             console.error(err);
         });
 
+        if (error.type === 'flash') {
+            if(error.redirect){
+                return res.status(400).redirect(error.redirect)
+            }
+        }
+
         error = errors.normalizeError(error);
         console.error(req.originalUrl)
         console.error(error)

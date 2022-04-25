@@ -231,6 +231,18 @@ const ROLES = [
             'read_attendance',
         ]
     },
+    {
+        key: 'records',
+        name: 'Records Staff',
+        description: 'Can create memo.',
+        permissions: [
+            'read_all_memo',
+            'create_memo',
+            'read_memo',
+            'update_memo',
+            'delete_memo',
+        ]
+    },
 ]
 
 module.exports = ROLES

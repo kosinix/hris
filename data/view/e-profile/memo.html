@@ -23,6 +23,16 @@
                 {% include 'parts/form-per-page.html' %}
             </div>
         </div>
+        <div id="vApp" v-cloak class="mb-3">
+            <autocomplete ref="autocomplete"
+                placeholder="Search memo..."
+                :source="dataSource"
+                v-on:selected="onSelect"
+                v-on:clear="onClear"
+                input-class="form-control"
+                v-bind:request-headers="headers"
+            ></autocomplete>
+        </div>
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
@@ -66,5 +76,44 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
+<script src="{{app.url}}/js/vuejs-auto-complete.js"></script>
+<script src="{{app.url}}/js/vuejs-auto-complete-extend.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            window.vueJsAutoCompleteExtendMixin,
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        data: {
+            
+        },
+        computed: {
+           
+        },
+        validations: {
+            
+        },
+
+        methods: {
+            onSelect: function(o){
+               
+                window.location.replace('/e-profile/memo/' + o.value);
+                this.$refs.autocomplete.close();
+                this.$refs.autocomplete.clear();
+            },
+            onClear: function(o){
+            },
+            dataSource: function(input) {
+                return '/auto-complete/search-memo?s=' + input
+            },
+        }
+    });
+</script>
 {% endblock %}
 

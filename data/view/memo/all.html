@@ -4,10 +4,10 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h2">All Office Issuances</h1>
+            <h1 class="h3">All Office Issuances</h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
-            
+            <a href="/memo/create" class="btn btn-sm btn-outline-primary">Post Memo</a>
         </div>
     </div>
     {% include 'parts/flash.html' %}
@@ -60,47 +60,6 @@
         </div>
     {% endif %}
     
-    <hr>
-
-    <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/memo" method="POST" class="form-default">
-        <h3>Add Memo</h3>
-    
-        <div class="form-group">
-            <label for="number">Memo No.</label>
-            <div>
-                <input name="number" id="number" v-model="number" type="number" class="form-control">
-                <small class="invalid-feedback">${getError('number')}</small>
-            </div>
-        </div>
-
-
-        <div class="form-group">
-            <label for="subject">Subject</label>
-            <div>
-                <textarea name="subject" v-bind:id="subject" v-model="subject" class="form-control" rows="5"></textarea>
-                <small class="invalid-feedback">${getError('subject')}</small>
-            </div>
-        </div>
-
-        {% set name = 'date' %}
-        {% set label = 'Date Issued' %}
-        {% include 'parts/form-group-date.html' %}
-        {% set label = '' %}
-
-        <div class="form-group">
-            <label for="url">Link to Google Drive</label>
-            <div>
-                <input v-on:blur="format" name="url" id="url" v-model="url" type="text" class="form-control">
-                <small class="invalid-feedback">${getError('url')}</small>
-            </div>
-        </div>
-
-        <div class="form-row pt-3 pb-3">
-            <div class="col-md-12">
-                <button class="btn btn-primary">Add Memo</button>
-            </div>
-        </div>
-    </form>
 </div>
 {% endblock %}
 {% block scripts %}

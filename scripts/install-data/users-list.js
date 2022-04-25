@@ -99,5 +99,17 @@ module.exports = [
         "username" : "gsc.clinic",
         "active" : true,
         permissions: [],
+    },
+    {
+        "roles" : [
+            "records"
+        ],
+        "firstName" : "Sol",
+        "middleName" : "M",
+        "lastName" : "Basanes",
+        "email" : "sol.basanes@gsc.edu.ph",
+        "username" : "sol.basanes",
+        "active" : true,
+        "permissions": [],
     }
 ]

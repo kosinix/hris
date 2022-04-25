@@ -141,7 +141,7 @@ router.get('/auto-complete/address', async (req, res, next) => {
 
 // Limit by permissions
 // Get employment given search string
-router.get('/auto-complete/employee', middlewares.guardRoute(['read_all_employee', 'read_employee', 'can_register_rfid'], 'or'), async (req, res, next) => {
+router.get('/auto-complete/employee', middlewares.guardRoute(['read_all_employee', 'read_employee', 'can_register_rfid', 'read_memo'], 'or'), async (req, res, next) => {
     try {
         let search = lodash.get(req, 'query.s', '')
         let showSalary = lodash.get(req, 'query.salary', 1)
@@ -260,10 +260,11 @@ router.get('/auto-complete/employee', middlewares.guardRoute(['read_all_employee
         next(err);
     }
 });
-router.get('/auto-complete/employee-list', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+router.get('/auto-complete/employee-list', middlewares.guardRoute(['read_all_employee', 'read_employee', 'read_memo'], 'or'), async (req, res, next) => {
     try {
         let search = lodash.get(req, 'query.s', '')
         let ignore = lodash.get(req, 'query.ignore', '')
+        let tags = lodash.get(req, 'query.tags', '')
 
         let words = lodash.trim(search)
         if (words) {
@@ -277,6 +278,11 @@ router.get('/auto-complete/employee-list', middlewares.guardRoute(['read_all_emp
         if (ignore) {
             query['_id'] = {
                 $nin: ignore.split(',').map(id => new db.mongoose.Types.ObjectId(id))
+            }
+        }
+        if (tags) {
+            query['tags'] = {
+                $in: tags.split(',')
             }
         }
         if (words) {
@@ -300,6 +306,57 @@ router.get('/auto-complete/employee-list', middlewares.guardRoute(['read_all_emp
             return {
                 id: employeeList._id,
                 name: employeeList.name + ' - ' + employeeList.tags.join(', ')
+            }
+        })
+
+        res.send(results)
+
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/auto-complete/search-memo', middlewares.guardRoute(['read_memo', 'use_employee_profile'], 'or'), async (req, res, next) => {
+    try {
+        let search = lodash.get(req, 'query.s', '')
+        let ignore = lodash.get(req, 'query.ignore', '')
+
+        let words = lodash.trim(search)
+        if (words) {
+            words = new RegExp(words, "i")
+        }
+        // console.log(words)
+
+        let query = {}
+
+        // Ignore employments with these IDs
+        if (ignore) {
+            query['_id'] = {
+                $nin: ignore.split(',').map(id => new db.mongoose.Types.ObjectId(id))
+            }
+        }
+        
+        if (words) {
+            query['subject'] = words
+        }
+
+        // console.log(util.inspect(query, false, null, true /* enable colors */))
+        let aggr = []
+
+        // Our search query
+        aggr.push({ $match: query })
+
+        // Limit to 10 results only to reduce http load
+        aggr.push({ $limit: 10 })
+
+
+        let memos = await db.main.Memo.aggregate(aggr)
+        // console.log(util.inspect(aggr, false, null, true /* enable colors */))
+
+        let results = memos.map((memo, i) => {
+            return {
+                id: memo._id,
+                name: memo.subject
             }
         })
 

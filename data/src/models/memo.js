@@ -20,6 +20,17 @@ let schema = mongoose.Schema({
     date: {
         $type: Date
     },
+    visibility: {
+        $type: String,
+        default: ''
+    },
+    members: [
+        {
+            objectId: mongoose.Schema.Types.ObjectId, // can be id of employment, or list
+            name: String,
+            type: String, // "employment", "list"
+        }
+    ],
 }, {timestamps: true, typeKey: '$type'})
 
 //// Instance methods

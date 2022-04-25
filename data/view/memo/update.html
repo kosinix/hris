@@ -1,0 +1,202 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Edit Office Issuance (Memo)</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/memo/{{memo._id}}/edit" method="POST" class="form-default">
+    
+        <div class="form-group">
+            <label for="number">Memo No.</label>
+            <div>
+                <input v-model="number" name="number" id="number" type="number" class="form-control">
+                <small class="invalid-feedback">${getError('number')}</small>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="subject">Subject</label>
+            <div>
+                <textarea v-model="subject" name="subject" id="subject" class="form-control" rows="5"></textarea>
+                <small class="invalid-feedback">${getError('subject')}</small>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="date">Date Issued</label>
+            <div>
+                <input v-model="date" name="date" id="date" type="date" class="form-control">
+                <small class="invalid-feedback">${getError('date')}</small>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="url">Link to Google Drive</label>
+            <div>
+                <input v-on:blur="format" name="url" id="url" v-model="url" type="text" class="form-control">
+                <small class="invalid-feedback">${getError('url')}</small>
+            </div>
+        </div>
+
+        <div class="visibility">
+            <div class="form-group">
+                <label for="roles">Visible to:</label>
+                <div>
+                    <select v-model="visibility" name="visibility" id="visibility" class="">
+                        <option value="">All</option>
+                        <option value="members">Selected Employees Only</option>
+                    </select>
+                    <small class="invalid-feedback">${getError('visibility')}</small>
+
+                    <div v-if="visibility" class="p-3">
+                        <div class="d-flex align-items-center">
+                            <autocomplete ref="autocomplete"
+                                placeholder="Type employee name..."
+                                :source="dataSource"
+                                v-on:selected="onSelect"
+                                v-on:clear="onClear"
+                                input-class="form-control"
+                                v-bind:request-headers="headers"
+                            ></autocomplete>
+                            <div class="ml-2 mr-2"> or </div>
+                            <autocomplete ref="autocomplete2"
+                                placeholder="Type list name..."
+                                :source="dataSource2"
+                                v-on:selected="onSelect2"
+                                v-on:clear="onClear2"
+                                input-class="form-control"
+                                v-bind:request-headers="headers"
+                            ></autocomplete>
+                        </div>
+
+                        <div class="p-1" style="max-height: 100px; overflow-y: scroll;">
+                            <div class="d-flex flex-wrap">
+                                <div v-for="(member, i) in members" class="border border-secondary rounded p-1 m-1">${member.name} <div v-on:click="deleteMember(i)" class="btn btn-sm btn-danger">X</div></div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="memberIds" v-model="memberIds">
+                        <small class="invalid-feedback">${getError('memberIds')}</small>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row pt-3 pb-4">
+            <div class="col-md-4"></div>
+            <div class="col-md-4 order-md-1 mb-3 mb-md-0">
+                <button class="btn btn-block btn-primary">Update</button>
+            </div>
+            <div class="col-md-4 order-md-0">
+                <a href="/memo/all" class="btn btn-block btn-light">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vuejs-auto-complete.js"></script>
+<script src="{{app.url}}/js/vuejs-auto-complete-extend.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            window.vueJsAutoCompleteExtendMixin,
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        data: {
+            number: '{{memo.number}}',
+            subject: '{{memo.subject}}',
+            date: '{{memo.date|format_date("YYYY-MM-DD")}}',
+            url: '{{memo.url}}',
+            visibility: '{{memo.visibility}}',
+            members: {{members|default([], true)|stringify|safe}},
+        },
+        computed: {
+            memberIds: function(){
+                var me = this;
+                return _.map(me.members, function(member){
+                    return member.objectId;
+                })
+            }
+        },
+        validations: {
+            number: {
+                required: window.validators.required
+            },
+            subject: {
+                required: window.validators.required
+            },
+            date: {
+                required: window.validators.required
+            },
+            url: {
+                required: window.validators.required
+            },
+        },
+
+        methods: {
+            format: function(value){
+                this.url = this.url.replace(/\/view\?usp=sharing$/, '/preview')
+            },
+            
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            },
+             deleteMember: function(x){
+                this.$delete(this.members, x)
+            },
+            onSelect: function(o){
+                this.members.push({
+                    objectId: o.value,
+                    name: o.display,
+                });
+                this.$refs.autocomplete.close();
+                this.$refs.autocomplete.clear();
+            },
+            onClear: function(o){
+            },
+            dataSource: function(input) {
+                return '/auto-complete/employee?salary=0&s=' + input + '&ignore=' + this.memberIds.join(',');
+            },
+
+            onSelect2: function(o){
+                this.members.push({
+                    objectId: o.value,
+                    name: o.display,
+                });
+                this.$refs.autocomplete2.close();
+                this.$refs.autocomplete2.clear();
+            },
+            onClear2: function(o){
+            },
+            dataSource2: function(input) {
+                return '/auto-complete/employee-list?s=' + input + '&ignore=' + this.memberIds.join(',') + '&tags=Employment';
+            },
+        }
+    });
+</script>
+{% endblock %}
+

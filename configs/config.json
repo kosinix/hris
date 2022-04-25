@@ -13,6 +13,10 @@
       "upload": "${APP_DIR}/data/upload"
     }
   },
+  "school": {
+    "name": "Guimaras State College",
+    "acronym": "GSC"
+  },
   "socketio": {
     "cors": {
       "origin": "https://scanner.localhost:9095"

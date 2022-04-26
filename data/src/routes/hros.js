@@ -525,6 +525,17 @@ router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile'])
             throw new Error('You have already logged.')
         }
 
+        let { weekDay, hour, minute } = CONFIG.hros.flagRaising.end
+
+        if (momentNow.format('ddd') !== weekDay) {
+            throw new Error('There is no flag raising today.')
+        }
+
+        let momentFlagEnd = moment().hours(hour).minutes(minute)
+        if (momentNow.isAfter(momentFlagEnd)) {
+            throw new Error('The flag ceremony ended ' + momentFlagEnd.fromNow())
+        }
+
 
         let data = {
             title: 'Human Resource Online Services (HROS) - Flag',
@@ -584,6 +595,17 @@ router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), 
         }).lean()
         if (attendance) {
             throw new Error('You have already logged.')
+        }
+
+        let { weekDay, hour, minute } = CONFIG.hros.flagRaising.end
+
+        if (momentNow.format('ddd') !== weekDay) {
+            throw new Error('There is no flag raising today.')
+        }
+
+        let momentFlagEnd = moment().hours(hour).minutes(minute)
+        if (momentNow.isAfter(momentFlagEnd)) {
+            throw new Error('The flag ceremony ended ' + momentFlagEnd.fromNow())
         }
 
         // Photo

@@ -137,6 +137,10 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             flash.error(req, 'hros', 'Invalid period of travel. Please check your "To" and "From" dates.')
             return res.redirect('/hros/at/create')
         }
+        if (moment(body.periodOfTravelEnd).diff(moment(body.periodOfTravel), 'days') > 60) {
+            flash.error(req, 'hros', 'Invalid period of travel. Duration exceeded 60 days.')
+            return res.redirect('/hros/at/create')
+        }
         if (lodash.toString(body.natureOfBusiness).length > 180) {
             flash.error(req, 'hros', 'Nature Of Business must not exceed 180 characters.')
             return res.redirect('/hros/at/create')

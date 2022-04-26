@@ -2,27 +2,18 @@
 
 //// External modules
 const express = require('express')
-const fileUpload = require('express-fileupload')
 const flash = require('kisapmata')
 const lodash = require('lodash')
 const moment = require('moment')
-const momentRange = require('moment-range')
-const momentExt = momentRange.extendMoment(moment)
-const qr = require('qr-image')
 
 //// Modules
 const db = require('../db');
-const dtrHelper = require('../dtr-helper');
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
 const passwordMan = require('../password-man');
-const nunjucksEnv = require('../nunjucks-env');
 const paginator = require('../paginator');
-const suffixes = require('../suffixes');
-const s3 = require('../aws-s3');
 const { AppError } = require('../errors');
 const uploader = require('../uploader');
-const workScheduler = require('../work-scheduler');
 
 // Router
 let router = express.Router()
@@ -141,8 +132,6 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
         let user = res.user.toObject()
         let body = req.body
 
-
-
         // return res.send(body)
         if (moment(body.periodOfTravelEnd).isBefore(moment(body.periodOfTravel))) {
             flash.error(req, 'hros', 'Invalid period of travel. Please check your "To" and "From" dates.')
@@ -183,14 +172,38 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             return res.redirect('/hros/at/create')
         }
 
+        // Latest Authority to Travel
+        let latest = await db.main.AuthorityToTravel.findOne({
+            periodOfTravel: {
+                $gte: moment().startOf('month').toDate(),
+            },
+            periodOfTravelEnd: {
+                $lte: moment().endOf('month').toDate(),
+            }
+        }).sort({
+            createdAt: -1
+        })
+
+        let generateControlNumber = (controlNumber) => {
+            controlNumber = controlNumber.replace(' (Online)', '')
+            let counter = parseInt(controlNumber.split('-')[2]) // Split '2022-01-002' and get '002' as 2
+            counter++ // increment
+            counter = new String(counter) // Convert to string
+            return moment().format('YY-MM-') + counter.padStart(3, '0') + ' (Online)'
+        }
+
+        let controlNumber = `${moment().format('YY-MM')}-001 (Online)`
+        if (latest) {
+            controlNumber = generateControlNumber(latest.controlNumber)
+        }
 
         let at = await db.main.AuthorityToTravel.create({
             employeeId: employee._id,
             employmentId: employment._id,
-            status: 1,
+            status: 2, // 1 pending, 2 approved
             periodOfTravel: moment(body.periodOfTravel).toDate(),
             periodOfTravelEnd: moment(body.periodOfTravelEnd).toDate(),
-            controlNumber: '',
+            controlNumber: controlNumber,
             data: {
                 designation: body.designation,
                 officialStation: body.officialStation,
@@ -203,73 +216,46 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             }
         })
 
-        if (lodash.get(body, 'autoset', false)) {
-            let a = body.periodOfTravel
-            let b = body.periodOfTravelEnd
-            // If you want an inclusive end date (fully-closed interval)
-            for (var m = moment(a); m.diff(b, 'days') <= 0; m.add(1, 'days')) {
-                // console.log(m.format('YYYY-MM-DD'));
-                let attendance = {
-                    employeeId: employee._id,
-                    employmentId: employment._id,
-                    type: 'travel',
-                    workScheduleId: employment.workScheduleId,
-                    createdAt: m.toDate(),
-                    logs: [],
-                    changes: [],
-                    comments: [],
-                }
-                let date = m.toDate()
-                attendance.changes.push({
-                    summary: `${user.username} inserted a new attendance.`,
-                    objectId: user._id,
-                    createdAt: date
-                })
-                attendance.changes.push({
-                    summary: `${user.username} added a new comment.`,
-                    objectId: user._id,
-                    createdAt: date
-                })
-                attendance.comments.push({
-                    summary: `Nature of business: ${at.data.natureOfBusiness}`,
-                    objectId: user._id,
-                    createdAt: date
-                })
-                await db.main.Attendance.create(attendance)
+        // Set given dates to travel
+        let a = body.periodOfTravel
+        let b = body.periodOfTravelEnd
+        // If you want an inclusive end date (fully-closed interval)
+        for (var m = moment(a); m.diff(b, 'days') <= 0; m.add(1, 'days')) {
+            // console.log(m.format('YYYY-MM-DD'));
+            let attendance = {
+                employeeId: employee._id,
+                employmentId: employment._id,
+                type: 'travel',
+                workScheduleId: employment.workScheduleId,
+                createdAt: m.toDate(),
+                logs: [],
+                changes: [],
+                comments: [],
             }
-        }
-
-        let autoApprove = true
-        if (autoApprove) {
-            let ats = await db.main.AuthorityToTravel.find({
-                periodOfTravel: {
-                    $gte: moment().startOf('month').toDate(),
-                },
-                periodOfTravelEnd: {
-                    $lte: moment().endOf('month').toDate(),
-                }
+            let date = m.toDate()
+            attendance.changes.push({
+                summary: `${user.username} inserted a new attendance.`,
+                objectId: user._id,
+                createdAt: date
             })
-
-            let counter = new String(ats.length)
-
-            at.controlNumber = moment().format('YY-MM-') + counter.padStart(3, '0') + ' (Online)'
-            at.status = 2
-            await at.save()
-            let message = `Authority to Travel submitted. `
-            if (lodash.get(body, 'autoset', false)) {
-                message += `1.) Please print your Authority to Travel and have it signed. `
-                message += `2.) Attached it when submitting your DTR. `
-            } else {
-                message += `1.) Please dont forget to set your attendance to "Travel" on the day(s) of your travel. `
-                message += `2.) Please print your Authority to Travel and have it signed. `
-                message += `3.) Attached it when submitting your DTR. `
-            }
-            flash.ok(req, 'hros', message)
-            return res.redirect(`/hros/at/all`)
+            attendance.changes.push({
+                summary: `${user.username} added a new comment.`,
+                objectId: user._id,
+                createdAt: date
+            })
+            attendance.comments.push({
+                summary: `Nature of business: ${at.data.natureOfBusiness}`,
+                objectId: user._id,
+                createdAt: date
+            })
+            await db.main.Attendance.create(attendance)
         }
-        flash.ok(req, 'hros', 'Authority to Travel submitted. Please wait for HR approval. Refresh this page later to check.')
-        res.redirect(`/hros/at/all`)
 
+        let message = `Authority to Travel submitted. `
+        message += `1.) Please print your Authority to Travel and have it signed. `
+        message += `2.) Attached it when submitting your DTR. `
+        flash.ok(req, 'hros', message)
+        res.redirect(`/hros/at/all`)
     } catch (err) {
         next(err);
     }
@@ -538,7 +524,7 @@ router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile'])
         if (attendance) {
             throw new Error('You have already logged.')
         }
-        
+
 
         let data = {
             title: 'Human Resource Online Services (HROS) - Flag',

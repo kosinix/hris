@@ -332,6 +332,8 @@ router.get(['/attendance/flag/all', '/attendance/flag.xlsx'], middlewares.guardR
             flash: flash.get(req, 'attendance'),
             mCalendar: mCalendar,
             attendances: attendances,
+            next: mCalendar.clone().startOf('isoWeek').add(1, 'week').day("monday").format('YYYY-MM-DD'),
+            prev: mCalendar.clone().startOf('isoWeek').subtract(1, 'week').day("monday").format('YYYY-MM-DD'),
         });
     } catch (err) {
         next(err);

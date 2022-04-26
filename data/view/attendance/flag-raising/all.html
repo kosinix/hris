@@ -12,7 +12,11 @@
             </div>
             <div class="col-md-10 text-center text-md-left mb-3">
                 <h1 class="h5 mb-2">Flag Raising Ceremony Electronic Attendance Sheet</h1>
-                <p class="h6">{{mCalendar|format_date('dddd - MMM DD, YYYY')}}</p>
+                <p class="h6">{{mCalendar|format_date('dddd - MMM DD, YYYY')}} 
+
+                    <a href="?date={{prev}}" class="btn btn-sm btn-light">&lt;</a>
+                    <a href="?date={{next}}" class="btn btn-sm btn-light">&gt;</a>
+                </p>
             </div>
         </div>
        

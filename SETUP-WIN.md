@@ -21,7 +21,7 @@ To check just type in the command line `node -v` and `npm -v`. Both commands wil
 To install type in the command line: `npm install nodemon -g`.
 ### 5. [MongoDB](https://docs.mongodb.com/v3.6/tutorial/install-mongodb-on-windows/) - This is our database server
 
-At the time of this writing we are using version 3.6.x - 64 bit MSI installer. Just follow the wizard. 
+At the time of this writing we are using version 4.0.x - 64 bit MSI installer. Just follow the wizard. 
 
 Note: Uncheck MongoDB Compass if you dont want to wait for the installer to download it before finishing the install.
 
@@ -33,7 +33,7 @@ Choose where to place your projects. Create a folder named `nodejs` in the locat
 
 ### Pulling the Source Codes
 
- 1. Pull the source code. Open command line and go to the project folder. Type: `git clone https://github.com/gsceduph/hris.git`. Type your username: `gsc-nico-amarilla`. Password: `{Your Github Personal Token or Github Password}`
+ 1. Pull the source code. Open command line and go to the project folder. Type: `git clone https://github.com/gsu-edu-ph-mis/hris.git`. Type your Github username: `username`. Password: `{Your Github Personal Token }`
 
 ### Setup Workspace
 
@@ -42,7 +42,7 @@ Choose where to place your projects. Create a folder named `nodejs` in the locat
  2. Go to File > Add Folder to Workspace...
  3. Select the `hris`.
  4. Go to File > Save Workspace as
- 5. Name it `gsceduph` and save.
+ 5. Name it `hris` and save.
 
 #### Existing Workspace
  1. Open Visual Studio Code.
@@ -88,8 +88,6 @@ Copy and paste the following code:
 	)
 
 
-  
-
 ### Create Admin User
 An admin user is used to administer databases and is less powerful than the `root` user. 
 
@@ -123,7 +121,7 @@ Create user:
 	db.createUser(
 		{
 			user: "uHrmo",
-			pwd: "e3sPPNYgKdPcp5NfDhHz4Vc6GcqUnHR4",
+			pwd: "{get password from credentials.json}",
 			roles: [ 
 		      { 
 		        role: "readWrite", 
@@ -193,7 +191,7 @@ Create a connection. Put the following settings:
 
 ##### Update a User:
 
-	db.updateUser("ecUserAdmin",
+	db.updateUser("uAdmin",
 	  {
 	    roles: [ 
 	        "userAdminAnyDatabase",
@@ -204,9 +202,9 @@ Create a connection. Put the following settings:
 
 ##### Update User Password:
 
-	db.updateUser("ecUserRoot",
+	db.updateUser("uRoot",
 	  {
-	    pwd: "F28wJQVTHFFAxttxR9TkCY2a75d3t2ds",
+	    pwd: "{get password from credentials.json}",
 	  }
 	)
 
@@ -217,23 +215,15 @@ Create a connection. Put the following settings:
 ##### Authenticate
 
 	use admin
-	db.auth("ecUserAdmin", "bqXHVsKcF8C5YWb6rKsBjhAY34jzehWh" )
+	db.auth("ecUserAdmin", "{get password from credentials.json}" )
 
-
-##### Restore Backup
-	mongorestore --host 127.0.0.1:27017 --username ecUserAdmin --password bqXHVsKcF8C5YWb6rKsBjhAY34jzehWh --authenticationDatabase admin --db main D:/backups/main-api
-	
-	mongorestore --host 127.0.0.1:27017 --username ecUserAdmin --password bqXHVsKcF8C5YWb6rKsBjhAY34jzehWh --authenticationDatabase admin --db main -c users /path/file.bson
-
-##### Dump Backup
-	mongodump --host 127.0.0.1:27017 --username ecUserAdmin --password bqXHVsKcF8C5YWb6rKsBjhAY34jzehWh --authenticationDatabase admin --db main-api --out /home/ubuntu/backups/2018-11-21
 
 ## Run the Apps
 
-For dash and website, run:
+Run:
 
 `npm run dev`
 
 ## Good luck have fun!
 
-* prep by Nico Amarilla, May 2019
+* prep by Nico Amarilla, April 2022

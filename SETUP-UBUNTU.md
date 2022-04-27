@@ -6,7 +6,24 @@
 # DEV SETUP - Ubuntu
 Documentation about setting up the production server. Its worth noting that our local development machine is on a Windows PC while our production servers are Ubuntu Linux.
 
-## ~ Setup Software ~
+## Tech Stack Overview
+
+[MEVN](https://en.wikipedia.org/wiki/MEAN_(solution_stack)#Node.js)
+
+* M - MongoDB as our NoSQL database.
+* E - Express.js a modular web application framework as our application server.
+* V - Vue.js our frontend framework.
+* N - Node.js as the application runtime that the MEVN stack runs on.
+
+All the Node.js modules used by our stack can be found in `package.json`
+
+* Nginx - as our reverse proxy server on top of our MEVN stack.
+* Lets Encrypt - for our automated SSL certificate renewal.
+* Amazon Web Services - LightSail - as our server machine
+* Amazon Web Services - S3 - as our simple storage service
+* PH.net as our domain name registrar
+
+## ~ Software Setup ~
 Install the following softwares in sequence:
 
 ### 1. [GIT](https://git-scm.com/) - Our version control software
@@ -91,7 +108,7 @@ Security Warning! You must add firewall rules when exposing a DB outside to only
 
 `sudo nano /etc/mongod.conf`
 
-Add the **Private IP** address of our EC2 instance to bindId
+Add the **Private IP** address of our LightSail instance to bindId
 
     net:
         port: 27017

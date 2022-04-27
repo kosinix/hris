@@ -158,10 +158,14 @@ Inside `hris.gsc.edu.ph`:
         server_name hris.gsc.edu.ph;
 
         root /home/ubuntu/hris/data/public;
-
         index index.html;
 
         location / {
+            # Serve static files directly from nginx or else pass to nodejs
+            try_files $uri @nodejs;
+        }
+
+        location @nodejs {
             proxy_pass http://localhost:9094;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;

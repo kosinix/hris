@@ -37,11 +37,10 @@
                                 <div class="text-right"> <a href="/attendance/daily?date={{cell.value}}">{{cell.value|format_date('D')}}</a></div>
                                 <div>
                                     {% if cell.attendances %}
-                                        {% for attendance in cell.attendances.splice(0, 10) %}
-                                            <a class="log" href="/attendance/employee/{{attendance.employeeId}}/employment/{{attendance.employmentId}}?start={{cell.value}}&amp;end={{cell.value}}">{{attendance.employee.lastName}}</a>
-                                        {% endfor %}
-                                        {% if cell.attendances.length > 0 %}
-                                            <a href="/attendance/daily?date={{cell.value}}" class="log">{{cell.attendances.length}} more...</a>
+                                        {% if cell.attendances.length == 1 %}
+                                            <a href="/attendance/daily?date={{cell.value}}" class="log"> {{cell.attendances.length}} record</a>
+                                        {% else %}
+                                            <a href="/attendance/daily?date={{cell.value}}" class="log"> {{cell.attendances.length}} records</a>
                                         {% endif %}
                                     {% endif %}
                                 </div>

@@ -1,7 +1,7 @@
 //// Core modules
 
 //// External modules
-const kalendaryo = require('kalendaryo');
+const kalendaryo = require('kalendaryo')
 const express = require('express')
 const flash = require('kisapmata')
 const lodash = require('lodash')
@@ -10,12 +10,11 @@ const momentRange = require('moment-range')
 const momentExt = momentRange.extendMoment(moment)
 
 //// Modules
-const db = require('../db');
-const dtrHelper = require('../dtr-helper');
-const excelGen = require('../excel-gen');
-const middlewares = require('../middlewares');
-const payrollCalc = require('../payroll-calc');
-const workScheduler = require('../work-scheduler');
+const db = require('../db')
+const dtrHelper = require('../dtr-helper')
+const excelGen = require('../excel-gen')
+const middlewares = require('../middlewares')
+const workScheduler = require('../work-scheduler')
 
 
 // Router
@@ -66,28 +65,6 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance']
 
         let aggr = []
         aggr.push({ $match: query })
-        aggr.push({
-            $lookup: {
-                from: "employees",
-                localField: "employeeId",
-                foreignField: "_id",
-                as: "employees"
-            }
-        })
-        aggr.push({
-            $addFields: {
-                "employee": {
-                    $arrayElemAt: ["$employees", 0]
-                }
-            }
-        })
-        // Turn array employees into field employee
-        // Add field employee
-        aggr.push({
-            $project: {
-                employees: 0,
-            }
-        })
 
         attendances = await db.main.Attendance.aggregate(aggr)
 

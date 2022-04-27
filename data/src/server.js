@@ -29,7 +29,7 @@ const io = new Server(httpServer, CONFIG.socketio)
 nunjucksEnv.express(app)
 
 // Remove express
-app.set('x-powered-by', false);
+// app.set('x-powered-by', false);
 
 //// Middlewares
 app.use(cors({

@@ -1,8 +1,7 @@
 //// Core modules
-const util = require('util')
 
 //// External modules
-const kalendaryo = require('kalendaryo')
+const kalendaryo = require('kalendaryo');
 const express = require('express')
 const flash = require('kisapmata')
 const lodash = require('lodash')
@@ -15,6 +14,7 @@ const db = require('../db');
 const dtrHelper = require('../dtr-helper');
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
+const payrollCalc = require('../payroll-calc');
 const workScheduler = require('../work-scheduler');
 
 
@@ -74,57 +74,31 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance']
                 as: "employees"
             }
         })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                }
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+            }
+        })
 
         attendances = await db.main.Attendance.aggregate(aggr)
+
        
-        // Group by object with keys "YYYY-MM-DD" holding an array
-        attendances = lodash.groupBy(attendances, (attendance) => {
-            return moment(attendance.createdAt).format('YYYY-MM-DD')
-        })
-
-        matrix = matrix.map((row, i) => {
-            row = row.map((cell) => {
-                let mCellDate = moment(cell, 'YYYY-MM-DD', true)
-                let className = 'current'
-                if (mCellDate.isBefore(mFirstDay)) {
-                    cell = ''
-                } else if (mCellDate.isAfter(mLastDay)) {
-                    cell = ''
-
-                } else if (mCellDate.isSame(mNow, 'day')) {
-                    className = 'bg-current text-light'
-                }
-                if (i === 0 && ['Sun', 'Sat'].includes(cell)) {
-                    className = 'text-danger'
-                }
-                if (['Sun', 'Sat'].includes(mCellDate.format('ddd'))) {
-                    className = 'text-danger'
-                }
-
-                return {
-                    value: cell,
-                    attendances: attendances[cell],
-                    classes: className,
-                }
-            })
-            return row
-        })
-
-        let months = Array.from(Array(12).keys()).map((e, i) => {
-            return mCalendar.clone().month(i).startOf('month')
-        }); // 1-count
-
-        let years = []
-        for (let y = parseInt(moment().format('YYYY')); y > 1999; y--) {
-            years.push(y)
-        }
 
         res.render('attendance/monthly.html', {
             flash: flash.get(req, 'attendance'),
-            months: months,
-            mCalendar: mCalendar,
-            matrix: matrix,
-            years: years
+            // months: months,
+            // mCalendar: mCalendar,
+            // matrix: matrix,
+            // years: years
         });
     } catch (err) {
         next(err);
@@ -1379,19 +1353,19 @@ router.get('/attendance/holiday/all-set-attendances', middlewares.guardRoute(['u
                             "employmentId": employment._id,
                             "logs": [],
                             "changes": [{
-                                "summary": `${res.user.username} inserted a new attendance.`,
-                                "objectId": res.user._id,
-                                "createdAt": momentNow.toDate()
-                            },
+                                "summary" : `${res.user.username} inserted a new attendance.`,
+                                "objectId" : res.user._id,
+                                "createdAt" : momentNow.toDate()
+                            }, 
                             {
-                                "summary": `${res.user.username} inserted a new attendance.`,
-                                "objectId": res.user._id,
-                                "createdAt": momentNow.toDate()
+                                "summary" : `${res.user.username} inserted a new attendance.`,
+                                "objectId" : res.user._id,
+                                "createdAt" : momentNow.toDate()
                             }],
                             "comments": [{
-                                "summary": `Set to Holiday.`,
-                                "objectId": res.user._id,
-                                "createdAt": momentNow.toDate()
+                                "summary" : `Set to Holiday.`,
+                                "objectId" : res.user._id,
+                                "createdAt" : momentNow.toDate()
                             }],
                             "createdAt": moment(holiday.date).startOf('day').toDate()
                         })

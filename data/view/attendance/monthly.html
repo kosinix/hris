@@ -38,7 +38,7 @@
                                 <div>
                                     {% if cell.attendances %}
                                         {% for attendance in cell.attendances.splice(0, 10) %}
-                                            <a class="log" href="/attendance/employee/{{attendance.employeeId}}/employment/{{attendance.employmentId}}?start={{cell.value}}&amp;end={{cell.value}}">{{attendance.employee.lastName}}</a>
+                                            <a class="log" href="/attendance/employee/{{attendance.employeeId}}/employment/{{attendance.employmentId}}?start={{cell.value}}&amp;end={{cell.value}}">{{attendance.employees[0].lastName}}</a>
                                         {% endfor %}
                                         {% if cell.attendances.length > 0 %}
                                             <a href="/attendance/daily?date={{cell.value}}" class="log">{{cell.attendances.length}} more...</a>

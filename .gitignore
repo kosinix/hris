@@ -112,6 +112,8 @@ package-lock.json
 
 data/sessions.db
 
+scripts/install-data/employees-*
+scripts/install-data/employments-*
 scripts/install-data/import.txt
 
 # Temp excel file

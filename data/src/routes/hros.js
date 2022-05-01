@@ -532,7 +532,7 @@ router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile'])
         let { weekDay, hour, minute } = CONFIG.hros.flagRaising.end
 
         if (momentNow.format('ddd') !== weekDay) {
-            //throw new Error('There is no flag raising today.')
+            throw new Error('There is no flag raising today.')
         }
 
         let momentFlagEnd = moment().hours(hour).minutes(minute)
@@ -604,7 +604,7 @@ router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), 
         let { weekDay, hour, minute } = CONFIG.hros.flagRaising.end
 
         if (momentNow.format('ddd') !== weekDay) {
-            // throw new Error('There is no flag raising today.')
+            throw new Error('There is no flag raising today.')
         }
 
         let momentFlagEnd = moment().hours(hour).minutes(minute)

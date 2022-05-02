@@ -529,7 +529,8 @@ router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile'])
             throw new Error('You have already logged.')
         }
 
-        let { weekDay, hour, minute } = CONFIG.hros.flagRaising.end
+        let { hour, minute } = CONFIG.hros.flagRaising.end
+        let weekDay = CONFIG.hros.flagRaising.weekDay
 
         if (momentNow.format('ddd') !== weekDay) {
             throw new Error('There is no flag raising.')
@@ -601,7 +602,8 @@ router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), 
             throw new Error('You have already logged.')
         }
 
-        let { weekDay, hour, minute } = CONFIG.hros.flagRaising.end
+        let { hour, minute } = CONFIG.hros.flagRaising.end
+        let weekDay = CONFIG.hros.flagRaising.weekDay
 
         if (momentNow.format('ddd') !== weekDay) {
             throw new Error('There is no flag raising.')

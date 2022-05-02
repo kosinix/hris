@@ -207,8 +207,8 @@
     "flagRaising": {
       "weekDay": "Mon",
       "end": {
-        "hour": 9,
-        "minute": 56
+        "hour": 8,
+        "minute": 0
       }
     }
   }

@@ -447,9 +447,21 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         let day = _moment.format('DD')
         let date = _moment.format('YYYY-MM-DD')
         let weekDay = _moment.format('ddd')
+        let weekDayLower = weekDay.toLowerCase()
         let attendance = attendances[date] || null
-        let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, lodash.get(attendance, 'workSchedule.timeSegments'))
 
+        let timeSegments = lodash.get(attendance, `workSchedule.weekDays.${weekDayLower}.timeSegments`)
+        if (!timeSegments) {
+            timeSegments = lodash.get(attendance, 'workSchedule.timeSegments')
+        }
+        if (timeSegments) {
+            timeSegments = timeSegments.map((t) => {
+                t.maxHours = t.max
+                return t
+            })
+        }
+
+        let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments)
         let isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
         let isWeekend = ['Sun', 'Sat'].includes(weekDay) ? true : false
 
@@ -686,22 +698,22 @@ const logAttendance = async (db, employee, employment, scannerId, waitTime = 15,
         }
         attendance.logs.push(log)
 
-        let dbOpRes = await db.main.Attendance.collection.updateOne({ 
-            _id: attendance._id 
+        let dbOpRes = await db.main.Attendance.collection.updateOne({
+            _id: attendance._id
         }, {
             $set: {
                 logs: attendance.logs
             }
         })
-        if(dbOpRes.modifiedCount <= 0){
+        if (dbOpRes.modifiedCount <= 0) {
             throw new Error('Failed to save.')
         }
-        if(dbOpRes.matchedCount <= 0){
+        if (dbOpRes.matchedCount <= 0) {
             throw new Error('Could not find attendance.')
         }
     }
 
-    
+
 
     return attendance.logs[attendance.logs.length - 1]
 }

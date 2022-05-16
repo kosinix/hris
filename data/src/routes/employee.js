@@ -724,6 +724,7 @@ router.post('/employee/employment/:employeeId/:employmentId', middlewares.guardR
         lodash.set(patch, `fundSource`, lodash.get(body, 'fundSource'))
         lodash.set(patch, `sssDeduction`, lodash.get(body, 'sssDeduction'))
         lodash.set(patch, `workScheduleId`, lodash.get(body, 'workScheduleId'))
+        lodash.set(patch, `active`, lodash.get(body, 'active'))
 
         await db.main.Employment.updateOne({ _id: employment._id }, patch)
 

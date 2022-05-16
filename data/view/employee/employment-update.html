@@ -66,6 +66,12 @@
             {% include 'parts/form-group-select.html' %}
             {% set label = '' %}
 
+            {% set name = 'active' %}
+            {% set label = 'Employment Status *' %}
+            {% set options = [{ value: true, text: "Active" }, { value: false, text: "No" }] %}
+            {% include 'parts/form-group-select.html' %}
+            {% set label = '' %}
+
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
                     <div class="d-flex justify-content-between">
@@ -93,6 +99,7 @@
             window.vuelidateExtendMixin,
         ],
         data: {
+            active: '{{employment.active}}',
             campus: '{{employment.campus}}',
             group: '{{employment.group}}',
             position: '{{employment.position}}',

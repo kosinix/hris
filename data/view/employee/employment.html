@@ -14,7 +14,7 @@
             <table class="table table-sm table-striped">
                 <thead>
                     <tr>
-                        <th>Source of Fund</th>
+                        <th>Status</th>
                         <th>Position</th>
                         <th>Salary</th>
                         <th>Salary Rate</th>
@@ -27,7 +27,13 @@
                 <tbody>
                     {% for employment in employee.employments %}
                     <tr>
-                        <td>{{employment.fundSource}}</td>
+                        <td>
+                            {% if employment.active %}
+                                <span class="text-success">Active</span>
+                            {% else %}
+                                <span class="text-dark">Inactive</span>
+                            {% endif %}
+                        </td>
                         <td>{{employment.position}}</td>
                         <td>{{employment.salary|currency}}</td>
                         <td>{{employment.salaryType}}</td>

@@ -702,7 +702,8 @@ module.exports = {
 
                 // TODO: Allow choose employment for rfid
                 employment = await db.main.Employment.findOne({
-                    employeeId: employee._id
+                    employeeId: employee._id,
+                    active: true,
                 }).lean()
                 if (!employment) {
                     throw new AppError('Employment not found from RFID.', {

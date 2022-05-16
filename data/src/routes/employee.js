@@ -382,17 +382,19 @@ router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewar
         // Select worksheet to use
         let sheet = await workbook.getWorksheet('Sheet1')
 
-        
-
         // UTC date to time
-        let toTime = (utcDate) => {
-            return moment.utc(utcDate).format('h:mmA')
+        let toTime = (utcDate, strict = true) => {
+            return moment(utcDate, strict).format('h:mmA')
         }
-        let timeToM = (time, format) => {
-            format = format || 'HH:mm'
+        let timeToM = (time, format, strict = true) => {
+            format = format || 'h:mmA'
             var momentDayStart = moment().startOf('day')
 
-            var timeParser = moment(time, format)
+            var timeParser = moment(time, format, strict)
+            if(!timeParser.isValid()){
+                // throw new Error(`Invalid time "${time}". Format must be in "${format}"`)
+                return 0
+            }
             var momentTime = momentDayStart.clone().hours(timeParser.hours()).minutes(timeParser.minutes())
 
             return momentTime.diff(momentDayStart, 'minutes')
@@ -404,84 +406,171 @@ router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewar
                 workBreaks = workBreaks.replace(/\s\s+/g, '') // Remove spaces
                 workBreaksArray = workBreaks.split(',')
                 workBreaksArray = workBreaksArray.map((workBreak) => {
-                    return workBreak.split('-')
+                    let splits = workBreak.split('-')
+                    return {
+                        start: timeToM(splits[0]),
+                        end: timeToM(splits[1]),
+                        type: 'vacant'
+                    }
                 })
             }
             return workBreaksArray
         }
 
-        let weekDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
-        let workSchedule = dtrHelper.createWorkScheduleTemplate()
-        let rowOffset = 2
-
-        // workSchedule.weekDays = lodash.mapValues(workSchedule.weekDays, (weekDay, i) => {
-        //     let rowIndex = rowOffset + i
-        //     let amIn = toTime(sheet.getCell(`B${rowIndex}`).value)
-        //     let amOut = toTime(sheet.getCell(`C${rowIndex}`).value)
-        //     let amGrace = sheet.getCell(`D${rowIndex}`).value || 0
-        //     let amBreaks = sheet.getCell(`E${rowIndex}`).value
-        //     let pmIn = toTime(sheet.getCell(`F${rowIndex}`).value)
-        //     let pmOut = toTime(sheet.getCell(`G${rowIndex}`).value)
-        //     let pmGrace = sheet.getCell(`H${rowIndex}`).value || 0
-        //     let pmBreaks = sheet.getCell(`I${rowIndex}`).value
-        //     let workType = sheet.getCell(`J${rowIndex}`).value
-
-        //     amBreaks = parseBreaks(amBreaks)
-        //     pmBreaks = parseBreaks(pmBreaks)
-
-        //     weekDay.timeSegments = lodash.map(weekDay.timeSegments, (timeSegment) => {
-        //         timeSegment.start = timeToM(timeSegment.start)
-        //         timeSegment.end = timeToM(timeSegment.end)
-        //         timeSegment.maxHours = timeSegment.end - timeSegment.start
-        //         timeSegment.breaks = lodash.map(timeSegment.breaks, (br) => {
-        //             br.start = timeToM(br.start)
-        //             br.end = timeToM(br.end)
-        //             return br
-        //         })
-        //         return timeSegment
-        //     })
-        //     return weekDay
-        // })
-
-        weekDays.forEach((weekDay, i) => {
-            let rowIndex = rowOffset + i
-            let amIn = toTime(sheet.getCell(`B${rowIndex}`).value)
-            let amOut = toTime(sheet.getCell(`C${rowIndex}`).value)
-            let amGrace = sheet.getCell(`D${rowIndex}`).value || 0
-            let amBreaks = sheet.getCell(`E${rowIndex}`).value
-            let pmIn = toTime(sheet.getCell(`F${rowIndex}`).value)
-            let pmOut = toTime(sheet.getCell(`G${rowIndex}`).value)
-            let pmGrace = sheet.getCell(`H${rowIndex}`).value || 0
-            let pmBreaks = sheet.getCell(`I${rowIndex}`).value
-            let workType = sheet.getCell(`J${rowIndex}`).value
-
-            amBreaks = parseBreaks(amBreaks)
-            pmBreaks = parseBreaks(pmBreaks)
-            // console.log(amIn, amOut, amGrace, amBreaks, pmIn, pmOut, pmGrace, pmBreaks)
-
-            workSchedule.weekDays[weekDay].timeSegments = []
-
-            if (amIn && amOut) {
-                let ts = dtrHelper.createTimeSegment(amIn, amOut, amGrace)
-                amBreaks.forEach((br) => {
-                    ts.breaks.push(dtrHelper.createTimeSegmentBreaks(...br))
-                })
-                workSchedule.weekDays[weekDay].timeSegments.push(ts)
+        let workSchedule = {
+            weekDays: {
+                mon: {
+                    type: ((sheet.getCell('J2').value + '').trim() === 'Work') ? 1 : 2,
+                    timeSegments: [
+                        {
+                            start: timeToM(sheet.getCell('B2').value),
+                            end: timeToM(sheet.getCell('C2').value),
+                            grace: parseInt(sheet.getCell('D2').value) || 0,
+                            max: timeToM(sheet.getCell('C2').value) - timeToM(sheet.getCell('B2').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('E2').value),
+                        },
+                        {
+                            start: timeToM(sheet.getCell('F2').value),
+                            end: timeToM(sheet.getCell('G2').value),
+                            grace: parseInt(sheet.getCell('H2').value) || 0,
+                            max: timeToM(sheet.getCell('G2').value) - timeToM(sheet.getCell('F2').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('I2').value),
+                        }
+                    ]
+                },
+                tue: {
+                    type: ((sheet.getCell('J3').value + '').trim() === 'Work') ? 1 : 2,
+                    timeSegments: [
+                        {
+                            start: timeToM(sheet.getCell('B3').value),
+                            end: timeToM(sheet.getCell('C3').value),
+                            grace: parseInt(sheet.getCell('D3').value) || 0,
+                            max: timeToM(sheet.getCell('C3').value) - timeToM(sheet.getCell('B3').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('E3').value),
+                        },
+                        {
+                            start: timeToM(sheet.getCell('F3').value),
+                            end: timeToM(sheet.getCell('G3').value),
+                            grace: parseInt(sheet.getCell('H3').value) || 0,
+                            max: timeToM(sheet.getCell('G3').value) - timeToM(sheet.getCell('F3').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('I3').value),
+                        }
+                    ]
+                },
+                wed: {
+                    type: ((sheet.getCell('J4').value + '').trim() === 'Work') ? 1 : 2,
+                    timeSegments: [
+                        {
+                            start: timeToM(sheet.getCell('B4').value),
+                            end: timeToM(sheet.getCell('C4').value),
+                            grace: parseInt(sheet.getCell('D4').value) || 0,
+                            max: timeToM(sheet.getCell('C4').value) - timeToM(sheet.getCell('B4').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('E4').value),
+                        },
+                        {
+                            start: timeToM(sheet.getCell('F4').value),
+                            end: timeToM(sheet.getCell('G4').value),
+                            grace: parseInt(sheet.getCell('H4').value) || 0,
+                            max: timeToM(sheet.getCell('G4').value) - timeToM(sheet.getCell('F4').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('I4').value),
+                        }
+                    ]
+                },
+                thu: {
+                    type: ((sheet.getCell('J5').value + '').trim() === 'Work') ? 1 : 2,
+                    timeSegments: [
+                        {
+                            start: timeToM(sheet.getCell('B5').value),
+                            end: timeToM(sheet.getCell('C5').value),
+                            grace: parseInt(sheet.getCell('D5').value) || 0,
+                            max: timeToM(sheet.getCell('C5').value) - timeToM(sheet.getCell('B5').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('E5').value),
+                        },
+                        {
+                            start: timeToM(sheet.getCell('F5').value),
+                            end: timeToM(sheet.getCell('G5').value),
+                            grace: parseInt(sheet.getCell('H5').value) || 0,
+                            max: timeToM(sheet.getCell('G5').value) - timeToM(sheet.getCell('F5').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('I5').value),
+                        }
+                    ]
+                },
+                fri: {
+                    type: ((sheet.getCell('J6').value + '').trim() === 'Work') ? 1 : 2,
+                    timeSegments: [
+                        {
+                            start: timeToM(sheet.getCell('B6').value),
+                            end: timeToM(sheet.getCell('C6').value),
+                            grace: parseInt(sheet.getCell('D6').value) || 0,
+                            max: timeToM(sheet.getCell('C6').value) - timeToM(sheet.getCell('B6').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('E6').value),
+                        },
+                        {
+                            start: timeToM(sheet.getCell('F6').value),
+                            end: timeToM(sheet.getCell('G6').value),
+                            grace: parseInt(sheet.getCell('H6').value) || 0,
+                            max: timeToM(sheet.getCell('G6').value) - timeToM(sheet.getCell('F6').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('I6').value),
+                        }
+                    ]
+                },
+                sat: {
+                    type: ((sheet.getCell('J7').value + '').trim() === 'Work') ? 1 : 2,
+                    timeSegments: [
+                        {
+                            start: timeToM(sheet.getCell('B7').value),
+                            end: timeToM(sheet.getCell('C7').value),
+                            grace: parseInt(sheet.getCell('D7').value) || 0,
+                            max: timeToM(sheet.getCell('C7').value) - timeToM(sheet.getCell('B7').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('E7').value),
+                        },
+                        {
+                            start: timeToM(sheet.getCell('F7').value),
+                            end: timeToM(sheet.getCell('G7').value),
+                            grace: parseInt(sheet.getCell('H7').value) || 0,
+                            max: timeToM(sheet.getCell('G7').value) - timeToM(sheet.getCell('F7').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('I7').value),
+                        }
+                    ]
+                },
+                sun: {
+                    type: ((sheet.getCell('J8').value + '').trim() === 'Work') ? 1 : 2,
+                    timeSegments: [
+                        {
+                            start: timeToM(sheet.getCell('B8').value),
+                            end: timeToM(sheet.getCell('C8').value),
+                            grace: parseInt(sheet.getCell('D8').value) || 0,
+                            max: timeToM(sheet.getCell('C8').value) - timeToM(sheet.getCell('B8').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('E8').value),
+                        },
+                        {
+                            start: timeToM(sheet.getCell('F8').value),
+                            end: timeToM(sheet.getCell('G8').value),
+                            grace: parseInt(sheet.getCell('H8').value) || 0,
+                            max: timeToM(sheet.getCell('G8').value) - timeToM(sheet.getCell('F8').value),
+                            flexible: false,
+                            breaks: parseBreaks(sheet.getCell('I8').value),
+                        }
+                    ]
+                }
             }
-            if (pmIn && pmOut) {
-                let ts = dtrHelper.createTimeSegment(pmIn, pmOut, pmGrace)
-                pmBreaks.forEach((br) => {
-                    ts.breaks.push(dtrHelper.createTimeSegmentBreaks(...br))
-                })
-                workSchedule.weekDays[weekDay].timeSegments.push(ts)
-            }
+        }
 
-
-        })
 
         await uploader.deleteUploadsAsync(localFiles, [])
-
-
 
 
         workSchedule.name = `${employee.firstName} ${employee.lastName} - ${employment.position}`
@@ -496,8 +585,15 @@ router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewar
 
         workSchedule = await db.main.WorkSchedule.create(workSchedule)
 
-        return res.redirect(`/employee/${employee._id}/employment/${employment._id}/schedule/${workSchedule._id}`)
+        // Update assignment
+        await db.main.Employment.updateOne({
+            _id: employment._id
+        }, {
+            workScheduleId: workSchedule._id
+        })
 
+        // res.send(workSchedule)
+        res.redirect(`/employee/${employee._id}/employment/${employment._id}/schedule/${workSchedule._id}`)
     } catch (err) {
         next(err);
     }

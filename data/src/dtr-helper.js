@@ -263,6 +263,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
                 // console.log(minutes)
             }
         }
+        
         for (let l = 0; l < attendance.logs.length; l++) {
             let log = attendance.logs[l]
             if (log.mode === 1) { // in
@@ -450,17 +451,18 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         let weekDayLower = weekDay.toLowerCase()
         let attendance = attendances[date] || null
 
+        // v2 schedule schema with weekday support
         let timeSegments = lodash.get(attendance, `workSchedule.weekDays.${weekDayLower}.timeSegments`)
-        if (!timeSegments) {
-            timeSegments = lodash.get(attendance, 'workSchedule.timeSegments')
-        }
         if (timeSegments) {
             timeSegments = timeSegments.map((t) => {
                 t.maxHours = t.max
                 return t
             })
         }
-
+        // original schedule schema
+        if (!timeSegments) {
+            timeSegments = lodash.get(attendance, 'workSchedule.timeSegments')
+        }
         let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments)
         let isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
         let isWeekend = ['Sun', 'Sat'].includes(weekDay) ? true : false

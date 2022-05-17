@@ -49,7 +49,7 @@ router.get('/e-profile/home', middlewares.guardRoute(['use_employee_profile']), 
                 type: 'qr',
                 data: qrData,
                 employment: e,
-                title: e.position || 'Employment',
+                title: `${e.position}` || 'Employment',
             })
         })
 
@@ -780,7 +780,9 @@ router.get('/e-profile/dtr/:employmentId/online', middlewares.guardRoute(['use_e
         let user = res.user.toObject()
         let employee = res.employee.toObject()
         let employment = res.employment
-
+        if(!employment.active){
+            throw new Error('Cannot modify DTR as employment is no longer active.')
+        }
         if (!lodash.get(user, 'settings.ol', true)) {
             return res.redirect(`/e-profile/dtr/${employment._id}/on1ine`)
         }
@@ -1016,6 +1018,9 @@ router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_empl
         let employment = res.employment
         let attendanceType = lodash.get(req, 'query.type')
 
+        if(!employment.active){
+            throw new Error('Cannot modify DTR as employment is no longer active.')
+        }
         if (!['wfh', 'travel', 'leave', 'pass', 'holiday'].includes(attendanceType)) {
             throw new Error('Invalid attendance type.')
         }

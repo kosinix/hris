@@ -32,11 +32,15 @@
                 </div>
                 <h4 class="h3 privy-name">{{employee.firstName}} {{employee.lastName}}</h4>
                 <p class="mb-4">{{employee.address}}</p>
-                <h2 class="h5"> Employment(s):</h2>
+                {% if carouselItems.length >= 2 %}
+                    <h2 class="h5 text-left">Employments:</h2>
+                {% elif carouselItems.length <= 1 %}
+                    <h2 class="h5 text-left">Employment:</h2>
+                {% endif %}
                 <div class="form-row justify-content-center">
                     {% for item in carouselItems %}
                         {% if item.employment.active %}
-                        <div class="col-md-6">
+                        <div class="col-md-6 order-1 mb-3">
                             <div class="border border-success p-4">
                                 <p class="h6 pt-2 pb-3">{{item.title}} 
                                     <br>{{item.employment.employmentType|capitalize}}
@@ -52,7 +56,7 @@
                             </div>
                         </div>
                         {% else %}
-                        <div class="col-md-6">
+                        <div class="col-md-6 order-2 mb-3">
                             <div class="border p-4">
                                 <div style="opacity:0.4">
                                     <p class="h6 pt-2 pb-3 font-style-italic text-dark">{{item.title}} 

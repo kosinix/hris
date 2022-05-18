@@ -87,15 +87,7 @@ const schema = new Schema({
     // New schedule feb 2022
     dateStart: Date, // Schedule date range
     dateEnd: Date, // Schedule date range
-    weekDays: {
-        mon: weekDaySchema,
-        tue: weekDaySchema,
-        wed: weekDaySchema,
-        thu: weekDaySchema,
-        fri: weekDaySchema,
-        sat: weekDaySchema,
-        sun: weekDaySchema,
-    }
+    weekDays: {}
 }, { timestamps: true, typeKey: '$type' })
 
 //// Virtuals

@@ -1,0 +1,97 @@
+{% extends "document-public.html" %}
+
+{% block body %}
+<div class="container container-first height-medium">
+    <div class="row">
+        <div class="col-md-5 ml-auto mr-auto pt-5 login-height">
+            <div class="login-form pb-5" id="vApp" v-cloak>
+                
+                <div class="text-center position-relative mb-4 pt-5">
+                    <a href="/login" class="btn btn-sm position-absolute" style="left:0; top:0">
+                        <svg style="width:24px;height:24px" viewBox="0 0 24 24">    <path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+                    </a>
+                    <img style="width:100px; height:auto;" src="/images/lipat.png" width="200" height="200" alt="Logo">
+                </div>
+                <h1 class="text-center h5 mb-3">Forgot your password?</h1>
+                <p class="text-center mb-5">Don't worry, we'll get you a new one.</p>
+                <div>
+                    {% include 'parts/flash.html' %}
+                    <form ref="form" v-on:submit.prevent="onSubmit" action="/forgot" method="POST" novalidate>
+                        <div class="form-group">
+                            <input v-bind:readonly="pending" placeholder="Type your email..." v-model="email" type="email" name="email" class="form-control" autocomplete="off">
+                            <small class="invalid-feedback">${getError('email')}</small>
+                        </div>
+                        <input type="hidden" name="recaptchaToken" v-model="recaptchaToken">
+                        <div class="form-group">
+                            <button v-bind:disabled="disabled" class="btn btn-primary btn-full-width">${loginText}</button>
+                        </div>
+                        {# <small class="note">Logging in from IP Address: {{ip}}</small> #}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{% if CONFIG.recaptchav3.enable %}
+<script src="https://www.google.com/recaptcha/api.js?render=6LcB1_scAAAAABxNHSvZ1gnl5ZpTKZCoWa_JcYkV"></script>
+{% endif %}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            pending: false,
+            email: '{{email}}',
+            recaptchaEnable: {{CONFIG.recaptchav3.enable|default(false, true)}},
+            recaptchaClientKey: '{{CONFIG.recaptchav3.clientKey}}',
+            recaptchaToken: '',
+        },
+        validations: {
+            email: {
+                required: window.validators.required,
+                email: window.validators.email,
+            },
+        },
+        computed: {
+            disabled: function(){
+                return (!this.email || this.pending);
+            },
+            loginText: function(){
+                return this.pending ? 'Processing...' : 'Reset Password';
+            }
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.pending = true;
+                    if(me.recaptchaEnable){
+                        grecaptcha.ready(function() {
+                            grecaptcha.execute(me.recaptchaClientKey, {action: 'submit'}).then(function(token) {
+                                me.recaptchaToken = token;
+                                me.$nextTick(function() {
+                                    me.$refs.form.submit();
+                                });
+                            });
+                        });
+                    } else {
+                        me.$nextTick(function() {
+                            me.$refs.form.submit();
+                        });
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

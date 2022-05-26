@@ -3,23 +3,16 @@
 {% block body %}
 <p>Greetings {{firstName}}!</p>
 
-<p>These are the login credentials for your Human Resource Information System (HRIS) account:</p>
-<ul>
-    <li>Username: <em>{{username}}</em></li>
-    <li>Password: <em>{{password}}</em></li>
-</ul>
-<p>You can now use your GSC ID card for log-in and log-out. Just hover it on one of our scanners. </p>
-<p>You can view and print your Daily Time Record (DTR) inside your account.</p>
+<p>You requested to reset the password for your HRIS account with the e-mail address {{to}}.</p>
+<p>Please click this link to reset your password:</p>
 
 <div style="text-align: center; padding-top: 50px">
-    <a href="{{baseUrl}}/start?username={{username}}" target="_blank" style="background-color: #115195; display: inline-block;        color: white;        text-align: center;        text-decoration: none;        border-radius: 4px;        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.1), 0 6px 20px 0 rgba(0, 0, 0, 0.1);        transition-duration: 0.5s;        padding: 10px 20px;        font-size: 16px;" class="">Open Your HRIS Account</a>
+    <a href="{{resetLink}}" target="_blank" style="background-color: #115195; display: inline-block;        color: white;        text-align: center;        text-decoration: none;        border-radius: 4px;        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.1), 0 6px 20px 0 rgba(0, 0, 0, 0.1);        transition-duration: 0.5s;        padding: 10px 20px;        font-size: 16px;" class="">Reset My Password</a>
 </div>
-
 
 <p style="margin-top: 100px; text-align: center; font-size: 14px">Did you encounter any problems? Or do you have questions? <br>You can reach us via these channels:</p>
 <table style="font-size: 11px;" aria-hidden="true" cellspacing="0" cellpadding="0" border="0" align="center" width="100%">
     <tr>
-        
         <td style="text-align: center;  padding: 5px">
             <a href="mailto:hrmo@gsc.edu.ph"><img src="{{baseUrl}}/images/email.png" alt="email"></a>
             <span style="display: block; text-align: center">   

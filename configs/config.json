@@ -211,5 +211,10 @@
         "minute": 0
       }
     }
-  }
+  },
+  "recaptchav3": {
+    "enable": true,
+    "clientKey": "6LcB1_scAAAAABxNHSvZ1gnl5ZpTKZCoWa_JcYkV"
+  },
+  "loginDelay": 0
 }

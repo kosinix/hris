@@ -176,7 +176,7 @@ const minutesToMoments = (minutes, _moment = null) => {
  * @param {number} hoursPerDay Work hours per day
  * @returns {object} See return
  */
-const getTimeBreakdown = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
+const getTimeBreakdown = (minutes, totalMinutesUnderTime, hoursPerDay = 8, excessMinutes = 0) => {
 
     /* Bare JS  is inaccurate */
     // /*
@@ -216,6 +216,7 @@ const getTimeBreakdown = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
         renderedDays: Math.floor(renderedDays),
         renderedHours: Math.floor(renderedHours),
         renderedMinutes: Math.round(renderedMinutes),
+        excessMinutes: excessMinutes,
         underTimeTotalMinutes: totalMinutesUnderTime,
         underDays: Math.floor(underDays),
         underHours: Math.floor(underHours),
@@ -224,7 +225,7 @@ const getTimeBreakdown = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
     }
 }
 
-const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, shifts) => {
+const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, shifts, holiday = null) => {
 
     // Default govt shift
     if (!shifts) {
@@ -368,13 +369,19 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
         return result + maxMinutes
     }, 0)
 
+    let excessMinutes = 0
     if (minutes > maxMinutes) {
+        console.log(minutes, '>', maxMinutes, 'EXCESS =', minutes - maxMinutes)
+        excessMinutes = minutes - maxMinutes
         minutes = maxMinutes
+    } else {
+        console.log(minutes, '<=', maxMinutes)
     }
 
     // TODO: check under time logic
-    underMinutes = 60 * hoursPerDay - minutes
-    return getTimeBreakdown(minutes, underMinutes, hoursPerDay)
+    underMinutes = maxMinutes - minutes
+    console.log('underMinutes', underMinutes)
+    return getTimeBreakdown(minutes, underMinutes, hoursPerDay, excessMinutes)
 
 }
 
@@ -418,11 +425,6 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
                 }
             }
         },
-        // {
-        //     $addFields: {
-        //         "shifts": "$workSchedule.timeSegments"
-        //     }
-        // },
         {
             $project: {
                 workSchedules: 0,
@@ -440,7 +442,20 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         endMoment.endOf('month')
     }
     const range1 = momentExt.range(startMoment, endMoment)
-    let days = Array.from(range1.by('days'))
+    let days = Array.from(range1.by('days')) // Generate array of days
+
+    // Get all holidays for this date range
+    let holidays = await db.main.Holiday.find({
+        date: {
+            $gte: startMoment.clone().startOf('day').toDate(),
+            $lte: endMoment.clone().endOf('day').toDate(),
+        }
+    }).lean()
+    // Turn array of holidays into an object with date as keys: "2020-12-31"
+    holidays = lodash.mapKeys(holidays, (h) => {
+        return moment(h.date).format('YYYY-MM-DD')
+    })
+
 
     days = days.map((_moment) => {
         let year = _moment.format('YYYY')
@@ -450,20 +465,27 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         let weekDay = _moment.format('ddd')
         let weekDayLower = weekDay.toLowerCase()
         let attendance = attendances[date] || null
+        let holiday = holidays[date] || null
 
         // v2 schedule schema with weekday support
         let timeSegments = lodash.get(attendance, `workSchedule.weekDays.${weekDayLower}.timeSegments`)
         if (timeSegments) {
+            console.log('v2 shift')
             timeSegments = timeSegments.map((t) => {
-                t.maxHours = t.max
+                t.maxHours = t.max / 60
                 return t
             })
         }
         // original schedule schema
         if (!timeSegments) {
-            timeSegments = lodash.get(attendance, 'workSchedule.timeSegments')
+            console.log('v1 shift')
+            timeSegments = lodash.get(attendance, 'workSchedule.timeSegments', [])
+            timeSegments = timeSegments.map((t) => {
+                t.max = t.maxHours * 60
+                return t
+            })
         }
-        let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments)
+        let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments, holiday)
         let isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
         let isWeekend = ['Sun', 'Sat'].includes(weekDay) ? true : false
 
@@ -485,6 +507,7 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
             dtr: dtr,
             isNow: isNow,
             isWeekend: isWeekend,
+            holiday: holiday,
             attendance: attendance
         }
     })
@@ -683,7 +706,11 @@ const logAttendance = async (db, employee, employment, scannerId, waitTime = 15,
         }
         let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
         if (diff < waitTime) {
-            throw new Error(`You have just logged. Please wait ${waitTime - diff} minute(s) and try again later.`)
+            let timeUnit = 'minute'
+            if(waitTime - diff > 1){
+                timeUnit = 'minutes'
+            }
+            throw new Error(`You have just logged. Please wait ${waitTime - diff} ${timeUnit} and try again later.`)
         }
 
         let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0

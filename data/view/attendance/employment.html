@@ -54,6 +54,7 @@
                     <th class="text-center" rowspan="2" colspan="2">Day</th>
                     <th class="text-center" colspan="2">AM</th>
                     <th class="text-center" colspan="2">PM</th>
+                    <th class="text-center" colspan="2">Extended</th>
                     <th class="text-center" colspan="3">
                         {% if showTotalAs == 'undertime' %}
                             <a href="?{{query|query_string({undertime: 0})}}">Undertime</a>
@@ -63,6 +64,9 @@
                     </th>
                 </tr>
                 <tr>
+                    <th>Arrival</th>
+                    <th>Departure</th>
+                    
                     <th>Arrival</th>
                     <th>Departure</th>
                     
@@ -94,6 +98,8 @@
                     {% else %}
                         <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')|replace('Wfh', 'WFH')}}</td>
                     {% endif %}
+                    <td></td>
+                    <td></td>
                     <td>
                         {% if showTotalAs == 'undertime' %}
                             {{day.dtr.underDays|default('', true)}}
@@ -115,10 +121,11 @@
                             {{day.dtr.renderedMinutes}}
                         {% endif %}
                     </td>
+                    
                 </tr>
                 {% endfor %}
                 <tr>
-                    <td colspan="6"><h5 class="m-0">Total</h5></td>
+                    <td colspan="8"><h5 class="m-0">Total</h5></td>
                     <td>
                         {% if showTotalAs == 'undertime' %}
                             {{timeRecordSummary.underDays|default('', true)}}

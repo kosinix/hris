@@ -338,7 +338,7 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
 
                 log = await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id, undefined, { photo: lodash.get(saveList, 'photos[0]', '') })
             } catch (err) {
-                throw new AppError(err.message) // Format for xhr
+                throw err// Format for xhr
             }
 
             if (scanData.employee.profilePhoto) {

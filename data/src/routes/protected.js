@@ -69,6 +69,81 @@ router.get('/check', async (req, res, next) => {
     }
 });
 
+router.get('/migrate', middlewares.requireAuthUser, async (req, res, next) => {
+    try {
+        let aggr = []
+        aggr.push({
+            $lookup: {
+                localField: "uid",
+                from: "employees",
+                foreignField: "uid",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                },
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+            }
+        })
+        aggr.push({
+            $lookup: {
+                localField: "employee.userId",
+                from: "users",
+                foreignField: "_id",
+                as: "users"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "user": {
+                    $arrayElemAt: ["$users", 0]
+                },
+            }
+        })
+        aggr.push({
+            $project: {
+                employee: 0,
+                users: 0,
+            }
+        })
+
+        //console.log(aggr)
+        let registrations = await db.main.RegistrationForm.aggregate(aggr)
+        let xcount = 0
+        let promises = []
+        for (let x = 0; x < registrations.length; x++) {
+            let reg = registrations[x]
+            let userId = null
+            try {
+                userId = reg.user._id
+            } catch (err) {
+                xcount++
+                console.log(xcount, x, reg.email)
+            }
+            promises.push(
+                db.main.User.updateOne({
+                    _id: userId
+                }, {
+                    email: reg.email
+                })
+            )
+        }
+        let commands = await Promise.all(promises)
+        res.send(commands);
+    } catch (err) {
+        next(err);
+    }
+});
+
 // View s3 object using html page
 router.get('/file-viewer/:bucket/:prefix/:key', middlewares.requireAuthUser, async (req, res, next) => {
     try {

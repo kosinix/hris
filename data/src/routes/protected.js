@@ -131,7 +131,8 @@ router.get('/migrate', middlewares.requireAuthUser, async (req, res, next) => {
             }
             promises.push(
                 db.main.User.updateOne({
-                    _id: userId
+                    _id: userId,
+                    email: ""
                 }, {
                     email: reg.email
                 })

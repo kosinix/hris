@@ -113,12 +113,6 @@ router.get('/payroll/generate', middlewares.guardRoute(['create_payroll']), asyn
     try {
 
         let workSchedules = await db.main.WorkSchedule.find().lean()
-        workSchedules = workSchedules.map((o) => {
-            let start = moment().startOf('day').minutes(o.timeSegments[0].start).format('hh:mm A')
-            let end = moment().startOf('day').minutes(o.timeSegments.pop().end).format('hh:mm A')
-            o.name = `${o.name} - ${start} to ${end}`
-            return o
-        })
         let data = {
             workSchedules: workSchedules
         }

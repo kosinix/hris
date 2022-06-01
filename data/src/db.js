@@ -36,6 +36,7 @@ main.HealthDeclaration = main.model('HealthDeclaration', require('./models/healt
 main.Holiday = main.model('Holiday', require('./models/holiday'));
 main.Login = main.model('Login', require('./models/login'));
 main.Pass = main.model('Pass', require('./models/pass'));
+main.PasswordReset = main.model('PasswordReset', require('./models/password-reset'));
 main.Payroll = main.model('Payroll', require('./models/payroll'));
 main.Permission = main.model('Permission', require('./models/permission'));
 main.Position = main.model('Position', require('./models/position'));

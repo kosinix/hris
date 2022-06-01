@@ -1,0 +1,13 @@
+Greetings {{firstName}}!
+
+You requested to reset the password for your HRIS account with the e-mail address {{to}}.
+Please click this link to reset your password:
+
+Reset My Password: {{resetLink}}
+
+Did you encounter any problems? Or do you have questions? 
+You can reach us at any of these channels:
+
+For Attendance Concerns - hrmo@gsc.edu.ph
+For Technical Issues - mis@gsc.edu.ph
+Browse Help Topics - {{baseUrl}}/help

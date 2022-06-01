@@ -20,5 +20,9 @@
       "url": "https://codefleet-hris-storage.s3-ap-southeast-1.amazonaws.com/files-live/",
       "prefix": "files-live"
     }
-  }
+  },
+  "recaptchav3": {
+    "enable": true
+  },
+  "loginDelay": 5000
 }

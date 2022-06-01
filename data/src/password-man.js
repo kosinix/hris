@@ -40,7 +40,7 @@ module.exports = {
     },
     genPassword: (length) => { // Guarantees 1 upper and 1 special char in a random string
         const upperChars = "ABCDEFGHIJKLMNPQRSTUVWXYZ"
-        const specialChars = `!@#$%*_+?]=` // Use only less confusing characters
+        const specialChars = `!@#$_?]=` // Use only less confusing characters
 
         let bytes = crypto.randomBytes(length / 2);
         let hex = bytes.toString('hex').split('') // convert to array

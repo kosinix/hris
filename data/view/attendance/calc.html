@@ -60,7 +60,7 @@
                 var hrs = duration.as('hours')
                 var mins = duration.as('m')
                 var hrsOnly = Math.floor(hrs)
-                var minsOnly = Math.floor((hrs - hrsOnly) * 60)
+                var minsOnly = Math.round((hrs - hrsOnly) * 60)
                 return hrsOnly + ' hrs and ' + minsOnly + ' mins'
             }
         },

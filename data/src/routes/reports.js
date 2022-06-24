@@ -543,8 +543,8 @@ router.get(['/reports/pm/tardiness/:employmentId/report', '/reports/pm/tardiness
         showTotalAs = 'undertime'
         let countTimeBy = 'all'
         let compatibilityUrl = [
-            `periodMonthYear=${periodMonthYear}`,
-            `periodSlice=${periodSlice}`,
+            `start=${start}`,
+            `end=${end}`,
             `periodWeekDays=${periodWeekDays}`,
             `showTotalAs=${showTotalAs}`,
             `countTimeBy=${countTimeBy}`,

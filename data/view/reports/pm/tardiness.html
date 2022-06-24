@@ -1,0 +1,125 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <div>
+                <h1>Tardiness Report</h1>
+                <p class="mb-0 pl-1">
+                    
+                </p>
+            </div>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/employee/employment/{{employee._id}}" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    {# {% include 'attendance/tabs-calendar.html' %} #}
+    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3">
+        <div class="d-flex mb-3">
+            {% if employee.profilePhoto %}
+                <img class="mr-3 privy-photo" width="100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="photo">
+            {% else %}
+            {% endif %}
+            <div class="mt-2">
+                <h1 class="privy-name">  
+                    <a href="/employee/personal/{{employee._id}}">
+                        {{employee.lastName}},
+                        {{employee.firstName}}
+                    </a>
+                </h1>
+                <h2><a class="privy-employment" href="/employee/employment/{{employee._id}}">{{employment.position}} - {{employment.employmentType|capitalize}}</a></h2>
+            </div>
+        </div>
+       
+
+        <h2 class="h5 mb-4">
+            {{startMoment|format_date('MMM DD, YYYY')}}
+            {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
+                to {{endMoment|format_date('MMM DD, YYYY')}}
+            {% endif %}
+        </h2>
+        <div class="mb-3">
+            <div class="d-flex align-items-center">
+                <input v-model="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}">
+                <span class="m-1">to</span> 
+                <input v-model="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}">
+              
+                <button v-on:click="reloado" type="button" class="ml-1 btn btn-sm btn-primary">Change</button>
+            </div>
+        </div>
+        
+        <div class="text-right mb-2">
+            <!-- <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm">Insert Attendance</a> -->
+            <a href="/reports/pm/tardiness/{{employment._id}}/report.xlsx?{{compatibilityUrl}}" class="btn btn-light btn-sm" target="_blank">Download</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-dtr">
+                <tr>
+                    <th colspan="3" class="text-center">Period {{startMoment|format_date('MMM DD, YYYY')}}
+                        {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
+                            to {{endMoment|format_date('MMM DD, YYYY')}}
+                        {% endif %}
+                    </th>
+                </tr>
+                <tr>
+                    <th>Name</th>
+                    <th>Frequency of Tardiness/Undertime                    </th>
+                    <th>Total</th>
+                </tr>
+                <tr>
+                    <td>{{employee.lastName}}, {{employee.firstName}}</td>
+                    <td class="text-center">{{undertimeFreq}}</td>
+                    <td>{{timeRecordSummary.underDays}} days {{timeRecordSummary.underHours}} hrs {{timeRecordSummary.underMinutes}} mins</td>
+                </tr>
+            </table>
+        </div>
+
+        
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            urlPath: '{{urlPath}}',
+            startDate: '{{startMoment|format_date("YYYY-MM-DD")}}',
+            endDate: '{{endMoment|format_date("YYYY-MM-DD")}}',
+            showWeekDays: '{{showWeekDays}}',
+        },
+        validations: {
+            
+        },
+        methods: {
+            reloado: function(){
+                window.location.href = this.urlPath + '?start=' + this.startDate + '&end=' + this.endDate + '&showWeekDays=' + this.showWeekDays
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

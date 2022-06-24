@@ -44,7 +44,8 @@
                             <a href="/employee/{{employee._id}}/employment/{{employment._id}}/schedule/{{employment.workScheduleId}}">Sched</a>
                         </td>
                         <td>
-                            <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}">Att.</a>
+                            <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}">Att.</a> | 
+                            <a href="/reports/pm/tardiness/{{employment._id}}/report">Tard.</a>
                         </td>
                     </tr>
                     {% endfor %}

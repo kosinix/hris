@@ -1558,9 +1558,9 @@ let templateAttendanceFlag = async (mCalendar, attendances) => {
             // 'hh:mm'
             let morningIn = moment(lodash.get(attendance, 'dateTime', null))
             morningIn = morningIn.isValid() ? morningIn.format('hh:mm A') : ''
-          
+
             slex.getCell(`D${row}`).value(morningIn)
-                
+
         }
 
     }
@@ -1607,6 +1607,25 @@ let templateGenderReport = async (employees) => {
 
 }
 
+let templateTardiness = async (employee, periodString, undertimeFreq, timeRecordSummary) => {
+
+    let workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/reports/pm/tardiness.xlsx`);
+    let slex = new Slex(workbook)
+
+    let worksheet = workbook.getWorksheet('Sheet1')
+    if (worksheet) {
+        slex.setSheet(worksheet)
+        slex.getCell(`A1`).value(periodString)
+        slex.getCell(`A3`).value(employee.lastName + ' ' + employee.firstName)
+        slex.getCell(`B3`).value(undertimeFreq)
+        slex.getCell(`C3`).value(`${timeRecordSummary.underDays} days ${timeRecordSummary.underHours} hrs ${timeRecordSummary.underMinutes} mins`)
+    }
+
+    return workbook
+
+}
+
 module.exports = {
     templateCos: templateCos,
     templateHdf: templateHdf,
@@ -1615,4 +1634,5 @@ module.exports = {
     templateAttendanceDaily: templateAttendanceDaily,
     templateAttendanceFlag: templateAttendanceFlag,
     templateGenderReport: templateGenderReport,
+    templateTardiness: templateTardiness,
 }

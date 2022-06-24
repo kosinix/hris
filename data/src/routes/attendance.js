@@ -486,6 +486,103 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
     }
 });
 
+router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getAttendance, async (req, res, next) => {
+    try {
+        let attendance = res.attendance.toObject()
+        let employee = await db.main.Employee.findById(attendance.employeeId)
+        let employment = await db.main.Employment.findById(attendance.employmentId)
+        let workSchedules = await db.main.WorkSchedule.find().lean()
+        let workSchedule = await db.main.WorkSchedule.findById(attendance.workScheduleId).lean()
+        // let timeSegments = lodash.get(workSchedule, 'timeSegments', [])
+
+        // timeSegments = timeSegments.map((t)=>{
+        //     t.max = t.end - t.start
+        //     return t
+        // })
+
+        attendance = lodash.merge({
+            createdAt: '',
+            employeeId: '',
+            employmentId: '',
+            logs: [],
+            type: 'normal',
+            workScheduleId: '',
+        }, attendance)
+
+        let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
+        let hasFlexi = workScheduleTimeSegments.filter(o => o.flexible)
+
+        if (hasFlexi.length <= 0) {
+            // Overtime
+            workScheduleTimeSegments.push({
+                name: "OT",
+                grace: 0,
+                flexible: false,
+                start: workScheduleTimeSegments[workScheduleTimeSegments.length - 1].end,
+                end: 1439, // 11 
+                breaks: []
+            })
+        }
+        let timeSegments = dtrHelper.buildTimeSegments(workScheduleTimeSegments)
+        let logSegments = dtrHelper.buildLogSegments(attendance.logs)
+        let timeWorked = dtrHelper.countWork(timeSegments, logSegments, { ignoreZero: true })
+
+        // return res.send(logSegments)
+        // return res.send(timeSegments)
+        // return res.send(timeWorked)
+        res.render('attendance/edit2.html', {
+            flash: flash.get(req, 'attendance'),
+            attendanceTypes: CONFIG.attendance.types,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+            employee: employee,
+            employment: employment,
+            attendance: attendance,
+            workSchedules: workSchedules,
+            timeSegments: timeSegments,
+            logSegments: logSegments,
+            timeWorked: timeWorked,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
+    try {
+        let attendance = res.attendance.toObject()
+        let employee = res.employee.toObject()
+        let employment = await db.main.Employment.findById(res.params.employ)
+
+
+        let body = req.body
+        // return res.send(body)
+        let patch = {}
+        lodash.set(patch, 'type', lodash.get(body, 'type'))
+        lodash.set(patch, 'workScheduleId', lodash.get(body, 'workScheduleId'))
+        lodash.set(patch, 'log0', lodash.get(body, 'log0'))
+        lodash.set(patch, 'log1', lodash.get(body, 'log1'))
+        lodash.set(patch, 'log2', lodash.get(body, 'log2'))
+        lodash.set(patch, 'log3', lodash.get(body, 'log3'))
+        lodash.set(patch, 'comment', lodash.get(body, 'comment'))
+
+        if (patch.type === '') {
+            return res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
+        }
+
+        let { changeLogs, att } = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
+
+        // return res.send(att)
+        if (changeLogs.length) {
+            flash.ok(req, 'attendance', `${changeLogs.join(' ')}`)
+        } else {
+
+        }
+        res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
+        // res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}?start=2021-11-02&end=2021-11-02`)
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance/create', middlewares.guardRoute(['create_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -1370,19 +1467,19 @@ router.get('/attendance/holiday/all-set-attendances', middlewares.guardRoute(['u
                             "employmentId": employment._id,
                             "logs": [],
                             "changes": [{
-                                "summary" : `${res.user.username} inserted a new attendance.`,
-                                "objectId" : res.user._id,
-                                "createdAt" : momentNow.toDate()
-                            }, 
+                                "summary": `${res.user.username} inserted a new attendance.`,
+                                "objectId": res.user._id,
+                                "createdAt": momentNow.toDate()
+                            },
                             {
-                                "summary" : `${res.user.username} inserted a new attendance.`,
-                                "objectId" : res.user._id,
-                                "createdAt" : momentNow.toDate()
+                                "summary": `${res.user.username} inserted a new attendance.`,
+                                "objectId": res.user._id,
+                                "createdAt": momentNow.toDate()
                             }],
                             "comments": [{
-                                "summary" : `Set to Holiday.`,
-                                "objectId" : res.user._id,
-                                "createdAt" : momentNow.toDate()
+                                "summary": `Set to Holiday.`,
+                                "objectId": res.user._id,
+                                "createdAt": momentNow.toDate()
                             }],
                             "createdAt": moment(holiday.date).startOf('day').toDate()
                         })

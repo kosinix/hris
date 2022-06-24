@@ -936,6 +936,57 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     display: none;
 }
 
+/* Time bar */
+.t-bar{
+    position: relative; 
+    min-height: 20px; 
+    background: lightgray;
+    border: 1px dotted;
+}
+.t-bar-segment{
+    color: white;
+    background: darkgrey; 
+    position: absolute; 
+    top: 0; 
+    height: 100%;
+    text-align: center;
+    font-size: 11px;
+    border-right: 1px solid whitesmoke;
+}
+.t-bar-grace{
+    left: 0;
+    top: 0; 
+    height: 100%;
+    background: goldenrod; 
+    position: absolute; 
+}
+.t-bar-raw-segment{
+    background: green; 
+    position: absolute; 
+    top: 0; 
+    height: 100%;
+    text-align: center;
+    font-size: 11px;
+}
+.t-bar-hour{
+    width: 1px;
+    background: red; 
+    position: absolute; 
+    top: 0; 
+    height: 100%;
+    text-align: center;
+    font-size: 11px;
+}
+.t-bar-hour-label{
+    position: absolute;
+    top: -100%;
+    height: 100%;
+    text-align: center;
+    font-size: 11px;
+    min-width: 10px;
+    left: -5px;
+}
+
 /* Breakpoints */
 /* ≥1200px Extra large */
 @media (max-width:1200px){

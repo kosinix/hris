@@ -56,9 +56,20 @@ env.addFilter('includes', function (array, value) {
     return array.includes(value);
 })
 env.addFilter('mToTime', function (minutes, format) {
-    if (!minutes) return 0
+    if (minutes === undefined || minutes === null) return 0
     format = format || 'h:mmA'
     return moment().startOf('year').startOf('day').add(minutes, 'minutes').format(format)
+})
+env.addFilter('mToHour', function (minutes) {
+    if (minutes === undefined || minutes === null) return 0
+    return Math.floor(minutes/60)
+})
+env.addFilter('mToMin', function (minutes) {
+    if (minutes === undefined || minutes === null) return 0
+    return Math.round((minutes/60 - Math.floor(minutes/60))*60)
+})
+env.addFilter('round2', function (num) {
+    return Math.round( ( num + Number.EPSILON ) * 100 ) / 100
 })
 env.addFilter('scheduleBreaks', function (breaks) {
     breaks = breaks.map((br)=>{

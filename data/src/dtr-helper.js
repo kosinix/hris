@@ -264,7 +264,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
                 // console.log(minutes)
             }
         }
-        
+
         for (let l = 0; l < attendance.logs.length; l++) {
             let log = attendance.logs[l]
             if (log.mode === 1) { // in
@@ -364,7 +364,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
 
     // Upper limit
     let maxMinutes = shifts.map((shift) => {
-        return lodash.get(shift, 'maxHours', 0) * 60
+        return lodash.get(shift, 'max', 0)  // Return max of all shifts of the day 
     }).reduce((result, maxMinutes) => {
         return result + maxMinutes
     }, 0)
@@ -374,13 +374,175 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
         console.log(minutes, '>', maxMinutes, 'EXCESS =', minutes - maxMinutes)
         excessMinutes = minutes - maxMinutes
         minutes = maxMinutes
+    } else if(minutes === maxMinutes) {
+        console.log(minutes, '===', maxMinutes)
     } else {
-        console.log(minutes, '<=', maxMinutes)
+        console.log(minutes, '<', maxMinutes)
+        // TODO: check under time logic
+        underMinutes = maxMinutes - minutes
+        console.log('underMinutes', underMinutes)
+    }
+    return getTimeBreakdown(minutes, underMinutes, hoursPerDay, excessMinutes)
+
+}
+
+const calcDailyAttendance2 = (attendance, hoursPerDay = 8, travelPoints = 480, shifts, holiday = null) => {
+
+    // Default govt shift
+    if (!shifts) {
+        shifts = []
+        shifts.push(createShift({ hour: 8, minute: 0 }, { hour: 12, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4, flexible: false }))
+        shifts.push(createShift({ hour: 13, minute: 0 }, { hour: 17, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4, flexible: false }))
     }
 
-    // TODO: check under time logic
-    underMinutes = maxMinutes - minutes
-    console.log('underMinutes', underMinutes)
+    // travelPoints 480 minutes = 8 hours 
+    if (null === attendance) return null
+
+    // Daily minutes
+    let minutes = 0
+    let underMinutes = 0
+    if (attendance.type === 'wfh') {
+        minutes += travelPoints
+    } else if (attendance.type === 'leave') {
+        minutes += travelPoints
+    } else if (attendance.type === 'pass') {
+        minutes += travelPoints
+    } else if (attendance.type === 'holiday') {
+        minutes += travelPoints
+    } else { // normal, hybrid
+        // roll logs 
+        let momentIn = null
+        let startMinutes = null
+        let endMinutes = null
+        let shiftCurrent = null
+
+        if (attendance.type === 'travel') {
+            if (attendance.logs.length >= 2) {
+                minutes += travelPoints / 2
+
+            } else {
+                minutes += travelPoints
+                // console.log(minutes)
+            }
+        }
+
+        for (let l = 0; l < attendance.logs.length; l++) {
+            let log = attendance.logs[l]
+            if (log.mode === 1) { // in
+                momentIn = moment(log.dateTime)
+                startMinutes = momentToMinutes(momentIn)
+
+                if (startMinutes === null) break // Something went wrong
+
+                shiftCurrent = getNextShift(startMinutes, shifts)
+
+                if (shiftCurrent instanceof Error) break // No more next shift
+                if (shiftCurrent === null) break // Something went wrong
+
+                // If log time is before current shift + grace period, use current shift start
+                if (startMinutes <= shiftCurrent.start + shiftCurrent.grace) {
+                    startMinutes = shiftCurrent.start // Set to shift start
+                } // else use startMinutes as is
+
+                // console.log(`shift ${shiftCurrent.start} to ${shiftCurrent.end} IN  ${startMinutes}`)
+
+            } else if (log.mode === 0) { // out
+
+                if (shiftCurrent instanceof Error) break // No more next shift
+                if (shiftCurrent === null) break // Something went wrong
+
+                endMinutes = momentToMinutes(moment(log.dateTime))
+
+                let minutesWorked = 0
+
+                // Different conditions
+                if (endMinutes < shiftCurrent.start) { // Invalid. Logged out before current shift starts! 
+
+                    // console.log('Logging out before shift starts!')
+
+                } else if (endMinutes >= shiftCurrent.start && endMinutes <= shiftCurrent.end) { // Logged out within current shift
+
+                    minutesWorked = endMinutes - startMinutes
+                    // Breaks here
+                    if (shiftCurrent.breaks) {
+                        let subTime = 0
+                        for (let b = 0; b < shiftCurrent.breaks.length; b++) {
+                            let breakTime = shiftCurrent.breaks[b]
+                            if (endMinutes >= breakTime.start && endMinutes <= breakTime.end) { // Logged out in a break
+                                subTime += endMinutes - breakTime.start
+                            } else if (endMinutes > breakTime.end) { // Logged out after break
+                                subTime += breakTime.end - breakTime.start
+                            }
+                        }
+
+                        minutesWorked -= subTime
+                    }
+
+                } else if (endMinutes > shiftCurrent.end) { // Logged out after current shift
+
+                    // Check if logged out on next shift
+                    let shiftNext = getNextShift(endMinutes, shifts)
+
+                    if (shiftNext instanceof Error) { // No more next shift
+
+                        minutesWorked = shiftCurrent.end - startMinutes // Remove excess and use shiftCurrent.end
+
+                    } else {
+
+                        if (endMinutes < shiftNext.start) { // Logged out after current and before next shift (eg. logged out on lunch break period)
+
+                            minutesWorked = shiftCurrent.end - startMinutes // Remove excess and use shiftCurrent.end
+
+                        } else if (endMinutes >= shiftNext.start && endMinutes <= shiftNext.end) { // Logged out within NEXT shift (forgot to logout and login)
+                            // Get current shift time worked
+                            minutesWorked = shiftCurrent.end - startMinutes // Remove excess and use shiftCurrent.end
+                            /*
+                            // Add next shift time worked
+                            minutesWorked += endMinutes - shiftNext.start
+                            // Breaks goes here
+                            */
+                        } else {
+                            // Nothing to compute
+                        }
+
+                    }
+
+
+                }
+
+                // console.log(`shift ${shiftCurrent.start} to ${shiftCurrent.end} OUT ${endMinutes} = ${minutesWorked}`)
+
+                // Attach
+                log.minutesWorked = minutesWorked
+                log.underMinutes = shiftCurrent.maxMinutes - minutesWorked
+
+                minutes += minutesWorked
+
+            }
+        }
+
+    }
+
+    // Upper limit
+    let maxMinutes = shifts.map((shift) => {
+        return lodash.get(shift, 'max', 0)  // Return max of all shifts of the day 
+    }).reduce((result, maxMinutes) => {
+        return result + maxMinutes
+    }, 0)
+
+    let excessMinutes = 0
+    if (minutes > maxMinutes) {
+        console.log(minutes, '>', maxMinutes, 'EXCESS =', minutes - maxMinutes)
+        excessMinutes = minutes - maxMinutes
+        minutes = maxMinutes
+    } else if(minutes === maxMinutes) {
+        console.log(minutes, '===', maxMinutes)
+    } else {
+        console.log(minutes, '<', maxMinutes)
+        // TODO: check under time logic
+        underMinutes = maxMinutes - minutes
+        console.log('underMinutes', underMinutes)
+    }
     return getTimeBreakdown(minutes, underMinutes, hoursPerDay, excessMinutes)
 
 }
@@ -476,6 +638,7 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
                 return t
             })
         }
+        
         // original schedule schema
         if (!timeSegments) {
             console.log('v1 shift')
@@ -485,7 +648,37 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
                 return t
             })
         }
+        timeSegments = [
+            {
+                grace: 0,
+                flexible: false,
+                weekDays: [],
+                start: 480,
+                end: 1050,
+                breaks: [
+                    {
+                        type: 'lunch',
+                        start: 720,
+                        end: 810
+                    }
+                ],
+                max: 480
+            }
+        ]
         let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments, holiday)
+        timeSegments = [
+            {
+                grace: 0,
+                flexible: false,
+                weekDays: [],
+                start: 1050,
+                end: 1440,
+                breaks: [],
+                max: 390
+            }
+        ]
+        let dtr2 = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments, holiday)
+        console.log('dtr2', dtr2)
         let isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
         let isWeekend = ['Sun', 'Sat'].includes(weekDay) ? true : false
 
@@ -707,7 +900,7 @@ const logAttendance = async (db, employee, employment, scannerId, waitTime = 15,
         let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
         if (diff < waitTime) {
             let timeUnit = 'minute'
-            if(waitTime - diff > 1){
+            if (waitTime - diff > 1) {
                 timeUnit = 'minutes'
             }
             throw new Error(`You have just logged. Please wait ${waitTime - diff} ${timeUnit} and try again later.`)
@@ -985,11 +1178,196 @@ const createWorkScheduleTemplate = () => {
     return workScheduleTemplate
 }
 
+/**
+ * Turn breaks into time segments and merge with original time segment
+ * 
+ * @param {*} timeSegment 
+ * @param {Number} timeSegment.grace - Grace period
+ * @param {Boolean} timeSegment.flexible - Flexi or sliding time
+ * @param {Number} timeSegment.start - Start minutes from midnight
+ * @param {Number} timeSegment.end - End minutes from midnight
+ * @param {Number|null|undefined} timeSegment.max - Max minutes. Auto computed if falsy.
+ * @param {Array} timeSegment.breaks - Array of breaks
+ * @throws {Error} 
+ * @returns {Array}
+ */
+ const breakTimeSegments = (timeSegment) => {
+
+    let points = []
+    points.push(timeSegment.start)
+    lodash.get(timeSegment, 'breaks', []).forEach(br => {
+        points.push(br.start)
+        points.push(br.end)
+    })
+    points.push(timeSegment.end)
+
+    let isOdd = points.length % 2 > 0
+    if (isOdd) {
+        throw new Error('Odd points. Every point should have a partner.')
+    }
+    let chunks = []
+    let chunkSize = 2
+    for (let i = 0; i < points.length; i += chunkSize) {
+        chunks.push(points.slice(i, i + chunkSize))
+    }
+
+    let timeSegments = chunks.map((chunk, i) => {
+        let grace = timeSegment.grace
+        let max = lodash.get(timeSegment, 'max')
+        if (!max) {
+            max = chunk[1] - chunk[0]
+        }
+        // These chunks are breaks, only the first chunk is the original time segment that has grace period
+        if (i > 0) {
+            grace = 0
+        }
+
+        return {
+            name: timeSegment.name,
+            grace: grace,
+            flexible: timeSegment.flexible,
+            start: chunk[0],
+            end: chunk[1],
+            max: max,
+        }
+    })
+
+    return timeSegments
+}
+
+/**
+ * Loop on every time segment and extract breaks turning them into time segments too.
+ * 
+ * @param {Array} timeSegments 
+ * @returns {Array} - 1-dimensional array of time segments
+ */
+const buildTimeSegments = (timeSegments) => {
+    timeSegments = timeSegments.map(timeSegment => {
+        return breakTimeSegments(timeSegment)
+    })
+    let flattened = []
+    timeSegments.forEach(timeSegment => {
+        flattened.push(...timeSegment)
+    })
+    return flattened
+}
+
+/**
+ * Extract time segments from a work schedule on a given date
+ * 
+ * @param {*} workSchedule 
+ * @param {*} givenDate 
+ * @returns 
+ */
+ const getWorkScheduleTimeSegments = (workSchedule, givenDate) => {
+    // Turn into date object
+    let customDate = new Date()
+    customDate.setTime(Date.parse(givenDate))
+    // Get lowercase 3-letter weekday 
+    let weekDay = customDate.toLocaleDateString('en-PH', {
+        timeZone: 'Asia/Manila',
+        weekday: 'short',
+    })
+    weekDay = weekDay.toLocaleLowerCase()
+
+    // console.log(weekDay)
+    // Get if v1 or v2 schedule
+    let workScheduleTimeSegments = lodash.get(workSchedule, `weekDays.${weekDay}.timeSegments`) // V2 work schedule schema
+    if (!workScheduleTimeSegments) { // V1 work schedule schema
+        workScheduleTimeSegments = workSchedule.timeSegments
+    }
+    if (workScheduleTimeSegments) {
+        workScheduleTimeSegments = workScheduleTimeSegments.map((timeSegment) => {
+            return Object.fromEntries(Object.entries(timeSegment).filter(([key]) => !['_id'].includes(key))) // remove _id
+        })
+    }
+    return workScheduleTimeSegments
+}
+
+const buildLogSegments = (logs) => {
+    let points = logs.map(log=>{
+        return timeToM(moment(log.dateTime).format('HH:mm'))
+    })
+
+    let isOdd = points.length % 2 > 0
+    if (isOdd) {
+        throw new Error('Odd points. Every point should have a partner.')
+    }
+    let chunks = []
+    let chunkSize = 2
+    for (let i = 0; i < points.length; i += chunkSize) {
+        chunks.push(points.slice(i, i + chunkSize))
+    }
+
+    return chunks.map((chunk, i) => {
+        return {
+            start: chunk[0],
+            end: chunk[1],
+            raw: chunk[1] - chunk[0],
+        }
+    })
+}
+
+/**
+ * Compare time segments and log segments to compute time worked.
+ * @param {Array} timeSegments 
+ * @param {Array} logSegments 
+ * @param {Boolean} options.ignoreZero - Ignore zero counted
+ * @returns {Array}
+ */
+let countWork = (timeSegments, logSegments, options) => {
+    timeSegments = timeSegments.map(timeSegment => {
+        timeSegment.logSegments = [] // add prop
+        return timeSegment
+    })
+    for (let s = 0; s < timeSegments.length; s++) {
+        let timeSegment = timeSegments[s]
+
+        for (let l = 0; l < logSegments.length; l++) {
+            let logSegment = logSegments[l]
+            let log = new Map()
+            log.set('start', logSegment.start)
+            log.set('end', logSegment.end)
+
+            log.set('raw', logSegment.end - logSegment.start)
+            log.set('countedStart', logSegment.start)
+
+            // logSegment.countedStart = logSegment.start
+            if (logSegment.start <= timeSegment.start + timeSegment.grace) {
+                log.set('countedStart', timeSegment.start)
+            }
+            // logSegment.countedEnd = logSegment.end 
+            log.set('countedEnd', logSegment.end)
+
+            if (logSegment.end >= timeSegment.end) {
+                log.set('countedEnd', timeSegment.end)
+            }
+
+            log.set('counted', log.get('countedEnd') - log.get('countedStart'))
+            log.set('counted', log.get('counted') < 0 ? 0 : log.get('counted'))
+            log.set('counted', log.get('counted') > timeSegment.max ? timeSegment.max : log.get('counted'))
+            log.set('countedExcess', log.get('countedEnd') - log.get('countedStart') - timeSegment.max)
+            if(log.get('countedExcess') < 0 ){
+                log.set('countedExcess', 0)
+            }
+            if(options && options.ignoreZero){
+                if (log.get('counted') > 0) {
+                    timeSegments[s].logSegments.push(Object.fromEntries(log))
+                }
+            } else {
+                timeSegments[s].logSegments.push(Object.fromEntries(log))
+            }
+        }
+    }
+    return timeSegments
+}
+
 module.exports = {
     logAttendance: logAttendance,
     editAttendance: editAttendance,
     compute: compute,
     calcDailyAttendance: calcDailyAttendance,
+    calcDailyAttendance2: calcDailyAttendance2,
     calcTimeRecord: getTimeBreakdown, //@deprecated. Use getTimeBreakdown
     createWorkScheduleTemplate: createWorkScheduleTemplate,
     createShift: createShift,
@@ -1005,4 +1383,10 @@ module.exports = {
     minutesToMoments: minutesToMoments,
     mToTime: mToTime,
     timeToM: timeToM,
+    // 
+    breakTimeSegments: breakTimeSegments,
+    buildTimeSegments: buildTimeSegments,
+    getWorkScheduleTimeSegments: getWorkScheduleTimeSegments,
+    countWork: countWork,
+    buildLogSegments: buildLogSegments,
 }

@@ -554,7 +554,7 @@ router.get(['/reports/pm/tardiness/:employmentId/report', '/reports/pm/tardiness
 
         let periodString = startMoment.format('MMM DD, YYYY')
         if (startMoment.format('MMM DD, YYYY') != endMoment.format('MMM DD, YYYY')) {
-            periodString += `to ${endMoment.format('MMM DD, YYYY')}`
+            periodString += ` to ${endMoment.format('MMM DD, YYYY')}`
         }
 
         if (req.originalUrl.includes('.xlsx')) {

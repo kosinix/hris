@@ -388,7 +388,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
         } else if (showWeekDays === 'Sat|Sun') {
             periodWeekDays = 'Sat-Sun'
         }
-        showTotalAs = 'time'
+        // showTotalAs = 'time'
         let countTimeBy = 'all'
         let compatibilityUrl = [
             `periodMonthYear=${periodMonthYear}`,

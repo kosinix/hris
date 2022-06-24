@@ -9,6 +9,7 @@ const moment = require('moment')
 
 //// Modules
 const db = require('../db');
+const dtrHelper = require('../dtr-helper');
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
@@ -366,7 +367,7 @@ router.get(['/reports/rsp/gender/table', `/reports/rsp/gender/table.xlsx`], midd
             aggr.push({ $limit: options.limit })
         }
         let employees = await db.main.Employee.aggregate(aggr)
-       
+
         let data = {
             flash: flash.get(req, 'reports'),
             employees: employees,
@@ -381,7 +382,7 @@ router.get(['/reports/rsp/gender/table', `/reports/rsp/gender/table.xlsx`], midd
             res.set('Content-Disposition', `attachment; filename="gender.xlsx"`)
             res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             return res.send(buffer)
-        }  
+        }
 
         // return res.send(data)
         res.render('reports/rsp/gender/table.html', data);
@@ -460,6 +461,126 @@ router.get('/reports/pm/non-party', middlewares.guardRoute(['read_all_report']),
 
         // return res.send(data)
         res.render('reports/pm/non-party.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get(['/reports/pm/tardiness/:employmentId/report', '/reports/pm/tardiness/:employmentId/report.xlsx'], middlewares.guardRoute(['read_all_report']), middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let employment = res.employment
+        let employee = await db.main.Employee.findById(employment.employeeId)
+
+        let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+        let showWeekDays = 'Mon|Tue|Wed|Thu|Fri|Sat|Sun' //lodash.get(req, 'query.showWeekDays', 'Mon|Tue|Wed|Thu|Fri|Sat|Sun') 
+        let showTotalAs = lodash.get(req, 'query.undertime') == 1 ? 'undertime' : 'time'
+
+        let startMoment = moment(start).startOf('day')
+        let endMoment = moment(end).endOf('day')
+
+        if (!startMoment.isValid()) {
+            throw new Error(`Invalid start date.`)
+        }
+        if (!endMoment.isValid()) {
+            throw new Error(`Invalid end date.`)
+        }
+
+        if (endMoment.isBefore(startMoment)) {
+            throw new Error(`Invalid end date. Must not be less than the start date.`)
+        }
+
+        let momentNow = moment()
+
+
+        let options = {
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
+        }
+        if (!options.showWeekDays.length) {
+            options.showWeekDays = showWeekDays.split('|')
+        }
+        let { days } = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
+
+        let undertimeFreq = days.map(d => {
+            return lodash.get(d, 'dtr.underTimeTotalMinutes', 0)
+        }).filter(d => d > 0).length
+        // console.log(undertimeFreq)
+        let totalMinutes = 0
+        let totalMinutesUnderTime = 0
+        days.forEach((day) => {
+            totalMinutes += lodash.get(day, 'dtr.totalMinutes', 0)
+            totalMinutesUnderTime += lodash.get(day, 'dtr.underTimeTotalMinutes', 0)
+        })
+
+        let timeRecordSummary = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
+        // return res.send(timeRecordSummary)
+        // console.log(kalendaryo.getMatrix(momentNow, 0))
+        let months = Array.from(Array(12).keys()).map((e, i) => {
+            return moment.utc().month(i).startOf('month')
+        }); // 1-count
+        // return res.send(days)
+
+        // compat link
+        let periodMonthYear = startMoment.clone().startOf('month').format('YYYY-MM-DD')
+        let periodSlice = 'all'
+        let mQuincena = startMoment.clone().startOf('month').days(15)
+        if (startMoment.isBefore(mQuincena) && endMoment.isAfter(mQuincena)) {
+            periodSlice = 'all'
+        } else if (startMoment.isSameOrBefore(mQuincena) && endMoment.isSameOrBefore(mQuincena)) {
+            periodSlice = '15th'
+        } else if (startMoment.isAfter(mQuincena)) {
+            periodSlice = '30th'
+        }
+        let periodWeekDays = 'All'
+        if (showWeekDays === 'Mon|Tue|Wed|Thu|Fri|Sat|Sun') {
+            periodWeekDays = 'All'
+        } else if (showWeekDays === 'Mon|Tue|Wed|Thu|Fri') {
+            periodWeekDays = 'Mon-Fri'
+        } else if (showWeekDays === 'Sat|Sun') {
+            periodWeekDays = 'Sat-Sun'
+        }
+        showTotalAs = 'undertime'
+        let countTimeBy = 'all'
+        let compatibilityUrl = [
+            `periodMonthYear=${periodMonthYear}`,
+            `periodSlice=${periodSlice}`,
+            `periodWeekDays=${periodWeekDays}`,
+            `showTotalAs=${showTotalAs}`,
+            `countTimeBy=${countTimeBy}`,
+        ]
+        compatibilityUrl = compatibilityUrl.join('&')
+
+
+        let periodString = startMoment.format('MMM DD, YYYY')
+        if (startMoment.format('MMM DD, YYYY') != endMoment.format('MMM DD, YYYY')) {
+            periodString += `to ${endMoment.format('MMM DD, YYYY')}`
+        }
+
+        if (req.originalUrl.includes('.xlsx')) {
+            let workbook = await excelGen.templateTardiness(employee, periodString, undertimeFreq, timeRecordSummary)
+            let buffer = await workbook.xlsx.writeBuffer();
+            res.set('Content-Disposition', `attachment; filename="${employee.lastName}-tardiness.xlsx"`)
+            res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            return res.send(buffer)
+        }
+        res.render('reports/pm/tardiness.html', {
+            flash: flash.get(req, 'attendance'),
+            employee: employee,
+            employment: employment,
+            momentNow: momentNow,
+            months: months,
+            days: days,
+            selectedMonth: 'nu',
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
+            timeRecordSummary: timeRecordSummary,
+            undertimeFreq: undertimeFreq,
+            startMoment: startMoment,
+            endMoment: endMoment,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+            compatibilityUrl: compatibilityUrl,
+        });
     } catch (err) {
         next(err);
     }

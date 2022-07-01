@@ -22,6 +22,7 @@ main.on('disconnected', () => {
 });
 
 main.App = main.model('App', require('./models/app'));
+main.AuthorityToTravel = main.model('AuthorityToTravel', require('./models/authority-to-travel'));
 main.Attendance = main.model('Attendance', require('./models/attendance'));
 main.Employee = main.model('Employee', require('./models/employee'));
 main.EmployeeList = main.model('EmployeeList', require('./models/employee-list'));

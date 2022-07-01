@@ -111,5 +111,40 @@ router.get('/online-services/at/all', middlewares.guardRoute(['read_all_attendan
     }
 });
 
+router.get('/online-services/at/:atId', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
+    try {
+        let atId = req.params.atId
+        let at = await db.main.AuthorityToTravel.findById(atId).lean()
+        if(!at){
+            throw new Error('Not found.')
+        }
+        let data = {
+            title: 'Edit Authority to Travel',
+            flash: flash.get(req, 'online-services'),
+            at: at,
+        }
+        res.render('online-services/authority-to-travel/update.html', data);
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/online-services/at/:atId/delete', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
+    try {
+        let atId = req.params.atId
+        let at = await db.main.AuthorityToTravel.findById(atId)
+        if(!at){
+            throw new Error('Not found.')
+        }
+        console.log(at)
+        await at.remove()
+
+        flash.ok(req, 'online-services', `Authority to Travel deleted.`)
+        res.redirect(`/online-services/at/all`)
+    } catch (err) {
+        next(err);
+    }
+});
+
 
 module.exports = router;

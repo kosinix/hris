@@ -58,12 +58,14 @@
                             <td class="text-center">{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
                             <td>{{at.controlNumber}}</td>
                             <td>{{at.createdAt|format_date('MMMM DD, YYYY')}}</td>
-                            <td><a href="/employee/personal/{{at.employee._id}}">{{at.employee.lastName}}, {{at.employee.firstName}}</a></td>
+                            <td>{{at.employee.lastName}}, {{at.employee.firstName}}</td>
                             <td>
-                                {{at.periodOfTravel|format_date('MMMM DD, YYYY')}}
-                                {% if at.periodOfTravel|format_date('MMMM DD, YYYY') !== at.periodOfTravelEnd|format_date('MMMM DD, YYYY') %}
-                                    to {{at.periodOfTravelEnd|format_date('MMMM DD, YYYY')}}
-                                {% endif%}
+                                <a href="/online-services/at/{{at._id}}">
+                                    {{at.periodOfTravel|format_date('MMMM DD, YYYY')}}
+                                    {% if at.periodOfTravel|format_date('MMMM DD, YYYY') !== at.periodOfTravelEnd|format_date('MMMM DD, YYYY') %}
+                                        to {{at.periodOfTravelEnd|format_date('MMMM DD, YYYY')}}
+                                    {% endif%}
+                                </a>
                             </td>
                             <td>
                                 {{at.data.natureOfBusiness}}

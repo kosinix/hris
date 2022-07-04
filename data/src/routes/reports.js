@@ -473,7 +473,7 @@ router.get(['/reports/pm/tardiness/:employmentId/report', '/reports/pm/tardiness
 
         let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
         let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
-        let showWeekDays = 'Mon|Tue|Wed|Thu|Fri|Sat|Sun' //lodash.get(req, 'query.showWeekDays', 'Mon|Tue|Wed|Thu|Fri|Sat|Sun') 
+        let showWeekDays = 'Mon|Tue|Wed|Thu|Fri' //lodash.get(req, 'query.showWeekDays', 'Mon|Tue|Wed|Thu|Fri|Sat|Sun') 
         let showTotalAs = lodash.get(req, 'query.undertime') == 1 ? 'undertime' : 'time'
 
         let startMoment = moment(start).startOf('day')

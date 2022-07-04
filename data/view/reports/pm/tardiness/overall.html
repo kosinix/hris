@@ -1,0 +1,115 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <div>
+                <h1>Tardiness Report</h1>
+                <p class="mb-0 pl-1">
+                    
+                </p>
+            </div>
+        </div>
+     
+    </div>
+    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3">
+        <h2 class="h5 mb-4">
+            {{startMoment|format_date('MMM DD, YYYY')}}
+            {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
+                to {{endMoment|format_date('MMM DD, YYYY')}}
+            {% endif %}
+        </h2>
+        <div class="mb-3">
+            <div class="d-flex align-items-center">
+                <input v-model="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}">
+                <span class="m-1">to</span> 
+                <input v-model="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}">
+                <button v-on:click="reloado" type="button" class="ml-1 btn btn-sm btn-primary">Change</button>
+            </div>
+        </div>
+        
+        <div class="text-right mb-2">
+            <a href="/reports/pm/tardiness/overall.xlsx?{{pagination.query|query_string({page: pagination.page, start: startMoment|format_date('YYYY-MM-DD'), end: endMoment|format_date('YYYY-MM-DD') })}}" class="btn btn-primary btn-sm" target="_blank">Download</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-dtr">
+                <tr>
+                    <th colspan="4" class="text-center">Period {{startMoment|format_date('MMM DD, YYYY')}}
+                        {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
+                            to {{endMoment|format_date('MMM DD, YYYY')}}
+                        {% endif %}
+                    </th>
+                </tr>
+                <tr>
+                    <th></th>
+                    <th>Name</th>
+                    <th>Frequency of Tardiness/Undertime                    </th>
+                    <th>Total</th>
+                </tr>
+                {% for employee in employees %}
+                <tr>
+                    <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
+                    <!-- <td><a href="/reports/pm/tardiness/{{employee._id}}/report?{{pagination.query|query_string({start: startMoment|format_date('YYYY-MM-DD'), end: endMoment|format_date('YYYY-MM-DD'), showWeekDays: 'Mon|Tue|Wed|Thu|Fri'})}}">{{employee.lastName}}, {{employee.firstName}}</a></td> -->
+                    <td>{{employee.lastName}}, {{employee.firstName}}</td>
+                    <td class="text-center">{{employee.undertimeFreq}}</td>
+                    <td>{{employee.underDays}} days {{employee.underHours}} hrs {{employee.underMinutes}} mins</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 text-center text-md-left pt-3 pb-5">
+                {% include "parts/pagination.html" %}
+            </div>
+        </div>
+
+        
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            urlPath: '{{urlPath}}',
+            startDate: '{{startMoment|format_date("YYYY-MM-DD")}}',
+            endDate: '{{endMoment|format_date("YYYY-MM-DD")}}',
+        },
+        validations: {
+        },
+        computed: {
+            urlParams: function(){
+                return '?start=' + this.startDate + '&end=' + this.endDate
+            }
+        },
+        methods: {
+            reloado: function(){
+                window.location.href = this.urlPath + this.urlParams
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

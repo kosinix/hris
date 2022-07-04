@@ -466,6 +466,159 @@ router.get('/reports/pm/non-party', middlewares.guardRoute(['read_all_report']),
     }
 });
 
+// Tardiness
+router.get(['/reports/pm/tardiness/overall', '/reports/pm/tardiness/overall.xlsx'], middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
+    try {
+
+        let page = parseInt(lodash.get(req, 'query.page', 1))
+        let perPage = 40 //parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
+        let sortBy = lodash.get(req, 'query.sortBy', 'lastName')
+        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', 1))
+
+        let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+        let startMoment = moment(start).startOf('day')
+        let endMoment = moment(end).endOf('day')
+
+        let options = { skip: (page - 1) * perPage, limit: perPage };
+        let sort = {}
+        sort = lodash.set(sort, sortBy, sortOrder)
+
+        let aggr = []
+        aggr.push({ $project: { firstName: 1, middleName: 1, lastName: 1 } })
+        aggr.push({ $sort: sort })
+
+        // Pagination
+        let countDocuments = await db.main.Employee.aggregate(aggr)
+        let totalDocs = countDocuments.length
+        let pagination = paginator.paginate(
+            page,
+            totalDocs,
+            perPage,
+            '/reports/pm/tardiness/overall',
+            req.query
+        )
+
+        if (!isNaN(perPage)) {
+            aggr.push({ $skip: options.skip })
+            aggr.push({ $limit: options.limit })
+        }
+        let employees = await db.main.Employee.aggregate(aggr)
+
+        let promises = employees.map((employee) => {
+            return db.main.Attendance.aggregate([
+                {
+                    $match: {
+                        employeeId: employee._id,
+                        createdAt: {
+                            $gte: startMoment.clone().startOf('day').toDate(),
+                            $lte: endMoment.clone().endOf('day').toDate(),
+                        }
+                    }
+                },
+                {
+                    $lookup: {
+                        localField: 'workScheduleId',
+                        foreignField: '_id',
+                        from: 'workschedules',
+                        as: 'workSchedules'
+                    }
+                },
+                {
+                    $addFields: {
+                        "workSchedule": {
+                            $arrayElemAt: ["$workSchedules", 0]
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        workSchedules: 0,
+                    }
+                }
+            ])
+        })
+
+        let results = await Promise.all(promises)
+        results.forEach((attendances, i) => {
+            attendances = attendances.filter(attendance => {
+                let weekDay = moment(attendance.createdAt).format('ddd')
+                return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(weekDay) // These days only
+            })
+
+            attendances = attendances.map(attendance => {
+                let _moment = moment(attendance.createdAt)
+                let date = _moment.format('YYYY-MM-DD')
+                let weekDay = _moment.format('ddd')
+                let weekDayLower = weekDay.toLowerCase()
+
+                // v2 schedule schema with weekday support
+                let timeSegments = lodash.get(attendance, `workSchedule.weekDays.${weekDayLower}.timeSegments`)
+                if (timeSegments) {
+                    timeSegments = timeSegments.map((t) => {
+                        t.maxHours = t.max
+                        return t
+                    })
+                }
+                // original schedule schema
+                if (!timeSegments) {
+                    timeSegments = lodash.get(attendance, 'workSchedule.timeSegments')
+                }
+                let dtr = dtrHelper.calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments)
+                return {
+                    date: date,
+                    underTimeTotalMinutes: dtr.underTimeTotalMinutes,
+                }
+            })
+
+            attendances = attendances.filter(attendance => {
+                return attendance.underTimeTotalMinutes > 0
+            })
+
+            let totalMinutes = attendances.reduce((prev, current) => {
+                return prev + current.underTimeTotalMinutes
+            }, 0)
+
+
+            let hoursPerDay = 8
+            let underDays = totalMinutes / 60 / hoursPerDay
+            let underHours = (underDays - Math.floor(underDays)) * hoursPerDay
+            let underMinutes = (underHours - Math.floor(underHours)) * 60
+
+            employees[i].totalMinutes = totalMinutes
+            employees[i].underDays = Math.floor(underDays)
+            employees[i].underHours = Math.floor(underHours)
+            employees[i].underMinutes = Math.round(underMinutes)
+            employees[i].undertimeFreq = attendances.length
+        })
+
+
+        let periodString = startMoment.format('MMM DD, YYYY')
+        if (startMoment.format('MMM DD, YYYY') != endMoment.format('MMM DD, YYYY')) {
+            periodString += ` to ${endMoment.format('MMM DD, YYYY')}`
+        }
+
+        // return res.send(employees)
+        if (req.originalUrl.includes('.xlsx')) {
+            let workbook = await excelGen.templateReportTardinessOverall(employees, periodString, pagination)
+            let buffer = await workbook.xlsx.writeBuffer();
+            res.set('Content-Disposition', `attachment; filename="overall-tardiness.xlsx"`)
+            res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            return res.send(buffer)
+        }
+        res.render('reports/pm/tardiness/overall.html', {
+            flash: flash.get(req, 'reports'),
+            startMoment: startMoment,
+            endMoment: endMoment,
+            periodString: periodString,
+            employees: employees,
+            pagination: pagination,
+            query: req.query,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 router.get(['/reports/pm/tardiness/:employmentId/report', '/reports/pm/tardiness/:employmentId/report.xlsx'], middlewares.guardRoute(['read_all_report']), middlewares.getEmployment, async (req, res, next) => {
     try {
         let employment = res.employment
@@ -558,13 +711,13 @@ router.get(['/reports/pm/tardiness/:employmentId/report', '/reports/pm/tardiness
         }
 
         if (req.originalUrl.includes('.xlsx')) {
-            let workbook = await excelGen.templateTardiness(employee, periodString, undertimeFreq, timeRecordSummary)
+            let workbook = await excelGen.templateReportTardinessPerEmployee(employee, periodString, undertimeFreq, timeRecordSummary)
             let buffer = await workbook.xlsx.writeBuffer();
-            res.set('Content-Disposition', `attachment; filename="${employee.lastName}-tardiness.xlsx"`)
+            res.set('Content-Disposition', `attachment; filename="${employee.lastName | replace(/\s/g, '-')}-tardiness.xlsx"`)
             res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             return res.send(buffer)
         }
-        res.render('reports/pm/tardiness.html', {
+        res.render('reports/pm/tardiness/per-employee.html', {
             flash: flash.get(req, 'attendance'),
             employee: employee,
             employment: employment,

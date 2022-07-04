@@ -1607,10 +1607,35 @@ let templateGenderReport = async (employees) => {
 
 }
 
-let templateTardiness = async (employee, periodString, undertimeFreq, timeRecordSummary) => {
+let templateReportTardinessOverall = async (employees, periodString, pagination) => {
 
     let workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/reports/pm/tardiness.xlsx`);
+    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/reports/pm/tardiness/overall.xlsx`);
+    let slex = new Slex(workbook)
+
+    let worksheet = workbook.getWorksheet('Sheet1')
+    if (worksheet) {
+        slex.setSheet(worksheet)
+
+        let off = 3
+        for(let i = 0; i < employees.length; i++){
+            let employee = employees[i]
+            let r = off + i
+            slex.getCell(`A1`).value(periodString)
+            slex.getCell(`A${r}`).value((i+1) + (pagination.page - 1) * (pagination.perPage|0))
+            slex.getCell(`B${r}`).value(employee.lastName + ' ' + employee.firstName)
+            slex.getCell(`C${r}`).value(employee.undertimeFreq)
+            slex.getCell(`D${r}`).value(`${employee.underDays} days ${employee.underHours} hrs ${employee.underMinutes} mins`)
+        }
+    }
+
+    return workbook
+
+}
+let templateReportTardinessPerEmployee = async (employee, periodString, undertimeFreq, timeRecordSummary) => {
+
+    let workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/reports/pm/tardiness/per-employee.xlsx`);
     let slex = new Slex(workbook)
 
     let worksheet = workbook.getWorksheet('Sheet1')
@@ -1634,5 +1659,6 @@ module.exports = {
     templateAttendanceDaily: templateAttendanceDaily,
     templateAttendanceFlag: templateAttendanceFlag,
     templateGenderReport: templateGenderReport,
-    templateTardiness: templateTardiness,
+    templateReportTardinessOverall: templateReportTardinessOverall,
+    templateReportTardinessPerEmployee: templateReportTardinessPerEmployee,
 }

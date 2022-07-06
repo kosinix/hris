@@ -60,20 +60,23 @@ router.post('/login', async (req, res, next) => {
         let recaptchaToken = lodash.trim(lodash.get(post, 'recaptchaToken', ''))
 
         // Recaptcha
-        let params = new url.URLSearchParams({
-            secret: CRED.recaptchav3.secret,
-            response: recaptchaToken
-        });
-        let response = await axios.post(`https://www.google.com/recaptcha/api/siteverify`, params.toString(), {
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            }
-        })
+        if (CONFIG.recaptchav3.enabled) {
 
-        // console.log(response.config, response.data)
-        let score = lodash.get(response, 'data.score', 0.0)
-        if (score < 0.5) {
-            throw new Error(`Security error.`)
+            let params = new url.URLSearchParams({
+                secret: CRED.recaptchav3.secret,
+                response: recaptchaToken
+            });
+            let response = await axios.post(`https://www.google.com/recaptcha/api/siteverify`, params.toString(), {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
+            })
+
+            // console.log(response.config, response.data)
+            let score = lodash.get(response, 'data.score', 0.0)
+            if (score < 0.5) {
+                throw new Error(`Security error.`)
+            }
         }
 
         // Find admin
@@ -222,7 +225,7 @@ router.post('/forgot', async (req, res, next) => {
         let passwordReset = await db.main.PasswordReset.findOne({
             createdBy: email,
         })
-        if(passwordReset){
+        if (passwordReset) {
             let diff = moment(passwordReset.expiredAt).diff(moment(), 'minutes')
             throw new Error(`You still have a pending request for a password reset. Please wait after ${diff} minutes and try again.`)
         }
@@ -299,24 +302,24 @@ router.get('/forgotten/:secureKey', async (req, res, next) => {
 
         // Find
         let secureKey = lodash.get(req, 'params.secureKey')
-        if(!secureKey){
+        if (!secureKey) {
             throw new Error('Missing secureKey.')
         }
 
         let passwordReset = await db.main.PasswordReset.findOne({
             secureKey: secureKey,
         })
-        if(!passwordReset){
+        if (!passwordReset) {
             throw new Error('Link not found.')
         }
-        
+
         let hash = lodash.get(req, 'query.hash')
-        if(!hash){
+        if (!hash) {
             throw new Error('Missing hash.')
         }
-        
+
         let resetLink = `${CONFIG.app.url}/forgotten/${secureKey}`
-        if(hash != passwordMan.hashSha256(resetLink)){
+        if (hash != passwordMan.hashSha256(resetLink)) {
             throw new Error('Invalid hash.')
         }
 

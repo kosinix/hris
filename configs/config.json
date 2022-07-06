@@ -213,7 +213,7 @@
     }
   },
   "recaptchav3": {
-    "enable": true,
+    "enable": false,
     "clientKey": "6LcB1_scAAAAABxNHSvZ1gnl5ZpTKZCoWa_JcYkV"
   },
   "loginDelay": 0

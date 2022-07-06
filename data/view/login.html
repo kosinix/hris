@@ -43,7 +43,9 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-<script src="https://www.google.com/recaptcha/api.js?render=6LcB1_scAAAAABxNHSvZ1gnl5ZpTKZCoWa_JcYkV"></script>
+{% if CONFIG.recaptchav3.enabled %}
+    <script src="https://www.google.com/recaptcha/api.js?render=6LcB1_scAAAAABxNHSvZ1gnl5ZpTKZCoWa_JcYkV"></script>
+{% endif %}
 <script>
     var vApp = new Vue({
         el: '#vApp',
@@ -89,14 +91,20 @@
                     alert('Please correct the errors to continue.')
                 } else {
                     me.pending = true;
-                    grecaptcha.ready(function() {
-                        grecaptcha.execute('6LcB1_scAAAAABxNHSvZ1gnl5ZpTKZCoWa_JcYkV', {action: 'submit'}).then(function(token) {
-                            me.recaptchaToken = token;
-                            me.$nextTick(function() {
-                                me.$refs.form.submit();
+                    {% if CONFIG.recaptchav3.enabled %}
+                        grecaptcha.ready(function() {
+                            grecaptcha.execute('6LcB1_scAAAAABxNHSvZ1gnl5ZpTKZCoWa_JcYkV', {action: 'submit'}).then(function(token) {
+                                me.recaptchaToken = token;
+                                me.$nextTick(function() {
+                                    me.$refs.form.submit();
+                                });
                             });
                         });
-                    });
+                    {% else %}
+                        me.$nextTick(function() {
+                            me.$refs.form.submit();
+                        });
+                    {% endif %}
                 }
             }
         }

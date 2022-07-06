@@ -69,7 +69,7 @@ let adminsList = require('./install-data/users-list'); // Do not remove semi-col
         })
         await Promise.all(promises)
 
-        let logFile = `${CONFIG.app.dir}/logs/login-admins.csv`
+        let logFile = `${CONFIG.app.dir}/logs/admin.csv`
 
         try {
             fs.unlinkFile(logFile)

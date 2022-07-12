@@ -1308,6 +1308,26 @@ const buildLogSegments = (logs) => {
     })
 }
 
+const fromPointsToLogSegments = (points) => {
+    let isOdd = points.length % 2 > 0
+    if (isOdd) {
+        throw new Error('Odd points. Every point should have a partner.')
+    }
+    let chunks = []
+    let chunkSize = 2
+    for (let i = 0; i < points.length; i += chunkSize) {
+        chunks.push(points.slice(i, i + chunkSize))
+    }
+
+    return chunks.map((chunk, i) => {
+        return {
+            start: chunk[0],
+            end: chunk[1],
+            raw: chunk[1] - chunk[0],
+        }
+    })
+}
+
 /**
  * Compare time segments and log segments to compute time worked.
  * @param {Array} timeSegments 
@@ -1389,4 +1409,5 @@ module.exports = {
     getWorkScheduleTimeSegments: getWorkScheduleTimeSegments,
     countWork: countWork,
     buildLogSegments: buildLogSegments,
+    fromPointsToLogSegments: fromPointsToLogSegments,
 }

@@ -230,7 +230,7 @@ let attachDailyTime = async (attendances) => {
 }
 
 // 
-let addPayrollRow = async (payroll, employmentId) => {
+let addPayrollRow = async (payroll, employmentId, db) => {
 
     let employment = await db.main.Employment.findById(employmentId);
     if (!employment) {

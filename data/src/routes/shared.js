@@ -11,7 +11,6 @@ const momentExt = momentRange.extendMoment(moment)
 const qr = require('qr-image')
 
 //// Modules
-const db = require('../db');
 const dtrHelper = require('../dtr-helper');
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
@@ -33,13 +32,13 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
         let employmentId = payload.employmentId
 
         // employee
-        let employee = await db.main.Employee.findOne({
+        let employee = await req.app.locals.db.main.Employee.findOne({
             _id: employeeId
         })
         if (!employee) {
             throw new Error('Employee not found.')
         }
-        employee.employments = await db.main.Employment.find({
+        employee.employments = await req.app.locals.db.main.Employment.find({
             employeeId: employee._id
         }).lean()
 
@@ -112,7 +111,7 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
             showWeekDays: showWeekDays,
         }
 
-        let { days, stats } = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days, stats } = await dtrHelper.getDtrByDateRange(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
         let months = Array.from(range1.by('months')).reverse()
@@ -127,7 +126,7 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
         })
 
         // Work Sched
-        let lists = await db.main.EmployeeList.find({
+        let lists = await req.app.locals.db.main.EmployeeList.find({
             'members': {
                 $elemMatch: {
                     employmentId: employmentId
@@ -135,7 +134,7 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
             }
         }).lean()
         let listIds = lists.map(o => o._id)
-        let workSchedules = await db.main.WorkSchedule.find({
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find({
             $or: [
                 {
                     visibility: ''
@@ -227,18 +226,18 @@ router.get('/shared/authority-to-travel/print/:secureKey', middlewares.decodeSha
         let employmentId = payload.employmentId
 
         // Employee
-        let employee = await db.main.Employee.findById(employeeId).lean()
+        let employee = await req.app.locals.db.main.Employee.findById(employeeId).lean()
         if (!employee) {
             throw new Error('Employee not found.')
         }
 
         // Employment
-        let employment = await db.main.Employment.findById(employmentId).lean()
+        let employment = await req.app.locals.db.main.Employment.findById(employmentId).lean()
         if (!employment) {
             throw new Error('Employment not found.')
         }
 
-        let at = await db.main.AuthorityToTravel.findById(payload.atId)
+        let at = await req.app.locals.db.main.AuthorityToTravel.findById(payload.atId)
         if (!at) {
             throw new Error('Authority To Travel not found.')
         }
@@ -275,7 +274,7 @@ router.get('/shared/certificate-of-appearance/print/:secureKey', middlewares.dec
         let employeeId = payload.employeeId
 
         // Employee
-        let employee = await db.main.Employee.findById(employeeId).lean()
+        let employee = await req.app.locals.db.main.Employee.findById(employeeId).lean()
         if (!employee) {
             throw new Error('Employee not found.')
         }

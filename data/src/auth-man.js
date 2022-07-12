@@ -8,15 +8,12 @@
 const lodash = require('lodash');
 
 //// Modules
-const db = require('./db');
-
-let sessionDataPath = 'authMan.userSessionData'
 
 /**
  * Use the data that was saved in session to reconstruct the actual user
  * @param {session} Containing session
  */
-const deserializeUserAsync = async (session) => {
+const deserializeUserAsync = async (session, db) => {
     try {
         let userSessionData = lodash.get(session, 'authMan.userSessionData');
         if (!userSessionData) {
@@ -59,7 +56,7 @@ module.exports = {
     // Adds res.user
     getUser: async (req, res, next) => {
         try {
-            let user = await deserializeUserAsync(req.session);
+            let user = await deserializeUserAsync(req.session, req.app.locals.db);
 
             if (!user) {
                 return res.redirect('/login')
@@ -71,7 +68,6 @@ module.exports = {
             next(err);
         }
     },
-    deserializeUserAsync: deserializeUserAsync,
     logout: logout,
     serializeUser: serializeUser,
 }

@@ -36,8 +36,4 @@ global.CRED = credLoader.getConfig()
 global.PACKAGE_JSON = packageJson
 
 //// Create our app
-require('./data/src/server');
-
-
-
-
+require('./data/src/server')

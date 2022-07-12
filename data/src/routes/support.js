@@ -10,7 +10,6 @@ const moment = require('moment')
 const qr = require('qr-image')
 
 //// Modules
-const db = require('../db');
 const mailer = require('../mailer');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
@@ -37,11 +36,11 @@ router.post('/support/register', middlewares.guardRoute(['can_register_rfid']), 
         let body = req.body
         let employmentId = lodash.get(body, 'employmentId')
 
-        let employment = await db.main.Employment.findById(employmentId)
+        let employment = await req.app.locals.db.main.Employment.findById(employmentId)
         if(!employment){
             throw new Error('Employment not found.')
         }
-        let employee = await db.main.Employee.findOne({
+        let employee = await req.app.locals.db.main.Employee.findOne({
             _id: employment.employeeId
         })
 
@@ -61,7 +60,7 @@ router.get('/support/register/:employmentId', middlewares.guardRoute(['can_regis
         if(!employment){
             throw new Error('Employment not found.')
         }
-        let employee = await db.main.Employee.findOne({
+        let employee = await req.app.locals.db.main.Employee.findOne({
             _id: employment.employeeId
         })
 
@@ -77,7 +76,7 @@ router.get('/support/register/:employmentId', middlewares.guardRoute(['can_regis
 router.post('/support/register/:employmentId', middlewares.guardRoute(['can_register_rfid']), middlewares.getEmployment, async (req, res, next) => {
     try {
         let employment = res.employment.toObject()
-        let employee = await db.main.Employee.findOne({
+        let employee = await req.app.locals.db.main.Employee.findOne({
             _id: employment.employeeId
         }).lean()
         if(!employee){
@@ -103,7 +102,7 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
         }
 
         
-        let registrationForm = await db.main.RegistrationForm.findOne({
+        let registrationForm = await req.app.locals.db.main.RegistrationForm.findOne({
             uid: rfid,
         })
         if (registrationForm) {
@@ -114,7 +113,7 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
                 throw new Error(`You are already verified. Please open your email.`)
             }
         } else {
-            registrationForm = await db.main.RegistrationForm.create({
+            registrationForm = await req.app.locals.db.main.RegistrationForm.create({
                 uid: rfid,
                 employmentId: employmentId,
                 email: email,
@@ -125,7 +124,7 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
 
         ////
 
-        let userAccount = await db.main.User.findById(employee.userId).lean()
+        let userAccount = await req.app.locals.db.main.User.findById(employee.userId).lean()
         if (!userAccount) {
             throw new Error('You dont have an user account.')
         }
@@ -138,12 +137,12 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
         let password = passwordMan.genPassUpperCase()
         let passwordHash = passwordMan.hashPassword(password, userAccount.salt)
 
-        await db.main.User.updateOne({ _id: registrationForm.userAccount._id }, {
+        await req.app.locals.db.main.User.updateOne({ _id: registrationForm.userAccount._id }, {
             passwordHash: passwordHash
         })
 
         // Associate
-        await db.main.Employee.updateOne({ _id: registrationForm.employee._id }, {
+        await req.app.locals.db.main.Employee.updateOne({ _id: registrationForm.employee._id }, {
             uid: registrationForm.uid // ID card number
         })
 
@@ -157,7 +156,7 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
 
         let info = await mailer.send('verified.html', data)
 
-        await db.main.RegistrationForm.updateOne({ _id: registrationForm._id }, {
+        await req.app.locals.db.main.RegistrationForm.updateOne({ _id: registrationForm._id }, {
             status: 'verified'
         })
 
@@ -183,11 +182,11 @@ router.get('/support/dtr', middlewares.guardRoute(['read_attendance']), async (r
 router.get('/support/dtr/:employmentId', middlewares.guardRoute(['read_attendance']), async (req, res, next) => {
     try {
 
-        let employment = await db.main.Employment.findById(req.params.employmentId)
+        let employment = await req.app.locals.db.main.Employment.findById(req.params.employmentId)
         if(!employment){
             throw new Error('Employment not found.')
         }
-        let employee = await db.main.Employee.findOne({
+        let employee = await req.app.locals.db.main.Employee.findOne({
             _id: employment.employeeId 
         })
         if(!employee){
@@ -214,11 +213,11 @@ router.get('/support/id-change', middlewares.guardRoute(['read_attendance']), as
 router.get('/support/id-change/:employmentId', middlewares.guardRoute(['read_attendance']), async (req, res, next) => {
     try {
 
-        let employment = await db.main.Employment.findById(req.params.employmentId)
+        let employment = await req.app.locals.db.main.Employment.findById(req.params.employmentId)
         if(!employment){
             throw new Error('Employment not found.')
         }
-        let employee = await db.main.Employee.findOne({
+        let employee = await req.app.locals.db.main.Employee.findOne({
             _id: employment.employeeId 
         })
         if(!employee){
@@ -238,7 +237,7 @@ router.get('/support/id-change/:employmentId', middlewares.guardRoute(['read_att
 router.post('/support/id-change/:employmentId', middlewares.guardRoute(['can_register_rfid']), middlewares.getEmployment, async (req, res, next) => {
     try {
         let employment = res.employment.toObject()
-        let employee = await db.main.Employee.findOne({
+        let employee = await req.app.locals.db.main.Employee.findOne({
             _id: employment.employeeId
         }).lean()
         if(!employee){
@@ -256,14 +255,14 @@ router.post('/support/id-change/:employmentId', middlewares.guardRoute(['can_reg
             throw new Error('Invalid RFID length.')
         }
 
-        let userAccount = await db.main.User.findById(employee.userId).lean()
+        let userAccount = await req.app.locals.db.main.User.findById(employee.userId).lean()
         if (!userAccount) {
             throw new Error('You dont have an user account.')
         }
 
 
         // Associate
-        await db.main.Employee.updateOne({ _id: employee._id }, {
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
             uid: rfid
         })
 

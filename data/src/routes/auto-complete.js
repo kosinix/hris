@@ -11,7 +11,6 @@ const lodash = require('lodash')
 const util = require('util')
 
 //// Modules
-const db = require('../db');
 const middlewares = require('../middlewares');
 
 // Router
@@ -118,7 +117,7 @@ router.get('/auto-complete/address', async (req, res, next) => {
         }
         // console.log(util.inspect(query, false, null, true /* enable colors */))
         // raw ops
-        let addresses = await db.main.Address.collection.find(query).limit(10).toArray()
+        let addresses = await req.app.locals.db.main.Address.collection.find(query).limit(10).toArray()
         addresses = lodash.map(addresses, (o) => {
             let full = [o.name]
             if (o.cityMunName) {
@@ -161,7 +160,7 @@ router.get('/auto-complete/employee', middlewares.guardRoute(['read_all_employee
         if (ignore) {
             query['$and'].push({
                 _id: {
-                    $nin: ignore.split(',').map(id => new db.mongoose.Types.ObjectId(id))
+                    $nin: ignore.split(',').map(id => new req.app.locals.db.mongoose.Types.ObjectId(id))
                 }
             })
         }
@@ -228,7 +227,7 @@ router.get('/auto-complete/employee', middlewares.guardRoute(['read_all_employee
         aggr.push({ $limit: 10 })
 
 
-        let employments = await db.main.Employment.aggregate(aggr)
+        let employments = await req.app.locals.db.main.Employment.aggregate(aggr)
         // console.log(util.inspect(aggr, false, null, true /* enable colors */))
 
         let results = employments.map((employment, i) => {
@@ -277,7 +276,7 @@ router.get('/auto-complete/employee-list', middlewares.guardRoute(['read_all_emp
         // Ignore employments with these IDs
         if (ignore) {
             query['_id'] = {
-                $nin: ignore.split(',').map(id => new db.mongoose.Types.ObjectId(id))
+                $nin: ignore.split(',').map(id => new req.app.locals.db.mongoose.Types.ObjectId(id))
             }
         }
         if (tags) {
@@ -299,7 +298,7 @@ router.get('/auto-complete/employee-list', middlewares.guardRoute(['read_all_emp
         aggr.push({ $limit: 10 })
 
 
-        let employeeLists = await db.main.EmployeeList.aggregate(aggr)
+        let employeeLists = await req.app.locals.db.main.EmployeeList.aggregate(aggr)
         // console.log(util.inspect(aggr, false, null, true /* enable colors */))
 
         let results = employeeLists.map((employeeList, i) => {
@@ -332,7 +331,7 @@ router.get('/auto-complete/search-memo', middlewares.guardRoute(['read_memo', 'u
         // Ignore employments with these IDs
         if (ignore) {
             query['_id'] = {
-                $nin: ignore.split(',').map(id => new db.mongoose.Types.ObjectId(id))
+                $nin: ignore.split(',').map(id => new req.app.locals.db.mongoose.Types.ObjectId(id))
             }
         }
         
@@ -350,7 +349,7 @@ router.get('/auto-complete/search-memo', middlewares.guardRoute(['read_memo', 'u
         aggr.push({ $limit: 10 })
 
 
-        let memos = await db.main.Memo.aggregate(aggr)
+        let memos = await req.app.locals.db.main.Memo.aggregate(aggr)
         // console.log(util.inspect(aggr, false, null, true /* enable colors */))
 
         let results = memos.map((memo, i) => {

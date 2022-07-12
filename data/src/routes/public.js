@@ -10,7 +10,6 @@ const moment = require('moment')
 const axios = require('axios')
 
 //// Modules
-const db = require('../db')
 const mailer = require('../mailer')
 const passwordMan = require('../password-man')
 
@@ -80,7 +79,7 @@ router.post('/login', async (req, res, next) => {
         }
 
         // Find admin
-        let user = await db.main.User.findOne({ username: username });
+        let user = await req.app.locals.db.main.User.findOne({ username: username });
         if (!user) {
             throw new Error('Incorrect username.')
         }
@@ -116,7 +115,7 @@ router.post('/login', async (req, res, next) => {
             return res.redirect('/attendance/monthly')
         }
         if (user.roles.includes('checker')) {
-            let scanner = await db.main.Scanner.findOne({
+            let scanner = await req.app.locals.db.main.Scanner.findOne({
                 userId: user._id
             })
             if (scanner) {
@@ -202,7 +201,7 @@ router.post('/forgot', async (req, res, next) => {
         }
 
         // Find admin
-        let user = await db.main.User.findOne({ email: email });
+        let user = await req.app.locals.db.main.User.findOne({ email: email });
         if (!user) {
             throw new Error('Email not found. Please use the email that you registered with HRIS.')
         }
@@ -216,13 +215,13 @@ router.post('/forgot', async (req, res, next) => {
         }
 
         // Delete expired
-        await db.main.PasswordReset.deleteMany({
+        await req.app.locals.db.main.PasswordReset.deleteMany({
             expiredAt: {
                 $lte: moment().toDate()
             }
         })
 
-        let passwordReset = await db.main.PasswordReset.findOne({
+        let passwordReset = await req.app.locals.db.main.PasswordReset.findOne({
             createdBy: email,
         })
         if (passwordReset) {
@@ -236,7 +235,7 @@ router.post('/forgot', async (req, res, next) => {
         resetLink += '?hash=' + hash
 
         let momentNow = moment()
-        passwordReset = await db.main.PasswordReset.create({
+        passwordReset = await req.app.locals.db.main.PasswordReset.create({
             secureKey: secureKey,
             createdBy: email,
             payload: {
@@ -294,7 +293,7 @@ router.get('/sent-done', async (req, res, next) => {
 router.get('/forgotten/:secureKey', async (req, res, next) => {
     try {
         // Delete expired
-        await db.main.PasswordReset.deleteMany({
+        await req.app.locals.db.main.PasswordReset.deleteMany({
             expiredAt: {
                 $lte: moment().toDate()
             }
@@ -306,7 +305,7 @@ router.get('/forgotten/:secureKey', async (req, res, next) => {
             throw new Error('Missing secureKey.')
         }
 
-        let passwordReset = await db.main.PasswordReset.findOne({
+        let passwordReset = await req.app.locals.db.main.PasswordReset.findOne({
             secureKey: secureKey,
         })
         if (!passwordReset) {
@@ -324,7 +323,7 @@ router.get('/forgotten/:secureKey', async (req, res, next) => {
         }
 
         // Find admin
-        let user = await db.main.User.findOne({ email: passwordReset.createdBy });
+        let user = await req.app.locals.db.main.User.findOne({ email: passwordReset.createdBy });
         if (!user) {
             throw new Error('Email not found.')
         }
@@ -384,7 +383,7 @@ router.get('/query/employment', async (req, res, next) => {
         }
 
         // raw ops
-        // let employees = await db.main.Employee.collection.find(query).limit(10).toArray()
+        // let employees = await req.app.locals.db.main.Employee.collection.find(query).limit(10).toArray()
         let aggr = []
         aggr.push({ $match: query })
         aggr.push({ $limit: 10 })
@@ -398,7 +397,7 @@ router.get('/query/employment', async (req, res, next) => {
             }
         })
 
-        let employees = await db.main.Employee.aggregate(aggr)
+        let employees = await req.app.locals.db.main.Employee.aggregate(aggr)
         let ret = []
         employees.forEach((employee, i) => {
             let full = [employee.firstName]

@@ -9,7 +9,6 @@ const qr = require('qr-image')
 
 //// Modules
 const AppError = require('../errors').AppError
-const db = require('../db');
 const dtrHelper = require('../dtr-helper');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
@@ -33,7 +32,7 @@ router.get('/scanner/all', middlewares.guardRoute(['read_all_scanner', 'read_sca
         let projection = {}
 
         // Pagination
-        let totalDocs = await db.main.Scanner.countDocuments(query)
+        let totalDocs = await req.app.locals.db.main.Scanner.countDocuments(query)
         let pagination = paginator.paginate(
             page,
             totalDocs,
@@ -48,11 +47,11 @@ router.get('/scanner/all', middlewares.guardRoute(['read_all_scanner', 'read_sca
 
         // console.log(query, projection, options, sort)
 
-        let scanners = await db.main.Scanner.find(query, projection, options).sort(sort).lean()
+        let scanners = await req.app.locals.db.main.Scanner.find(query, projection, options).sort(sort).lean()
 
         let users = []
         scanners.forEach((scanner) => {
-            users.push(db.main.User.findById(scanner.userId))
+            users.push(req.app.locals.db.main.User.findById(scanner.userId))
         })
         users = await Promise.all(users)
         scanners.forEach((scanner, i) => {
@@ -86,7 +85,7 @@ router.post('/scanner/create', middlewares.guardRoute(['create_scanner']), async
         let body = req.body
         let patch = {}
 
-        let user = await db.main.User.findOne({
+        let user = await req.app.locals.db.main.User.findOne({
             username: body.username
         });
         let password = passwordMan.genPassword(12)
@@ -94,7 +93,7 @@ router.post('/scanner/create', middlewares.guardRoute(['create_scanner']), async
         if (!user) {
             let salt = passwordMan.randomString(16)
             let passwordHash = passwordMan.hashPassword(password, salt)
-            user = await db.main.User.create({
+            user = await req.app.locals.db.main.User.create({
                 username: body.username,
                 email: 'mis+scanner@gsc.edu.ph',
                 firstName: body.name,
@@ -113,7 +112,7 @@ router.post('/scanner/create', middlewares.guardRoute(['create_scanner']), async
         lodash.set(patch, 'device', lodash.get(body, 'device'))
         lodash.set(patch, 'userId', user._id)
 
-        let scanner = await db.main.Scanner.create(patch)
+        let scanner = await req.app.locals.db.main.Scanner.create(patch)
 
         flash.ok(req, 'scanner', `Added scanner "${scanner.name}" with username "${user.username}" and password "${password}". Please take note of the password as you will only see this once.`)
         res.redirect(`/scanner/${scanner._id}`)
@@ -125,7 +124,7 @@ router.post('/scanner/create', middlewares.guardRoute(['create_scanner']), async
 router.get('/scanner/:scannerId', middlewares.guardRoute(['read_scanner']), middlewares.getScanner, async (req, res, next) => {
     try {
         let scanner = res.scanner.toObject()
-        scanner.user = await db.main.User.findById(scanner.userId)
+        scanner.user = await req.app.locals.db.main.User.findById(scanner.userId)
 
         res.render('scanner/read.html', {
             flash: flash.get(req, 'scanner'),
@@ -138,7 +137,7 @@ router.get('/scanner/:scannerId', middlewares.guardRoute(['read_scanner']), midd
 router.get('/scanner/:scannerId/edit', middlewares.guardRoute(['read_scanner', 'update_scanner']), middlewares.getScanner, async (req, res, next) => {
     try {
         let scanner = res.scanner.toObject()
-        scanner.user = await db.main.User.findById(scanner.userId)
+        scanner.user = await req.app.locals.db.main.User.findById(scanner.userId)
 
         res.render('scanner/edit.html', {
             flash: flash.get(req, 'scanner'),
@@ -167,7 +166,7 @@ router.post('/scanner/:scannerId/edit', middlewares.guardRoute(['read_scanner', 
         // socket io refresh whoa
         req.io.emit('refresh', { scanner: scanner._id })
 
-        await db.main.Scanner.updateOne({ _id: scanner._id }, patch)
+        await req.app.locals.db.main.Scanner.updateOne({ _id: scanner._id }, patch)
 
         flash.ok(req, 'scanner', `Updated scanner "${scanner.name}".`)
         res.redirect(`/scanner/${scanner._id}`)
@@ -178,7 +177,7 @@ router.post('/scanner/:scannerId/edit', middlewares.guardRoute(['read_scanner', 
 router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner', 'update_scanner']), middlewares.getScanner, async (req, res, next) => {
     try {
         let scanner = res.scanner.toObject()
-        scanner.user = await db.main.User.findById(scanner.userId)
+        scanner.user = await req.app.locals.db.main.User.findById(scanner.userId)
 
         // Scanner status today
         let momentDate = lodash.get(req, 'query.date')
@@ -208,7 +207,7 @@ router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner',
         //     }
         // })
 
-        let scannerStatus = await db.main.ScannerStatus.findOne({
+        let scannerStatus = await req.app.locals.db.main.ScannerStatus.findOne({
             scannerId: scanner._id,
             createdAt: {
                 $gte: momentDate.clone().startOf('day').toDate(),
@@ -219,12 +218,12 @@ router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner',
         if (scannerStatus) {
             scannerStatus.downTimes.push(...downTimes)
             scannerStatus.downTimes = lodash.uniq(scannerStatus.downTimes)
-            await db.main.ScannerStatus.updateOne({
+            await req.app.locals.db.main.ScannerStatus.updateOne({
                 scannerId: scanner._id,
                 createdAt: momentDate.clone().startOf('day').toDate(),
             }, scannerStatus)
         } else {
-            scannerStatus = await db.main.ScannerStatus.create({
+            scannerStatus = await req.app.locals.db.main.ScannerStatus.create({
                 scannerId: scanner._id,
                 createdAt: momentDate.clone().startOf('day').toDate(),
                 downTimes: downTimes
@@ -336,7 +335,7 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
                     // console.log(uploadList, saveList)
                 }
 
-                log = await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id, undefined, { photo: lodash.get(saveList, 'photos[0]', '') })
+                log = await dtrHelper.logAttendance(req.app.locals.db, scanData.employee, scanData.employment, scanner._id, undefined, { photo: lodash.get(saveList, 'photos[0]', '') })
             } catch (err) {
                 throw err// Format for xhr
             }
@@ -358,7 +357,7 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
 
             let log = null
             try {
-                log = await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id)
+                log = await dtrHelper.logAttendance(req.app.locals.db, scanData.employee, scanData.employment, scanner._id)
             } catch (err) {
                 throw new AppError(err.message) // Format for xhr
             }
@@ -391,7 +390,7 @@ router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner'
         let scanData = res.scanData
 
         // Today attendance
-        let attendance = await db.main.Attendance.findOne({
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
             employeeId: scanData.employee._id,
             employmentId: scanData.employment._id,
             createdAt: {
@@ -400,7 +399,7 @@ router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner'
             }
         })
         if (!attendance) {
-            attendance = new db.main.Attendance({
+            attendance = new req.app.locals.db.main.Attendance({
                 employeeId: scanData.employee._id,
                 employmentId: scanData.employment._id,
                 onTravel: false,
@@ -451,7 +450,7 @@ router.get('/scanner/:scannerUid/no-verify', middlewares.guardRoute(['use_scanne
 
         try {
             // TODO: check params used here with params definition
-            await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id)
+            await dtrHelper.logAttendance(req.app.locals.db, scanData.employee, scanData.employment, scanner._id)
         } catch (err) {
             throw new AppError(err.message) // Format for xhr
         }
@@ -475,7 +474,7 @@ router.post('/scanner/:scannerUid/verify-hdf', middlewares.guardRoute(['use_scan
         let employee = scanData.employee
 
         // Today attendance
-        let hd = await db.main.HealthDeclaration.findOne({
+        let hd = await req.app.locals.db.main.HealthDeclaration.findOne({
             employeeId: employee._id,
             createdAt: {
                 $gte: moment().startOf('day').toDate(),
@@ -486,7 +485,7 @@ router.post('/scanner/:scannerUid/verify-hdf', middlewares.guardRoute(['use_scan
             throw new Error('Already submitted today.')
         } else {
 
-            hd = new db.main.HealthDeclaration({
+            hd = new req.app.locals.db.main.HealthDeclaration({
                 employeeId: employee._id,
                 data: scanData.qrData.frm
             })

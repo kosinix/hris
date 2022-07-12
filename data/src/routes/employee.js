@@ -12,7 +12,6 @@ const moment = require('moment')
 const qr = require('qr-image')
 
 //// Modules
-const db = require('../db');
 const dtrHelper = require('../dtr-helper');
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
@@ -74,7 +73,7 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
 
         // console.log(query, projection, options, sort)
 
-        // let employees = await db.main.Employee.find(query, projection, options).sort(sort)
+        // let employees = await req.app.locals.db.main.Employee.find(query, projection, options).sort(sort)
         let aggr = []
 
         aggr.push({
@@ -90,7 +89,7 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         aggr.push({ $sort: sort })
 
         // Pagination
-        let countDocuments = await db.main.Employee.aggregate(aggr)
+        let countDocuments = await req.app.locals.db.main.Employee.aggregate(aggr)
         let totalDocs = countDocuments.length
         let pagination = paginator.paginate(
             page,
@@ -104,7 +103,7 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
             aggr.push({ $skip: options.skip })
             aggr.push({ $limit: options.limit })
         }
-        let employees = await db.main.Employee.aggregate(aggr)
+        let employees = await req.app.locals.db.main.Employee.aggregate(aggr)
 
         // console.log(util.inspect(aggr, false, null, true))
 
@@ -175,7 +174,7 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
         lodash.set(patch, 'gender', lodash.get(body, 'gender'))
         lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
 
-        let matches = await db.main.Employee.find({
+        let matches = await req.app.locals.db.main.Employee.find({
             firstName: new RegExp(`^${lodash.trim(patch.firstName)}$`, "i"),
             lastName: new RegExp(`^${lodash.trim(patch.lastName)}$`, "i"),
         })
@@ -183,7 +182,7 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
             throw new Error(`Possible duplicate entry. There is already an employee with a name of "${patch.firstName} ${patch.lastName}"`)
         }
 
-        let employee = new db.main.Employee(patch)
+        let employee = new req.app.locals.db.main.Employee(patch)
         await employee.save()
         flash.ok(req, 'employee', `Added ${employee.firstName} ${employee.lastName}.`)
         res.redirect(`/employee/employment/${employee._id}`)
@@ -228,7 +227,7 @@ router.post('/employee/personal/:employeeId', middlewares.guardRoute(['update_em
         lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
         lodash.set(patch, 'speechSynthesisName', lodash.get(body, 'speechSynthesisName'))
 
-        await db.main.Employee.updateOne({ _id: employee._id }, patch)
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName}'s personal info.`)
         res.redirect(`/employee/personal/${employee._id}`)
@@ -583,10 +582,10 @@ router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewar
             }
         ]
 
-        workSchedule = await db.main.WorkSchedule.create(workSchedule)
+        workSchedule = await req.app.locals.db.main.WorkSchedule.create(workSchedule)
 
         // Update assignment
-        await db.main.Employment.updateOne({
+        await req.app.locals.db.main.Employment.updateOne({
             _id: employment._id
         }, {
             workScheduleId: workSchedule._id
@@ -637,7 +636,7 @@ router.get('/employee/employment/:employeeId/create', middlewares.guardRoute(['c
     try {
         let employee = res.employee.toObject()
 
-        let workSchedules = await db.main.WorkSchedule.find().lean()
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
         workSchedules = workSchedules.map((w) => {
             return {
                 value: w._id,
@@ -672,7 +671,7 @@ router.post('/employee/employment/:employeeId/create', middlewares.guardRoute(['
         lodash.set(patch, `sssDeduction`, lodash.get(body, 'sssDeduction'))
         lodash.set(patch, `workScheduleId`, lodash.get(body, 'workScheduleId'))
 
-        let employment = new db.main.Employment(patch)
+        let employment = new req.app.locals.db.main.Employment(patch)
         await employment.save()
 
         flash.ok(req, 'employee', `Added to "${employee.firstName} ${employee.lastName}'s" employment.`)
@@ -688,7 +687,7 @@ router.get('/employee/employment/:employeeId/:employmentId', middlewares.guardRo
         let employee = res.employee.toObject()
         let employment = res.employment
 
-        let workSchedules = await db.main.WorkSchedule.find().lean()
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
         workSchedules = workSchedules.map((w) => {
             return {
                 value: w._id,
@@ -726,7 +725,7 @@ router.post('/employee/employment/:employeeId/:employmentId', middlewares.guardR
         lodash.set(patch, `workScheduleId`, lodash.get(body, 'workScheduleId'))
         lodash.set(patch, `active`, lodash.get(body, 'active'))
 
-        await db.main.Employment.updateOne({ _id: employment._id }, patch)
+        await req.app.locals.db.main.Employment.updateOne({ _id: employment._id }, patch)
 
         flash.ok(req, 'employee', `Updated "${employee.firstName} ${employee.lastName}'s" employment.`)
         res.redirect(`/employee/employment/${employee._id}`)
@@ -754,7 +753,7 @@ router.get('/employee/employment/:employeeId/:employmentId/delete', middlewares.
 router.get('/employee/address/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
-        employee.address = await db.main.Address.findOneFullAddress({
+        employee.address = await req.app.locals.db.main.Address.findOneFullAddress({
             code: employee.addressPsgc
         })
         res.render('employee/address.html', {
@@ -776,14 +775,14 @@ router.post('/employee/address/:employeeId', middlewares.guardRoute(['create_emp
         }
 
         // TODO: Should generate new id every save??
-        lodash.set(patch, 'addresses.0._id', db.mongoose.Types.ObjectId())
+        lodash.set(patch, 'addresses.0._id', req.app.locals.db.mongoose.Types.ObjectId())
         lodash.set(patch, 'addresses.0.unit', lodash.get(body, 'unit0'))
         lodash.set(patch, 'addresses.0.street', lodash.get(body, 'street0'))
         lodash.set(patch, 'addresses.0.village', lodash.get(body, 'village0'))
         lodash.set(patch, 'addresses.0.psgc', lodash.get(body, 'psgc0'))
         lodash.set(patch, 'addresses.0.zipCode', lodash.get(body, 'zipCode0'))
         lodash.set(patch, 'addressPermanent', lodash.get(patch, 'addresses.0._id'))
-        let address0 = await db.main.Address.findOne({
+        let address0 = await req.app.locals.db.main.Address.findOne({
             code: lodash.get(body, 'psgc0', '')
         })
         if (address0) {
@@ -802,14 +801,14 @@ router.post('/employee/address/:employeeId', middlewares.guardRoute(['create_emp
         }
 
         // TODO: Should generate new id every save??
-        lodash.set(patch, 'addresses.1._id', db.mongoose.Types.ObjectId())
+        lodash.set(patch, 'addresses.1._id', req.app.locals.db.mongoose.Types.ObjectId())
         lodash.set(patch, 'addresses.1.unit', lodash.get(body, 'unit1'))
         lodash.set(patch, 'addresses.1.street', lodash.get(body, 'street1'))
         lodash.set(patch, 'addresses.1.village', lodash.get(body, 'village1'))
         lodash.set(patch, 'addresses.1.psgc', lodash.get(body, 'psgc1'))
         lodash.set(patch, 'addresses.1.zipCode', lodash.get(body, 'zipCode1'))
         lodash.set(patch, 'addressPresent', lodash.get(patch, 'addresses.1._id'))
-        let address1 = await db.main.Address.findOne({
+        let address1 = await req.app.locals.db.main.Address.findOne({
             code: lodash.get(body, 'psgc1', '')
         })
         if (address1) {
@@ -826,7 +825,7 @@ router.post('/employee/address/:employeeId', middlewares.guardRoute(['create_emp
             lodash.set(patch, 'addresses.1.province', address1.provName)
         }
 
-        await db.main.Employee.updateOne({ _id: employee._id }, patch)
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} address.`)
         res.redirect(`/employee/address/${employee._id}`)
@@ -890,7 +889,7 @@ router.get('/employee/photo/:employeeId/delete', middlewares.guardRoute(['update
         }
 
         await Promise.all(promises)
-        await db.main.Employee.updateOne({ _id: employee._id }, { profilePhoto: '' })
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, { profilePhoto: '' })
 
         flash.ok(req, 'employee', `"${employee.firstName} ${employee.lastName}" photo deleted.`)
         res.redirect(`/employee/photo/${employee._id}`);
@@ -916,7 +915,7 @@ router.get('/employee/id-card/:employeeId', middlewares.guardRoute(['create_empl
 router.get('/employee/find', middlewares.guardRoute(['create_employee', 'update_employee']), async (req, res, next) => {
     try {
         let code = req.query.code
-        let employee = await db.main.Employee.findOne({
+        let employee = await req.app.locals.db.main.Employee.findOne({
             uid: code
         })
         if (!employee) {
@@ -931,7 +930,7 @@ router.get('/employee/find', middlewares.guardRoute(['create_employee', 'update_
 router.get('/employee/user/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        employee.user = await db.main.User.findById(employee.userId)
+        employee.user = await req.app.locals.db.main.User.findById(employee.userId)
 
         let username = passwordMan.genUsername(employee.firstName, employee.lastName)
         let password = passwordMan.randomString(8)
@@ -957,10 +956,10 @@ router.post('/employee/user/:employeeId', middlewares.guardRoute(['update_employ
         let salt = passwordMan.randomString(16)
         let passwordHash = passwordMan.hashPassword(body.password, salt)
 
-        let employeeUser = await db.main.User.findById(employee.userId)
+        let employeeUser = await req.app.locals.db.main.User.findById(employee.userId)
         if (employeeUser) { // Assoc user
             // Check username avail
-            let found = await db.main.User.findOne({
+            let found = await req.app.locals.db.main.User.findOne({
                 username: body.username,
                 _id: {
                     $ne: employeeUser._id
@@ -979,7 +978,7 @@ router.post('/employee/user/:employeeId', middlewares.guardRoute(['update_employ
         } else { // No assoc user
 
             // Check username avail
-            let found = await db.main.User.findOne({
+            let found = await req.app.locals.db.main.User.findOne({
                 username: body.username,
             })
             if (found) {
@@ -987,7 +986,7 @@ router.post('/employee/user/:employeeId', middlewares.guardRoute(['update_employ
                 return res.redirect(`/employee/user/${employee._id}`)
             }
 
-            employeeUser = new db.main.User({
+            employeeUser = new req.app.locals.db.main.User({
                 passwordHash: passwordHash,
                 salt: salt,
                 roles: ["employee"],
@@ -1042,7 +1041,7 @@ router.get('/employee/e201/:employeeId/pds', middlewares.guardRoute(['read_emplo
 router.post('/employee/user/:employeeId/password', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let employeeUser = await db.main.User.findById(employee.userId)
+        let employeeUser = await req.app.locals.db.main.User.findById(employee.userId)
 
         if (employeeUser) { // Assoc user
             let password = passwordMan.randomString(8)
@@ -1164,7 +1163,7 @@ router.get('/employee/list', middlewares.guardRoute(['read_all_employee', 'read_
         aggr.push({ $sort: sort })
 
         // Pagination
-        let countDocuments = await db.main.Employee.aggregate(aggr)
+        let countDocuments = await req.app.locals.db.main.Employee.aggregate(aggr)
         let totalDocs = countDocuments.length
         let pagination = paginator.paginate(
             page,
@@ -1178,7 +1177,7 @@ router.get('/employee/list', middlewares.guardRoute(['read_all_employee', 'read_
             aggr.push({ $skip: options.skip })
             aggr.push({ $limit: options.limit })
         }
-        let employeeLists = await db.main.EmployeeList.aggregate(aggr)
+        let employeeLists = await req.app.locals.db.main.EmployeeList.aggregate(aggr)
 
         // console.log(util.inspect(aggr, false, null, true))
 
@@ -1198,7 +1197,7 @@ router.get('/employee/list', middlewares.guardRoute(['read_all_employee', 'read_
 router.post('/employee/list', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
     try {
         let name = lodash.get(req, 'body.name')
-        let employeeList = await db.main.EmployeeList.create({
+        let employeeList = await req.app.locals.db.main.EmployeeList.create({
             name: name
         })
         flash.ok(req, 'employee', `Created ${name}.`)
@@ -1236,13 +1235,13 @@ router.get('/employee/list/:employeeListId', middlewares.guardRoute(['read_all_e
 
             let promises = []
             promises = employeeList.members.map((m) => {
-                return db.main.Employment.findById(m.employmentId).lean()
+                return req.app.locals.db.main.Employment.findById(m.employmentId).lean()
             })
             employeeList.members = await Promise.all(promises)
 
             promises = []
             promises = employeeList.members.map((m) => {
-                return db.main.Employee.findById(m.employeeId).lean()
+                return req.app.locals.db.main.Employee.findById(m.employeeId).lean()
             })
             let employees = await Promise.all(promises)
             employeeList.members = employeeList.members.map((m, i) => {
@@ -1256,7 +1255,7 @@ router.get('/employee/list/:employeeListId', middlewares.guardRoute(['read_all_e
                     position: m.position,
                 }
             })
-            await db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
+            await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
         }
 
 
@@ -1302,7 +1301,7 @@ router.post('/employee/list/:employeeListId/update', middlewares.guardRoute(['re
             employeeList.tags = employeeList.tags.split(',')
         }
 
-        await db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
+        await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
 
         flash.ok(req, 'employee', `Updated ${employeeList.name}.`)
         res.redirect(`/employee/list/${employeeList._id}`)
@@ -1315,7 +1314,7 @@ router.delete('/employee/list/:employeeListId', middlewares.guardRoute(['delete_
     try {
         let employeeList = res.employeeList.toObject()
 
-        await db.main.EmployeeList.remove({ _id: employeeList._id })
+        await req.app.locals.db.main.EmployeeList.remove({ _id: employeeList._id })
 
         flash.ok(req, 'employee', `Deleted ${employeeList.name}.`)
         res.send('Deleted.')
@@ -1331,7 +1330,7 @@ router.post('/employee/list/:employeeListId/member', middlewares.guardRoute(['cr
 
         let employmentId = lodash.get(req, 'body.employmentId')
 
-        let matches = await db.main.EmployeeList.find({
+        let matches = await req.app.locals.db.main.EmployeeList.find({
             _id: employeeList._id,
             members: {
                 $elemMatch: {
@@ -1344,11 +1343,11 @@ router.post('/employee/list/:employeeListId/member', middlewares.guardRoute(['cr
             return res.redirect(`/employee/list/${employeeList._id}`)
         }
 
-        let employment = await db.main.Employment.findById(employmentId)
+        let employment = await req.app.locals.db.main.Employment.findById(employmentId)
         if (!employment) {
             throw new Error('Employment not found.')
         }
-        let employee = await db.main.Employee.findById(employment.employeeId)
+        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId)
         if (!employee) {
             throw new Error('Employee not found.')
 
@@ -1364,7 +1363,7 @@ router.post('/employee/list/:employeeListId/member', middlewares.guardRoute(['cr
             position: employment.position,
         })
 
-        await db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
+        await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
 
 
         flash.ok(req, 'employee', `Added ${employee.firstName} ${employee.lastName}.`)
@@ -1387,7 +1386,7 @@ router.delete('/employee/list/:employeeListId/member/:memberId', middlewares.gua
 
         let deleted = employeeList.members.splice(index, 1)
 
-        await db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
+        await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
 
         flash.ok(req, 'employee', `Deleted ${deleted[0].firstName} ${deleted[0].lastName}.`)
         res.send('Deleted.')

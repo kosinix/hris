@@ -7,7 +7,6 @@ const lodash = require('lodash')
 const moment = require('moment')
 
 //// Modules
-const db = require('../db');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
 
@@ -29,7 +28,7 @@ router.get('/memo/all', middlewares.guardRoute(['read_all_memo', 'read_memo']), 
         let projection = {}
 
         // Pagination
-        let totalDocs = await db.main.Memo.countDocuments(query)
+        let totalDocs = await req.app.locals.db.main.Memo.countDocuments(query)
         let pagination = paginator.paginate(
             page,
             totalDocs,
@@ -44,7 +43,7 @@ router.get('/memo/all', middlewares.guardRoute(['read_all_memo', 'read_memo']), 
 
         // console.log(query, projection, options, sort)
 
-        let memos = await db.main.Memo.find(query, projection, options).sort(sort).lean()
+        let memos = await req.app.locals.db.main.Memo.find(query, projection, options).sort(sort).lean()
 
         res.render('memo/all.html', {
             flash: flash.get(req, 'memo'),
@@ -87,23 +86,23 @@ router.post('/memo/create', middlewares.guardRoute(['create_memo']), async (req,
                 err.redirect = '/memo/create'
                 throw err
             } else {
-                memberIds = memberIds.split(',').map(id => new db.mongoose.Types.ObjectId(id))
+                memberIds = memberIds.split(',').map(id => new req.app.locals.db.mongoose.Types.ObjectId(id))
                 for (let x = 0; x < memberIds.length; x++) {
                     let memberId = memberIds[x]
                     let objectId = null
                     let name = ''
                     let type = ''
 
-                    let employment = await db.main.Employment.findById(memberId)
+                    let employment = await req.app.locals.db.main.Employment.findById(memberId)
                     if (employment) {
                         objectId = employment._id
                         type = 'employment'
-                        let employee = await db.main.Employee.findById(employment.employeeId)
+                        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId)
                         if (employee) {
                             name = `${employee.firstName} ${employee.lastName} - ${employment.position}`
                         }
                     } else {
-                        let employeeList = await db.main.EmployeeList.findById(memberId)
+                        let employeeList = await req.app.locals.db.main.EmployeeList.findById(memberId)
                         if (employeeList) {
                             objectId = employeeList._id
                             name = `${employeeList.name} - ${employeeList.tags.join(',')}`
@@ -126,7 +125,7 @@ router.post('/memo/create', middlewares.guardRoute(['create_memo']), async (req,
 
         // return res.send(patch)
 
-        let memo = await db.main.Memo.create(patch)
+        let memo = await req.app.locals.db.main.Memo.create(patch)
 
         flash.ok(req, 'memo', `Added memo no. ${memo.number} series of ${moment(patch.date).format('YYYY')}.`)
         res.redirect(`/memo/${memo._id}`)
@@ -192,23 +191,23 @@ router.post('/memo/:memoId/edit', middlewares.guardRoute(['update_memo']), middl
                 err.redirect = '/memo/create'
                 throw err
             } else {
-                memberIds = memberIds.split(',').map(id => new db.mongoose.Types.ObjectId(id))
+                memberIds = memberIds.split(',').map(id => new req.app.locals.db.mongoose.Types.ObjectId(id))
                 for (let x = 0; x < memberIds.length; x++) {
                     let memberId = memberIds[x]
                     let objectId = null
                     let name = ''
                     let type = ''
 
-                    let employment = await db.main.Employment.findById(memberId)
+                    let employment = await req.app.locals.db.main.Employment.findById(memberId)
                     if (employment) {
                         objectId = employment._id
                         type = 'employment'
-                        let employee = await db.main.Employee.findById(employment.employeeId)
+                        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId)
                         if (employee) {
                             name = `${employee.firstName} ${employee.lastName} - ${employment.position}`
                         }
                     } else {
-                        let employeeList = await db.main.EmployeeList.findById(memberId)
+                        let employeeList = await req.app.locals.db.main.EmployeeList.findById(memberId)
                         if (employeeList) {
                             objectId = employeeList._id
                             name = `${employeeList.name} - ${employeeList.tags.join(',')}`
@@ -233,7 +232,7 @@ router.post('/memo/:memoId/edit', middlewares.guardRoute(['update_memo']), middl
 
         let memo = res.memo
         
-        await db.main.Memo.updateOne({ _id: memo._id }, patch)
+        await req.app.locals.db.main.Memo.updateOne({ _id: memo._id }, patch)
 
         flash.ok(req, 'memo', `Updated memo no. ${memo.number} series of ${moment(patch.date).format('YYYY')}.`)
         res.redirect(`/memo/${memo._id}`)

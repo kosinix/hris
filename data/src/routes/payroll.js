@@ -7,7 +7,6 @@ const lodash = require('lodash')
 const moment = require('moment')
 
 //// Modules
-const db = require('../db');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
 const payrollCalc = require('../payroll-calc');
@@ -50,7 +49,7 @@ router.get('/payroll/all', middlewares.guardRoute(['read_all_payroll', 'read_pay
             }
         }
         // Pagination
-        let totalDocs = await db.main.Payroll.countDocuments(query)
+        let totalDocs = await req.app.locals.db.main.Payroll.countDocuments(query)
         let pagination = paginator.paginate(
             page,
             totalDocs,
@@ -65,11 +64,11 @@ router.get('/payroll/all', middlewares.guardRoute(['read_all_payroll', 'read_pay
 
         // console.log(query, projection, options, sort)
 
-        let payrolls = await db.main.Payroll.find(query, projection, options).sort(sort).lean()
+        let payrolls = await req.app.locals.db.main.Payroll.find(query, projection, options).sort(sort).lean()
 
         let assignedUsers = []
         payrolls.forEach((payroll) => {
-            assignedUsers.push(db.main.User.findOne({ _id: payroll.assignedTo }))
+            assignedUsers.push(req.app.locals.db.main.User.findOne({ _id: payroll.assignedTo }))
         })
         assignedUsers = await Promise.all(assignedUsers)
         // payrolls.forEach((payroll, i) => {
@@ -95,7 +94,7 @@ router.get('/payroll/all', middlewares.guardRoute(['read_all_payroll', 'read_pay
 router.get('/payroll/create', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
     try {
 
-        let employeeLists = await db.main.EmployeeList.find()
+        let employeeLists = await req.app.locals.db.main.EmployeeList.find()
 
         res.render('payroll/create.html', {
             employeeLists: employeeLists.filter(o => o.tags.includes('Fund Source')).map((o) => {
@@ -112,7 +111,7 @@ router.get('/payroll/create', middlewares.guardRoute(['create_payroll']), async 
 router.get('/payroll/generate', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
     try {
 
-        let workSchedules = await db.main.WorkSchedule.find().lean()
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
         let data = {
             workSchedules: workSchedules
         }
@@ -132,7 +131,7 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
         lodash.set(patch, 'employeeList', lodash.get(body, 'employeeList'))
 
         // 1. Get list members
-        let list = await db.main.EmployeeList.findOne({
+        let list = await req.app.locals.db.main.EmployeeList.findOne({
             _id: patch.employeeList
         }, { members: 1 })
         let members = lodash.get(list, 'members', [])
@@ -143,9 +142,9 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
         let attendances = []
 
         members.forEach((member, i) => {
-            employees.push(db.main.Employee.findById(member.employeeId).lean())
-            employments.push(db.main.Employment.findById(member.employmentId).lean())
-            attendances.push(db.main.Attendance.find({
+            employees.push(req.app.locals.db.main.Employee.findById(member.employeeId).lean())
+            employments.push(req.app.locals.db.main.Employment.findById(member.employmentId).lean())
+            attendances.push(req.app.locals.db.main.Attendance.find({
                 employmentId: member.employmentId,
                 createdAt: {
                     $gte: moment(patch.dateStart).startOf('day').toDate(),
@@ -245,7 +244,7 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
             status: 1
         }
 
-        payroll = await db.main.Payroll.create(payroll)
+        payroll = await req.app.locals.db.main.Payroll.create(payroll)
         // return res.send(payroll)
 
         flash.ok(req, 'payroll', `Created payroll "${payroll.name}".`)
@@ -262,7 +261,7 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
         lodash.set(patch, 'dateStart', lodash.get(body, 'dateStart'))
         lodash.set(patch, 'dateEnd', lodash.get(body, 'dateEnd'))
         lodash.set(patch, 'workSchedule', lodash.get(body, 'workSchedule'))
-        let workSchedule = await db.main.WorkSchedule.findById(patch.workSchedule).lean()
+        let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(patch.workSchedule).lean()
         let timeSegments = null
         if (workSchedule) {
             timeSegments = workSchedule.timeSegments
@@ -281,7 +280,7 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
             let template = profiles[eIndex][1]
 
             // 1. Get list members
-            let list = await db.main.EmployeeList.findOne({
+            let list = await req.app.locals.db.main.EmployeeList.findOne({
                 name: employeeList
             }, { members: 1 })
             let members = lodash.get(list, 'members', [])
@@ -292,9 +291,9 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
             let attendances = []
 
             members.forEach((member, i) => {
-                employees.push(db.main.Employee.findById(member.employeeId).lean())
-                employments.push(db.main.Employment.findById(member.employmentId).lean())
-                attendances.push(db.main.Attendance.find({
+                employees.push(req.app.locals.db.main.Employee.findById(member.employeeId).lean())
+                employments.push(req.app.locals.db.main.Employment.findById(member.employmentId).lean())
+                attendances.push(req.app.locals.db.main.Attendance.find({
                     employmentId: member.employmentId,
                     createdAt: {
                         $gte: moment(patch.dateStart).startOf('day').toDate(),
@@ -394,7 +393,7 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
                 status: 1,
             }
 
-            payroll = await db.main.Payroll.create(payroll)
+            payroll = await req.app.locals.db.main.Payroll.create(payroll)
             // return res.send(payroll)
 
         }
@@ -460,7 +459,7 @@ router.get('/payroll/:payrollId/unlock', middlewares.guardRoute(['read_payroll',
 
         if (payroll.assignedTo._id.toString() === user._id.toString()) {
             payroll.assignedTo = null
-            await db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
+            await req.app.locals.db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
             flash.ok(req, 'payroll', `Payroll "${payroll.name}" unlocked.`)
 
         } else {
@@ -503,7 +502,7 @@ router.get('/payroll/:payrollId/status', middlewares.guardRoute(['read_payroll',
 
             payroll.assignedTo = null
             payroll.status = status
-            await db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
+            await req.app.locals.db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
 
             flash.ok(req, 'payroll', `Payroll "${payroll.name}" ${text}${target}.`)
         } else {
@@ -524,7 +523,7 @@ router.post('/payroll/:payrollId/save', middlewares.guardRoute(['read_payroll'])
             rows: lodash.get(body, 'rows')
         }
 
-        let r = await db.main.Payroll.updateOne({ _id: payroll._id }, patch)
+        let r = await req.app.locals.db.main.Payroll.updateOne({ _id: payroll._id }, patch)
 
         res.send(`Payroll saved.`)
     } catch (err) {
@@ -586,9 +585,9 @@ router.post('/payroll/employees/:payrollId', middlewares.guardRoute(['update_pay
 
         let employmentId = lodash.get(req, 'body.employmentId')
 
-        let row = await payrollCalc.addPayrollRow(payroll, employmentId)
+        let row = await payrollCalc.addPayrollRow(payroll, employmentId, req.app.locals.db)
 
-        await db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
+        await req.app.locals.db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
 
 
         flash.ok(req, 'payroll', `Employee "${row.employee.firstName}" added to payroll "${payroll.name}".`)
@@ -617,7 +616,7 @@ router.post('/payroll/:payrollId/sort-rows', middlewares.guardRoute(['update_pay
         payroll.rows.splice(oldIndex, 1);
         payroll.rows.splice(newIndex, 0, element);
 
-        await db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
+        await req.app.locals.db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
 
         res.send('Sorting saved.')
     } catch (err) {
@@ -652,7 +651,7 @@ router.post('/payroll/:payrollId/delete-row', middlewares.guardRoute(['update_pa
 
         let rowIndex = lodash.get(req, 'body.rowIndex')
         payroll.rows.splice(rowIndex, 1)
-        let r = await db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
+        let r = await req.app.locals.db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
 
         res.send(r)
     } catch (err) {
@@ -677,7 +676,7 @@ router.post('/payroll/incentives/:payrollId', middlewares.guardRoute(['read_payr
         let payroll = res.payroll
 
         let incentive = req.body
-        incentive._id = db.mongoose.Types.ObjectId()
+        incentive._id = req.app.locals.db.mongoose.Types.ObjectId()
         incentive.uid = lodash.camelCase(incentive.name)
 
         incentive.initialAmount = lodash.get(incentive, 'initialAmount', '0')
@@ -721,7 +720,7 @@ router.post('/payroll/deductions/:payrollId', middlewares.guardRoute(['read_payr
         let payroll = res.payroll
 
         let deduction = req.body
-        deduction._id = db.mongoose.Types.ObjectId()
+        deduction._id = req.app.locals.db.mongoose.Types.ObjectId()
         deduction.uid = lodash.camelCase(deduction.name)
         deduction.initialAmount = lodash.get(deduction, 'initialAmount', '0')
         deduction.initialAmount = deduction.initialAmount.replace(/,/g, '')

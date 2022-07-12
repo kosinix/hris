@@ -10,7 +10,6 @@ const momentRange = require('moment-range')
 const momentExt = momentRange.extendMoment(moment)
 
 //// Modules
-const db = require('../db')
 const dtrHelper = require('../dtr-helper')
 const excelGen = require('../excel-gen')
 const middlewares = require('../middlewares')
@@ -40,7 +39,7 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance']
         }
         // Mosqueda
         if (res.user.roles.includes('campusdirectormosqueda')) {
-            let employmentIds = await db.main.Employment.find({
+            let employmentIds = await req.app.locals.db.main.Employment.find({
                 campus: 'mosqueda'
             }).lean()
 
@@ -52,7 +51,7 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance']
         }
         // Baterna
         if (res.user.roles.includes('campusdirectorbaterna')) {
-            let employmentIds = await db.main.Employment.find({
+            let employmentIds = await req.app.locals.db.main.Employment.find({
                 campus: 'baterna'
             }).lean()
 
@@ -66,7 +65,7 @@ router.get('/attendance/monthly', middlewares.guardRoute(['read_all_attendance']
         let aggr = []
         aggr.push({ $match: query })
 
-        attendances = await db.main.Attendance.aggregate(aggr)
+        attendances = await req.app.locals.db.main.Attendance.aggregate(aggr)
 
         // Group by object with keys "YYYY-MM-DD" holding an array
         attendances = lodash.groupBy(attendances, (attendance) => {
@@ -151,7 +150,7 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
         }
 
         if (employeesForThisCampuses.length > 0) {
-            let employments = await db.main.Employment.find({
+            let employments = await req.app.locals.db.main.Employment.find({
                 campus: {
                     $in: employeesForThisCampuses
                 }
@@ -209,7 +208,7 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
         })
 
         //console.log(aggr)
-        attendances = await db.main.Attendance.aggregate(aggr)
+        attendances = await req.app.locals.db.main.Attendance.aggregate(aggr)
         //return res.send(attendances)
 
         if (req.originalUrl.includes('.xlsx')) {
@@ -293,7 +292,7 @@ router.get(['/attendance/flag/all', '/attendance/flag.xlsx'], middlewares.guardR
         })
 
         //console.log(aggr)
-        attendances = await db.main.AttendanceFlag.aggregate(aggr)
+        attendances = await req.app.locals.db.main.AttendanceFlag.aggregate(aggr)
         //return res.send(attendances)
 
         if (req.originalUrl.includes('.xlsx')) {
@@ -351,7 +350,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
         if (!options.showWeekDays.length) {
             options.showWeekDays = showWeekDays.split('|')
         }
-        let { days } = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days } = await dtrHelper.getDtrByDateRange(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         // console.log(options)
         let totalMinutes = 0
@@ -426,7 +425,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance
         let employee = res.employee.toObject()
         let employment = res.employment.toObject()
         let attendance = res.attendance.toObject()
-        let workSchedules = await db.main.WorkSchedule.find().lean()
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
 
         attendance = lodash.merge({
             createdAt: '',
@@ -471,7 +470,7 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
             return res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
         }
 
-        let { changeLogs, att } = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
+        let { changeLogs, att } = await dtrHelper.editAttendance(req.app.locals.db, attendance._id, patch, res.user)
 
         // return res.send(att)
         if (changeLogs.length) {
@@ -490,7 +489,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance
     try {
         let employee = res.employee.toObject()
         let employment = res.employment.toObject()
-        let workSchedules = await db.main.WorkSchedule.find().lean()
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
 
         res.render('attendance/create.html', {
             flash: flash.get(req, 'attendance'),
@@ -531,7 +530,7 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
             throw new Error(`Invalid attendance type "${patch.type}".`)
         }
 
-        let conflict = await db.main.Attendance.findOne({
+        let conflict = await req.app.locals.db.main.Attendance.findOne({
             employeeId: employee._id,
             employmentId: employment._id,
             createdAt: {
@@ -614,7 +613,7 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
 
         }
 
-        attendance = await db.main.Attendance.create(attendance)
+        attendance = await req.app.locals.db.main.Attendance.create(attendance)
 
         // console.log(attendance)
 
@@ -652,7 +651,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId/print', mi
             showWeekDays: showWeekDays,
         }
 
-        let { days, stats } = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days, stats } = await dtrHelper.getDtrByDateRange(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         let periodMonthYearMoment = moment(periodMonthYear)
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
@@ -667,7 +666,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId/print', mi
             }
         })
 
-        let workSchedules = await workScheduler.getEmploymentWorkSchedule(db, employmentId)
+        let workSchedules = await workScheduler.getEmploymentWorkSchedule(req.app.locals.db, employmentId)
 
         let workSchedule = workSchedules.find(o => {
             return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
@@ -714,7 +713,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId/print', mi
 // Work Schedule
 router.get('/attendance/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_schedule']), async (req, res, next) => {
     try {
-        let schedules = await db.main.WorkSchedule.find().lean()
+        let schedules = await req.app.locals.db.main.WorkSchedule.find().lean()
         schedules = schedules.map((o) => {
             o.timeSegments = o.timeSegments.map((t) => {
                 t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
@@ -735,7 +734,7 @@ router.get('/attendance/schedule/all', middlewares.guardRoute(['read_all_schedul
 router.get('/attendance/schedule/create', middlewares.guardRoute(['create_schedule']), async (req, res, next) => {
     try {
 
-        let employeeLists = await db.main.EmployeeList.find({}, { _id: 1, name: 1 })
+        let employeeLists = await req.app.locals.db.main.EmployeeList.find({}, { _id: 1, name: 1 })
         res.render('attendance/schedule-create.html', {
             flash: flash.get(req, 'schedule'),
             employeeLists: employeeLists,
@@ -796,23 +795,23 @@ router.post('/attendance/schedule/create', middlewares.guardRoute(['create_sched
                 err.type = 'flash'
                 throw err
             } else {
-                memberIds = memberIds.split(',').map(id => new db.mongoose.Types.ObjectId(id))
+                memberIds = memberIds.split(',').map(id => new req.app.locals.db.mongoose.Types.ObjectId(id))
                 for (let x = 0; x < memberIds.length; x++) {
                     let memberId = memberIds[x]
                     let objectId = null
                     let name = ''
                     let type = ''
 
-                    let employment = await db.main.Employment.findById(memberId)
+                    let employment = await req.app.locals.db.main.Employment.findById(memberId)
                     if (employment) {
                         objectId = employment._id
                         type = 'employment'
-                        let employee = await db.main.Employee.findById(employment.employeeId)
+                        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId)
                         if (employee) {
                             name = `${employee.firstName} ${employee.lastName} - ${employment.position}`
                         }
                     } else {
-                        let employeeList = await db.main.EmployeeList.findById(memberId)
+                        let employeeList = await req.app.locals.db.main.EmployeeList.findById(memberId)
                         if (employeeList) {
                             objectId = employeeList._id
                             name = `${employeeList.name} - ${employeeList.tags.join(',')}`
@@ -838,7 +837,7 @@ router.post('/attendance/schedule/create', middlewares.guardRoute(['create_sched
             timeSegments: timeSegments
         }
         // return res.send(patch)
-        await db.main.WorkSchedule.create(patch)
+        await req.app.locals.db.main.WorkSchedule.create(patch)
         flash.ok(req, 'schedule', `Work schedule created.`)
         return res.redirect('/attendance/schedule/all')
     } catch (err) {
@@ -860,7 +859,7 @@ router.get('/attendance/schedule/:scheduleId', middlewares.guardRoute(['update_s
             return t
         })
 
-        let employeeLists = await db.main.EmployeeList.find({
+        let employeeLists = await req.app.locals.db.main.EmployeeList.find({
             tags: {
                 $in: ['Employment']
             }
@@ -879,7 +878,7 @@ router.post('/attendance/schedule/:scheduleId/members', middlewares.guardRoute([
     try {
         let listIds = lodash.get(req, 'body.listIds', [])
 
-        let employeeListeds = await db.main.EmployeeList.find({
+        let employeeListeds = await req.app.locals.db.main.EmployeeList.find({
             _id: {
                 $in: listIds
             }
@@ -906,7 +905,7 @@ router.post('/attendance/schedule/:scheduleId/members', middlewares.guardRoute([
 
         let employmentIds = members.map((m) => m.employmentId)
 
-        let r = await db.main.Employment.updateMany({
+        let r = await req.app.locals.db.main.Employment.updateMany({
             _id: {
                 $in: employmentIds
             }
@@ -1055,10 +1054,10 @@ router.get('/attendance/review/all', middlewares.guardRoute(['read_all_attendanc
                 }
             }
         ]
-        let attendanceReviews = await db.main.AttendanceReview.aggregate(aggr)
+        let attendanceReviews = await req.app.locals.db.main.AttendanceReview.aggregate(aggr)
         let attendanceReview = attendanceReviews[0]
 
-        let workSchedules = await db.main.WorkSchedule.find()
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find()
         let workSchedule1 = workSchedules.find(o => {
             return lodash.invoke(o, '_id.toString') === lodash.invoke(attendanceReview, 'employment.workScheduleId.toString')
         })
@@ -1083,7 +1082,7 @@ router.get('/attendance/review/:reviewId', middlewares.guardRoute(['update_atten
     try {
         let user = res.user
         let reviewId = lodash.get(req, 'params.reviewId')
-        let attendanceReview = await db.main.AttendanceReview.findById(reviewId).lean()
+        let attendanceReview = await req.app.locals.db.main.AttendanceReview.findById(reviewId).lean()
         if (!attendanceReview) {
             throw new Error('Not found.')
         }
@@ -1091,9 +1090,9 @@ router.get('/attendance/review/:reviewId', middlewares.guardRoute(['update_atten
         let employee = null
         let employment = null
         if (attendanceReview) {
-            attendance = await db.main.Attendance.findById(attendanceReview.attendanceId).lean()
-            employee = await db.main.Employee.findById(attendanceReview.employeeId).lean()
-            employment = await db.main.Employment.findById(attendanceReview.employmentId).lean()
+            attendance = await req.app.locals.db.main.Attendance.findById(attendanceReview.attendanceId).lean()
+            employee = await req.app.locals.db.main.Employee.findById(attendanceReview.employeeId).lean()
+            employment = await req.app.locals.db.main.Employment.findById(attendanceReview.employmentId).lean()
         }
         if (!attendance) {
             throw new Error('Attendance not found.')
@@ -1105,7 +1104,7 @@ router.get('/attendance/review/:reviewId', middlewares.guardRoute(['update_atten
             throw new Error('Employment not found.')
         }
 
-        let workSchedules = await db.main.WorkSchedule.find()
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find()
         let workSchedule1 = workSchedules.find(o => {
             return lodash.invoke(o, '_id.toString') === lodash.invoke(attendance, 'workScheduleId.toString')
         })
@@ -1140,10 +1139,10 @@ router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_atte
     try {
         let user = res.user
         let reviewId = lodash.get(req, 'params.reviewId')
-        let attendanceReview = await db.main.AttendanceReview.findById(reviewId).lean()
+        let attendanceReview = await req.app.locals.db.main.AttendanceReview.findById(reviewId).lean()
         let attendance = null
         if (attendanceReview) {
-            attendance = await db.main.Attendance.findById(attendanceReview.attendanceId).lean()
+            attendance = await req.app.locals.db.main.Attendance.findById(attendanceReview.attendanceId).lean()
         }
         if (attendance) {
 
@@ -1151,7 +1150,7 @@ router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_atte
 
         let action = lodash.get(req, 'body.action')
         if (action == 'reject') {
-            await db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, {
+            await req.app.locals.db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, {
                 status: 'rejected',
                 denyReason: lodash.get(req, 'body.denyReason'),
             })
@@ -1160,7 +1159,7 @@ router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_atte
                 objectId: user._id,
                 createdAt: moment().toDate()
             })
-            await db.main.Attendance.updateOne({ _id: attendance._id }, { changes: attendance.changes })
+            await req.app.locals.db.main.Attendance.updateOne({ _id: attendance._id }, { changes: attendance.changes })
 
             flash.ok(req, 'attendance', 'Application denied.')
 
@@ -1191,13 +1190,13 @@ router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_atte
                 lodash.set(patch, 'log3', moment(log3).format('HH:mm'))
             }
 
-            let r = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
+            let r = await dtrHelper.editAttendance(req.app.locals.db, attendance._id, patch, res.user)
             // console.log(r.changeLogs, r.attendance)
             if (r.attendance) {
                 attendance = r.attendance
             }
 
-            await db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, {
+            await req.app.locals.db.main.AttendanceReview.updateOne({ _id: attendanceReview._id }, {
                 status: 'approved',
             })
 
@@ -1206,7 +1205,7 @@ router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_atte
                 objectId: user._id,
                 createdAt: moment().toDate()
             })
-            await db.main.Attendance.updateOne({ _id: attendance._id }, { changes: attendance.changes })
+            await req.app.locals.db.main.Attendance.updateOne({ _id: attendance._id }, { changes: attendance.changes })
 
             flash.ok(req, 'attendance', 'Application approved.')
 
@@ -1256,7 +1255,7 @@ router.get('/attendance/holiday/all', middlewares.guardRoute(['read_all_attendan
                 }
             }
         ]
-        let holidays = await db.main.Holiday.aggregate(aggr)
+        let holidays = await req.app.locals.db.main.Holiday.aggregate(aggr)
 
         let data = {
             flash: flash.get(req, 'attendance'),
@@ -1306,11 +1305,11 @@ router.get('/attendance/holiday/all-set-attendances', middlewares.guardRoute(['u
                 }
             }
         ]
-        let holidays = await db.main.Holiday.aggregate(aggr)
+        let holidays = await req.app.locals.db.main.Holiday.aggregate(aggr)
 
 
         // Permanent employees
-        let employments = await db.main.Employment.aggregate([
+        let employments = await req.app.locals.db.main.Employment.aggregate([
             {
                 $match: {
                     employmentType: 'permanent',
@@ -1353,7 +1352,7 @@ router.get('/attendance/holiday/all-set-attendances', middlewares.guardRoute(['u
                 for (let e = 0; e < employments.length; e++) {
                     let employment = employments[e]
 
-                    let attendances = await db.main.Attendance.find({
+                    let attendances = await req.app.locals.db.main.Attendance.find({
                         employmentId: employment._id,
                         createdAt: {
                             $gte: moment(holiday.date).startOf('day').toDate(),
@@ -1364,7 +1363,7 @@ router.get('/attendance/holiday/all-set-attendances', middlewares.guardRoute(['u
                     // Insert if dont have attendance yet on holidate
                     let momentNow = moment()
                     if (attendances.length <= 0) {
-                        let att = await db.main.Attendance.create({
+                        let att = await req.app.locals.db.main.Attendance.create({
                             "type": "holiday",
                             "employeeId": employment.employeeId,
                             "employmentId": employment._id,
@@ -1394,7 +1393,7 @@ router.get('/attendance/holiday/all-set-attendances', middlewares.guardRoute(['u
             }
         }
 
-        // let attendances = await db.main.Attendance.aggregate([
+        // let attendances = await req.app.locals.db.main.Attendance.aggregate([
         //     {
         //         $match: {
         //             type: 'holiday',
@@ -1420,7 +1419,7 @@ router.get('/attendance/holiday/all-set-attendances', middlewares.guardRoute(['u
         // }
 
         // let permanentStaff
-        // db.main.Attendance.create({
+        // req.app.locals.db.main.Attendance.create({
         //     "_id": ObjectId("6257f9958c32966ae20b5d0c"),
         //     "type": "holiday",
         //     "employeeId": ObjectId("61513763e1d53f182a5d7b72"),
@@ -1457,7 +1456,7 @@ router.post('/attendance/holiday', middlewares.guardRoute(['update_attendance'])
         let name = lodash.get(body, 'name')
         let type = lodash.get(body, 'type')
 
-        let holiday = await db.main.Holiday.create({
+        let holiday = await req.app.locals.db.main.Holiday.create({
             date: date,
             name: lodash.trim(name),
             type: type
@@ -1509,7 +1508,7 @@ router.post('/attendance/holiday/:holidayId', middlewares.guardRoute(['update_at
         let name = lodash.get(body, 'name')
         let type = lodash.get(body, 'type')
 
-        await db.main.Holiday.updateOne(
+        await req.app.locals.db.main.Holiday.updateOne(
             {
                 _id: holiday._id
             },

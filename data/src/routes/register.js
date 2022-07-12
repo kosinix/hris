@@ -8,7 +8,6 @@ const lodash = require('lodash')
 const qr = require('qr-image')
 
 //// Modules
-const db = require('../db')
 const middlewares = require('../middlewares');
 const passwordMan = require('../password-man');
 
@@ -19,7 +18,7 @@ let router = express.Router()
 router.get('/register/:registrationFormId', async (req, res, next) => {
     try {
         let registrationFormId = lodash.get(req, 'params.registrationFormId')
-        let registrationForm = await db.main.RegistrationForm.findById(registrationFormId)
+        let registrationForm = await req.app.locals.db.main.RegistrationForm.findById(registrationFormId)
         if (!registrationForm) {
             throw new Error('Form not found.')
         } else {
@@ -44,7 +43,7 @@ router.get('/register/:registrationFormId', async (req, res, next) => {
 router.post('/register/:registrationFormId', fileUpload(), middlewares.handleExpressUploadMagic, async (req, res, next) => {
     try {
         let registrationFormId = lodash.get(req, 'params.registrationFormId')
-        let registrationForm = await db.main.RegistrationForm.findById(registrationFormId)
+        let registrationForm = await req.app.locals.db.main.RegistrationForm.findById(registrationFormId)
         if (!registrationForm) {
             throw new Error('Form not found.')
         } else {
@@ -63,13 +62,13 @@ router.post('/register/:registrationFormId', fileUpload(), middlewares.handleExp
         await registrationForm.save()
 
         let employmentId = registrationForm.employmentId 
-        let employment = await db.main.Employment.findById(employmentId).lean()
+        let employment = await req.app.locals.db.main.Employment.findById(employmentId).lean()
         let employee = null
         if (employment) {
-            employee = await db.main.Employee.findOne({ _id: employment.employeeId })
+            employee = await req.app.locals.db.main.Employee.findOne({ _id: employment.employeeId })
             employment.employee = employee.toObject()
         }
-        let userA = await db.main.User.findById(employment.employee.userId)
+        let userA = await req.app.locals.db.main.User.findById(employment.employee.userId)
         if (!userA) {
             throw new Error('You dont have an user account.')
         }
@@ -111,11 +110,11 @@ router.post('/register', async (req, res, next) => {
         let body = req.body
         let code = lodash.get(body, 'code')
 
-        let registrationForm = await db.main.RegistrationForm.findOne({
+        let registrationForm = await req.app.locals.db.main.RegistrationForm.findOne({
             uid: code,
         })
         if (!registrationForm) {
-            registrationForm = await db.main.RegistrationForm.create({
+            registrationForm = await req.app.locals.db.main.RegistrationForm.create({
                 uid: code,
             })
         } else {
@@ -162,7 +161,7 @@ router.get('/register/long-poll/:registrationFormId', async (req, res, next) => 
             x++
             // console.log(`${x} of ${maxX}`);
 
-            db.main.RegistrationForm.findById(registrationFormId).then((r) => {
+            req.app.locals.db.main.RegistrationForm.findById(registrationFormId).then((r) => {
                 if (r.status === 'started') {
                     clearInterval(intervalObj)
                     // console.log('r', r)

@@ -11,7 +11,6 @@ const moment = require('moment')
 const qr = require('qr-image')
 
 //// Modules
-const db = require('../db');
 const mailer = require('../mailer');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
@@ -54,7 +53,7 @@ router.get('/user/all', middlewares.guardRoute(['read_all_user', 'create_user', 
         aggr.push({ $sort: sort })
 
         // Pagination
-        let countDocuments = await db.main.User.aggregate(aggr)
+        let countDocuments = await req.app.locals.db.main.User.aggregate(aggr)
         let totalDocs = countDocuments.length
         let pagination = paginator.paginate(
             page,
@@ -68,7 +67,7 @@ router.get('/user/all', middlewares.guardRoute(['read_all_user', 'create_user', 
             aggr.push({ $skip: options.skip })
             aggr.push({ $limit: options.limit })
         }
-        let users = await db.main.User.aggregate(aggr)
+        let users = await req.app.locals.db.main.User.aggregate(aggr)
 
         // console.log(util.inspect(aggr, false, null, true))
 
@@ -87,8 +86,8 @@ router.get('/user/all', middlewares.guardRoute(['read_all_user', 'create_user', 
 router.get('/user/create', middlewares.guardRoute(['create_user']), async (req, res, next) => {
     try {
 
-        let roles = await db.main.Role.find()
-        let permissions = await db.main.Role.find()
+        let roles = await req.app.locals.db.main.Role.find()
+        let permissions = await req.app.locals.db.main.Role.find()
         let password = passwordMan.randomString(10)
         // return res.send(roles)
         res.render('user/create.html', {
@@ -119,7 +118,7 @@ router.post('/user/create', middlewares.guardRoute(['create_user']), async (req,
         lodash.set(patch, 'passwordHash', passwordHash)
         lodash.set(patch, 'salt', salt)
 
-        let user = await db.main.User.create(patch)
+        let user = await req.app.locals.db.main.User.create(patch)
 
         flash.ok(req, 'user', `Added "${user.username}"".`)
         res.redirect(`/user/${user._id}`)
@@ -194,7 +193,7 @@ router.post('/user/:userId/password', middlewares.guardRoute(['read_user']), mid
                 flash.ok(req, 'user', `Updated "${user.username}" password.`)
             }
 
-            await db.main.User.updateOne({ _id: user._id }, patch)
+            await req.app.locals.db.main.User.updateOne({ _id: user._id }, patch)
 
         }
 
@@ -209,8 +208,8 @@ router.get('/user/:userId/edit', middlewares.guardRoute(['read_user']), middlewa
     try {
         let user = res.user.toObject()
 
-        let roles = await db.main.Role.find().lean()
-        let permissions = await db.main.Permission.find().lean()
+        let roles = await req.app.locals.db.main.Role.find().lean()
+        let permissions = await req.app.locals.db.main.Permission.find().lean()
         let password = passwordMan.randomString(10)
         // return res.send(roles)
         res.render('user/edit.html', {
@@ -246,7 +245,7 @@ router.post('/user/:userId/edit', middlewares.guardRoute(['read_user']), middlew
             lodash.set(patch, 'salt', salt)
         }
 
-        await db.main.User.updateOne({ _id: user._id }, patch)
+        await req.app.locals.db.main.User.updateOne({ _id: user._id }, patch)
 
         flash.ok(req, 'user', `Updated "${user.username}"".`)
         res.redirect(`/user/all`)

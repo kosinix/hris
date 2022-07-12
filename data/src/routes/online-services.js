@@ -7,7 +7,6 @@ const lodash = require('lodash')
 const moment = require('moment')
 
 //// Modules
-const db = require('../db');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
 
@@ -80,7 +79,7 @@ router.get('/online-services/at/all', middlewares.guardRoute(['read_all_attendan
         aggr.push({ $sort: sort })
 
         // Pagination
-        let countDocuments = await db.main.AuthorityToTravel.aggregate(aggr)
+        let countDocuments = await req.app.locals.db.main.AuthorityToTravel.aggregate(aggr)
         let totalDocs = countDocuments.length
         let pagination = paginator.paginate(
             page,
@@ -94,7 +93,7 @@ router.get('/online-services/at/all', middlewares.guardRoute(['read_all_attendan
             aggr.push({ $skip: options.skip })
             aggr.push({ $limit: options.limit })
         }
-        let ats = await db.main.AuthorityToTravel.aggregate(aggr)
+        let ats = await req.app.locals.db.main.AuthorityToTravel.aggregate(aggr)
 
         // return res.send(ats)
         let data = {
@@ -114,7 +113,7 @@ router.get('/online-services/at/all', middlewares.guardRoute(['read_all_attendan
 router.get('/online-services/at/:atId', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
     try {
         let atId = req.params.atId
-        let at = await db.main.AuthorityToTravel.findById(atId).lean()
+        let at = await req.app.locals.db.main.AuthorityToTravel.findById(atId).lean()
         if(!at){
             throw new Error('Not found.')
         }
@@ -132,7 +131,7 @@ router.get('/online-services/at/:atId', middlewares.guardRoute(['read_all_attend
 router.get('/online-services/at/:atId/delete', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
     try {
         let atId = req.params.atId
-        let at = await db.main.AuthorityToTravel.findById(atId)
+        let at = await req.app.locals.db.main.AuthorityToTravel.findById(atId)
         if(!at){
             throw new Error('Not found.')
         }

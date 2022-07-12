@@ -19,7 +19,6 @@ const lodash = require('lodash')
 
 //// Modules
 const AppError = require('../errors').AppError
-const db = require('../db')
 const dtrHelper = require('../dtr-helper')
 const middlewares = require('../middlewares')
 const jwtHelper = require('../jwt-helper')
@@ -35,12 +34,12 @@ const getDiffHash = async (db) => {
         hash: 0,
     }
 
-    count.employees = await db.main.Employee.countDocuments()
-    count.employeeLastUpdatedAt = await db.main.Employee.findOne({}, { updatedAt: 1 }).sort({ updatedAt: -1 }).lean()
+    count.employees = await req.app.locals.db.main.Employee.countDocuments()
+    count.employeeLastUpdatedAt = await req.app.locals.db.main.Employee.findOne({}, { updatedAt: 1 }).sort({ updatedAt: -1 }).lean()
     count.employeeLastUpdatedAt = JSON.parse(JSON.stringify(count.employeeLastUpdatedAt))
     count.employeeLastUpdatedAt = lodash.get(count.employeeLastUpdatedAt, 'updatedAt', 0)
-    count.employments = await db.main.Employment.countDocuments()
-    count.employmentLastUpdatedAt = await db.main.Employment.findOne({}, { updatedAt: 1 }).sort({ updatedAt: -1 }).lean()
+    count.employments = await req.app.locals.db.main.Employment.countDocuments()
+    count.employmentLastUpdatedAt = await req.app.locals.db.main.Employment.findOne({}, { updatedAt: 1 }).sort({ updatedAt: -1 }).lean()
     count.employmentLastUpdatedAt = JSON.parse(JSON.stringify(count.employmentLastUpdatedAt))
     count.employmentLastUpdatedAt = lodash.get(count.employmentLastUpdatedAt, 'updatedAt', 0)
     return `${count.employees}-${count.employeeLastUpdatedAt}-${count.employments}-${count.employmentLastUpdatedAt}`
@@ -79,7 +78,7 @@ router.post('/api/login', async (req, res, next) => {
         }
 
         // Find admin
-        let user = await db.main.User.findOne({ username: username }).lean()
+        let user = await req.app.locals.db.main.User.findOne({ username: username }).lean()
         if (!user) {
             throw new Error('Incorrect username.')
         }
@@ -94,7 +93,7 @@ router.post('/api/login', async (req, res, next) => {
             throw new Error('Incorrect password.')
         }
 
-        let scanner = await db.main.Scanner.findOne({
+        let scanner = await req.app.locals.db.main.Scanner.findOne({
             userId: user._id
         }).lean()
         if (!scanner) {
@@ -143,7 +142,7 @@ router.post('/api/scanner/scan', middlewares.api.expandScanData, async (req, res
                     // console.log(uploadList, saveList)
                 }
 
-                log = await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id, undefined, { photo: lodash.get(saveList, 'photos[0]', '') })
+                log = await dtrHelper.logAttendance(req.app.locals.db, scanData.employee, scanData.employment, scanner._id, undefined, { photo: lodash.get(saveList, 'photos[0]', '') })
             } catch (err) {
                 throw new AppError(err.message) // Format for xhr
             }
@@ -165,7 +164,7 @@ router.post('/api/scanner/scan', middlewares.api.expandScanData, async (req, res
 
             let log = null
             try {
-                log = await dtrHelper.logAttendance(db, scanData.employee, scanData.employment, scanner._id)
+                log = await dtrHelper.logAttendance(req.app.locals.db, scanData.employee, scanData.employment, scanner._id)
             } catch (err) {
                 throw new AppError(err.message) // Format for xhr
             }
@@ -205,7 +204,7 @@ router.get('/api/export', middlewares.api.requireApiKey, async (req, res, next) 
         let dumpDir = `dbdump`
         let zipFile = `dbdump.zip`
 
-        let myHash = await getDiffHash(db)
+        let myHash = await getDiffHash(req.app.locals.db)
         console.log(req.query.hash, myHash)
         if(req.query.hash === myHash){
             throw new Error('No difference. Abort download.')

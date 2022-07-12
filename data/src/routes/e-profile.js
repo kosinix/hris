@@ -13,7 +13,6 @@ const sharp = require('sharp')
 
 //// Modules
 const countries = require('../countries');
-const db = require('../db');
 const dtrHelper = require('../dtr-helper');
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
@@ -71,7 +70,7 @@ router.get('/e-profile/hdf', middlewares.guardRoute(['use_employee_profile']), m
         let employee = res.employee.toObject()
 
         // Today attendance
-        let hd = await db.main.HealthDeclaration.findOne({
+        let hd = await req.app.locals.db.main.HealthDeclaration.findOne({
             employeeId: employee._id,
             createdAt: {
                 $gte: moment().startOf('day').toDate(),
@@ -176,7 +175,7 @@ router.post('/e-profile/hdf', middlewares.guardRoute(['use_employee_profile']), 
         let check = false
         if (!check) {
             // Today attendance
-            let hd = await db.main.HealthDeclaration.findOne({
+            let hd = await req.app.locals.db.main.HealthDeclaration.findOne({
                 employeeId: employee._id,
                 createdAt: {
                     $gte: moment().startOf('day').toDate(),
@@ -187,7 +186,7 @@ router.post('/e-profile/hdf', middlewares.guardRoute(['use_employee_profile']), 
                 throw new Error('You have already submitted a health declaration today.')
             } else {
 
-                hd = new db.main.HealthDeclaration({
+                hd = new req.app.locals.db.main.HealthDeclaration({
                     employeeId: employee._id,
                     data: body
                 })
@@ -253,7 +252,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             showWeekDays: showWeekDays,
         }
 
-        let { days, stats } = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days, stats } = await dtrHelper.getDtrByDateRange(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         let periodMonthYearMoment = moment(periodMonthYear)
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
@@ -268,7 +267,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             }
         })
 
-        let workSchedules = await workScheduler.getEmploymentWorkSchedule(db, employmentId)
+        let workSchedules = await workScheduler.getEmploymentWorkSchedule(req.app.locals.db, employmentId)
 
         let workSchedule = workSchedules.find(o => {
             return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
@@ -328,7 +327,7 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
         let attendanceId = lodash.get(req, 'params.attendanceId')
 
         // Get pending
-        let attendanceReview = await db.main.AttendanceReview.findOne({
+        let attendanceReview = await req.app.locals.db.main.AttendanceReview.findOne({
             attendanceId: attendanceId,
             status: 'pending'
         }).lean()
@@ -338,14 +337,14 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
         }
 
         // Get rejected
-        let attendanceDenied = await db.main.AttendanceReview.findOne({
+        let attendanceDenied = await req.app.locals.db.main.AttendanceReview.findOne({
             attendanceId: attendanceId,
             status: 'rejected'
         }).sort({ _id: -1 }).lean()
 
 
         // Get attendance
-        let attendance = await db.main.Attendance.findOne({
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
             _id: attendanceId,
             employmentId: employmentId,
         }).lean()
@@ -359,13 +358,13 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
         // if(now.isSameOrBefore(created)){
         //     throw new Error('Cannot correct today\'s attendance. Please wait for tomorrow to apply for correction.')
         // }
-        let workSchedule = await db.main.WorkSchedule.findById(
+        let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(
             lodash.get(attendance, 'workScheduleId')
         )
 
         attendance.shifts = lodash.get(workSchedule, 'timeSegments')
 
-        let workSchedules = await db.main.WorkSchedule.find().lean()
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
         workSchedules = workSchedules.map((o) => {
             let times = []
             o.timeSegments = o.timeSegments.map((t) => {
@@ -431,7 +430,7 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
         let attendanceId = lodash.get(req, 'params.attendanceId')
 
         // Get pending
-        let attendanceReview = await db.main.AttendanceReview.findOne({
+        let attendanceReview = await req.app.locals.db.main.AttendanceReview.findOne({
             attendanceId: attendanceId,
             status: 'pending'
         }).lean()
@@ -441,7 +440,7 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
         }
 
         // Get attendance
-        let attendance = await db.main.Attendance.findOne({
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
             _id: attendanceId,
             employmentId: employmentId,
         }).lean()
@@ -500,7 +499,7 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
                     newLog.mode = mode
                 } else { // undefined
                     newLog = {
-                        _id: db.mongoose.Types.ObjectId(),
+                        _id: req.app.locals.db.mongoose.Types.ObjectId(),
                         scannerId: null,
                         dateTime: dateTime,
                         mode: mode,
@@ -519,7 +518,7 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
 
         // return res.send(patch)
         let merged = lodash.merge(orig, patch)
-        let review = await db.main.AttendanceReview.create(merged)
+        let review = await req.app.locals.db.main.AttendanceReview.create(merged)
 
         // return res.send({
         //     orig: JSON.parse(JSON.stringify(attendance)),
@@ -594,7 +593,7 @@ router.patch('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employ
             patch.workScheduleId = workScheduleId
 
             // Today attendance
-            let attendances = await db.main.Attendance.find({
+            let attendances = await req.app.locals.db.main.Attendance.find({
                 employeeId: employee._id,
                 employmentId: employmentId,
                 createdAt: {
@@ -611,7 +610,7 @@ router.patch('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employ
                 return attendance._id.toString()
             })
 
-            let rA = await db.main.Attendance.updateMany({
+            let rA = await req.app.locals.db.main.Attendance.updateMany({
                 _id: {
                     $in: attendanceIds
                 }
@@ -625,7 +624,7 @@ router.patch('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employ
             patch.inCharge = inCharge
         }
 
-        let rE = await db.main.Employment.updateOne({
+        let rE = await req.app.locals.db.main.Employment.updateOne({
             _id: employment._id
         }, patch)
 
@@ -652,7 +651,7 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
 
 
         // Today attendance
-        let attendance = await db.main.Attendance.findOne({
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
             employeeId: employee._id,
             employmentId: employment._id,
             createdAt: {
@@ -703,7 +702,7 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
             photo: lodash.get(saveList, 'photos[0]', ''),
         }
 
-        let log = await dtrHelper.logAttendance(db, employee, employment, null, 15, extra, 'online', source) // 15mins timeout
+        let log = await dtrHelper.logAttendance(req.app.locals.db, employee, employment, null, 15, extra, 'online', source) // 15mins timeout
         flash.ok(req, 'employee', 'Attendance saved.')
         res.send(log)
     } catch (err) {
@@ -716,7 +715,7 @@ router.get('/e-profile/dtr/:employmentId/log-point', middlewares.guardRoute(['us
         let employment = res.employment
 
         // Today attendance
-        let attendance = await db.main.Attendance.findOne({
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
             employeeId: employee._id,
             employmentId: employment._id,
             createdAt: {
@@ -789,7 +788,7 @@ router.get('/e-profile/dtr/:employmentId/online', middlewares.guardRoute(['use_e
 
         // Add check point
         // Today attendance
-        let attendance = await db.main.Attendance.findOne({
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
             employeeId: employee._id,
             employmentId: employment._id,
             createdAt: {
@@ -831,7 +830,7 @@ router.post('/e-profile/dtr/:employmentId/location', middlewares.guardRoute(['us
         let body = req.body
 
 
-        let found = await db.main.Map.findOne({
+        let found = await req.app.locals.db.main.Map.findOne({
             geo: {
                 $geoIntersects: {
                     $geometry: {
@@ -875,12 +874,12 @@ router.get('/e-profile/dtr/share/:employmentId', middlewares.guardRoute(['use_em
 
         let periodMonthYearMoment = moment(periodMonthYear)
 
-        let prevShares = await db.main.Share.deleteMany({
+        let prevShares = await req.app.locals.db.main.Share.deleteMany({
             createdBy: res.user._id,
         })
 
         // console.log(prevShares)
-        // let forDeletion = await db.main.Share.remove({
+        // let forDeletion = await req.app.locals.db.main.Share.remove({
         //     createdBy: res.user._id,
         //     expiredAt: {
         //         $gte: moment().add(1, 'minute').toISOString(),
@@ -895,7 +894,7 @@ router.get('/e-profile/dtr/share/:employmentId', middlewares.guardRoute(['use_em
         let url = `${CONFIG.app.url}/shared/dtr/print/${secureKey}?periodMonthYear=${periodMonthYearMoment.format('YYYY-MM-DD')}&periodSlice=${periodSlice}&periodWeekDays=${periodWeekDays}&showTotalAs=${showTotalAs}&countTimeBy=${countTimeBy}`
         let hash = passwordMan.hashSha256(url)
         url = url + '&hash=' + hash
-        let share = await db.main.Share.create({
+        let share = await req.app.locals.db.main.Share.create({
             secureKey: secureKey,
             expiredAt: moment().add(1, 'hour').toDate(),
             createdBy: res.user._id,
@@ -943,7 +942,7 @@ router.post('/e-profile/wfh/:employmentId', middlewares.guardRoute(['use_employe
         let momentNow = moment()
 
         // Today attendance
-        let attendance = await db.main.Attendance.findOne({
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
             employeeId: employee._id,
             employmentId: employment._id,
             createdAt: {
@@ -954,7 +953,7 @@ router.post('/e-profile/wfh/:employmentId', middlewares.guardRoute(['use_employe
         if (attendance) {
             throw new Error('Already have attendance for today.')
         } else {
-            attendance = new db.main.Attendance({
+            attendance = new req.app.locals.db.main.Attendance({
                 employeeId: employee._id,
                 employmentId: employment._id,
                 onTravel: false,
@@ -983,7 +982,7 @@ router.get('/e-profile/travel/:employmentId', middlewares.guardRoute(['use_emplo
         let momentNow = moment()
 
         // Today attendance
-        let attendance = await db.main.Attendance.findOne({
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
             employeeId: employee._id,
             employmentId: employment._id,
             createdAt: {
@@ -994,7 +993,7 @@ router.get('/e-profile/travel/:employmentId', middlewares.guardRoute(['use_emplo
         if (attendance) {
             throw new Error('Already have attendance for today.')
         } else {
-            attendance = new db.main.Attendance({
+            attendance = new req.app.locals.db.main.Attendance({
                 employeeId: employee._id,
                 employmentId: employment._id,
                 onTravel: true,
@@ -1025,7 +1024,7 @@ router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_empl
             throw new Error('Invalid attendance type.')
         }
         // Today attendance
-        let attendance = await db.main.Attendance.findOne({
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
             employeeId: employee._id,
             employmentId: employment._id,
             createdAt: {
@@ -1077,7 +1076,7 @@ router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_empl
                 message = `Attendance set to Travel. Please secure your appearance and other supporting documents.`
             }
 
-            await db.main.Attendance.create({
+            await req.app.locals.db.main.Attendance.create({
                 employeeId: employee._id,
                 employmentId: employment._id,
                 type: attendanceType,
@@ -1173,14 +1172,14 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         }
 
         // TODO: Should generate new id every save??
-        lodash.set(patch, 'addresses.0._id', db.mongoose.Types.ObjectId())
+        lodash.set(patch, 'addresses.0._id', req.app.locals.db.mongoose.Types.ObjectId())
         lodash.set(patch, 'addresses.0.unit', lodash.get(body, 'unit0'))
         lodash.set(patch, 'addresses.0.street', lodash.get(body, 'street0'))
         lodash.set(patch, 'addresses.0.village', lodash.get(body, 'village0'))
         lodash.set(patch, 'addresses.0.psgc', lodash.get(body, 'psgc0'))
         lodash.set(patch, 'addresses.0.zipCode', lodash.get(body, 'zipCode0'))
         lodash.set(patch, 'addressPermanent', lodash.get(patch, 'addresses.0._id'))
-        let address0 = await db.main.Address.findOne({
+        let address0 = await req.app.locals.db.main.Address.findOne({
             code: lodash.get(body, 'psgc0', '')
         })
         if (address0) {
@@ -1199,14 +1198,14 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         }
 
         // TODO: Should generate new id every save??
-        lodash.set(patch, 'addresses.1._id', db.mongoose.Types.ObjectId())
+        lodash.set(patch, 'addresses.1._id', req.app.locals.db.mongoose.Types.ObjectId())
         lodash.set(patch, 'addresses.1.unit', lodash.get(body, 'unit1'))
         lodash.set(patch, 'addresses.1.street', lodash.get(body, 'street1'))
         lodash.set(patch, 'addresses.1.village', lodash.get(body, 'village1'))
         lodash.set(patch, 'addresses.1.psgc', lodash.get(body, 'psgc1'))
         lodash.set(patch, 'addresses.1.zipCode', lodash.get(body, 'zipCode1'))
         lodash.set(patch, 'addressPresent', lodash.get(patch, 'addresses.1._id'))
-        let address1 = await db.main.Address.findOne({
+        let address1 = await req.app.locals.db.main.Address.findOne({
             code: lodash.get(body, 'psgc1', '')
         })
         if (address1) {
@@ -1261,7 +1260,7 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'personal.mother.birthDate', lodash.get(body, 'mother.birthDate'))
 
         // return res.send(patch)
-        await db.main.Employee.updateOne({ _id: employee._id }, patch)
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `PDS updated.`)
         if (lodash.get(body, 'actionType') === 'saveNext') {
@@ -1299,7 +1298,7 @@ router.post('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'personal.eligibilities', lodash.get(body, 'eligibilities'))
         lodash.set(patch, 'personal.workExperiences', lodash.get(body, 'workExperiences'))
 
-        await db.main.Employee.updateOne({ _id: employee._id }, patch)
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `PDS updated.`)
 
@@ -1339,7 +1338,7 @@ router.post('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'personal.trainings', lodash.get(body, 'trainings', []))
         lodash.set(patch, 'personal.extraCurriculars', lodash.get(body, 'extraCurriculars', []))
 
-        await db.main.Employee.updateOne({ _id: employee._id }, patch)
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `PDS updated.`)
 
@@ -1401,7 +1400,7 @@ router.post('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'personal.soloParentDetails', lodash.get(body, 'soloParentDetails'))
         lodash.set(patch, 'personal.references', lodash.get(body, 'references', []))
 
-        await db.main.Employee.updateOne({ _id: employee._id }, patch)
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `PDS updated.`)
 
@@ -1464,7 +1463,7 @@ router.get('/e-profile/memo', middlewares.guardRoute(['use_employee_profile']), 
         let projection = {}
 
         // Pagination
-        let totalDocs = await db.main.Memo.countDocuments(query)
+        let totalDocs = await req.app.locals.db.main.Memo.countDocuments(query)
         let pagination = paginator.paginate(
             page,
             totalDocs,
@@ -1479,7 +1478,7 @@ router.get('/e-profile/memo', middlewares.guardRoute(['use_employee_profile']), 
 
         // console.log(query, projection, options, sort)
 
-        let memos = await db.main.Memo.find(query, projection, options).sort(sort).lean()
+        let memos = await req.app.locals.db.main.Memo.find(query, projection, options).sort(sort).lean()
 
         res.render('e-profile/memo.html', {
             flash: flash.get(req, 'employee'),
@@ -1578,7 +1577,7 @@ router.get('/e-profile/photo/delete', middlewares.guardRoute(['use_employee_prof
             }).promise()
         }
 
-        await db.main.Employee.updateOne({ _id: employee._id }, { profilePhoto: '' })
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, { profilePhoto: '' })
 
         flash.ok(req, 'employee', `Profile photo deleted.`)
         res.redirect(`/e-profile/home`);

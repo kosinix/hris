@@ -10,7 +10,6 @@ const lodash = require('lodash')
 const moment = require('moment')
 
 //// Modules
-const db = require('./db')
 const AppError = require('./errors').AppError
 const passwordMan = require('./password-man')
 const uploader = require('./uploader')
@@ -21,7 +20,7 @@ let allowIp = async (req, res, next) => {
             return next();
         }
 
-        let ips = await db.main.AllowedIP.find(); // Get from db
+        let ips = await req.app.locals.db.main.AllowedIP.find(); // Get from db
         let allowed = lodash.map(ips, (ip) => { // Simplify
             return ip.address;
         })
@@ -96,7 +95,7 @@ let requireAuthScanner = async (req, res, next) => {
         if (!authScannerId) {
             return res.redirect('/scanner-app/login')
         }
-        let authScanner = await db.main.Scanner.findById(authScannerId);
+        let authScanner = await req.app.locals.db.main.Scanner.findById(authScannerId);
         if (!authScanner) {
             return res.redirect('/scanner-app/login')
         }
@@ -126,7 +125,7 @@ module.exports = {
                 }
 
                 // Find admin
-                let user = await db.main.User.findOne({ username: username });
+                let user = await req.app.locals.db.main.User.findOne({ username: username });
                 if (!user) {
                     throw new Error('Incorrect username.')
                 }
@@ -194,7 +193,7 @@ module.exports = {
     
                 let photo = lodash.get(req, 'body.photo', '')
     
-                let employee = await db.main.Employee.findOne({
+                let employee = await req.app.locals.db.main.Employee.findOne({
                     uid: code
                 }).lean()
                 if (!employee) {
@@ -205,7 +204,7 @@ module.exports = {
                 }
     
                 // TODO: Allow choose employment for rfid
-                let employment = await db.main.Employment.findOne({
+                let employment = await req.app.locals.db.main.Employment.findOne({
                     employeeId: employee._id
                 }).lean()
                 if (!employment) {
@@ -243,7 +242,7 @@ module.exports = {
         return async (req, res, next) => {
             try {
                 let user = res.user
-                let rolesList = await db.main.Role.find()
+                let rolesList = await req.app.locals.db.main.Role.find()
                 if (condition === 'or') {
                     if (!access.or(user, permissions, rolesList)) {
                         return res.render('error.html', {
@@ -266,7 +265,7 @@ module.exports = {
     getPayroll: async (req, res, next) => {
         try {
             let payrollId = req.params.payrollId || ''
-            let payroll = await db.main.Payroll.findById(payrollId);
+            let payroll = await req.app.locals.db.main.Payroll.findById(payrollId);
             if (!payroll) {
                 return res.render('error.html', { error: "Sorry, payroll not found." })
             }
@@ -289,7 +288,7 @@ module.exports = {
                 }
             } else {
                 payroll.assignedTo = user
-                await db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
+                await req.app.locals.db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
             }
             next();
         } catch (err) {
@@ -299,7 +298,7 @@ module.exports = {
     getMemo: async (req, res, next) => {
         try {
             let memoId = req.params.memoId || ''
-            let memo = await db.main.Memo.findById(memoId);
+            let memo = await req.app.locals.db.main.Memo.findById(memoId);
             if (!memo) {
                 return res.render('error.html', { error: "Sorry, memo not found." })
             }
@@ -315,9 +314,9 @@ module.exports = {
             let scannerUid = req.params.scannerUid || ''
             let scanner = null
             if (scannerId) {
-                scanner = await db.main.Scanner.findById(scannerId)
+                scanner = await req.app.locals.db.main.Scanner.findById(scannerId)
             } else if (scannerUid) {
-                scanner = await db.main.Scanner.findOne({
+                scanner = await req.app.locals.db.main.Scanner.findOne({
                     uid: scannerUid
                 })
             }
@@ -355,11 +354,11 @@ module.exports = {
     getEmployee: async (req, res, next) => {
         try {
             let employeeId = req.params.employeeId || ''
-            let employee = await db.main.Employee.findById(employeeId);
+            let employee = await req.app.locals.db.main.Employee.findById(employeeId);
             if (!employee) {
                 return res.render('error.html', { error: "Sorry, employee not found." })
             }
-            employee.employments = await db.main.Employment.find({
+            employee.employments = await req.app.locals.db.main.Employment.find({
                 employeeId: employeeId
             });
 
@@ -372,22 +371,22 @@ module.exports = {
     getRegistration: async (req, res, next) => {
         try {
             let registrationId = req.params.registrationId || ''
-            let registration = await db.main.RegistrationForm.findById(registrationId).lean()
+            let registration = await req.app.locals.db.main.RegistrationForm.findById(registrationId).lean()
             if (!registration) {
                 throw new Error("Sorry, registration not found.")
             }
 
-            let employment = await db.main.Employment.findById(registration.employmentId).lean()
+            let employment = await req.app.locals.db.main.Employment.findById(registration.employmentId).lean()
             if (!employment) {
                 throw new Error("Sorry, employment not found.")
             }
 
-            let employee = await db.main.Employee.findById(employment.employeeId).lean()
+            let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
             if (!employee) {
                 throw new Error("Sorry, employee not found.")
             }
 
-            let userAccount = await db.main.User.findById(employee.userId).lean()
+            let userAccount = await req.app.locals.db.main.User.findById(employee.userId).lean()
             if (!userAccount) {
                 throw new Error('You dont have an user account.')
             }
@@ -407,7 +406,7 @@ module.exports = {
     getEmployment: async (req, res, next) => {
         try {
             let employmentId = req.params.employmentId || ''
-            let employment = await db.main.Employment.findById(employmentId);
+            let employment = await req.app.locals.db.main.Employment.findById(employmentId);
             if (!employment) {
                 return res.render('error.html', { error: "Sorry, employment not found." })
             }
@@ -438,7 +437,7 @@ module.exports = {
     getAttendance: async (req, res, next) => {
         try {
             let attendanceId = req.params.attendanceId || ''
-            let attendance = await db.main.Attendance.findById(attendanceId);
+            let attendance = await req.app.locals.db.main.Attendance.findById(attendanceId);
             if (!attendance) {
                 return res.render('error.html', { error: "Sorry, attendance not found." })
             }
@@ -451,7 +450,7 @@ module.exports = {
     getApplication: async (req, res, next) => {
         try {
             let applicationId = req.params.applicationId || ''
-            let application = await db.main.Application.findById(applicationId);
+            let application = await req.app.locals.db.main.Application.findById(applicationId);
             if (!application) {
                 return res.render('error.html', { error: "Sorry, application not found." })
             }
@@ -464,7 +463,7 @@ module.exports = {
     getUser: async (req, res, next) => {
         try {
             let userId = req.params.userId || ''
-            let user = await db.main.User.findById(userId);
+            let user = await req.app.locals.db.main.User.findById(userId);
             if (!user) {
                 return res.render('error.html', { error: "Sorry, user not found." })
             }
@@ -482,7 +481,7 @@ module.exports = {
             if (!authUserId) {
                 return res.redirect('/login')
             }
-            let user = await db.main.User.findById(authUserId);
+            let user = await req.app.locals.db.main.User.findById(authUserId);
             if (!user) {
                 return res.redirect('/logout') // Prevent redirect loop when user is null
             }
@@ -512,13 +511,13 @@ module.exports = {
     },
     requireAssocEmployee: async (req, res, next) => {
         try {
-            let employee = await db.main.Employee.findOne({
+            let employee = await req.app.locals.db.main.Employee.findOne({
                 userId: res.user._id
             })
             if (!employee) {
                 throw new Error('No employee associated with this user.')
             }
-            employee.employments = await db.main.Employment.find({
+            employee.employments = await req.app.locals.db.main.Employment.find({
                 employeeId: employee._id
             }).lean()
             res.employee = employee
@@ -626,7 +625,7 @@ module.exports = {
     getEmployeeList: async (req, res, next) => {
         try {
             let employeeListId = lodash.get(req, 'params.employeeListId')
-            let employeeList = await db.main.EmployeeList.findById(employeeListId)
+            let employeeList = await req.app.locals.db.main.EmployeeList.findById(employeeListId)
             if (!employeeList) {
                 throw new Error('Employee List not found.')
             }
@@ -643,7 +642,7 @@ module.exports = {
             if (!secureKey) {
                 throw new Error('Invalid link.')
             }
-            let share = await db.main.Share.findOne({
+            let share = await req.app.locals.db.main.Share.findOne({
                 secureKey: secureKey
             })
             // console.log({
@@ -654,7 +653,7 @@ module.exports = {
             }
 
             // Delete expired
-            let deleted = await db.main.Share.deleteMany({
+            let deleted = await req.app.locals.db.main.Share.deleteMany({
                 expiredAt: {
                     $lte: moment().toDate()
                 }
@@ -690,7 +689,7 @@ module.exports = {
 
             if (code.length === 10) { // Plain number
 
-                employee = await db.main.Employee.findOne({
+                employee = await req.app.locals.db.main.Employee.findOne({
                     uid: code
                 }).lean()
                 if (!employee) {
@@ -701,7 +700,7 @@ module.exports = {
                 }
 
                 // TODO: Allow choose employment for rfid
-                employment = await db.main.Employment.findOne({
+                employment = await req.app.locals.db.main.Employment.findOne({
                     employeeId: employee._id,
                     active: true,
                 }).lean()
@@ -730,14 +729,14 @@ module.exports = {
                     throw new AppError('Invalid QR code.')
                 }
 
-                employee = await db.main.Employee.findOne({
+                employee = await req.app.locals.db.main.Employee.findOne({
                     _id: qrData.employeeId
                 }).lean()
                 if (!employee) {
                     throw new AppError('Employee not found from QR Code.')
                 }
 
-                employment = await db.main.Employment.findOne({
+                employment = await req.app.locals.db.main.Employment.findOne({
                     _id: qrData.employmentId
                 }).lean()
                 if (!employment) {
@@ -762,7 +761,7 @@ module.exports = {
     getSchedule: async (req, res, next) => {
         try {
             let scheduleId = lodash.get(req, 'params.scheduleId', '')
-            let schedule = await db.main.WorkSchedule.findById(scheduleId)
+            let schedule = await req.app.locals.db.main.WorkSchedule.findById(scheduleId)
             if (!schedule) {
                 throw new Error('Schedule not found.')
             }
@@ -776,7 +775,7 @@ module.exports = {
     getHoliday: async (req, res, next) => {
         try {
             let holidayId = lodash.get(req, 'params.holidayId', '')
-            let holiday = await db.main.Holiday.findById(holidayId)
+            let holiday = await req.app.locals.db.main.Holiday.findById(holidayId)
             if (!holiday) {
                 throw new Error('Holiday not found.')
             }

@@ -7,7 +7,6 @@ const lodash = require('lodash')
 const moment = require('moment')
 
 //// Modules
-const db = require('../db');
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
 const passwordMan = require('../password-man');
@@ -77,7 +76,7 @@ router.get('/hros/at/all', middlewares.guardRoute(['use_employee_profile']), mid
         aggr.push({ $sort: sort })
 
         // Pagination
-        let countDocuments = await db.main.AuthorityToTravel.aggregate(aggr)
+        let countDocuments = await req.app.locals.db.main.AuthorityToTravel.aggregate(aggr)
         let totalDocs = countDocuments.length
         let pagination = paginator.paginate(
             page,
@@ -91,7 +90,7 @@ router.get('/hros/at/all', middlewares.guardRoute(['use_employee_profile']), mid
             aggr.push({ $skip: options.skip })
             aggr.push({ $limit: options.limit })
         }
-        let ats = await db.main.AuthorityToTravel.aggregate(aggr)
+        let ats = await req.app.locals.db.main.AuthorityToTravel.aggregate(aggr)
 
         let data = {
             title: 'Human Resource Online Services (HROS) - Authority to Travel',
@@ -146,13 +145,13 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             return res.redirect('/hros/at/create')
         }
         let employmentId = lodash.get(body, 'employmentId')
-        let employment = await db.main.Employment.findById(employmentId).lean()
+        let employment = await req.app.locals.db.main.Employment.findById(employmentId).lean()
         if (!employment) {
             flash.error(req, 'hros', 'Employment not found.')
             return res.redirect('/hros/at/create')
         }
 
-        let ats = await db.main.AuthorityToTravel.find({
+        let ats = await req.app.locals.db.main.AuthorityToTravel.find({
             employeeId: employee._id,
             employmentId: employment._id,
             $or: [
@@ -177,7 +176,7 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
         }
 
         // Latest Authority to Travel
-        let latest = await db.main.AuthorityToTravel.findOne({
+        let latest = await req.app.locals.db.main.AuthorityToTravel.findOne({
             periodOfTravel: {
                 $gte: moment().startOf('month').toDate(),
             },
@@ -201,7 +200,7 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             controlNumber = generateControlNumber(latest.controlNumber)
         }
 
-        let at = await db.main.AuthorityToTravel.create({
+        let at = await req.app.locals.db.main.AuthorityToTravel.create({
             employeeId: employee._id,
             employmentId: employment._id,
             status: 2, // 1 pending, 2 approved
@@ -252,7 +251,7 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
                 objectId: user._id,
                 createdAt: date
             })
-            await db.main.Attendance.create(attendance)
+            await req.app.locals.db.main.Attendance.create(attendance)
         }
 
         let message = `Authority to Travel submitted. `
@@ -267,7 +266,7 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
 router.get('/hros/at/:authorityToTravelId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let at = await db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
+        let at = await req.app.locals.db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
         if (!at) {
             throw new Error('Authority To Travel not found.')
         }
@@ -299,7 +298,7 @@ router.get('/hros/at/:authorityToTravelId', middlewares.guardRoute(['use_employe
 router.get('/hros/at/:authorityToTravelId/print', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let at = await db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
+        let at = await req.app.locals.db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
         if (!at) {
             throw new Error('Authority To Travel not found.')
         }
@@ -331,7 +330,7 @@ router.get('/hros/at/:authorityToTravelId/print', middlewares.guardRoute(['use_e
 router.get('/hros/at/:authorityToTravelId/delete', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let at = await db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
+        let at = await req.app.locals.db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
         if (!at) {
             throw new Error('Authority To Travel not found.')
         }
@@ -350,7 +349,7 @@ router.get('/hros/at/:authorityToTravelId/delete', middlewares.guardRoute(['use_
 router.get('/hros/at/:authorityToTravelId/share', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let at = await db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
+        let at = await req.app.locals.db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
         if (!at) {
             throw new Error('Authority To Travel not found.')
         }
@@ -360,7 +359,7 @@ router.get('/hros/at/:authorityToTravelId/share', middlewares.guardRoute(['use_e
         let url = `${CONFIG.app.url}/shared/authority-to-travel/print/${secureKey}`
         // let hash = passwordMan.hashSha256(url)
         // url = url + '?hash=' + hash
-        let share = await db.main.Share.create({
+        let share = await req.app.locals.db.main.Share.create({
             secureKey: secureKey,
             expiredAt: moment().add(1, 'hour').toDate(),
             createdBy: res.user._id,
@@ -408,7 +407,7 @@ router.get('/hros/coa/share', middlewares.guardRoute(['use_employee_profile']), 
         let url = `${CONFIG.app.url}/shared/certificate-of-appearance/print/${secureKey}`
         // let hash = passwordMan.hashSha256(url)
         // url = url + '?hash=' + hash
-        let share = await db.main.Share.create({
+        let share = await req.app.locals.db.main.Share.create({
             secureKey: secureKey,
             expiredAt: moment().add(1, 'hour').toDate(),
             createdBy: res.user._id,
@@ -474,7 +473,7 @@ router.get('/hros/flag/all', middlewares.guardRoute(['use_employee_profile']), m
         })
 
         //console.log(aggr)
-        attendances = await db.main.AttendanceFlag.aggregate(aggr)
+        attendances = await req.app.locals.db.main.AttendanceFlag.aggregate(aggr)
         //return res.send(attendances)
 
         if (req.originalUrl.includes('.xlsx')) {
@@ -488,7 +487,7 @@ router.get('/hros/flag/all', middlewares.guardRoute(['use_employee_profile']), m
 
         // Today attendance
         let alreadyLogged = false
-        let attendance = await db.main.AttendanceFlag.findOne({
+        let attendance = await req.app.locals.db.main.AttendanceFlag.findOne({
             employeeId: employee._id,
             createdAt: {
                 $gte: mCalendar.clone().startOf('day').toDate(),
@@ -518,7 +517,7 @@ router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile'])
         let momentNow = moment()
 
         // Today attendance
-        let attendance = await db.main.AttendanceFlag.findOne({
+        let attendance = await req.app.locals.db.main.AttendanceFlag.findOne({
             employeeId: employee._id,
             createdAt: {
                 $gte: momentNow.clone().startOf('day').toDate(),
@@ -558,7 +557,7 @@ router.post('/hros/flag/location', middlewares.guardRoute(['use_employee_profile
     try {
         let body = req.body
 
-        let found = await db.main.Map.findOne({
+        let found = await req.app.locals.db.main.Map.findOne({
             geo: {
                 $geoIntersects: {
                     $geometry: {
@@ -591,7 +590,7 @@ router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), 
         let momentNow = moment()
 
         // Today attendance
-        let attendance = await db.main.AttendanceFlag.findOne({
+        let attendance = await req.app.locals.db.main.AttendanceFlag.findOne({
             employeeId: employee._id,
             createdAt: {
                 $gte: momentNow.clone().startOf('day').toDate(),
@@ -636,7 +635,7 @@ router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), 
         }
 
         // Log
-        attendance = await db.main.AttendanceFlag.create({
+        attendance = await req.app.locals.db.main.AttendanceFlag.create({
             employeeId: employee._id,
             dateTime: momentNow.toDate(),
             type: 'online',

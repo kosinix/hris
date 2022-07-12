@@ -14,7 +14,6 @@ const moment = require('moment')
 const qr = require('qr-image')
 
 //// Modules
-const db = require('../db');
 const mailer = require('../mailer');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
@@ -54,7 +53,7 @@ router.get('/registration/all', middlewares.guardRoute(['read_all_user', 'read_u
         aggr.push({ $sort: sort })
 
         // Pagination
-        let countDocuments = await db.main.RegistrationForm.aggregate(aggr)
+        let countDocuments = await req.app.locals.db.main.RegistrationForm.aggregate(aggr)
         let totalDocs = countDocuments.length
         let pagination = paginator.paginate(
             page,
@@ -68,15 +67,15 @@ router.get('/registration/all', middlewares.guardRoute(['read_all_user', 'read_u
             aggr.push({ $skip: options.skip })
             aggr.push({ $limit: options.limit })
         }
-        let registrations = await db.main.RegistrationForm.aggregate(aggr)
+        let registrations = await req.app.locals.db.main.RegistrationForm.aggregate(aggr)
 
         let promises = registrations.map((o) => {
-            return db.main.Employment.findOne({ _id: lodash.get(o, 'employmentId') })
+            return req.app.locals.db.main.Employment.findOne({ _id: lodash.get(o, 'employmentId') })
         })
         let employments = await Promise.all(promises)
 
         promises = employments.map((o) => {
-            return db.main.Employee.findOne({ _id: lodash.get(o, 'employeeId') })
+            return req.app.locals.db.main.Employee.findOne({ _id: lodash.get(o, 'employeeId') })
         })
         let employees = await Promise.all(promises)
 
@@ -128,12 +127,12 @@ router.get('/registration/approve/:registrationId', middlewares.guardRoute(['cre
         let password = passwordMan.genPassword(10)
         let passwordHash = passwordMan.hashPassword(password, registration.userAccount.salt)
 
-        await db.main.User.updateOne({ _id: registration.userAccount._id }, {
+        await req.app.locals.db.main.User.updateOne({ _id: registration.userAccount._id }, {
             passwordHash: passwordHash
         })
 
         // Associate
-        await db.main.Employee.updateOne({ _id: registration.employee._id }, {
+        await req.app.locals.db.main.Employee.updateOne({ _id: registration.employee._id }, {
             uid: registration.uid // ID card number
         })
 
@@ -147,7 +146,7 @@ router.get('/registration/approve/:registrationId', middlewares.guardRoute(['cre
 
         let info = await mailer.send('verified.html', data)
 
-        await db.main.RegistrationForm.updateOne({ _id: registration._id }, {
+        await req.app.locals.db.main.RegistrationForm.updateOne({ _id: registration._id }, {
             status: 'verified'
         })
 
@@ -173,7 +172,7 @@ router.post('/registration/create', middlewares.guardRoute(['create_user', 'upda
         let email = lodash.trim(lodash.get(req, 'body.email'))
         let employmentId = lodash.trim(lodash.get(req, 'body.employmentId'))
 
-        let registrationForm = await db.main.RegistrationForm.findOne({
+        let registrationForm = await req.app.locals.db.main.RegistrationForm.findOne({
             uid: code,
         })
         if (registrationForm) {
@@ -184,7 +183,7 @@ router.post('/registration/create', middlewares.guardRoute(['create_user', 'upda
                 throw new Error(`You are already verified. Please open your email.`)
             }
         } else {
-            registrationForm = await db.main.RegistrationForm.create({
+            registrationForm = await req.app.locals.db.main.RegistrationForm.create({
                 uid: code,
                 employmentId: employmentId,
                 email: email,
@@ -194,17 +193,17 @@ router.post('/registration/create', middlewares.guardRoute(['create_user', 'upda
         }
         //
 
-        let employment = await db.main.Employment.findById(registrationForm.employmentId).lean()
+        let employment = await req.app.locals.db.main.Employment.findById(registrationForm.employmentId).lean()
         if (!employment) {
             throw new Error("Sorry, employment not found.")
         }
 
-        let employee = await db.main.Employee.findById(employment.employeeId).lean()
+        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
         if (!employee) {
             throw new Error("Sorry, employee not found.")
         }
 
-        let userAccount = await db.main.User.findById(employee.userId).lean()
+        let userAccount = await req.app.locals.db.main.User.findById(employee.userId).lean()
         if (!userAccount) {
             throw new Error('You dont have an user account.')
         }
@@ -218,12 +217,12 @@ router.post('/registration/create', middlewares.guardRoute(['create_user', 'upda
         let password = passwordMan.genPassword(8)
         let passwordHash = passwordMan.hashPassword(password, registrationForm.userAccount.salt)
 
-        await db.main.User.updateOne({ _id: registrationForm.userAccount._id }, {
+        await req.app.locals.db.main.User.updateOne({ _id: registrationForm.userAccount._id }, {
             passwordHash: passwordHash
         })
 
         // Associate
-        await db.main.Employee.updateOne({ _id: registrationForm.employee._id }, {
+        await req.app.locals.db.main.Employee.updateOne({ _id: registrationForm.employee._id }, {
             uid: registrationForm.uid // ID card number
         })
 
@@ -237,7 +236,7 @@ router.post('/registration/create', middlewares.guardRoute(['create_user', 'upda
 
         let info = await mailer.send('verified.html', data)
 
-        await db.main.RegistrationForm.updateOne({ _id: registrationForm._id }, {
+        await req.app.locals.db.main.RegistrationForm.updateOne({ _id: registrationForm._id }, {
             status: 'verified'
         })
 

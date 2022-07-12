@@ -10,7 +10,6 @@ const moment = require('moment')
 const qr = require('qr-image')
 
 //// Modules
-const db = require('../db');
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
@@ -64,7 +63,7 @@ router.get('/hdf/all', middlewares.guardRoute(['read_all_hdf', 'read_hdf']), asy
         aggr.push({ $sort: sort })
 
         // Pagination
-        let countDocuments = await db.main.HealthDeclaration.aggregate(aggr)
+        let countDocuments = await req.app.locals.db.main.HealthDeclaration.aggregate(aggr)
         let totalDocs = countDocuments.length
         let pagination = paginator.paginate(
             page,
@@ -78,7 +77,7 @@ router.get('/hdf/all', middlewares.guardRoute(['read_all_hdf', 'read_hdf']), asy
             aggr.push({ $skip: options.skip })
             aggr.push({ $limit: options.limit })
         }
-        let healthDeclarations = await db.main.HealthDeclaration.aggregate(aggr)
+        let healthDeclarations = await req.app.locals.db.main.HealthDeclaration.aggregate(aggr)
         healthDeclarations = healthDeclarations.map((o) => {
             let score = 0
             score += (parseFloat(o.data.tmp) > 37.5) ? 1 : 0 // temp

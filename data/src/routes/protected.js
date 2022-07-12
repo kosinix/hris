@@ -8,7 +8,6 @@ const lodash = require('lodash')
 const util = require('util')
 
 //// Modules
-const db = require('../db');
 const middlewares = require('../middlewares');
 const s3 = require('../aws-s3');
 
@@ -32,7 +31,7 @@ router.get('/', middlewares.requireAuthUser, async (req, res, next) => {
             return res.redirect('/attendance/monthly')
         }
         if (user.roles.includes('checker')) {
-            let scanner = await db.main.Scanner.findOne({
+            let scanner = await req.app.locals.db.main.Scanner.findOne({
                 userId: user._id
             })
             if (scanner) {
@@ -204,7 +203,7 @@ router.get('/address', middlewares.requireAuthUser, async (req, res, next) => {
         }
         // console.log(util.inspect(query, false, null, true /* enable colors */))
         // raw ops
-        let addresses = await db.main.Address.collection.find(query).limit(10).toArray()
+        let addresses = await req.app.locals.db.main.Address.collection.find(query).limit(10).toArray()
         addresses = lodash.map(addresses, (o) => {
             let full = [o.name]
             if (o.cityMunName) {
@@ -249,7 +248,7 @@ router.get('/employee', middlewares.requireAuthUser, async (req, res, next) => {
 
         // console.log(util.inspect(query, false, null, true /* enable colors */))
         // raw ops
-        // let employees = await db.main.Employee.collection.find(query).limit(10).toArray()
+        // let employees = await req.app.locals.db.main.Employee.collection.find(query).limit(10).toArray()
         let aggr = []
         aggr.push({ $match: query })
         aggr.push({ $limit: 10 })
@@ -263,7 +262,7 @@ router.get('/employee', middlewares.requireAuthUser, async (req, res, next) => {
             }
         })
 
-        let employees = await db.main.Employee.aggregate(aggr)
+        let employees = await req.app.locals.db.main.Employee.aggregate(aggr)
         let ret = []
         employees.forEach((employee, i) => {
             let full = [employee.firstName]
@@ -318,7 +317,7 @@ router.get('/users', middlewares.requireAuthUser, async (req, res, next) => {
 
         // console.log(util.inspect(query, false, null, true /* enable colors */))
         // raw ops
-        let users = await db.main.User.collection.find(query).limit(10).toArray()
+        let users = await req.app.locals.db.main.User.collection.find(query).limit(10).toArray()
         users = lodash.map(users, (o) => {
             let full = [o.firstName]
             if (o.lastName) {

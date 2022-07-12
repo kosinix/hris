@@ -8,7 +8,6 @@ const lodash = require('lodash')
 const moment = require('moment')
 
 //// Modules
-const db = require('../db');
 const dtrHelper = require('../dtr-helper');
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
@@ -104,7 +103,7 @@ router.get('/reports/attendance/incomplete', middlewares.guardRoute(['read_all_r
             }
         })
 
-        let attendances = await db.main.Attendance.aggregate(aggr)
+        let attendances = await req.app.locals.db.main.Attendance.aggregate(aggr)
         // return res.send(attendances)
         res.render('reports/attendance/incomplete.html', {
             flash: flash.get(req, 'reports'),
@@ -197,7 +196,7 @@ router.get('/reports/attendance/complete', middlewares.guardRoute(['read_all_rep
             }
         })
 
-        let attendances = await db.main.Attendance.aggregate(aggr)
+        let attendances = await req.app.locals.db.main.Attendance.aggregate(aggr)
         // return res.send(attendances)
         res.render('reports/attendance/complete.html', {
             flash: flash.get(req, 'reports'),
@@ -229,7 +228,7 @@ router.get('/reports/rsp/gender', middlewares.guardRoute(['read_all_report']), a
             }
         }
 
-        let employees = await db.main.Employee.aggregate([
+        let employees = await req.app.locals.db.main.Employee.aggregate([
             {
                 $lookup: {
                     localField: '_id',
@@ -252,7 +251,7 @@ router.get('/reports/rsp/gender', middlewares.guardRoute(['read_all_report']), a
             employees.filter(e => e.gender === 'F').length
         )
 
-        employees = await db.main.Employee.aggregate([
+        employees = await req.app.locals.db.main.Employee.aggregate([
             {
                 $lookup: {
                     localField: '_id',
@@ -273,7 +272,7 @@ router.get('/reports/rsp/gender', middlewares.guardRoute(['read_all_report']), a
             employees.filter(e => e.gender === 'F').length
         )
 
-        employees = await db.main.Employee.aggregate([
+        employees = await req.app.locals.db.main.Employee.aggregate([
             {
                 $lookup: {
                     localField: '_id',
@@ -336,7 +335,7 @@ router.get(['/reports/rsp/gender/table', `/reports/rsp/gender/table.xlsx`], midd
 
         // console.log(query, projection, options, sort)
 
-        // let employees = await db.main.Employee.find(query, projection, options).sort(sort)
+        // let employees = await req.app.locals.db.main.Employee.find(query, projection, options).sort(sort)
         let aggr = []
 
         aggr.push({
@@ -352,7 +351,7 @@ router.get(['/reports/rsp/gender/table', `/reports/rsp/gender/table.xlsx`], midd
         aggr.push({ $sort: sort })
 
         // Pagination
-        let countDocuments = await db.main.Employee.aggregate(aggr)
+        let countDocuments = await req.app.locals.db.main.Employee.aggregate(aggr)
         let totalDocs = countDocuments.length
         let pagination = paginator.paginate(
             page,
@@ -366,7 +365,7 @@ router.get(['/reports/rsp/gender/table', `/reports/rsp/gender/table.xlsx`], midd
             aggr.push({ $skip: options.skip })
             aggr.push({ $limit: options.limit })
         }
-        let employees = await db.main.Employee.aggregate(aggr)
+        let employees = await req.app.locals.db.main.Employee.aggregate(aggr)
 
         let data = {
             flash: flash.get(req, 'reports'),
@@ -402,7 +401,7 @@ router.get('/reports/pm/all', middlewares.guardRoute(['read_all_report']), async
 router.get('/reports/pm/non-party', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
 
-        let employees = await db.main.Employee.aggregate([
+        let employees = await req.app.locals.db.main.Employee.aggregate([
             {
                 $lookup: {
                     localField: '_id',
@@ -489,7 +488,7 @@ router.get(['/reports/pm/tardiness/overall', '/reports/pm/tardiness/overall.xlsx
         aggr.push({ $sort: sort })
 
         // Pagination
-        let countDocuments = await db.main.Employee.aggregate(aggr)
+        let countDocuments = await req.app.locals.db.main.Employee.aggregate(aggr)
         let totalDocs = countDocuments.length
         let pagination = paginator.paginate(
             page,
@@ -503,10 +502,10 @@ router.get(['/reports/pm/tardiness/overall', '/reports/pm/tardiness/overall.xlsx
             aggr.push({ $skip: options.skip })
             aggr.push({ $limit: options.limit })
         }
-        let employees = await db.main.Employee.aggregate(aggr)
+        let employees = await req.app.locals.db.main.Employee.aggregate(aggr)
 
         let promises = employees.map((employee) => {
-            return db.main.Attendance.aggregate([
+            return req.app.locals.db.main.Attendance.aggregate([
                 {
                     $match: {
                         employeeId: employee._id,
@@ -622,7 +621,7 @@ router.get(['/reports/pm/tardiness/overall', '/reports/pm/tardiness/overall.xlsx
 router.get(['/reports/pm/tardiness/:employmentId/report', '/reports/pm/tardiness/:employmentId/report.xlsx'], middlewares.guardRoute(['read_all_report']), middlewares.getEmployment, async (req, res, next) => {
     try {
         let employment = res.employment
-        let employee = await db.main.Employee.findById(employment.employeeId)
+        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId)
 
         let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
         let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
@@ -653,7 +652,7 @@ router.get(['/reports/pm/tardiness/:employmentId/report', '/reports/pm/tardiness
         if (!options.showWeekDays.length) {
             options.showWeekDays = showWeekDays.split('|')
         }
-        let { days } = await dtrHelper.getDtrByDateRange(db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days } = await dtrHelper.getDtrByDateRange(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         let undertimeFreq = days.map(d => {
             return lodash.get(d, 'dtr.underTimeTotalMinutes', 0)
@@ -826,7 +825,7 @@ router.get('/reports/rar/early', middlewares.guardRoute(['read_all_report']), as
             },
             { $limit: 10 }
         ]
-        let earlyBirds = await db.main.Attendance.aggregate(aggr)
+        let earlyBirds = await req.app.locals.db.main.Attendance.aggregate(aggr)
 
         let data = {
             earlyBirds: earlyBirds,

@@ -11,7 +11,6 @@ const lodash = require('lodash')
 const moment = require('moment');
 
 //// Modules
-const db = require('../db');
 const middlewares = require('../middlewares');
 const passwordMan = require('../password-man');
 
@@ -58,7 +57,7 @@ router.post('/account/password', middlewares.guardRoute(['update_own_password'])
         }
 
         passwordHash = passwordMan.hashPassword(newPassword, myAccount.salt);
-        await db.main.User.updateOne({
+        await req.app.locals.db.main.User.updateOne({
             _id: myAccount._id
         }, {
             passwordHash: passwordHash

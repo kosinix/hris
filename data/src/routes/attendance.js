@@ -492,7 +492,13 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
         let employee = await db.main.Employee.findById(attendance.employeeId)
         let employment = await db.main.Employment.findById(attendance.employmentId)
         let workSchedules = await db.main.WorkSchedule.find().lean()
-        let workSchedule = await db.main.WorkSchedule.findById(attendance.workScheduleId).lean()
+        let workSchedule = {}
+        if (attendance.workScheduleId) {
+            workSchedule = await db.main.WorkSchedule.findById(attendance.workScheduleId).lean()
+        } else {
+            workSchedule = await db.main.WorkSchedule.findById(employment.workScheduleId).lean()
+        }
+        // console.log(workSchedule)
         // let timeSegments = lodash.get(workSchedule, 'timeSegments', [])
 
         // timeSegments = timeSegments.map((t)=>{
@@ -510,27 +516,79 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
         }, attendance)
 
         let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
+        workScheduleTimeSegments = workScheduleTimeSegments.map((t) => {
+            if (!t.max) {
+                t.max = t.end - t.start
+                if (t.maxHours) { // TODO: Check sliding time on database as they use maxHours?
+                    t.max = t.maxHours * 60 // TODO: Use max only and remove maxHours
+                    delete t.maxHours
+                }
+            }
+            return t
+        })
+        // return res.send(workSchedule)
         let hasFlexi = workScheduleTimeSegments.filter(o => o.flexible)
 
+        let timeSegments = dtrHelper.buildTimeSegments(workScheduleTimeSegments)
+
+        let logSegments = []
+        let points = []
+        if (attendance.type == 'travel') {
+            let logs = lodash.get(attendance, 'logs', [])
+            if (logs.length <= 0) { // all day
+                points = [
+                    480,
+                    1020,
+                ]
+            } else if (logs.length >= 1) { // half
+                logs.forEach((log, i) => {
+                    let logType = lodash.get(log, 'type')
+                    if (logType === 'travel') {
+                        if (i == 0) {
+                            let start = dtrHelper.timeToM(moment(log.dateTime).format('HH:mm'))
+                            let nextShift = dtrHelper.getNextShift(start, workScheduleTimeSegments)
+
+                            points.push(nextShift.start)
+                            points.push(dtrHelper.timeToM(moment(logs[i + 1].dateTime).format('HH:mm')))
+                        } else if (i == logs.length - 1) {
+                            let start = dtrHelper.timeToM(moment(log.dateTime).format('HH:mm'))
+                            let nextShift = dtrHelper.getNextShift(start, workScheduleTimeSegments)
+                            points.push(nextShift.start)
+                            points.push(nextShift.end)
+                        }
+                    } else {
+                        points.push(dtrHelper.timeToM(moment(log.dateTime).format('HH:mm')))
+                    }
+                })
+                // return res.send(points)
+            }
+            logSegments = dtrHelper.fromPointsToLogSegments(points)
+
+        } else {
+            logSegments = dtrHelper.buildLogSegments(attendance.logs)
+        }
+
+        // Add OT to computation
         if (hasFlexi.length <= 0) {
             // Overtime
-            workScheduleTimeSegments.push({
+            let start = timeSegments[timeSegments.length - 1].end
+            // let end = 1439 // 11:59pm
+            let end = 1200 // 8pm 
+            let max = end - start
+            timeSegments.push({
                 name: "OT",
                 grace: 0,
                 flexible: false,
-                start: workScheduleTimeSegments[workScheduleTimeSegments.length - 1].end,
-                end: 1439, // 11 
+                start: start,
+                end: end,
+                max: max,
                 breaks: []
             })
         }
-        let timeSegments = dtrHelper.buildTimeSegments(workScheduleTimeSegments)
-        let logSegments = dtrHelper.buildLogSegments(attendance.logs)
+
         let timeWorked = dtrHelper.countWork(timeSegments, logSegments, { ignoreZero: true })
 
-        // return res.send(logSegments)
-        // return res.send(timeSegments)
-        // return res.send(timeWorked)
-        res.render('attendance/edit2.html', {
+        let data = {
             flash: flash.get(req, 'attendance'),
             attendanceTypes: CONFIG.attendance.types,
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
@@ -538,10 +596,16 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
             employment: employment,
             attendance: attendance,
             workSchedules: workSchedules,
+            workSchedule: workSchedule,
             timeSegments: timeSegments,
             logSegments: logSegments,
             timeWorked: timeWorked,
-        });
+        }
+        // return res.send(logSegments)
+        // return res.send(timeSegments)
+        // return res.send(timeWorked)
+        // return res.send(data)
+        res.render('attendance/edit2.html', data);
     } catch (err) {
         next(err);
     }

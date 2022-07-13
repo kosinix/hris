@@ -7,7 +7,6 @@ const moment = momentRange.extendMoment(require("moment"));
 const money = require('money-math')
 
 //// Modules
-const db = require('./db')
 const dtrHelper = require('./dtr-helper')
 const payrollTemplate = require('./payroll-template')
 const uid = require('./uid')
@@ -129,7 +128,7 @@ let getCosStaff = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) 
     return payroll
 }
 
-let computePayroll = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints) => {
+let computePayroll = async (payroll, workDays = 22, hoursPerDay = 8, travelPoints, db) => {
 
     let totalAmountPostIncentives = 0
     let totalAmountPostDeductions = 0
@@ -301,7 +300,7 @@ let addPayrollRow = async (payroll, employmentId, db) => {
     return row
 }
 
-let buildPayrollRowAsync = async (payroll, employmentId) => {
+let buildPayrollRowAsync = async (payroll, employmentId, db) => {
 
     // 1. Get employment data
     let employment = await db.main.Employment.findById(employmentId).lean()

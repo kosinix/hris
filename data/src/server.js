@@ -8,6 +8,7 @@
     const bodyParser = require('body-parser')
     const cookieParser = require('cookie-parser')
     const lodash = require('lodash')
+    const moment = require('moment')
     const { Server } = require('socket.io')
 
     //// Modules
@@ -247,7 +248,7 @@
 
     // Finally the server
     httpServer.listen(CONFIG.app.port, function () {
-        console.log(`App running in "${ENV}" mode at "${CONFIG.app.url}"`);
+        console.log(`${moment().format('YYYY-MMM-DD hh:mm:ss A')}: App running in "${ENV}" mode at "${CONFIG.app.url}"`);
     });
     httpServer.keepAliveTimeout = 60000 * 2;
 })()

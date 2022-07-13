@@ -1,7 +1,8 @@
 //// Core modules
 
 //// External modules
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
+const moment = require('moment')
 
 module.exports = {
     connect: async () => {
@@ -12,13 +13,13 @@ module.exports = {
             let opts = conf.options
             opts.promiseLibrary = Promise // Use ES6 Promise
 
-            let main = await mongoose.createConnection(`mongodb://${cred.username}:${cred.password}@${conf.host}/${conf.db}`, opts)
+            let main = mongoose.createConnection(`mongodb://${cred.username}:${cred.password}@${conf.host}/${conf.db}`, opts)
 
             main.on('connected', () => {
-                console.log('Database connected to', conf.host + '/' + conf.db);
+                console.log(`${moment().format('YYYY-MMM-DD hh:mm:ss A')}: Database connected to ${conf.host}/${conf.db}`);
             });
             main.on('disconnected', () => {
-                console.log('Database disconnected from', conf.host + '/' + conf.db);
+                console.log(`${moment().format('YYYY-MMM-DD hh:mm:ss A')}: Database disconnected from ${conf.host}/${conf.db}`);
             });
 
             main.Address = main.model('Address', require('./models/address'));

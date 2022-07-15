@@ -486,6 +486,7 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
     }
 });
 
+// New edit
 router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getAttendance, async (req, res, next) => {
     try {
         let attendance = res.attendance.toObject()
@@ -517,16 +518,13 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
 
         let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
         workScheduleTimeSegments = workScheduleTimeSegments.map((t) => {
-            if (!t.max) {
-                t.max = t.end - t.start
-                if (t.maxHours) { // TODO: Check sliding time on database as they use maxHours?
-                    t.max = t.maxHours * 60 // TODO: Use max only and remove maxHours
-                    delete t.maxHours
-                }
+            if (t.maxHours) { // TODO: Check sliding time on database as they use maxHours?
+                t.max = t.maxHours * 60 // TODO: Use max only and remove maxHours
+                delete t.maxHours
             }
             return t
         })
-        // return res.send(workSchedule)
+        // return res.send(workScheduleTimeSegments)
         let hasFlexi = workScheduleTimeSegments.filter(o => o.flexible)
 
         let timeSegments = dtrHelper.buildTimeSegments(workScheduleTimeSegments)
@@ -573,17 +571,19 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
             // Overtime
             let start = timeSegments[timeSegments.length - 1].end
             // let end = 1439 // 11:59pm
-            let end = 1200 // 8pm 
+            let end = 1140 // 7pm 
             let max = end - start
-            timeSegments.push({
-                name: "OT",
-                grace: 0,
-                flexible: false,
-                start: start,
-                end: end,
-                max: max,
-                breaks: []
-            })
+            if (max > 0) {
+                timeSegments.push({
+                    name: "OT",
+                    grace: 0,
+                    flexible: false,
+                    start: start,
+                    end: end,
+                    max: max,
+                    breaks: []
+                })
+            }
         }
 
         let timeWorked = dtrHelper.countWork(timeSegments, logSegments, { ignoreZero: true })

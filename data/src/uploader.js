@@ -248,6 +248,10 @@ let handleExpressUploadLocalAsync = async (files, uploadDir, allowedMimes = ["im
             let fileName = fxFileName(file, localPrefix)
             let destFile = path.join(uploadDir, fileName);
 
+            if (!allowedMimes.includes(file.mimetype)) {
+                throw new Error("File type not allowed.");
+            }
+
             if (file.mv) {
                 await file.mv(destFile);
             } else {
@@ -255,7 +259,6 @@ let handleExpressUploadLocalAsync = async (files, uploadDir, allowedMimes = ["im
             }
 
             let mimeType = await fileGuesser.guess(destFile);
-
             if (!allowedMimes.includes(mimeType)) {
                 throw new Error("File type not allowed.");
             }

@@ -845,7 +845,7 @@ router.get('/employee/photo/:employeeId', middlewares.guardRoute(['read_employee
         next(err);
     }
 });
-router.post('/employee/photo/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee,  middlewares.dataUrlToReqFiles(['photo']), middlewares.handleExpressUploadMagic, async (req, res, next) => {
+router.post('/employee/photo/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee,  middlewares.dataUrlToReqFiles(['photo']), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"]}), async (req, res, next) => {
     try {
         let employee = res.employee
 

@@ -475,6 +475,26 @@ module.exports = {
     },
     dataUrlToReqFiles: dataUrlToReqFiles,
     handleExpressUploadMagic: handleExpressUploadMagic,
+    handleUpload: (o) => {
+        return async (req, res, next) => {
+            try {
+                let files = lodash.get(req, 'files', [])
+                let localFiles = await uploader.handleExpressUploadLocalAsync(files, CONFIG.app.dirs.upload, o.allowedMimes)
+                let imageVariants = await uploader.resizeImagesAsync(localFiles, null, CONFIG.app.dirs.upload); // Resize uploaded images
+
+                let uploadList = uploader.generateUploadList(imageVariants, localFiles)
+                let saveList = uploader.generateSaveList(imageVariants, localFiles)
+                await uploader.uploadToS3Async(uploadList)
+                await uploader.deleteUploadsAsync(localFiles, imageVariants)
+                req.localFiles = localFiles
+                req.imageVariants = imageVariants
+                req.saveList = saveList
+                next()
+            } catch (err) {
+                next(err)
+            }
+        }
+    },
     requireAuthUser: async (req, res, next) => {
         try {
             let authUserId = lodash.get(req, 'session.authUserId');

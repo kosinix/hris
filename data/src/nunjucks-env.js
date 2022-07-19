@@ -22,6 +22,9 @@ nunjucksFilters.extend(env)
 
 // Custom app specific filter
 env.addFilter('s3_url', function (value, sizePrefix = "") {
+    if(!value){
+        return ''
+    }
     if (sizePrefix) {
         sizePrefix += "-";
     }

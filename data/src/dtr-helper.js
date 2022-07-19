@@ -374,7 +374,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
         console.log(minutes, '>', maxMinutes, 'EXCESS =', minutes - maxMinutes)
         excessMinutes = minutes - maxMinutes
         minutes = maxMinutes
-    } else if(minutes === maxMinutes) {
+    } else if (minutes === maxMinutes) {
         console.log(minutes, '===', maxMinutes)
     } else {
         console.log(minutes, '<', maxMinutes)
@@ -535,7 +535,7 @@ const calcDailyAttendance2 = (attendance, hoursPerDay = 8, travelPoints = 480, s
         console.log(minutes, '>', maxMinutes, 'EXCESS =', minutes - maxMinutes)
         excessMinutes = minutes - maxMinutes
         minutes = maxMinutes
-    } else if(minutes === maxMinutes) {
+    } else if (minutes === maxMinutes) {
         console.log(minutes, '===', maxMinutes)
     } else {
         console.log(minutes, '<', maxMinutes)
@@ -638,7 +638,7 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
                 return t
             })
         }
-        
+
         // original schedule schema
         if (!timeSegments) {
             console.log('v1 shift')
@@ -1081,10 +1081,16 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
 }
 
 // Convert from minutes from midnight into HTML time input HH:mm
-let mToTime = (minutes, format) => {
+let mToTime = (minutes, format, date = null) => {
     if (!minutes) return 0
     format = format || 'HH:mm'
-    return moment().startOf('year').startOf('day').add(minutes, 'minutes').format(format)
+    let mDate = {}
+    if (date) {
+        mDate = moment.utc(date)
+    } else {
+        mDate = moment().startOf('year')
+    }
+    return mDate.startOf('day').add(minutes, 'minutes').format(format)
 }
 
 // Convert from HTML time input HH:mm into minutes from midnight
@@ -1191,7 +1197,7 @@ const createWorkScheduleTemplate = () => {
  * @throws {Error} 
  * @returns {Array}
  */
- const breakTimeSegments = (timeSegment) => {
+const breakTimeSegments = (timeSegment) => {
 
     let points = []
     points.push(timeSegment.start)
@@ -1259,7 +1265,7 @@ const buildTimeSegments = (timeSegments) => {
  * @param {*} givenDate 
  * @returns 
  */
- const getWorkScheduleTimeSegments = (workSchedule, givenDate) => {
+const getWorkScheduleTimeSegments = (workSchedule, givenDate) => {
     // Turn into date object
     let customDate = new Date()
     customDate.setTime(Date.parse(givenDate))
@@ -1281,11 +1287,20 @@ const buildTimeSegments = (timeSegments) => {
             return Object.fromEntries(Object.entries(timeSegment).filter(([key]) => !['_id'].includes(key))) // remove _id
         })
     }
+
+    workScheduleTimeSegments = workScheduleTimeSegments.map((t) => {
+        if (t.maxHours) { // TODO: Check sliding time on database as they use maxHours?
+            t.max = t.maxHours * 60 // TODO: Use max only and remove maxHours
+            delete t.maxHours
+        }
+        return t
+    })
+    
     return workScheduleTimeSegments
 }
 
 const buildLogSegments = (logs) => {
-    let points = logs.map(log=>{
+    let points = logs.map(log => {
         return timeToM(moment(log.dateTime).format('HH:mm'))
     })
 
@@ -1304,6 +1319,7 @@ const buildLogSegments = (logs) => {
             start: chunk[0],
             end: chunk[1],
             raw: chunk[1] - chunk[0],
+            type: logs[i * chunkSize].type
         }
     })
 }
@@ -1324,6 +1340,7 @@ const fromPointsToLogSegments = (points) => {
             start: chunk[0],
             end: chunk[1],
             raw: chunk[1] - chunk[0],
+            type: ''
         }
     })
 }
@@ -1367,10 +1384,10 @@ let countWork = (timeSegments, logSegments, options) => {
             log.set('counted', log.get('counted') < 0 ? 0 : log.get('counted'))
             log.set('counted', log.get('counted') > timeSegment.max ? timeSegment.max : log.get('counted'))
             log.set('countedExcess', log.get('countedEnd') - log.get('countedStart') - timeSegment.max)
-            if(log.get('countedExcess') < 0 ){
+            if (log.get('countedExcess') < 0) {
                 log.set('countedExcess', 0)
             }
-            if(options && options.ignoreZero){
+            if (options && options.ignoreZero) {
                 if (log.get('counted') > 0) {
                     timeSegments[s].logSegments.push(Object.fromEntries(log))
                 }
@@ -1382,6 +1399,203 @@ let countWork = (timeSegments, logSegments, options) => {
     return timeSegments
 }
 
+let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
+    let defaults = {
+        _id: null,
+        employeeId: '',
+        employmentId: '',
+        type: 'normal',
+        workScheduleId: '',
+        logs: [],
+        changes: [],
+        comments: [],
+        createdAt: '',
+    }
+    attendance = lodash.merge(defaults, attendance)
+
+    let logs = lodash.get(attendance, 'logs', [])
+
+    let timeZone = -480 // ph -8 hrs
+    if (attendance.type == 'travel') {
+        if (logs.length <= 0) { // all day travel
+            attendance.logs = [
+                {
+                    dateTime: mToTime(480 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                    type: 'travel',
+                    source: {
+                        id: employee.userId,
+                        type: 'userAccount'
+                    }
+                },
+                {
+                    dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                    type: 'travel',
+                    source: {
+                        id: employee.userId,
+                        type: 'userAccount'
+                    }
+                }
+            ]
+        } else if (logs.length === 3) { // half day travel
+            // travel, !travel, !travel
+            if (logs[0].type === 'travel' && logs[1].type !== 'travel' && logs[2].type !== 'travel') { // Travel must have start and end logs to conform to our API
+                let start = timeToM(moment(logs[0].dateTime).format('HH:mm'))
+                let currentShift = getNextShift(start, workScheduleTimeSegments)
+
+                let adjustedLogs = [
+                    {
+                        dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt), // Begin on start of shift
+                        type: 'travel',
+                        source: {
+                            id: employee.userId,
+                            type: 'userAccount'
+                        }
+                    },
+                    // Inserted log
+                    {
+                        dateTime: logs[1].dateTime,
+                        type: 'travel',
+                        source: {
+                            id: employee.userId,
+                            type: 'userAccount'
+                        }
+                    },
+                    logs[1], // As is
+                    logs[2], // As is
+                ]
+                attendance.logs = adjustedLogs
+
+                // !travel, !travel, travel
+            } else if (logs[0].type !== 'travel' && logs[1].type !== 'travel' && logs[2].type === 'travel') { //
+                let start = timeToM(moment(logs[2].dateTime).format('HH:mm'))
+                let nextShift = getNextShift(start, workScheduleTimeSegments)
+
+                let adjustedLogs = [
+                    logs[0], // As is
+                    logs[1], // As is
+                    {
+                        dateTime: mToTime(nextShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt), // Begin on start of shift
+                        type: 'travel',
+                        source: {
+                            id: employee.userId,
+                            type: 'userAccount'
+                        }
+                    },
+                    // Inserted log
+                    {
+                        dateTime: mToTime(nextShift.end + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                        type: 'travel',
+                        source: {
+                            id: employee.userId,
+                            type: 'userAccount'
+                        }
+                    },
+                ]
+                attendance.logs = adjustedLogs
+            }
+        }
+
+    }
+
+    attendance.logs = attendance.logs.map(log => {
+        let newLog = {
+            // scannerId: null,
+            dateTime: log.dateTime,
+            mode: log.mode,
+            type: log.type,
+            source: {
+                id: null,
+                type: '',
+            }
+        }
+        if (log.scannerId) {
+            // newLog.scannerId = log.scannerId
+            newLog.type = 'normal'
+            newLog.source.id = log.scannerId
+            newLog.source.type = 'scanner'
+        } else {
+            newLog.type = 'normal'
+        }
+        if ('online' === log.type) {
+            newLog.type = 'normal'
+            newLog.source.type = 'userAccount'
+        }
+        if ('scanner' === log.type) {
+            newLog.type = 'normal'
+            newLog.source.type = 'scanner'
+        }
+        if ('travel' === log.type) {
+            newLog.type = 'travel'
+            newLog.source.id = employee.userId
+            newLog.source.type = 'userAccount'
+        }
+        if (lodash.has(log, 'extra.id')) {
+            newLog.source.id = log.extra.id
+        }
+        if (lodash.has(log, 'extra.type')) {
+            newLog.source.type = log.extra.type
+        }
+        if (lodash.has(log, 'extra.lat')) {
+            newLog.source.lat = log.extra.lat
+        }
+        if (lodash.has(log, 'extra.lon')) {
+            newLog.source.lon = log.extra.lon
+        }
+        if (lodash.has(log, 'extra.photo')) {
+            newLog.source.photo = log.extra.photo
+        }
+        if (lodash.has(log, 'source.id')) {
+            newLog.source.id = log.source.id
+        }
+        if (lodash.has(log, 'source.type')) {
+            newLog.source.type = log.source.type
+        }
+
+        return newLog
+    })
+
+
+    return attendance
+}
+
+/**
+* Format for DTR display
+*/
+let logSegmentsDtrFormat = (logSegments) => {
+    let entries = {
+        am: {
+            start: '',
+            end: '',
+            type: '',
+        },
+        pm: {
+            start: '',
+            end: '',
+            type: '',
+        },
+        ext: {
+            start: '',
+            end: '',
+            type: '',
+        }
+    }
+    logSegments.forEach((o, i) => {
+        if (i == 0) {
+            entries.am.start = mToTime(o.start)
+            entries.am.end = mToTime(o.end)
+            entries.am.type = o.type
+        } else if (i == 1) {
+            entries.pm.start = mToTime(o.start)
+            entries.pm.end = mToTime(o.end)
+            entries.pm.type = o.type
+        } else if (i == 2) {
+            entries.ext.start = mToTime(o.start)
+            entries.ext.end = mToTime(o.end)
+            entries.ext.type = o.type
+        }
+    })
+    return entries
+}
 module.exports = {
     logAttendance: logAttendance,
     editAttendance: editAttendance,
@@ -1410,4 +1624,7 @@ module.exports = {
     countWork: countWork,
     buildLogSegments: buildLogSegments,
     fromPointsToLogSegments: fromPointsToLogSegments,
+    normalizeAttendance: normalizeAttendance,
+    logSegmentsDtrFormat: logSegmentsDtrFormat,
 }
+

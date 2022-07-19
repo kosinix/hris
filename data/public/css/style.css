@@ -672,7 +672,11 @@ div.focusable:focus-within  {
     color: #115195;
 }
 
-
+u {
+    text-decoration: none;
+    border-bottom:  solid currentColor;
+    padding-bottom: 1px;
+}
 .carousel-regis  {
     padding-bottom: 60px;
 }

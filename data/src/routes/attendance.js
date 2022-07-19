@@ -499,72 +499,19 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
         } else {
             workSchedule = await db.main.WorkSchedule.findById(employment.workScheduleId).lean()
         }
-        // console.log(workSchedule)
-        // let timeSegments = lodash.get(workSchedule, 'timeSegments', [])
-
-        // timeSegments = timeSegments.map((t)=>{
-        //     t.max = t.end - t.start
-        //     return t
-        // })
-
-        attendance = lodash.merge({
-            createdAt: '',
-            employeeId: '',
-            employmentId: '',
-            logs: [],
-            type: 'normal',
-            workScheduleId: '',
-        }, attendance)
 
         let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
-        workScheduleTimeSegments = workScheduleTimeSegments.map((t) => {
-            if (t.maxHours) { // TODO: Check sliding time on database as they use maxHours?
-                t.max = t.maxHours * 60 // TODO: Use max only and remove maxHours
-                delete t.maxHours
-            }
-            return t
-        })
+        
         // return res.send(workScheduleTimeSegments)
         let hasFlexi = workScheduleTimeSegments.filter(o => o.flexible)
 
+        // Normalize schema
+        attendance = dtrHelper.normalizeAttendance(attendance, employee, workScheduleTimeSegments)
+
+        // Schedule segments
         let timeSegments = dtrHelper.buildTimeSegments(workScheduleTimeSegments)
 
-        let logSegments = []
-        let points = []
-        if (attendance.type == 'travel') {
-            let logs = lodash.get(attendance, 'logs', [])
-            if (logs.length <= 0) { // all day
-                points = [
-                    480,
-                    1020,
-                ]
-            } else if (logs.length >= 1) { // half
-                logs.forEach((log, i) => {
-                    let logType = lodash.get(log, 'type')
-                    if (logType === 'travel') {
-                        if (i == 0) {
-                            let start = dtrHelper.timeToM(moment(log.dateTime).format('HH:mm'))
-                            let nextShift = dtrHelper.getNextShift(start, workScheduleTimeSegments)
-
-                            points.push(nextShift.start)
-                            points.push(dtrHelper.timeToM(moment(logs[i + 1].dateTime).format('HH:mm')))
-                        } else if (i == logs.length - 1) {
-                            let start = dtrHelper.timeToM(moment(log.dateTime).format('HH:mm'))
-                            let nextShift = dtrHelper.getNextShift(start, workScheduleTimeSegments)
-                            points.push(nextShift.start)
-                            points.push(nextShift.end)
-                        }
-                    } else {
-                        points.push(dtrHelper.timeToM(moment(log.dateTime).format('HH:mm')))
-                    }
-                })
-                // return res.send(points)
-            }
-            logSegments = dtrHelper.fromPointsToLogSegments(points)
-
-        } else {
-            logSegments = dtrHelper.buildLogSegments(attendance.logs)
-        }
+        let logSegments = dtrHelper.buildLogSegments(attendance.logs)
 
         // Add OT to computation
         if (hasFlexi.length <= 0) {
@@ -588,6 +535,16 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
 
         let timeWorked = dtrHelper.countWork(timeSegments, logSegments, { ignoreZero: true })
 
+        let readableSchedule = workScheduleTimeSegments.map(o => {
+            let brs = lodash.get(o, 'breaks', []).map(o => {
+                return `${dtrHelper.mToTime(o.start, 'hh:mmA')} - ${dtrHelper.mToTime(o.end, 'hh:mmA')}`
+            }).join(', ')
+            if(brs){
+                brs = ` (Breaks: ${brs})`
+            }
+            return `${dtrHelper.mToTime(o.start, 'hh:mmA')} - ${dtrHelper.mToTime(o.end, 'hh:mmA')}${brs}`
+        }).join(', ')
+
         let data = {
             flash: flash.get(req, 'attendance'),
             attendanceTypes: CONFIG.attendance.types,
@@ -599,26 +556,30 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
             workSchedule: workSchedule,
             timeSegments: timeSegments,
             logSegments: logSegments,
+            logSegmentsDtr: dtrHelper.logSegmentsDtrFormat(logSegments),
             timeWorked: timeWorked,
+            readableSchedule: readableSchedule,
         }
-        // return res.send(logSegments)
-        // return res.send(timeSegments)
+
+        
+        // return res.send(CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal')) // logs
+        // return res.send(dtrHelper.logSegmentsDtrFormat(logSegments)) // logs
+        // return res.send(logSegments) // logs
+        // return res.send(readableSchedule)
         // return res.send(timeWorked)
+        // return res.send(attendance)
         // return res.send(data)
         res.render('attendance/edit2.html', data);
     } catch (err) {
         next(err);
     }
 });
-router.post('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
+router.post('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getAttendance, async (req, res, next) => {
     try {
         let attendance = res.attendance.toObject()
-        let employee = res.employee.toObject()
-        let employment = await db.main.Employment.findById(res.params.employ)
-
 
         let body = req.body
-        // return res.send(body)
+        return res.send(body)
         let patch = {}
         lodash.set(patch, 'type', lodash.get(body, 'type'))
         lodash.set(patch, 'workScheduleId', lodash.get(body, 'workScheduleId'))
@@ -629,7 +590,7 @@ router.post('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_at
         lodash.set(patch, 'comment', lodash.get(body, 'comment'))
 
         if (patch.type === '') {
-            return res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
+            return res.redirect(`/attendance/${attendance._id}/edit`)
         }
 
         let { changeLogs, att } = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
@@ -637,11 +598,8 @@ router.post('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_at
         // return res.send(att)
         if (changeLogs.length) {
             flash.ok(req, 'attendance', `${changeLogs.join(' ')}`)
-        } else {
-
         }
-        res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
-        // res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}?start=2021-11-02&end=2021-11-02`)
+        res.redirect(`/attendance/${attendance._id}/edit`)
     } catch (err) {
         next(err);
     }

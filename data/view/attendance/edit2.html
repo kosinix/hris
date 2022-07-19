@@ -17,19 +17,32 @@
     </div>
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-3">
-        <h1 class="mt-2">
-            {{employee.lastName}},
-            {{employee.firstName}}
-        </h1>
-        <h2 class="h5 mb-4">
-            {{attendance.createdAt|format_date('MMM DD, YYYY - dddd')}}
-        </h2>
-
-
-        <form id="vApp" v-cloak ref="form" v-on:submit.prevent="onSubmit" action="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/{{attendance._id}}/edit" method="POST" class="form-default">
+        <div class="row">
+            <div class="col-md-6">
+                <h1 class="h2 mt-2 mb-3">
+                    <u title="First Name">{{employee.firstName}}</u>
+                    <u title="Middle Name">{{employee.middleName}}</u>
+                    <u title="LastName Name">{{employee.lastName}}</u>
+                    <u title="Suffix">{{employee.suffix}}</u>
+                    <em class="h5 pl-2"> {{employment.position}} </em>
+                </h1>
+                {#  #}
+                <h2 class="h5 mb-4">
+                    Work Schedule: <span class="text-info">{{readableSchedule}}</span>
+                </h2>
+            </div>
+            <div class="col-md-6 text-md-right">
+                <h2 class="h5">
+                    {{attendance.createdAt|format_date('MMM DD, YYYY - dddd')}}
+                </h2>
+                <h2 class="h6 mb-3"></h2>
+            </div>
+        </div>
+        <form id="vApp" v-cloak ref="form" v-on:submit.prevent="onSubmit" action="/attendance/{{attendance._id}}/edit" method="POST" class="form-default">
             {% include 'parts/flash.html' %}
-            <div class="form-row mb-3 pt-5">
-                <div class="col-1 pt-5 text-right" style="font-size: 10px">
+            <h2 class="h6 pt-5">Time Analysis</h2>
+            <div class="form-row mb-3">
+                <div class="col-1 pt-3 text-right" style="font-size: 10px">
                     <div class="t-bar pr-2">
                         Time
                     </div>
@@ -47,32 +60,20 @@
                     </div>
                 </div>
                 <div class="col-11">
-                    <div class="table-responsive pt-5 p-1">
+                    <div class="table-responsive pt-3 p-1">
                     <div style="min-width: 1000px">
                     <div class="t-bar">
                         {% for i in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23] %}
                         <div class="t-bar-hour" style="left: {{i*60/1440*100}}%">
-                            <div class="t-bar-hour-label">
-                                {% if i == 0 %}
-                                    12AM
-                                {% elif i <= 11 %}
-                                    {{i}}AM
-                                {% elif i === 12 %}
-                                    {{i}}PM
-                            
-                                {% else %}
-                                    {{i-12}}PM
-                                {% endif %}
-                            </div>
+                            <div class="t-bar-hour-label">{{i|to12Hour}}</div>
                         </div>
                         {% endfor %}
-                        
                     </div>
                     <div class="t-bar">
                         {% for timeSegment in timeSegments %}
                         <div class="t-bar-segment" style="background: #7f9299; width: {{(timeSegment.end-timeSegment.start)/1440*100}}%;  left: {{timeSegment.start/1440*100}}%;">
-                            <div style="position: absolute; left: -22px; top: -18px; width: 44px; background: rgba(127, 146, 153, 0.5);"> {{timeSegment.start|mToTime}}</div>
-                            <div style="position: absolute; right: -22px; top: -18px; width: 44px; background: rgba(127, 146, 153, 0.5);">{{timeSegment.end|mToTime}} </div>
+                            <div style="position: absolute; left: 0; top: -18px; width: 44px; background: rgba(127, 146, 153, 0.5);"> {{timeSegment.start|mToTime}}</div>
+                            <div style="position: absolute; left: 100%; top: -18px; width: 44px; background: rgba(127, 146, 153, 0.5);">{{timeSegment.end|mToTime}} </div>
                             <div title="{{timeSegment.max}}">{{timeSegment.name}} max {{(timeSegment.max/60)|round2}}h</div>
                             <div class="t-bar-grace bg-warning" style="width: {{timeSegment.grace/240*100}}%; left: 0; opacity: 0.6" title="Grace period"></div>
                         </div>
@@ -80,7 +81,7 @@
                     </div>
                     <div class="t-bar">
                         {% for logSegment in logSegments %}
-                        <div class="t-bar-segment" style="position:relative; background: #60a322; width: {{logSegment.raw/1440*100}}%;  left: {{logSegment.start/1440*100}}%;">
+                        <div class="t-bar-segment" style="background: #60a322; width: {{logSegment.raw/1440*100}}%;  left: {{logSegment.start/1440*100}}%;">
                             <div style="float: left"> {{logSegment.start|mToTime}}</div>
                             <div style="float: right">{{logSegment.end|mToTime}} </div>
                             <div>{{logSegment.raw|mToHour}}h {{logSegment.raw|mToMin}}m</div>
@@ -92,7 +93,13 @@
                             {% if timeWork.name != 'OT' %}
                                 {% for logSegment in timeWork.logSegments %}
                                     <div class="t-bar-segment" style="background: #294b81; width: {{logSegment.counted/1440*100}}%;  left: {{logSegment.countedStart/1440*100}}%;">
-                                        <div>{{logSegment.counted|mToHour}}h {{logSegment.counted|mToMin}}m</div>
+                                        <div>
+                                            {% if logSegment.counted > 60 %}
+                                                {{logSegment.counted|mToHour}}h {{logSegment.counted|mToMin}}m
+                                            {% else %}
+                                                {{logSegment.counted|mToMin}}m
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 {% endfor %}
                             {% endif %}
@@ -103,7 +110,13 @@
                             {% if timeWork.name == 'OT' %}
                                 {% for logSegment in timeWork.logSegments %}
                                     <div class="t-bar-segment" style="background: #294b81; width: {{logSegment.counted/1440*100}}%;  left: {{logSegment.countedStart/1440*100}}%;">
-                                        <div>{{logSegment.counted|mToHour}}h {{logSegment.counted|mToMin}}m</div>
+                                        <div>
+                                            {% if logSegment.counted > 60 %}
+                                                {{logSegment.counted|mToHour}}h {{logSegment.counted|mToMin}}m
+                                            {% else %}
+                                                {{logSegment.counted|mToMin}}m
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 {% endfor %}
                             {% endif %}
@@ -125,77 +138,77 @@
                     </div>
                 </div>
             </div>
-          
-            <div class="table-responsive">
-                <table class="table table-dtr">
-                    <tr>
-                        <th class="text-center" rowspan="2" width="5%"></th>
-                        <th class="text-center" rowspan="2" colspan="2">Day</th>
-                        <th class="text-center" colspan="2">AM</th>
-                        <th class="text-center" colspan="2">PM</th>
-                    </tr>
-                    <tr>
-                        <th>Arrival</th>
-                        <th>Departure</th>
-                        <th>Arrival</th>
-                        <th>Departure</th>
-                    </tr>
-                    <tr>
-                        <td class="text-center">
-                            <div class="p-2">
-                                <select v-model="attendance.type" name="type" id="type" class="mb-2">
-                                    <option value=""></option>
-                                    {% for attendanceType in attendanceTypes %}
-                                        <option value="{{attendanceType.value}}">{{attendanceType.name}}</option>
-                                    {% endfor %}
-                                </select>
-                                <select v-model="workSchedule._id" name="workScheduleId" id="workScheduleId">
-                                    <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.name}</option>
-                                </select>
-                            </div>
-                        </td>
-                        <td class="text-center">{{attendance.createdAt|format_date('ddd')}}</td>
-                        <td class="text-center">
-                            {{attendance.createdAt|format_date('DD')}}
-                        </td>
-                        {% if attendanceTypesList.includes(attendance.type) %}
-                            <td colspan="6">{{attendance.type|capitalize}}</td>
-                        {% else %}
-                            <td>
-                                <div class="d-flex">
-                                    <input type="time" v-model="log0" name="log0">
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex">
-                                    <input type="time" v-model="log1" name="log1">
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex">
-                                    <input type="time" v-model="log2" name="log2">
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex">
-                                    <input type="time" v-model="log3" name="log3">
-                                </div>
-                            </td>
-                        {% endif %}
-                    </tr>
-                </table>
-            </div>
-            <div class="form-group">
-                <label for="comment">Comments (optional)</label>
-                <div>
-                    <textarea  name="comment" id="comment" rows="1" class="form-control"></textarea>
+            <div class="p-3 border">
+                <h2 class="h6 mb-3">Attendance Properties</h2>
+                <div class="form-group">
+                    <label for="atype">Attendance Type</label>
+                    <select v-model="attendance.type" name="type" id="atype" class="form-control">
+                        <option value=""></option>
+                        {% for attendanceType in attendanceTypes %}
+                            <option value="{{attendanceType.value}}">{{attendanceType.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="">Schedule</label>
+                    <select v-model="workSchedule._id" name="workScheduleId" id="workScheduleId" class="form-control">
+                        <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.name}</option>
+                    </select>
+                </div>
+                <h2 class="h6">Time Segments</h2>
+                <div class="form-row align-items-center">
+                    <div class="form-group col-md-1">
+                        <h6 class="h5">1</h6>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="">Type</label>
+                        <select name="logSegmentsDtr[am][type]" v-model="logSegmentsDtr.am.type" class="form-control">
+                            <option value=""></option>
+                            <option value="normal">Normal</option>
+                            <option value="travel">Travel</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="am.start">Start</label>
+                        <input name="logSegmentsDtr[am][start]" v-model="logSegmentsDtr.am.start" type="time" class="form-control">
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="am.end">End</label>
+                        <input name="logSegmentsDtr[am][end]" v-model="logSegmentsDtr.am.end" type="time" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row align-items-center">
+                    <div class="form-group col-md-1">
+                        <h6 class="h5">2</h6>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="">Type</label>
+                        <select name="logSegmentsDtr[pm][type]" v-model="logSegmentsDtr.pm.type" class="form-control">
+                            <option value=""></option>
+                            <option value="normal">Normal</option>
+                            <option value="travel">Travel</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="pm.start">Start</label>
+                        <input name="logSegmentsDtr[pm][start]" v-model="logSegmentsDtr.pm.start" type="time" class="form-control">
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="pm.end">End</label>
+                        <input name="logSegmentsDtr[pm][end]" v-model="logSegmentsDtr.pm.end" type="time" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="comment">Comments (optional)</label>
+                    <div>
+                        <textarea  name="comment" id="comment" rows="1" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <button class="btn btn-primary btn-sm">Save Changes</button>
                 </div>
             </div>
-            <div class="text-right">
-                <button class="btn btn-primary btn-sm">Change Time Log</button>
-            </div>
         </form>
-        <hr>
         <div class="mb-5">
             {% if attendance.changes.length > 0 %}
                 <h2 class="h2">History</h2>
@@ -233,6 +246,8 @@
             attendance: {{attendance|default({}, true)|stringify|safe}},
             workSchedules: {{workSchedules|default([], true)|stringify|safe}},
             workSchedule: {{workSchedule|default({}, true)|stringify|safe}},
+            logSegments: {{logSegments|default([], true)|stringify|safe}},
+            logSegmentsDtr: {{logSegmentsDtr|default({}, true)|stringify|safe}},
             log0: '',
             log1: '',
             log2: '',

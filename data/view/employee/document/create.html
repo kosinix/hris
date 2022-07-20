@@ -9,23 +9,21 @@
 
     <div class="tab-content pt-3 pb-2 pl-3 pb-3 pr-2">
         <div class="d-flex align-items-center">
-            <h1 class="h4 mr-3 mb-3">Add</h1>
+            <h1 class="h4 mr-3 mb-3">Add Document</h1>
         </div>
-
         <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/document/create" method="POST" enctype="multipart/form-data" class="form-default">
+            <div class="form-group">
+                <label for="document">Accepted File: ${acceptList}</label>
+                <div>
+                    <input v-on:change="readFile" name="document" id="document" ref="fileDocument" type="file" class="form-control">
+                    <small class="invalid-feedback">${getError('filesLength')}</small>
+                </div>
+            </div>
             <div class="form-group">
                 <label for="name">Document Name</label>
                 <div>
-                    <input name="name" id="name" type="text" class="form-control">
+                    <input v-model="name" name="name" id="name" type="text" class="form-control">
                     <small class="invalid-feedback">${getError('name')}</small>
-                </div>
-            </div>
-            {% set name = 'document' %}
-            <div class="form-group">
-                <label for="{{name}}">Document (JPEG, PNG, PDF)</label>
-                <div>
-                    <input name="{{name}}" id="{{name}}" ref="{{('file_'+name)|camel_case}}" type="file" class="form-control">
-                    <small class="invalid-feedback">${getError('{{name}}')}</small>
                 </div>
             </div>
             <div class="form-row pt-3 pb-3">
@@ -49,11 +47,56 @@
             window.vuelidateExtendMixin,
         ],
         data: {
-            photo: '',
+            accept: ['image/jpeg', 'image/png'],
+            name: '',
+            filesLength: 0,
         },
         validations: {
+            name: {
+                required: window.validators.required
+            },
+            filesLength: {
+                required: window.validators.minValue(1)
+            },
+        },
+        computed: {
+            acceptList: function(){
+                return this.accept.join(', ')
+            }
         },
         methods: {
+            readFile: function(event){
+                var me = this;
+                var files = [];
+                if('target' in event){
+                    if('files' in event.target){
+                        files = event.target.files
+                    }
+                }
+                if(files){
+                    var count = files.length;
+                    me.filesLength = count
+
+                    if(count > 1){
+                        // Remove all FileList content
+                        event.target.value = "";
+                        return alert('Maximum of 1 file only');
+                    }
+
+                    for(var i = 0; i < count; i++){
+                        if(me.accept.indexOf(files.item(i).type) === -1){
+                            // Remove all FileList content
+                            event.target.value = "";
+
+                            return alert('File type not allowed. Must be one of the following: ' + me.accept.join(', '));
+                        }
+
+                        me.name = files.item(i).name
+
+                    }
+                    
+                }
+            },
             onSubmit: function(){
                 var me = this;
                 me.$v.$touch()

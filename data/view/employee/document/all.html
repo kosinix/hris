@@ -30,7 +30,8 @@
                     </a>
                     <p>{{document.name}}</p>
                     <div>
-                        <a href="/employee/{{employee._id}}/document/{{document._id}}/delete" class="btn btn-sm btn-danger">Delete</a>
+                        <a href="{{document.key|s3_url}}" class="btn btn-sm btn-light">Download</a>
+                        <a href="/employee/{{employee._id}}/document/{{document._id}}/delete" class="btn btn-sm btn-danger">X</a>
                     </div>
                 </div>
             {% endfor %}

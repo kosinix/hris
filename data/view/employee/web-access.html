@@ -3,8 +3,8 @@
 {% block body %}
 <div class="col-md-12">
     {% include 'parts/flash.html' %}
-    {% include 'parts/employee-header.html' %}
-    {% include 'parts/employee-profile-photo.html' %}
+    {% include 'employee/employee-header.html' %}
+    {% include 'employee/employee-profile-photo.html' %}
     {% include 'employee/employee-view-tabs.html' %}
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
@@ -35,7 +35,7 @@
                     <button class="btn btn-primary">Create Web Account</button>
                 </div>
                 <div class="col-md-6 text-md-right">
-                    {# <a class="btn btn-danger" href="/employee/employment/{{employee._id}}/{{employment._id}}/delete">Delete</a> #}
+                    {# <a class="btn btn-danger" href="/employee/{{employee._id}}/employment/{{employment._id}}/delete">Delete</a> #}
                 </div>
             </div>
 

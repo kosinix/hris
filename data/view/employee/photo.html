@@ -3,9 +3,9 @@
 {% block body %}
 <div id="vApp" v-cloak class="col-md-12">
     {% include 'parts/flash.html' %}
-    {% include 'parts/employee-header.html' %}
+    {% include 'employee/employee-header.html' %}
 
-    <form ref="form" v-on:submit.prevent="onSubmit" action="/employee/photo/{{employee._id}}" method="POST" class="form-default">
+    <form ref="form" v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/photo" method="POST" class="form-default">
         <div v-if="photo" class="text-center">
             <img v-bind:src="photo" id="preview" alt="photo">
         </div>

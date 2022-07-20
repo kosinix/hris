@@ -3,12 +3,12 @@
 {% block body %}
 <div class="col-md-12">
     {% include 'parts/flash.html' %}
-    {% include 'parts/employee-header.html' %}
-    {% include 'parts/employee-profile-photo.html' %}
-    {% include 'parts/employee-tabs.html' %}
+    {% include 'employee/employee-header.html' %}
+    {% include 'employee/employee-profile-photo.html' %}
+    {% include 'employee/employee-view-tabs.html' %}
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/personal/{{employee._id}}" method="POST" class="form-default">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/personal" method="POST" class="form-default">
             <h3>Personal Information</h3>
             {% set name = 'firstName' %}
             {% include 'parts/form-group-text.html' %}

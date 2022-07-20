@@ -1,6 +1,6 @@
 <div class="text-center mb-2">
     <div class="profile-photo">
-        <a href="/employee/photo/{{employee._id}}">
+        <a href="/employee/{{employee._id}}/photo">
         {% if employee.profilePhoto %}
             <img class="privy-photo" src="{{employee.profilePhoto|s3_url('medium')}}" alt="photo">
         {% else %}

@@ -3,9 +3,9 @@
 {% block body %}
 <div class="col-md-12">
     {% include 'parts/flash.html' %}
-    {% include 'parts/employee-header.html' %}
-    {% include 'parts/employee-profile-photo.html' %}
-    {% include 'parts/employee-tabs.html' %}
+    {% include 'employee/employee-header.html' %}
+    {% include 'employee/employee-profile-photo.html' %}
+    {% include 'employee/employee-view-tabs.html' %}
 
     <div class="tab-content p-3">
         <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/employment/{{employment._id}}/schedule" method="POST"  enctype="multipart/form-data" class="form-default">
@@ -113,7 +113,7 @@
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
                     <div class="d-flex justify-content-between">
-                        <a href="/employee/employment/{{employee._id}}" class="btn btn-light">Back</a>
+                        <a href="/employee/{{employee._id}}/employment" class="btn btn-light">Back</a>
                         <input type="hidden" name="workSchedule" v-model="workScheduleString">
                         <!-- <button class="btn btn-primary">Update Employment</button> -->
                     </div>

@@ -850,7 +850,7 @@ router.post('/employee/:employeeId/address', middlewares.guardRoute(['create_emp
 });
 
 // Photo
-router.get('/employee/photo/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.get('/employee/:employeeId/photo', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
 
@@ -861,7 +861,7 @@ router.get('/employee/photo/:employeeId', middlewares.guardRoute(['read_employee
         next(err);
     }
 });
-router.post('/employee/photo/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee,  middlewares.dataUrlToReqFiles(['photo']), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"]}), async (req, res, next) => {
+router.post('/employee/:employeeId/photo', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee,  middlewares.dataUrlToReqFiles(['photo']), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"]}), async (req, res, next) => {
     try {
         let employee = res.employee
 
@@ -887,12 +887,12 @@ router.post('/employee/photo/:employeeId', middlewares.guardRoute(['create_emplo
         employee.profilePhoto = lodash.get(req, 'saveList.photo[0]')
         await employee.save()
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} photo.`)
-        res.redirect(`/employee/personal/${employee._id}`);
+        res.redirect(`/employee/${employee._id}/personal`);
     } catch (err) {
         next(err);
     }
 });
-router.get('/employee/photo/:employeeId/delete', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.get('/employee/:employeeId/photo/delete', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
 
@@ -927,7 +927,7 @@ router.get('/employee/photo/:employeeId/delete', middlewares.guardRoute(['update
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, { profilePhoto: '' })
 
         flash.ok(req, 'employee', `"${employee.firstName} ${employee.lastName}" photo deleted.`)
-        res.redirect(`/employee/photo/${employee._id}`);
+        res.redirect(`/employee/${employee._id}/photo`);
     } catch (err) {
         next(err);
     }
@@ -943,7 +943,7 @@ router.get('/employee/find', middlewares.guardRoute(['create_employee', 'update_
         if (!employee) {
             throw new Error('Not found')
         }
-        res.redirect(`/employee/personal/${employee._id}`)
+        res.redirect(`/employee/${employee._id}/personal`)
     } catch (err) {
         next(err);
     }

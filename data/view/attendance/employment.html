@@ -13,12 +13,12 @@
             {% endif %}
             <div class="mt-2">
                 <h1 class="privy-name">  
-                    <a href="/employee/personal/{{employee._id}}">
+                    <a href="/employee/{{employee._id}}/personal">
                         {{employee.lastName}},
                         {{employee.firstName}}
                     </a>
                 </h1>
-                <h2><a class="privy-employment" href="/employee/employment/{{employee._id}}">{{employment.position}} - {{employment.employmentType|capitalize}}</a></h2>
+                <h2><a class="privy-employment" href="/employee/{{employee._id}}/employment">{{employment.position}} - {{employment.employmentType|capitalize}}</a></h2>
             </div>
         </div>
        

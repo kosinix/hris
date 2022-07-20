@@ -185,7 +185,7 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
         let employee = new req.app.locals.db.main.Employee(patch)
         await employee.save()
         flash.ok(req, 'employee', `Added ${employee.firstName} ${employee.lastName}.`)
-        res.redirect(`/employee/employment/${employee._id}`)
+        res.redirect(`/employee/${employee._id}/employment`)
     } catch (err) {
         next(err);
     }
@@ -201,7 +201,8 @@ router.get('/employee/history/:employeeId', middlewares.guardRoute(['read_employ
     }
 });
 
-router.get('/employee/personal/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+// Personal
+router.get('/employee/:employeeId/personal', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
 
@@ -213,7 +214,7 @@ router.get('/employee/personal/:employeeId', middlewares.guardRoute(['read_emplo
         next(err);
     }
 });
-router.post('/employee/personal/:employeeId', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.post('/employee/:employeeId/personal', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
         let body = req.body
@@ -230,18 +231,19 @@ router.post('/employee/personal/:employeeId', middlewares.guardRoute(['update_em
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName}'s personal info.`)
-        res.redirect(`/employee/personal/${employee._id}`)
+        res.redirect(`/employee/${employee._id}/personal`)
     } catch (err) {
         next(err);
     }
 });
 
-router.get('/employee/employment/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+// Employment
+router.get('/employee/:employeeId/employment', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employmentIndex = employee.employments.length
 
-        res.render('employee/employment.html', {
+        res.render('employee/employment/all.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
             employment: employee.employments[employmentIndex],
@@ -251,7 +253,139 @@ router.get('/employee/employment/:employeeId', middlewares.guardRoute(['read_emp
         next(err);
     }
 });
+// C
+router.get('/employee/:employeeId/employment/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
 
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
+        workSchedules = workSchedules.map((w) => {
+            return {
+                value: w._id,
+                text: w.name
+            }
+        })
+
+        res.render('employee/employment/create.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            workSchedules: workSchedules,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/:employeeId/employment/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee
+        let body = req.body
+        let patch = {}
+
+        lodash.set(patch, `employeeId`, employee._id)
+        lodash.set(patch, `campus`, lodash.get(body, 'campus'))
+        lodash.set(patch, `group`, lodash.get(body, 'group'))
+        lodash.set(patch, `position`, lodash.get(body, 'position'))
+        lodash.set(patch, `department`, lodash.get(body, 'department'))
+        lodash.set(patch, `employmentType`, lodash.get(body, 'employmentType'))
+        lodash.set(patch, `salary`, lodash.get(body, 'salary').replace(/,/g, ''))
+        lodash.set(patch, `salaryType`, lodash.get(body, 'salaryType'))
+        lodash.set(patch, `fundSource`, lodash.get(body, 'fundSource'))
+        lodash.set(patch, `sssDeduction`, lodash.get(body, 'sssDeduction'))
+        lodash.set(patch, `workScheduleId`, lodash.get(body, 'workScheduleId'))
+
+        let employment = new req.app.locals.db.main.Employment(patch)
+        await employment.save()
+
+        flash.ok(req, 'employee', `Added to "${employee.firstName} ${employee.lastName}'s" employment.`)
+        res.redirect(`/employee/${employee._id}/employment`)
+
+    } catch (err) {
+        next(err);
+    }
+});
+// RU
+router.get('/employee/:employeeId/employment/:employmentId/update', middlewares.guardRoute(['read_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
+        workSchedules = workSchedules.map((w) => {
+            return {
+                value: w._id,
+                text: w.name
+            }
+        })
+
+        // return res.send(workSchedules)
+        res.render('employee/employment/update.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            employment: employment.toObject(),
+            workSchedules: workSchedules,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/:employeeId/employment/:employmentId/update', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee
+        let employment = res.employment
+        let body = req.body
+        let patch = employment.toObject()
+
+        lodash.set(patch, `campus`, lodash.get(body, 'campus'))
+        lodash.set(patch, `group`, lodash.get(body, 'group'))
+        lodash.set(patch, `position`, lodash.get(body, 'position'))
+        lodash.set(patch, `department`, lodash.get(body, 'department'))
+        lodash.set(patch, `employmentType`, lodash.get(body, 'employmentType'))
+        lodash.set(patch, `salary`, lodash.get(body, 'salary').replace(/,/g, ''))
+        lodash.set(patch, `salaryType`, lodash.get(body, 'salaryType'))
+        lodash.set(patch, `fundSource`, lodash.get(body, 'fundSource'))
+        lodash.set(patch, `sssDeduction`, lodash.get(body, 'sssDeduction'))
+        lodash.set(patch, `workScheduleId`, lodash.get(body, 'workScheduleId'))
+        lodash.set(patch, `active`, lodash.get(body, 'active'))
+
+        await req.app.locals.db.main.Employment.updateOne({ _id: employment._id }, patch)
+
+        flash.ok(req, 'employee', `Updated "${employee.firstName} ${employee.lastName}'s" employment.`)
+        res.redirect(`/employee/${employee._id}/employment`)
+
+    } catch (err) {
+        next(err);
+    }
+});
+// D
+router.get('/employee/:employeeId/employment/:employmentId/delete', middlewares.guardRoute(['delete_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment.toObject()
+
+        res.render('employee/employment/delete.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            employment: employment,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/:employeeId/employment/:employmentId/delete', middlewares.guardRoute(['delete_employee']), middlewares.antiCsrfCheck, middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee
+        let employment = res.employment
+
+        await employment.remove()
+
+        flash.ok(req, 'employee', `Deleted "${employee.firstName} ${employee.lastName}'s" employment.`)
+        res.redirect(`/employee/${employee._id}/employment`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Schedule
 router.get('/employee/:employeeId/employment/:employmentId/schedule', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -366,7 +500,6 @@ router.get('/employee/:employeeId/employment/:employmentId/schedule', middleware
         next(err);
     }
 });
-
 router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, middlewares.getEmployment, fileUpload(), async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -597,7 +730,6 @@ router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewar
         next(err);
     }
 });
-
 router.get('/employee/:employeeId/employment/:employmentId/schedule/:scheduleId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getSchedule, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -632,125 +764,8 @@ router.get('/employee/:employeeId/employment/:employmentId/schedule/:scheduleId'
     }
 });
 
-router.get('/employee/employment/:employeeId/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-
-        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
-        workSchedules = workSchedules.map((w) => {
-            return {
-                value: w._id,
-                text: w.name
-            }
-        })
-
-        res.render('employee/employment-create.html', {
-            flash: flash.get(req, 'employee'),
-            employee: employee,
-            workSchedules: workSchedules,
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-router.post('/employee/employment/:employeeId/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee
-        let body = req.body
-        let patch = {}
-
-        lodash.set(patch, `employeeId`, employee._id)
-        lodash.set(patch, `campus`, lodash.get(body, 'campus'))
-        lodash.set(patch, `group`, lodash.get(body, 'group'))
-        lodash.set(patch, `position`, lodash.get(body, 'position'))
-        lodash.set(patch, `department`, lodash.get(body, 'department'))
-        lodash.set(patch, `employmentType`, lodash.get(body, 'employmentType'))
-        lodash.set(patch, `salary`, lodash.get(body, 'salary').replace(/,/g, ''))
-        lodash.set(patch, `salaryType`, lodash.get(body, 'salaryType'))
-        lodash.set(patch, `fundSource`, lodash.get(body, 'fundSource'))
-        lodash.set(patch, `sssDeduction`, lodash.get(body, 'sssDeduction'))
-        lodash.set(patch, `workScheduleId`, lodash.get(body, 'workScheduleId'))
-
-        let employment = new req.app.locals.db.main.Employment(patch)
-        await employment.save()
-
-        flash.ok(req, 'employee', `Added to "${employee.firstName} ${employee.lastName}'s" employment.`)
-        res.redirect(`/employee/employment/${employee._id}`)
-
-    } catch (err) {
-        next(err);
-    }
-});
-
-router.get('/employee/employment/:employeeId/:employmentId', middlewares.guardRoute(['read_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let employment = res.employment
-
-        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
-        workSchedules = workSchedules.map((w) => {
-            return {
-                value: w._id,
-                text: w.name
-            }
-        })
-
-        // return res.send(workSchedules)
-        res.render('employee/employment-update.html', {
-            flash: flash.get(req, 'employee'),
-            employee: employee,
-            employment: employment.toObject(),
-            workSchedules: workSchedules,
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-router.post('/employee/employment/:employeeId/:employmentId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
-    try {
-        let employee = res.employee
-        let employment = res.employment
-        let body = req.body
-        let patch = employment.toObject()
-
-        lodash.set(patch, `campus`, lodash.get(body, 'campus'))
-        lodash.set(patch, `group`, lodash.get(body, 'group'))
-        lodash.set(patch, `position`, lodash.get(body, 'position'))
-        lodash.set(patch, `department`, lodash.get(body, 'department'))
-        lodash.set(patch, `employmentType`, lodash.get(body, 'employmentType'))
-        lodash.set(patch, `salary`, lodash.get(body, 'salary').replace(/,/g, ''))
-        lodash.set(patch, `salaryType`, lodash.get(body, 'salaryType'))
-        lodash.set(patch, `fundSource`, lodash.get(body, 'fundSource'))
-        lodash.set(patch, `sssDeduction`, lodash.get(body, 'sssDeduction'))
-        lodash.set(patch, `workScheduleId`, lodash.get(body, 'workScheduleId'))
-        lodash.set(patch, `active`, lodash.get(body, 'active'))
-
-        await req.app.locals.db.main.Employment.updateOne({ _id: employment._id }, patch)
-
-        flash.ok(req, 'employee', `Updated "${employee.firstName} ${employee.lastName}'s" employment.`)
-        res.redirect(`/employee/employment/${employee._id}`)
-
-    } catch (err) {
-        next(err);
-    }
-});
-
-router.get('/employee/employment/:employeeId/:employmentId/delete', middlewares.guardRoute(['delete_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
-    try {
-        let employee = res.employee
-        let employment = res.employment
-
-        await employment.remove()
-
-        flash.ok(req, 'employee', `Deleted "${employee.firstName} ${employee.lastName}'s" employment.`)
-        res.redirect(`/employee/employment/${employee._id}`)
-    } catch (err) {
-        next(err);
-    }
-});
-
-
-router.get('/employee/address/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+// Address
+router.get('/employee/:employeeId/address', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
         employee.address = await req.app.locals.db.main.Address.findOneFullAddress({
@@ -764,7 +779,7 @@ router.get('/employee/address/:employeeId', middlewares.guardRoute(['read_employ
         next(err);
     }
 });
-router.post('/employee/address/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.post('/employee/:employeeId/address', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
         let body = req.body
@@ -828,12 +843,13 @@ router.post('/employee/address/:employeeId', middlewares.guardRoute(['create_emp
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} address.`)
-        res.redirect(`/employee/address/${employee._id}`)
+        res.redirect(`/employee/${employee._id}/address`)
     } catch (err) {
         next(err);
     }
 });
 
+// Photo
 router.get('/employee/photo/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
@@ -918,19 +934,6 @@ router.get('/employee/photo/:employeeId/delete', middlewares.guardRoute(['update
 });
 
 
-router.get('/employee/id-card/:employeeId', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee
-        let qrCodeSvg = qr.imageSync(employee.uid, { size: 3, type: 'svg' })
-        res.render('employee/id-card.html', {
-            employee: employee,
-            qrCodeSvg: qrCodeSvg,
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-
 router.get('/employee/find', middlewares.guardRoute(['create_employee', 'update_employee']), async (req, res, next) => {
     try {
         let code = req.query.code
@@ -946,7 +949,8 @@ router.get('/employee/find', middlewares.guardRoute(['create_employee', 'update_
     }
 });
 
-router.get('/employee/user/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+// User
+router.get('/employee/:employeeId/user', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         employee.user = await req.app.locals.db.main.User.findById(employee.userId)
@@ -964,7 +968,7 @@ router.get('/employee/user/:employeeId', middlewares.guardRoute(['read_employee'
         next(err);
     }
 });
-router.post('/employee/user/:employeeId', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.post('/employee/:employeeId/user', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
 
@@ -986,7 +990,7 @@ router.post('/employee/user/:employeeId', middlewares.guardRoute(['update_employ
             })
             if (found) {
                 flash.error(req, 'employee', `Username "${body.username}" already exists. Please choose a different one.`)
-                return res.redirect(`/employee/user/${employee._id}`)
+                return res.redirect(`/employee/${employee._id}/user`)
             }
 
             employeeUser.username = body.username
@@ -1002,7 +1006,7 @@ router.post('/employee/user/:employeeId', middlewares.guardRoute(['update_employ
             })
             if (found) {
                 flash.error(req, 'employee', `Username "${body.username}" already exists. Please choose a different one.`)
-                return res.redirect(`/employee/user/${employee._id}`)
+                return res.redirect(`/employee/${employee._id}/user`)
             }
 
             employeeUser = new req.app.locals.db.main.User({
@@ -1022,42 +1026,13 @@ router.post('/employee/user/:employeeId', middlewares.guardRoute(['update_employ
         }
 
         flash.ok(req, 'employee', `Web access account created with username "${body.username}" and password "${body.password}".`)
-        res.redirect(`/employee/user/${employee._id}`)
+        res.redirect(`/employee/${employee._id}/user`)
 
     } catch (err) {
         next(err);
     }
 });
-
-router.get('/employee/e201/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-
-
-        res.render('employee/e201.html', {
-            flash: flash.get(req, 'employee'),
-            employee: employee,
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-router.get('/employee/e201/:employeeId/pds', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-
-        let workbook = await excelGen.templatePds(employee)
-        let buffer = await workbook.xlsx.writeBuffer();
-        res.set('Content-Disposition', `attachment; filename="${employee.lastName}-PDS.xlsx"`)
-        res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        res.send(buffer)
-    } catch (err) {
-        next(err);
-    }
-});
-
-
-router.post('/employee/user/:employeeId/password', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.post('/employee/:employeeId/user/password', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employeeUser = await req.app.locals.db.main.User.findById(employee.userId)
@@ -1077,13 +1052,121 @@ router.post('/employee/user/:employeeId/password', middlewares.guardRoute(['upda
 
         }
 
-        res.redirect(`/employee/user/${employee._id}`)
+        res.redirect(`/employee/${employee._id}/user`)
 
     } catch (err) {
         next(err);
     }
 });
 
+
+// Documents
+router.get('/employee/:employeeId/document/all', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        res.render('employee/document/all.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+// DL
+router.get('/employee/:employeeId/document/pds', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        let workbook = await excelGen.templatePds(employee)
+        let buffer = await workbook.xlsx.writeBuffer();
+        res.set('Content-Disposition', `attachment; filename="${employee.lastName}-PDS.xlsx"`)
+        res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        res.send(buffer)
+    } catch (err) {
+        next(err);
+    }
+});
+// C
+router.get('/employee/:employeeId/document/create', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+
+        res.render('employee/document/create.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, fileUpload(),  middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"]}), async (req, res, next) => {
+    try {
+        let employee = res.employee
+        
+        employee.documents.push({
+            name: lodash.get(req, 'body.name'),
+            key: lodash.get(req, 'saveList.document[0]'),
+            mimeType: '',
+        })
+
+        await employee.save()
+        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} documents.`)
+        res.redirect(`/employee/${employee._id}/document/all`);
+    } catch (err) {
+        next(err);
+    }
+});
+// D
+router.get('/employee/:employeeId/document/:documentId/delete', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, fileUpload(),  middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"]}), async (req, res, next) => {
+    try {
+        let employee = res.employee
+        let documentId = req.params.documentId
+
+        let document = employee.toObject().documents.find(o=>{
+            return o._id.toString() === documentId
+        })
+        if(!document){
+            throw new Error('Document not found.')
+        }
+        // Delete files on AWS S3
+        const bucketName = CONFIG.aws.bucket1.name
+        const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
+        let objectKey = document.key
+        if (objectKey) {
+            let resx = await s3.deleteObjects({
+                Bucket: bucketName,
+                Delete: {
+                    Objects: [
+                        { Key: `${bucketKeyPrefix}${objectKey}` },
+                        { Key: `${bucketKeyPrefix}tiny-${objectKey}` },
+                        { Key: `${bucketKeyPrefix}small-${objectKey}` },
+                        { Key: `${bucketKeyPrefix}medium-${objectKey}` },
+                        { Key: `${bucketKeyPrefix}large-${objectKey}` },
+                    ]
+                }
+            }).promise()
+            console.log(resx)
+        }
+
+        let documents = employee.toObject().documents.filter(o=>{
+            return o._id.toString() !== documentId
+        })
+        await req.app.locals.db.main.Employee.updateOne({
+            _id: employee._id
+        }, {
+            documents: documents
+        })
+
+        flash.ok(req, 'employee', `Deleted document.`)
+        res.redirect(`/employee/${employee._id}/document/all`);
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Delete employee
 router.get('/employee/delete/:employeeId', middlewares.guardRoute(['delete_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
@@ -1149,7 +1232,6 @@ router.get('/employee/delete/:employeeId', middlewares.guardRoute(['delete_emplo
         next(err);
     }
 });
-
 
 
 // List

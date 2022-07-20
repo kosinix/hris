@@ -1,0 +1,71 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'parts/employee-header.html' %}
+    {% include 'parts/employee-profile-photo.html' %}
+    {% include 'employee/employee-view-tabs.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pb-3 pr-2">
+        <div class="d-flex align-items-center">
+            <h1 class="h4 mr-3 mb-3">Add</h1>
+        </div>
+
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/document/create" method="POST" enctype="multipart/form-data" class="form-default">
+            <div class="form-group">
+                <label for="name">Document Name</label>
+                <div>
+                    <input name="name" id="name" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('name')}</small>
+                </div>
+            </div>
+            {% set name = 'document' %}
+            <div class="form-group">
+                <label for="{{name}}">Document (JPEG, PNG, PDF)</label>
+                <div>
+                    <input name="{{name}}" id="{{name}}" ref="{{('file_'+name)|camel_case}}" type="file" class="form-control">
+                    <small class="invalid-feedback">${getError('{{name}}')}</small>
+                </div>
+            </div>
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">Upload</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vue-ph-address.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            photo: '',
+        },
+        validations: {
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

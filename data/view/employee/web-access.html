@@ -5,18 +5,18 @@
     {% include 'parts/flash.html' %}
     {% include 'parts/employee-header.html' %}
     {% include 'parts/employee-profile-photo.html' %}
-    {% include 'parts/employee-tabs.html' %}
+    {% include 'employee/employee-view-tabs.html' %}
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
         {% if employee.user %}
             <p>RFID: <span>{{employee.uid}}</span></p>
             <p>Username: <em>{{employee.user.username}}</em></p>
             <p>Password: <em>****</em></p>
-            <form onsubmit="return confirm('This will generate a new password. {{employee.firstName}} wont be able to login using his/her old password. Continue?');" action="/employee/user/{{employee._id}}/password" method="POST" class="form-default">
+            <form onsubmit="return confirm('This will generate a new password. {{employee.firstName}} wont be able to login using his/her old password. Continue?');" action="/employee/{{employee._id}}/user/password" method="POST" class="form-default">
                 <p><button class="btn btn-primary btn-sm">Reset Password</button></p>
             </form>
         {% else %}
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/user/{{employee._id}}" method="POST" class="form-default">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/user" method="POST" class="form-default">
             <p class="alert alert-info"><em>Employee does not have an HRIS web access account yet.</em></p>
             {% set name = 'username' %}
             {% set label = 'Username *' %}
@@ -31,7 +31,7 @@
 
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-6 text-md-left">
-                    <a class="btn btn-link" href="/employee/{{employee._id}}">Cancel</a>
+                    <a class="btn btn-link" href="/employee/{{employee._id}}/personal">Cancel</a>
                     <button class="btn btn-primary">Create Web Account</button>
                 </div>
                 <div class="col-md-6 text-md-right">

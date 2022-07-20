@@ -14,7 +14,7 @@
 </head>
 
 {% if user %}
-<body class="{% if hideNav == 'true' %}hide-menu{% endif %} {% if user.username == 'gsc.mis' or user.username == 'gsc.mis.amarilla' %}privacy-on{% endif %}">
+<body data-route="{{bodyClass}}" class="{% if hideNav == 'true' %}hide-menu{% endif %} {% if user.username == 'gsc.mis' or user.username == 'gsc.mis.amarilla' %}privacy-on{% endif %}">
 {% include 'parts/sidebar.html' %}
 {% else %}
 <body class="hide-menu {% if user.username == 'gsc.mis' or user.username == 'gsc.mis.amarilla' %}privacy-on{% endif %}">

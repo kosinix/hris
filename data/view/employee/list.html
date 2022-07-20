@@ -77,11 +77,11 @@
                     {% for employee in employees %}
                         <tr>
                             <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
-                            <td><a href="/employee/employment/{{employee._id}}">{{employee.lastName}}</a></td>
-                            <td><a href="/employee/employment/{{employee._id}}">{{employee.firstName}}</a></td>
-                            <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].position}}</a></td>
-                            <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</a></td>
-                            <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].group|capitalize}}</a></td>
+                            <td><a href="/employee/{{employee._id}}/employment">{{employee.lastName}}</a></td>
+                            <td><a href="/employee/{{employee._id}}/employment">{{employee.firstName}}</a></td>
+                            <td><a href="/employee/{{employee._id}}/employment">{{employee.employments[0].position}}</a></td>
+                            <td><a href="/employee/{{employee._id}}/employment">{{employee.employments[0].employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</a></td>
+                            <td><a href="/employee/{{employee._id}}/employment">{{employee.employments[0].group|capitalize}}</a></td>
                             {# <td><a href="/employee/all?customFilter=campus&customFilterValue={{employee.employments[0].campus}}">{{employee.employments[0].campus|capitalize}}</a></td>
                             <td>{{employee.address}}</td> #}
                         </tr>

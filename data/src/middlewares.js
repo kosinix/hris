@@ -47,7 +47,7 @@ let antiCsrfCheck = async (req, res, next) => {
         if (lodash.get(req, 'session.acsrf') === acsrf) {
             return next();
         }
-        res.status(400).send('Cross-site request forgery error')
+        throw new Error(`Anti-CSRF error detected.`)
     } catch (err) {
         next(err);
     }

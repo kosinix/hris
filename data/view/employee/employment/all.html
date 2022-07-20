@@ -5,7 +5,7 @@
     {% include 'parts/flash.html' %}
     {% include 'parts/employee-header.html' %}
     {% include 'parts/employee-profile-photo.html' %}
-    {% include 'parts/employee-tabs.html' %}
+    {% include 'employee/employee-view-tabs.html' %}
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
         
@@ -40,7 +40,7 @@
                         <td>{{employment.employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</td>
                         <td>{{employment.campus|capitalize}}</td>
                         <td>
-                            <a href="/employee/employment/{{employee._id}}/{{employment._id}}">Edit</a> | 
+                            <a href="/employee/{{employee._id}}/employment/{{employment._id}}/update">Edit</a> | 
                             <a href="/employee/{{employee._id}}/employment/{{employment._id}}/schedule/{{employment.workScheduleId}}">Sched</a>
                         </td>
                         <td>
@@ -53,11 +53,11 @@
             </table>
         </div>
         {% else %}
-            <p>No employment. <a href="/employee/employment/{{employee._id}}/create" class="btn btn-link">Add Employment</a></p>
+            <p>No employment. <a href="/employee/{{employee._id}}/employment/create" class="btn btn-link">Add Employment</a></p>
         {% endif %}
         <div class="form-row pt-3 pb-3">
             <div class="col-md-12">
-                <a href="/employee/employment/{{employee._id}}/create" class="btn btn-primary">Add Employment</a>
+                <a href="/employee/{{employee._id}}/employment/create" class="btn btn-primary">Add Employment</a>
             </div>
         </div>
 

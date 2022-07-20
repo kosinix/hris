@@ -5,10 +5,10 @@
     {% include 'parts/flash.html' %}
     {% include 'parts/employee-header.html' %}
     {% include 'parts/employee-profile-photo.html' %}
-    {% include 'parts/employee-tabs.html' %}
+    {% include 'employee/employee-view-tabs.html' %}
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/address/{{employee._id}}" method="POST" class="form-default">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/address" method="POST" class="form-default">
             {# Address #}
             <div class="form-group focusable" tabindex="0">
                 <h2 class="h5">Permanent Address</h2>
@@ -132,7 +132,6 @@
             </div>
         </form>
     </div>
-
 </div>
 {% include 'parts/modal-help.html' %}
 {% endblock %}

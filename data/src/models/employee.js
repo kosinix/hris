@@ -127,11 +127,9 @@ const schema = new Schema({
     employments: [], // @deprecated - Use employment model instead
     documents: [
         {
-            type: {
-                $type: String,
-                trim: true,
-                default: ""
-            },
+            name: String,
+            key: String,
+            mimeType: String,
         }
     ],
     userId: {

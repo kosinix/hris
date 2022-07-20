@@ -1,0 +1,63 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'parts/employee-header.html' %}
+    {% include 'parts/employee-profile-photo.html' %}
+    {% include 'employee/employee-view-tabs.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/employment/{{employment._id}}/delete" method="POST" class="form-default">
+            <p>Are you sure you want to permanently delete <strong>{{employment.position}}</strong>?</p>
+            <input type="hidden" name="acsrf" value="{{acsrf}}">
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between">
+                        <a href="/employee/{{employee._id}}/employment" class="btn btn-light">Cancel</a>
+                        <button class="btn btn-danger">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>
+{# {% include "parts/modal-employment.html" %} #}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{# {% include "parts/script-employment.html" %} #}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            
+        },
+        validations: {
+           
+        },
+        mounted: function(){
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

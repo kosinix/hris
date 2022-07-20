@@ -70,11 +70,6 @@
                                 {% set thId = 'campus' %}
                                 {% include 'parts/sorted-th.html' %}
                             </th>
-                            {# <th>
-                                {% set thLabel = 'Address' %}
-                                {% set thId = 'address' %}
-                                {% include 'parts/sorted-th.html' %}
-                            </th> #}
                         </tr>
                     </thead>
                     <tbody>
@@ -83,28 +78,22 @@
                             <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
                             <td>
                                 {% if employee.profilePhoto %}
-                                <a href="/employee/personal/{{employee._id}}"><img class="privy-photo" src="{{employee.profilePhoto|s3_url('tiny')}}" alt=""></a>
+                                    <a href="/employee/{{employee._id}}/personal"><img class="privy-photo" src="{{employee.profilePhoto|s3_url('tiny')}}" alt=""></a>
                                 {% endif %}
                             </td>
                             <td>
-                                <a class="privy-name privy-last-name" href="/employee/personal/{{employee._id}}">{{employee.lastName}}</a>
+                                <a class="privy-name privy-last-name" href="/employee/{{employee._id}}/personal">{{employee.lastName}}</a>
                             </td>
-                            <td><a class="privy-name privy-last-name" href="/employee/personal/{{employee._id}}">{{employee.firstName}}</a></td>
-                            <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].position}}</a></td>
-                            <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</a></td>
-                            <td><a href="/employee/employment/{{employee._id}}">{{employee.employments[0].group|capitalize}}</a></td>
+                            <td><a class="privy-name privy-last-name" href="/employee/{{employee._id}}/personal">{{employee.firstName}}</a></td>
+                            <td><a href="/employee/{{employee._id}}/employment">{{employee.employments[0].position}}</a></td>
+                            <td><a href="/employee/{{employee._id}}/employment">{{employee.employments[0].employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</a></td>
+                            <td><a href="/employee/{{employee._id}}/employment">{{employee.employments[0].group|capitalize}}</a></td>
                             <td><a href="/employee/all?customFilter=campus&customFilterValue={{employee.employments[0].campus}}">{{employee.employments[0].campus|capitalize}}</a></td>
-                            {# <td>{{employee.address}}</td> #}
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
             </div>
-            {# <div class="row">
-                <div class="col-md-12 text-center text-md-left pt-3 pb-5">
-                    <a href="{{pagination.urlBase}}?{{pagination.query|query_string({qr: 1})}}" class="btn btn-sm btn-primary">Generate QR</a>
-                </div>
-            </div> #}
             <div class="row">
                 <div class="col-md-12 text-center text-md-left pt-3 pb-5">
                     {% include "parts/pagination.html" %}
@@ -114,4 +103,3 @@
     {% endif %}
 </div>
 {% endblock %}
-

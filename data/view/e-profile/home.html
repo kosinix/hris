@@ -32,11 +32,7 @@
                 </div>
                 <h4 class="h3 privy-name">{{employee.firstName}} {{employee.lastName}}</h4>
                 <p class="mb-4">{{employee.address}}</p>
-                {% if carouselItems.length >= 2 %}
-                    <h2 class="h5 text-left">Employments:</h2>
-                {% elif carouselItems.length <= 1 %}
-                    <h2 class="h5 text-left">Employment:</h2>
-                {% endif %}
+               
                 <div class="form-row justify-content-center">
                     {% for item in carouselItems %}
                         {% if item.employment.active %}

@@ -683,7 +683,11 @@ const logAttendance = async (db, employee, employment, scannerId, waitTime = 15,
         }
         let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
         if (diff < waitTime) {
-            throw new Error(`You have just logged. Please wait ${waitTime - diff} minute(s) and try again later.`)
+            let timeUnit = 'minute'
+            if (waitTime - diff > 1) {
+                timeUnit = 'minutes'
+            }
+            throw new Error(`You have just logged. Please wait ${waitTime - diff} ${timeUnit} and try again later.`)
         }
 
         let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0

@@ -187,7 +187,7 @@ router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner',
             momentDate = moment()
         }
 
-        
+
 
         // let momentStart = null
         // let threshold = 5 // minutes
@@ -421,7 +421,11 @@ router.post('/scanner/:scannerUid/verify', middlewares.guardRoute(['use_scanner'
             let waitTime = 5
             let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
             if (diff < waitTime) {
-                throw new Error(`You have already logged. Please wait ${5 - diff} minute(s) and try again.`)
+                let timeUnit = 'minute'
+                if (waitTime - diff > 1) {
+                    timeUnit = 'minutes'
+                }
+                throw new Error(`You have just logged. Please wait ${waitTime - diff} ${timeUnit} and try again later.`)
             }
 
             let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0

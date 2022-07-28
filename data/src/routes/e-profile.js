@@ -779,7 +779,7 @@ router.get('/e-profile/dtr/:employmentId/online', middlewares.guardRoute(['use_e
         let user = res.user.toObject()
         let employee = res.employee.toObject()
         let employment = res.employment
-        if(!employment.active){
+        if (!employment.active) {
             throw new Error('Cannot modify DTR as employment is no longer active.')
         }
         if (!lodash.get(user, 'settings.ol', true)) {
@@ -813,10 +813,36 @@ router.get('/e-profile/dtr/:employmentId/online', middlewares.guardRoute(['use_e
             throw new Error('Service available for lunch breaks only.')
         }
 
+        let maps = await res.app.locals.db.main.Map.find().lean()
+        maps = maps.map(m => {
+            return {
+                name: m.name,
+                // Mongo DB is reverse lat lon than OSM
+                coordinates: m.geo.coordinates[0].map(o => {
+                    return [
+                        o[1],
+                        o[0]
+                    ]
+                })
+            }
+        })
 
+        let salvador = maps.filter(m => {
+            return m.name === 'Salvador Campus'
+        })
+        let mosqueda = maps.filter(m => {
+            return m.name === 'Mosqueda Campus'
+        })
+        let baterna = maps.filter(m => {
+            return m.name === 'Baterna Campus'
+        })
         res.render('e-profile/map-1.html', {
             employee: employee,
             employment: employment,
+            maps: maps,
+            salvador: salvador[0].coordinates,
+            mosqueda: mosqueda[0].coordinates,
+            baterna: baterna[0].coordinates,
         })
     } catch (err) {
         next(new AppError(err.message));
@@ -1017,7 +1043,7 @@ router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_empl
         let employment = res.employment
         let attendanceType = lodash.get(req, 'query.type')
 
-        if(!employment.active){
+        if (!employment.active) {
             throw new Error('Cannot modify DTR as employment is no longer active.')
         }
         if (!['wfh', 'travel', 'leave', 'pass', 'holiday'].includes(attendanceType)) {

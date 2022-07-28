@@ -827,22 +827,14 @@ router.get('/e-profile/dtr/:employmentId/online', middlewares.guardRoute(['use_e
             }
         })
 
-        let salvador = maps.filter(m => {
-            return m.name === 'Salvador Campus'
+        maps = lodash.keyBy(maps, (m)=>{
+            return m.name.toLowerCase().replace(' campus', '')
         })
-        let mosqueda = maps.filter(m => {
-            return m.name === 'Mosqueda Campus'
-        })
-        let baterna = maps.filter(m => {
-            return m.name === 'Baterna Campus'
-        })
+        
         res.render('e-profile/map-1.html', {
             employee: employee,
             employment: employment,
             maps: maps,
-            salvador: salvador[0].coordinates,
-            mosqueda: mosqueda[0].coordinates,
-            baterna: baterna[0].coordinates,
         })
     } catch (err) {
         next(new AppError(err.message));

@@ -176,7 +176,7 @@ const minutesToMoments = (minutes, _moment = null) => {
  * @param {number} hoursPerDay Work hours per day
  * @returns {object} See return
  */
-const getTimeBreakdown = (minutes, totalMinutesUnderTime, hoursPerDay = 8, excessMinutes = 0) => {
+const getTimeBreakdown = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
 
     /* Bare JS  is inaccurate */
     // /*
@@ -216,7 +216,6 @@ const getTimeBreakdown = (minutes, totalMinutesUnderTime, hoursPerDay = 8, exces
         renderedDays: Math.floor(renderedDays),
         renderedHours: Math.floor(renderedHours),
         renderedMinutes: Math.round(renderedMinutes),
-        excessMinutes: excessMinutes,
         underTimeTotalMinutes: totalMinutesUnderTime,
         underDays: Math.floor(underDays),
         underHours: Math.floor(underHours),
@@ -225,7 +224,7 @@ const getTimeBreakdown = (minutes, totalMinutesUnderTime, hoursPerDay = 8, exces
     }
 }
 
-const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, shifts, holiday = null) => {
+const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, shifts) => {
 
     // Default govt shift
     if (!shifts) {
@@ -264,7 +263,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
                 // console.log(minutes)
             }
         }
-
+        
         for (let l = 0; l < attendance.logs.length; l++) {
             let log = attendance.logs[l]
             if (log.mode === 1) { // in
@@ -364,186 +363,18 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
 
     // Upper limit
     let maxMinutes = shifts.map((shift) => {
-        return lodash.get(shift, 'max', 0)  // Return max of all shifts of the day 
+        return lodash.get(shift, 'maxHours', 0) * 60
     }).reduce((result, maxMinutes) => {
         return result + maxMinutes
     }, 0)
 
-    let excessMinutes = 0
     if (minutes > maxMinutes) {
-        console.log(minutes, '>', maxMinutes, 'EXCESS =', minutes - maxMinutes)
-        excessMinutes = minutes - maxMinutes
         minutes = maxMinutes
-    } else if (minutes === maxMinutes) {
-        console.log(minutes, '===', maxMinutes)
-    } else {
-        console.log(minutes, '<', maxMinutes)
-        // TODO: check under time logic
-        underMinutes = maxMinutes - minutes
-        console.log('underMinutes', underMinutes)
-    }
-    return getTimeBreakdown(minutes, underMinutes, hoursPerDay, excessMinutes)
-
-}
-
-const calcDailyAttendance2 = (attendance, hoursPerDay = 8, travelPoints = 480, shifts, holiday = null) => {
-
-    // Default govt shift
-    if (!shifts) {
-        shifts = []
-        shifts.push(createShift({ hour: 8, minute: 0 }, { hour: 12, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4, flexible: false }))
-        shifts.push(createShift({ hour: 13, minute: 0 }, { hour: 17, minute: 0 }, { hour: 0, minute: 15 }, { maxHours: 4, flexible: false }))
     }
 
-    // travelPoints 480 minutes = 8 hours 
-    if (null === attendance) return null
-
-    // Daily minutes
-    let minutes = 0
-    let underMinutes = 0
-    if (attendance.type === 'wfh') {
-        minutes += travelPoints
-    } else if (attendance.type === 'leave') {
-        minutes += travelPoints
-    } else if (attendance.type === 'pass') {
-        minutes += travelPoints
-    } else if (attendance.type === 'holiday') {
-        minutes += travelPoints
-    } else { // normal, hybrid
-        // roll logs 
-        let momentIn = null
-        let startMinutes = null
-        let endMinutes = null
-        let shiftCurrent = null
-
-        if (attendance.type === 'travel') {
-            if (attendance.logs.length >= 2) {
-                minutes += travelPoints / 2
-
-            } else {
-                minutes += travelPoints
-                // console.log(minutes)
-            }
-        }
-
-        for (let l = 0; l < attendance.logs.length; l++) {
-            let log = attendance.logs[l]
-            if (log.mode === 1) { // in
-                momentIn = moment(log.dateTime)
-                startMinutes = momentToMinutes(momentIn)
-
-                if (startMinutes === null) break // Something went wrong
-
-                shiftCurrent = getNextShift(startMinutes, shifts)
-
-                if (shiftCurrent instanceof Error) break // No more next shift
-                if (shiftCurrent === null) break // Something went wrong
-
-                // If log time is before current shift + grace period, use current shift start
-                if (startMinutes <= shiftCurrent.start + shiftCurrent.grace) {
-                    startMinutes = shiftCurrent.start // Set to shift start
-                } // else use startMinutes as is
-
-                // console.log(`shift ${shiftCurrent.start} to ${shiftCurrent.end} IN  ${startMinutes}`)
-
-            } else if (log.mode === 0) { // out
-
-                if (shiftCurrent instanceof Error) break // No more next shift
-                if (shiftCurrent === null) break // Something went wrong
-
-                endMinutes = momentToMinutes(moment(log.dateTime))
-
-                let minutesWorked = 0
-
-                // Different conditions
-                if (endMinutes < shiftCurrent.start) { // Invalid. Logged out before current shift starts! 
-
-                    // console.log('Logging out before shift starts!')
-
-                } else if (endMinutes >= shiftCurrent.start && endMinutes <= shiftCurrent.end) { // Logged out within current shift
-
-                    minutesWorked = endMinutes - startMinutes
-                    // Breaks here
-                    if (shiftCurrent.breaks) {
-                        let subTime = 0
-                        for (let b = 0; b < shiftCurrent.breaks.length; b++) {
-                            let breakTime = shiftCurrent.breaks[b]
-                            if (endMinutes >= breakTime.start && endMinutes <= breakTime.end) { // Logged out in a break
-                                subTime += endMinutes - breakTime.start
-                            } else if (endMinutes > breakTime.end) { // Logged out after break
-                                subTime += breakTime.end - breakTime.start
-                            }
-                        }
-
-                        minutesWorked -= subTime
-                    }
-
-                } else if (endMinutes > shiftCurrent.end) { // Logged out after current shift
-
-                    // Check if logged out on next shift
-                    let shiftNext = getNextShift(endMinutes, shifts)
-
-                    if (shiftNext instanceof Error) { // No more next shift
-
-                        minutesWorked = shiftCurrent.end - startMinutes // Remove excess and use shiftCurrent.end
-
-                    } else {
-
-                        if (endMinutes < shiftNext.start) { // Logged out after current and before next shift (eg. logged out on lunch break period)
-
-                            minutesWorked = shiftCurrent.end - startMinutes // Remove excess and use shiftCurrent.end
-
-                        } else if (endMinutes >= shiftNext.start && endMinutes <= shiftNext.end) { // Logged out within NEXT shift (forgot to logout and login)
-                            // Get current shift time worked
-                            minutesWorked = shiftCurrent.end - startMinutes // Remove excess and use shiftCurrent.end
-                            /*
-                            // Add next shift time worked
-                            minutesWorked += endMinutes - shiftNext.start
-                            // Breaks goes here
-                            */
-                        } else {
-                            // Nothing to compute
-                        }
-
-                    }
-
-
-                }
-
-                // console.log(`shift ${shiftCurrent.start} to ${shiftCurrent.end} OUT ${endMinutes} = ${minutesWorked}`)
-
-                // Attach
-                log.minutesWorked = minutesWorked
-                log.underMinutes = shiftCurrent.maxMinutes - minutesWorked
-
-                minutes += minutesWorked
-
-            }
-        }
-
-    }
-
-    // Upper limit
-    let maxMinutes = shifts.map((shift) => {
-        return lodash.get(shift, 'max', 0)  // Return max of all shifts of the day 
-    }).reduce((result, maxMinutes) => {
-        return result + maxMinutes
-    }, 0)
-
-    let excessMinutes = 0
-    if (minutes > maxMinutes) {
-        console.log(minutes, '>', maxMinutes, 'EXCESS =', minutes - maxMinutes)
-        excessMinutes = minutes - maxMinutes
-        minutes = maxMinutes
-    } else if (minutes === maxMinutes) {
-        console.log(minutes, '===', maxMinutes)
-    } else {
-        console.log(minutes, '<', maxMinutes)
-        // TODO: check under time logic
-        underMinutes = maxMinutes - minutes
-        console.log('underMinutes', underMinutes)
-    }
-    return getTimeBreakdown(minutes, underMinutes, hoursPerDay, excessMinutes)
+    // TODO: check under time logic
+    underMinutes = 60 * hoursPerDay - minutes
+    return getTimeBreakdown(minutes, underMinutes, hoursPerDay)
 
 }
 
@@ -604,20 +435,7 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         endMoment.endOf('month')
     }
     const range1 = momentExt.range(startMoment, endMoment)
-    let days = Array.from(range1.by('days')) // Generate array of days
-
-    // Get all holidays for this date range
-    let holidays = await db.main.Holiday.find({
-        date: {
-            $gte: startMoment.clone().startOf('day').toDate(),
-            $lte: endMoment.clone().endOf('day').toDate(),
-        }
-    }).lean()
-    // Turn array of holidays into an object with date as keys: "2020-12-31"
-    holidays = lodash.mapKeys(holidays, (h) => {
-        return moment(h.date).format('YYYY-MM-DD')
-    })
-
+    let days = Array.from(range1.by('days'))
 
     days = days.map((_moment) => {
         let year = _moment.format('YYYY')
@@ -627,30 +445,20 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
         let weekDay = _moment.format('ddd')
         let weekDayLower = weekDay.toLowerCase()
         let attendance = attendances[date] || null
-        let holiday = holidays[date] || null
 
         // v2 schedule schema with weekday support
         let timeSegments = lodash.get(attendance, `workSchedule.weekDays.${weekDayLower}.timeSegments`)
         if (timeSegments) {
-            console.log('v2 shift')
             timeSegments = timeSegments.map((t) => {
-                t.maxHours = t.max / 60
+                t.maxHours = t.max
                 return t
             })
         }
-
         // original schedule schema
         if (!timeSegments) {
-            console.log('v1 shift')
-            timeSegments = lodash.get(attendance, 'workSchedule.timeSegments', [])
-            timeSegments = timeSegments.map((t) => {
-                t.max = t.maxHours * 60
-                return t
-            })
+            timeSegments = lodash.get(attendance, 'workSchedule.timeSegments')
         }
-
-        let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments, holiday)
-
+        let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments)
         let isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
         let isWeekend = ['Sun', 'Sat'].includes(weekDay) ? true : false
 
@@ -672,7 +480,6 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
             dtr: dtr,
             isNow: isNow,
             isWeekend: isWeekend,
-            holiday: holiday,
             attendance: attendance
         }
     })
@@ -1865,7 +1672,6 @@ module.exports = {
     editAttendance: editAttendance,
     compute: compute,
     calcDailyAttendance: calcDailyAttendance,
-    calcDailyAttendance2: calcDailyAttendance2,
     calcTimeRecord: getTimeBreakdown, //@deprecated. Use getTimeBreakdown
     createWorkScheduleTemplate: createWorkScheduleTemplate,
     createShift: createShift,

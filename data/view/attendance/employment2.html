@@ -1,0 +1,187 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'attendance/header.html' %}
+    {# {% include 'attendance/tabs-calendar.html' %} #}
+    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3">
+        <div class="d-flex mb-3">
+            {% if employee.profilePhoto %}
+                <img class="mr-3 privy-photo" width="100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="photo">
+            {% else %}
+            {% endif %}
+            <div class="mt-2">
+                <h1 class="privy-name">  
+                    <a href="/employee/personal/{{employee._id}}">
+                        {{employee.lastName}},
+                        {{employee.firstName}}
+                    </a>
+                </h1>
+                <h2><a class="privy-employment" href="/employee/employment/{{employee._id}}">{{employment.position}} - {{employment.employmentType|capitalize}}</a></h2>
+            </div>
+        </div>
+       
+
+        <h2 class="h5 mb-4">
+            {{startMoment|format_date('MMM DD, YYYY')}}
+            {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
+                to {{endMoment|format_date('MMM DD, YYYY')}}
+            {% endif %}
+        </h2>
+        <div class="mb-3">
+            <div class="d-flex align-items-center">
+                <input v-model="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}">
+                <span class="m-1">to</span> 
+                <input v-model="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}">
+                <select v-model="showWeekDays" name="showWeekDays" class="ml-1" id="showWeekDays">
+                    <option value="Mon|Tue|Wed|Thu|Fri">Mon-Fri</option>
+                    <option value="Sat|Sun">Sat,Sun</option>
+                    <option value="Mon|Tue|Wed|Thu|Fri|Sat|Sun">All days</option>
+                </select>
+                <button v-on:click="reloado" type="button" class="ml-1 btn btn-sm btn-primary">Change</button>
+            </div>
+        </div>
+        
+        <div class="text-right mb-2">
+            <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm">Insert Attendance</a>
+            <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/print?{{compatibilityUrl}}" class="btn btn-light btn-sm" target="_blank">Print DTR</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-dtr">
+                <tr>
+                    <th width="10%" class="text-center" rowspan="2" colspan="2">Day</th>
+                    <th width="22%" class="text-center" colspan="2">AM</th>
+                    <th width="22%" class="text-center" colspan="2">PM</th>
+                    <th width="22%" class="text-center" colspan="3">
+                        {% if showTotalAs == 'undertime' %}
+                            <a href="?{{query|query_string({undertime: 0})}}">Undertime</a>
+                        {% else %}
+                            <a href="?{{query|query_string({undertime: 1})}}">Time</a>
+                        {% endif %}
+                    </th>
+                </tr>
+                <tr>
+                    <th>Arrival</th>
+                    <th>Departure</th>
+                    
+                    <th>Arrival</th>
+                    <th>Departure</th>
+
+                    <th>Days</th>
+                    <th>Hours</th>
+                    <th>Minutes</th>
+                </tr>
+                {% for day in days %}
+                {% set attendance = day.attendance %}
+                <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
+                    <td class="text-center">
+                        {% if attendance %}
+                            <a href="/attendance/{{attendance._id}}/edit">{{day.day}}</a>
+                        {% else %}
+                            <span class="text-dark">{{day.day}}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
+                    
+                    {% if attendance.type == 'normal' %}
+                        <td>{% if attendance.timeWorked[0].logSegments[0].start %} {{attendance.timeWorked[0].logSegments[0].start|mToTime('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.timeWorked[0].logSegments[0].end %} {{attendance.timeWorked[0].logSegments[0].end|mToTime('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.timeWorked[1].logSegments[0].start %} {{attendance.timeWorked[1].logSegments[0].start|mToTime('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.timeWorked[1].logSegments[0].end %} {{attendance.timeWorked[1].logSegments[0].end|mToTime('hh:mm A')}} {% endif %}</td>
+                    {% else %}
+                        <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')|replace('Wfh', 'WFH')}}</td>
+                    {% endif %}
+                    <td>
+                        {% if showTotalAs == 'undertime' %}
+                            {{day.dtr.underDays|default('', true)}}
+                        {% else %}
+                            {{day.dtr.renderedDays}}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if showTotalAs == 'undertime' %}
+                            {{day.dtr.underHours|default('', true)}}
+                        {% else %}
+                            {{day.dtr.renderedHours}}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if showTotalAs == 'undertime' %}
+                            {{day.dtr.underMinutes|default('', true)}}
+                        {% else %}
+                            {{day.dtr.renderedMinutes}}
+                        {% endif %}
+                    </td>
+                    
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="6"><h5 class="m-0">Total</h5></td>
+                    <td>
+                        {% if showTotalAs == 'undertime' %}
+                            {{timeRecordSummary.underDays|default('', true)}}
+                        {% else %}
+                            {{timeRecordSummary.renderedDays}}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if showTotalAs == 'undertime' %}
+                            {{timeRecordSummary.underHours|default('', true)}}
+                        {% else %}
+                            {{timeRecordSummary.renderedHours}}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if showTotalAs == 'undertime' %}
+                            {{timeRecordSummary.underMinutes|default('', true)}}
+                        {% else %}
+                            {{timeRecordSummary.renderedMinutes}}
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            urlPath: '{{urlPath}}',
+            startDate: '{{startMoment|format_date("YYYY-MM-DD")}}',
+            endDate: '{{endMoment|format_date("YYYY-MM-DD")}}',
+            showWeekDays: '{{showWeekDays}}',
+        },
+        validations: {
+            
+        },
+        methods: {
+            reloado: function(){
+                window.location.href = this.urlPath + '?start=' + this.startDate + '&end=' + this.endDate + '&showWeekDays=' + this.showWeekDays
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

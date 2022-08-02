@@ -399,8 +399,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
         ]
         compatibilityUrl = compatibilityUrl.join('&')
 
-
-        res.render('attendance/employment.html', {
+        let data = {
             flash: flash.get(req, 'attendance'),
             employee: employee,
             employment: employment,
@@ -415,7 +414,9 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
             endMoment: endMoment,
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
             compatibilityUrl: compatibilityUrl,
-        });
+        }
+        //return res.send(days)
+        res.render('attendance/employment.html', data);
     } catch (err) {
         next(err);
     }
@@ -501,9 +502,8 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
         }
 
         let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
-        
+
         // return res.send(workScheduleTimeSegments)
-        let hasFlexi = workScheduleTimeSegments.filter(o => o.flexible)
 
         // Normalize schema
         attendance = dtrHelper.normalizeAttendance(attendance, employee, workScheduleTimeSegments)
@@ -513,33 +513,13 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
 
         let logSegments = dtrHelper.buildLogSegments(attendance.logs)
 
-        // Add OT to computation
-        if (hasFlexi.length <= 0) {
-            // Overtime
-            let start = timeSegments[timeSegments.length - 1].end
-            // let end = 1439 // 11:59pm
-            let end = 1140 // 7pm 
-            let max = end - start
-            if (max > 0) {
-                timeSegments.push({
-                    name: "OT",
-                    grace: 0,
-                    flexible: false,
-                    start: start,
-                    end: end,
-                    max: max,
-                    breaks: []
-                })
-            }
-        }
-
         let timeWorked = dtrHelper.countWork(timeSegments, logSegments, { ignoreZero: true })
 
         let readableSchedule = workScheduleTimeSegments.map(o => {
             let brs = lodash.get(o, 'breaks', []).map(o => {
                 return `${dtrHelper.mToTime(o.start, 'hh:mmA')} - ${dtrHelper.mToTime(o.end, 'hh:mmA')}`
             }).join(', ')
-            if(brs){
+            if (brs) {
                 brs = ` (Breaks: ${brs})`
             }
             return `${dtrHelper.mToTime(o.start, 'hh:mmA')} - ${dtrHelper.mToTime(o.end, 'hh:mmA')}${brs}`
@@ -561,11 +541,11 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
             readableSchedule: readableSchedule,
         }
 
-        
+
         // return res.send(CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal')) // logs
         // return res.send(dtrHelper.logSegmentsDtrFormat(logSegments)) // logs
         // return res.send(logSegments) // logs
-        // return res.send(readableSchedule)
+        // return res.send(workScheduleTimeSegments)
         // return res.send(timeWorked)
         // return res.send(attendance)
         // return res.send(data)

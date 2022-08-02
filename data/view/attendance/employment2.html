@@ -5,7 +5,7 @@
     {% include 'parts/flash.html' %}
     {% include 'attendance/header.html' %}
     {# {% include 'attendance/tabs-calendar.html' %} #}
-    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3">
+    <div id="vApp" v-cloak style="background: #e3ecf2" class="tab-content pt-3 pb-2 pl-3 pr-3">
         <div class="d-flex mb-3">
             {% if employee.profilePhoto %}
                 <img class="mr-3 privy-photo" width="100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="photo">

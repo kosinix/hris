@@ -648,37 +648,9 @@ const getDtrByDateRange = async (db, employeeId, employmentId, startMoment, endM
                 return t
             })
         }
-        timeSegments = [
-            {
-                grace: 0,
-                flexible: false,
-                weekDays: [],
-                start: 480,
-                end: 1050,
-                breaks: [
-                    {
-                        type: 'lunch',
-                        start: 720,
-                        end: 810
-                    }
-                ],
-                max: 480
-            }
-        ]
+
         let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments, holiday)
-        timeSegments = [
-            {
-                grace: 0,
-                flexible: false,
-                weekDays: [],
-                start: 1050,
-                end: 1440,
-                breaks: [],
-                max: 390
-            }
-        ]
-        let dtr2 = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments, holiday)
-        console.log('dtr2', dtr2)
+
         let isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
         let isWeekend = ['Sun', 'Sat'].includes(weekDay) ? true : false
 
@@ -1248,6 +1220,28 @@ const breakTimeSegments = (timeSegment) => {
  * @returns {Array} - 1-dimensional array of time segments
  */
 const buildTimeSegments = (timeSegments) => {
+
+    let hasFlexi = timeSegments.filter(o => o.flexible)
+    // Add OT to computation
+    if (hasFlexi.length <= 0) {
+        // Overtime
+        let start = timeSegments[timeSegments.length - 1].end
+        // let end = 1439 // 11:59pm
+        let end = 1140 // 7pm 
+        let max = end - start
+        if (max > 0) {
+            timeSegments.push({
+                name: "OT",
+                grace: 0,
+                flexible: false,
+                start: start,
+                end: end,
+                max: max,
+                breaks: []
+            })
+        }
+    }
+
     timeSegments = timeSegments.map(timeSegment => {
         return breakTimeSegments(timeSegment)
     })
@@ -1255,6 +1249,8 @@ const buildTimeSegments = (timeSegments) => {
     timeSegments.forEach(timeSegment => {
         flattened.push(...timeSegment)
     })
+
+
     return flattened
 }
 
@@ -1276,7 +1272,7 @@ const getWorkScheduleTimeSegments = (workSchedule, givenDate) => {
     })
     weekDay = weekDay.toLocaleLowerCase()
 
-    // console.log(weekDay)
+
     // Get if v1 or v2 schedule
     let workScheduleTimeSegments = lodash.get(workSchedule, `weekDays.${weekDay}.timeSegments`) // V2 work schedule schema
     if (!workScheduleTimeSegments) { // V1 work schedule schema
@@ -1295,7 +1291,7 @@ const getWorkScheduleTimeSegments = (workSchedule, givenDate) => {
         }
         return t
     })
-    
+
     return workScheduleTimeSegments
 }
 
@@ -1368,13 +1364,21 @@ let countWork = (timeSegments, logSegments, options) => {
 
             log.set('raw', logSegment.end - logSegment.start)
             log.set('countedStart', logSegment.start)
+            log.set('countedEnd', logSegment.end)
+
+            log.set('counted', 0)
+            log.set('countedExcess', 0)
+
+            log.set('tardiness', 0)
+            log.set('undertime', 0)
 
             // logSegment.countedStart = logSegment.start
             if (logSegment.start <= timeSegment.start + timeSegment.grace) {
-                log.set('countedStart', timeSegment.start)
+                log.set('countedStart', timeSegment.start) // Set to start if within grace period
+            } else {
+                log.set('tardiness', logSegment.start - timeSegment.start)
             }
             // logSegment.countedEnd = logSegment.end 
-            log.set('countedEnd', logSegment.end)
 
             if (logSegment.end >= timeSegment.end) {
                 log.set('countedEnd', timeSegment.end)
@@ -1387,6 +1391,14 @@ let countWork = (timeSegments, logSegments, options) => {
             if (log.get('countedExcess') < 0) {
                 log.set('countedExcess', 0)
             }
+            if (log.get('tardiness') < 0) {
+                log.set('tardiness', 0)
+            }
+            log.set('undertime', timeSegment.end - logSegment.end)
+            if (log.get('undertime') < 0) {
+                log.set('undertime', 0)
+            }
+
             if (options && options.ignoreZero) {
                 if (log.get('counted') > 0) {
                     timeSegments[s].logSegments.push(Object.fromEntries(log))
@@ -1416,11 +1428,34 @@ let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
     let logs = lodash.get(attendance, 'logs', [])
 
     let timeZone = -480 // ph -8 hrs
-    if (attendance.type == 'travel') {
-        if (logs.length <= 0) { // all day travel
+    if (attendance.type == 'holiday') {
+        attendance.logs = [
+            {
+                dateTime: mToTime(480 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                type: 'holiday',
+                source: {
+                    id: employee.userId,
+                    type: 'userAccount'
+                }
+            },
+            {
+                dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                type: 'holiday',
+                source: {
+                    id: employee.userId,
+                    type: 'userAccount'
+                }
+            }
+        ]
+    } else if (attendance.type == 'travel') {
+        if (logs.length <= 1) { // all day travel
+
+            let start = timeToM(moment(attendance.createdAt).format('HH:mm'))
+            let currentShift = getNextShift(start, workScheduleTimeSegments)
+
             attendance.logs = [
                 {
-                    dateTime: mToTime(480 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                    dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
                     type: 'travel',
                     source: {
                         id: employee.userId,
@@ -1596,6 +1631,235 @@ let logSegmentsDtrFormat = (logSegments) => {
     })
     return entries
 }
+
+const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, endMoment, options) => {
+
+    let defaults = {
+        padded: false,
+        excludeWeekend: false,
+    }
+
+    options = lodash.merge(defaults, options)
+    let { showTotalAs, showWeekDays, padded, excludeWeekend } = options;
+
+    if (!showWeekDays) {
+        showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+    }
+
+    let employment = await db.main.Employment.findOne(employmentId);
+    let attendances = await db.main.Attendance.aggregate([
+        {
+            $match: {
+                employeeId: employeeId,
+                employmentId: employmentId,
+                createdAt: {
+                    $gte: startMoment.clone().startOf('day').toDate(),
+                    $lte: endMoment.clone().endOf('day').toDate(),
+                }
+            }
+        },
+        {
+            $lookup: {
+                localField: 'workScheduleId',
+                foreignField: '_id',
+                from: 'workschedules',
+                as: 'workSchedules'
+            }
+        },
+        {
+            $addFields: {
+                "workSchedule": {
+                    $arrayElemAt: ["$workSchedules", 0]
+                }
+            }
+        },
+        {
+            $project: {
+                workSchedules: 0,
+            }
+        }
+    ])
+
+    // Turn array of attendances into an object with date as keys: "2020-12-31"
+    attendances = lodash.mapKeys(attendances, (a) => {
+        return moment(a.createdAt).format('YYYY-MM-DD')
+    })
+
+    if (padded) {
+        startMoment.startOf('month')
+        endMoment.endOf('month')
+    }
+    const range1 = momentExt.range(startMoment, endMoment)
+    let days = Array.from(range1.by('days')) // Generate array of days
+
+    // Get all holidays for this date range
+    let holidays = await db.main.Holiday.find({
+        date: {
+            $gte: startMoment.clone().startOf('day').toDate(),
+            $lte: endMoment.clone().endOf('day').toDate(),
+        }
+    }).lean()
+    // Turn array of holidays into an object with date as keys: "2020-12-31"
+    holidays = lodash.mapKeys(holidays, (h) => {
+        return moment(h.date).format('YYYY-MM-DD')
+    })
+
+    let defaultWorkSched = await db.main.WorkSchedule.findOne({
+        name: 'Regular Working Hours'
+    }).lean()
+
+    days = days.map((_moment) => {
+        let year = _moment.format('YYYY')
+        let month = _moment.format('MM')
+        let day = _moment.format('DD')
+        let date = _moment.format('YYYY-MM-DD')
+        let weekDay = _moment.format('ddd')
+        let weekDayLower = weekDay.toLowerCase()
+        let attendance = attendances[date] || null
+        let holiday = holidays[date] || null
+        let workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
+        let dtr = {
+            totalMinutes: 0,
+            totalInHours: 0,
+            renderedDays: 0,
+            renderedHours: 0,
+            renderedMinutes: 0,
+            excessMinutes: 0,
+            underTimeTotalMinutes: 0,
+            underDays: 0,
+            underHours: 0,
+            underMinutes: 0,
+            undertime: false,
+        }
+
+        //////////
+        console.dir(date, { depth: null })
+        console.dir(attendance, { depth: null })
+        if ((holiday && employment.employmentType === 'permanent') || lodash.get(attendance, 'type') === 'wfh') {
+            dtr.totalMinutes = 480
+        } else if (attendance) {
+            let workScheduleTimeSegments = getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
+
+            // Normalize schema
+            attendance = normalizeAttendance(attendance, { userId: employeeId }, workScheduleTimeSegments)
+
+            // Schedule segments
+            let timeSegments = buildTimeSegments(workScheduleTimeSegments)
+
+            // console.log(date, attendance)
+            let logSegments = {}
+            try {
+                logSegments = buildLogSegments(attendance.logs)
+            } catch (errr) {
+                console.log(errr)
+            }
+            let timeWorked = countWork(timeSegments, logSegments, { ignoreZero: true })
+            attendance.timeWorked = timeWorked
+
+            // console.dir(timeWorked, { depth: null })
+
+            timeWorked.forEach(ts => {
+                if (ts.name != 'OT') { // Exclude OT
+                    ts.logSegments.forEach(ls => {
+                        dtr.totalMinutes += ls.counted
+                        dtr.excessMinutes += ls.countedExcess
+                        dtr.underTimeTotalMinutes += ls.tardiness + ls.undertime
+                    })
+                }
+            })
+
+        }
+
+        let hoursPerDay = 8
+
+        dtr.totalInHours = dtr.totalMinutes / 60
+        dtr.renderedDays = dtr.totalMinutes / 60 / hoursPerDay
+        dtr.renderedHours = (dtr.renderedDays - Math.floor(dtr.renderedDays)) * hoursPerDay
+        dtr.renderedMinutes = (dtr.renderedHours - Math.floor(dtr.renderedHours)) * 60
+
+
+        dtr.underDays = dtr.underTimeTotalMinutes / 60 / hoursPerDay
+        dtr.underHours = (dtr.underDays - Math.floor(dtr.underDays)) * hoursPerDay
+        dtr.underMinutes = (dtr.underHours - Math.floor(dtr.underHours)) * 60
+        dtr.undertime = dtr.underTimeTotalMinutes > 0 ? true : false
+
+        dtr.totalInHours = dtr.totalMinutes / 60
+        dtr.renderedDays = Math.floor(dtr.renderedDays)
+        dtr.renderedHours = Math.floor(dtr.renderedHours)
+        dtr.renderedMinutes = Math.round(dtr.renderedMinutes)
+
+        dtr.underDays = Math.floor(dtr.underDays)
+        dtr.underHours = Math.floor(dtr.underHours)
+        dtr.underMinutes = Math.round(dtr.underMinutes)
+
+        ////////
+        //let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments, holiday)
+
+        let isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
+        let isWeekend = ['Sun', 'Sat'].includes(weekDay) ? true : false
+
+        // Push if PM login
+        // if (attendance) {
+        //     if (attendance.logs[0] && attendance.logs.length <= 2) {
+        //         if ('PM' === moment(attendance.logs[0].dateTime).format('A')) {
+        //             attendance.logs.unshift(null)
+        //             attendance.logs.unshift(null)
+        //         }
+        //     }
+        // }
+        return {
+            date: date,
+            year: year,
+            month: month,
+            weekDay: weekDay,
+            day: day,
+            dtr: dtr,
+            isNow: isNow,
+            isWeekend: isWeekend,
+            holiday: holiday,
+            attendance: attendance
+        }
+    })
+
+    days = days.map((day) => {
+        if (!showWeekDays.includes(day.weekDay)) {
+            day.dtr = null
+            day.attendance = null
+        }
+        return day
+    })
+
+    let weekdays = days.filter((day) => {
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(day.weekDay)
+    })
+    let weekdaysTotalMinutes = weekdays.map(day => lodash.get(day, 'dtr.totalMinutes', 0)).reduce((a, b) => a + b, 0)
+    let weekdaysTotalMinutesUnderTime = weekdays.map(day => lodash.get(day, 'dtr.underTimeTotalMinutes', 0)).reduce((a, b) => a + b, 0)
+
+    let weekends = days.filter((day) => {
+        return ['Sat', 'Sun'].includes(day.weekDay)
+    })
+    let weekendsTotalMinutes = weekends.map(day => lodash.get(day, 'dtr.totalMinutes', 0)).reduce((a, b) => a + b, 0)
+    let weekendsTotalMinutesUnderTime = weekends.map(day => lodash.get(day, 'dtr.underTimeTotalMinutes', 0)).reduce((a, b) => a + b, 0)
+
+
+
+
+    let daysTotalMinutes = days.map(day => lodash.get(day, 'dtr.totalMinutes', 0)).reduce((a, b) => a + b, 0)
+    let daysTotalMinutesUnderTime = days.map(day => lodash.get(day, 'dtr.underTimeTotalMinutes', 0)).reduce((a, b) => a + b, 0)
+
+    let hoursPerDay = 8
+    let stats = {
+        days: getTimeBreakdown(daysTotalMinutes, daysTotalMinutesUnderTime, hoursPerDay),
+        weekdays: getTimeBreakdown(weekdaysTotalMinutes, weekdaysTotalMinutesUnderTime, hoursPerDay),
+        weekends: getTimeBreakdown(weekendsTotalMinutes, weekendsTotalMinutesUnderTime, hoursPerDay),
+    }
+
+    return {
+        days: days,
+        stats: stats,
+    }
+}
+
 module.exports = {
     logAttendance: logAttendance,
     editAttendance: editAttendance,
@@ -1626,5 +1890,6 @@ module.exports = {
     fromPointsToLogSegments: fromPointsToLogSegments,
     normalizeAttendance: normalizeAttendance,
     logSegmentsDtrFormat: logSegmentsDtrFormat,
+    getDtrByDateRange2: getDtrByDateRange2,
 }
 

@@ -519,7 +519,7 @@ router.get(['/reports/lad/training/all', '/reports/pm/training/all.xlsx'], middl
             }
 
             schools = schools.filter(s => s.name !== '' && s.name !== 'N/A' && s.name !== 'n/a')
-            e.lastSchool = schools.at(-1)
+            e.lastSchool = schools.pop()
 
             // eligibilities
             let eligibilities = lodash.get(e, 'personal.eligibilities', [])

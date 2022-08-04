@@ -1676,7 +1676,7 @@ let templateReportTrainingAll = async (employees, pagination) => {
             if(!eligibilities) eligibilities = []
 
             eligibilities = eligibilities.map(o=>{
-                return `${o.name}\nRating: ${o.rating}\nExam Date: ${o.examDate}\nExam Place: ${o.examPlace}\nNumber: ${o.licenseNumber}\nValidity: ${o.licenseValidity}`
+                return `${o.name}\nRating: ${o.rating}\nExam Date: ${o.examDate}\nExam Place: ${o.examPlace}\nNumber: ${o.licenseNumber}\nValidity: ${o.licenseValidity}\n`
             }).join("\n")
 
             let trainings = lodash.get(employee, 'personal.trainings', []).map(o=>{

@@ -1,0 +1,120 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">
+                {% if query.customFilter %}
+                    Employees - {{query.customFilterValue}} <em>({{pagination.totalDocs}})</em>
+                {% else %}
+                    All Employees <em>({{pagination.totalDocs}})</em>
+                {% endif %}
+            </h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/employee/create" class="btn btn-sm btn-outline-primary">Add Employee</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    
+    {% if employees.length <= 0 %}
+        <p>None found.</p>
+    {% else %}
+        {# {% include 'employee/employee-tabs.html' %} #}
+        <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+            <div class="d-flex justify-content-end">
+                <div class=" pb-3 align-self-center pr-3">
+                    Per page:
+                </div>
+                <div class=" pb-3">
+                    {% set url = '/employee/all' %}
+                    {% include 'parts/form-per-page.html' %}
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th width="1%">
+                                {% set thId = 'profilePhoto' %}
+                                {% set thLabel = ' ' %}
+                                {% include 'parts/sorted-th.html' %}
+                                {% set thLabel = '' %}
+                            </th>
+                            <th width="5%">
+                                {% set thId = 'lastName' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th width="5%">
+                                {% set thId = 'firstName' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            
+                            <th>Highest Level</th>
+                            <th>Licenses</th>
+                            <th>
+                                Trainings
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for employee in employees %}
+                        <tr>
+                            <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
+                            <td>
+                                {% if employee.profilePhoto %}
+                                    <a href="/employee/{{employee._id}}/personal"><img class="privy-photo" src="{{employee.profilePhoto|s3_url('tiny')}}" alt=""></a>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a class="privy-name privy-last-name" href="/employee/{{employee._id}}/personal">{{employee.lastName}}</a>
+                            </td>
+                            <td><a class="privy-name privy-last-name" href="/employee/{{employee._id}}/personal">{{employee.firstName}}</a></td>
+                            <td>
+                                {% if employee.lastSchool.name %}
+                                    <strong>{{employee.lastSchool.course}}</strong> <br> {{employee.lastSchool.name}} ({{employee.lastSchool.periodFrom}}-{{employee.lastSchool.periodTo}}) <em>{{employee.lastSchool.honors}}</em> - <em>{{employee.lastSchool.level}}</em>
+                                {% endif%}
+                            </td>
+                            <td>
+                                <ol>
+                                    {% set eligibilities = employee.personal.eligibilities %}
+                                    {% for eligibility in eligibilities %}
+                                    <li>
+                                        <strong>{{eligibility.name}}</strong> <br>
+                                        Rating: <strong>{{eligibility.rating}}</strong> <br>
+                                        Exam Date: <strong>{{eligibility.examDate}}</strong> <br>
+                                        Exam Place: <strong>{{eligibility.examPlace}}</strong> <br>
+                                        Number: <strong>{{eligibility.licenseNumber}}</strong> <br>
+                                        Validity: <strong>{{eligibility.licenseValidity}}</strong> <br>
+                                    </li>
+                                    {% endfor %}
+                                </ol>
+                            </td>
+                            <td>
+                                <ol>
+                                    {% set trainings = employee.personal.trainings %}
+                                    {% for training in trainings %}
+                                    <li>{{training.title}}</li>
+                                    {% endfor %}
+                                </ol>
+                            </td>
+                            
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="row">
+                <div class="col-md-12 text-center text-md-left pt-3 pb-5">
+                    {% include "parts/pagination.html" %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

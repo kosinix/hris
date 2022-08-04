@@ -29,7 +29,6 @@ router.get('/reports/all', middlewares.guardRoute(['read_all_report']), async (r
     }
 });
 
-
 router.get('/reports/attendance/incomplete', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
 
@@ -390,6 +389,192 @@ router.get(['/reports/rsp/gender/table', `/reports/rsp/gender/table.xlsx`], midd
     }
 });
 
+// LD
+// LD - trainings
+router.get('/reports/lad/all', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
+    try {
+        res.render('reports/lad/all.html');
+    } catch (err) {
+        next(err);
+    }
+});
+router.get(['/reports/lad/training/all', '/reports/pm/training/all.xlsx'], middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
+    try {
+        let page = parseInt(lodash.get(req, 'query.page', 1))
+        let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
+        let sortBy = lodash.get(req, 'query.sortBy', '_id')
+        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', 1))
+        let customSort = lodash.get(req, 'query.customSort')
+        let customFilter = lodash.get(req, 'query.customFilter')
+        let customFilterValue = lodash.get(req, 'query.customFilterValue')
+        lodash.set(req, 'session.pagination.perPage', perPage)
+
+        let query = {}
+        let projection = {}
+
+        if (['department', 'employmentType', 'group', 'position', 'campus'].includes(customFilter)) {
+            query[`employments.0.${customFilter}`] = customFilterValue
+        }
+
+        if (['permanent-faculty'].includes(customFilter)) {
+            query[`employments.0.employmentType`] = 'permanent'
+            query[`employments.0.group`] = 'faculty'
+        }
+        if (['permanent-staff'].includes(customFilter)) {
+            query[`employments.0.employmentType`] = 'permanent'
+            query[`employments.0.group`] = 'staff'
+        }
+        if (['cos-teaching'].includes(customFilter)) {
+            query[`employments.0.employmentType`] = 'cos'
+            query[`employments.0.group`] = 'faculty'
+        }
+        if (['cos-staff'].includes(customFilter)) {
+            query[`employments.0.employmentType`] = 'cos'
+            query[`employments.0.group`] = 'staff'
+        }
+        if (['part-time'].includes(customFilter)) {
+            query[`employments.0.employmentType`] = 'part-time'
+            query[`employments.0.group`] = 'faculty'
+        }
+
+        let options = { skip: (page - 1) * perPage, limit: perPage };
+        let sort = {}
+        sort = lodash.set(sort, sortBy, sortOrder)
+        if (['department', 'employmentType', 'group', 'position', 'campus'].includes(sortBy)) {
+            sort[`employments.0.${sortBy}`] = sortOrder
+        }
+
+        // console.log(query, projection, options, sort)
+
+        let aggr = []
+
+        aggr.push({
+            $lookup:
+            {
+                localField: "_id",
+                foreignField: "employeeId",
+                from: "employments",
+                as: "employments"
+            }
+        })
+        // aggr.push({
+        //     $project: {
+        //         trainings: {
+        //             $map: {
+        //                 input: "$personal.trainings",
+        //                 as: "training",
+        //                 in: {
+        //                     $getField: "$$training.title"
+        //                 }
+        //             }
+        //         }
+        //     }
+        // })
+
+        aggr.push({ $match: query })
+        aggr.push({ $sort: sort })
+
+        // Pagination
+        let countDocuments = await req.app.locals.db.main.Employee.aggregate(aggr)
+        let totalDocs = countDocuments.length
+        let pagination = paginator.paginate(
+            page,
+            totalDocs,
+            perPage,
+            '/reports/lad/training/all',
+            req.query
+        )
+
+        if (!isNaN(perPage)) {
+            aggr.push({ $skip: options.skip })
+            aggr.push({ $limit: options.limit })
+        }
+        let employees = await req.app.locals.db.main.Employee.aggregate(aggr)
+
+        employees = employees.map(e => {
+            // sort
+            let schools = []
+            let school = lodash.get(e, 'personal.schools', []).find(s => s.level === 'Elementary')
+            if (school) {
+                schools.push(school)
+            }
+            school = e.personal.schools.find(s => s.level === 'Secondary')
+            if (school) {
+                schools.push(school)
+            }
+
+            school = e.personal.schools.find(s => s.level === 'Vocational')
+            if (school) {
+                schools.push(school)
+            }
+
+            school = e.personal.schools.find(s => s.level === 'College')
+            if (school) {
+                schools.push(school)
+            }
+
+            school = e.personal.schools.find(s => s.level === 'Graduate Studies')
+            if (school) {
+                schools.push(school)
+            }
+
+            schools = schools.filter(s => s.name !== '' && s.name !== 'N/A' && s.name !== 'n/a')
+            e.lastSchool = schools.at(-1)
+
+            // eligibilities
+            let eligibilities = lodash.get(e, 'personal.eligibilities', [])
+            if(!eligibilities) eligibilities = []
+            e.eligibilities = eligibilities.filter(o => o.name !== '')
+            return e
+        })
+        // console.log(util.inspect(aggr, false, null, true))
+
+        // return res.send(employees)
+        if (req.query.csv == 1) {
+            let csv = employees.map((i) => {
+                return `${i.lastName}, ${i.firstName}, ${i.middleName}, ${lodash.get(i, 'employments[0].position')}`
+            })
+            return res.send(csv.join("\n"))
+        } else if (req.query.qr == 1) {
+            let count = 0
+            employees.forEach((employee, a) => {
+                employee.employments.forEach((employment, b) => {
+                    let qrData = {
+                        type: 2,
+                        employeeId: employee._id,
+                        employmentId: employment._id
+                    }
+                    qrData = Buffer.from(JSON.stringify(qrData)).toString('base64')
+                    // console.log(qrData)
+
+                    qrData = qr.imageSync(qrData, { size: 4, type: 'png' }).toString('base64')
+
+                    employees[a].employments[b].qrCode = {
+                        count: ++count,
+                        data: qrData,
+                        employment: employment,
+                        title: employment.position || 'Employment',
+                    }
+                })
+            })
+            return res.render('employee/qr-codes.html', {
+                flash: flash.get(req, 'employee'),
+                employees: employees,
+                pagination: pagination,
+                query: req.query,
+            });
+        }
+        res.render('reports/lad/training/all.html', {
+            flash: flash.get(req, 'employee'),
+            employees: employees,
+            pagination: pagination,
+            query: req.query,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
 // PM
 router.get('/reports/pm/all', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
@@ -465,7 +650,7 @@ router.get('/reports/pm/non-party', middlewares.guardRoute(['read_all_report']),
     }
 });
 
-// Tardiness
+// PM - Tardiness
 router.get(['/reports/pm/tardiness/overall', '/reports/pm/tardiness/overall.xlsx'], middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
 

@@ -1651,6 +1651,50 @@ let templateReportTardinessPerEmployee = async (employee, periodString, undertim
 
 }
 
+let templateReportTrainingAll = async (employees, pagination) => {
+
+    let workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/reports/lad/training/all.xlsx`);
+    let slex = new Slex(workbook)
+
+    let worksheet = workbook.getWorksheet('Sheet1')
+    if (worksheet) {
+        slex.setSheet(worksheet)
+
+        let off = 2
+        for(let i = 0; i < employees.length; i++){
+            let employee = employees[i]
+            let r = off + i
+
+            let highest = ''
+            let lastSchool = lodash.get(employee, 'lastSchool')
+            if (lastSchool){
+                highest = `${lastSchool.course} - ${lastSchool.name} (${lastSchool.periodFrom}-${lastSchool.periodTo}) ${lastSchool.honors} - ${lastSchool.level}`
+            }
+
+            let eligibilities = lodash.get(employee, 'personal.eligibilities', [])
+            if(!eligibilities) eligibilities = []
+
+            eligibilities = eligibilities.map(o=>{
+                return `${o.name}\nRating: ${o.rating}\nExam Date: ${o.examDate}\nExam Place: ${o.examPlace}\nNumber: ${o.licenseNumber}\nValidity: ${o.licenseValidity}`
+            }).join("\n")
+
+            let trainings = lodash.get(employee, 'personal.trainings', []).map(o=>{
+                return `${o.title}\n`
+            }).join("\n")
+
+            slex.getCell(`A${r}`).value((i+1) + (pagination.page - 1) * (pagination.perPage|0))
+            slex.getCell(`B${r}`).value(employee.lastName + ', ' + employee.firstName)
+            slex.getCell(`C${r}`).value(highest)
+            slex.getCell(`D${r}`).value(eligibilities)
+            slex.getCell(`E${r}`).value(trainings)
+        }
+    }
+
+    return workbook
+
+}
+
 module.exports = {
     templateCos: templateCos,
     templateHdf: templateHdf,
@@ -1661,4 +1705,5 @@ module.exports = {
     templateGenderReport: templateGenderReport,
     templateReportTardinessOverall: templateReportTardinessOverall,
     templateReportTardinessPerEmployee: templateReportTardinessPerEmployee,
+    templateReportTrainingAll: templateReportTrainingAll,
 }

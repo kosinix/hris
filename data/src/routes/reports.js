@@ -398,7 +398,7 @@ router.get('/reports/lad/all', middlewares.guardRoute(['read_all_report']), asyn
         next(err);
     }
 });
-router.get(['/reports/lad/training/all', '/reports/pm/training/all.xlsx'], middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
+router.get(['/reports/lad/training/all', '/reports/lad/training/all.xlsx'], middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
         let page = parseInt(lodash.get(req, 'query.page', 1))
         let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
@@ -530,39 +530,12 @@ router.get(['/reports/lad/training/all', '/reports/pm/training/all.xlsx'], middl
         // console.log(util.inspect(aggr, false, null, true))
 
         // return res.send(employees)
-        if (req.query.csv == 1) {
-            let csv = employees.map((i) => {
-                return `${i.lastName}, ${i.firstName}, ${i.middleName}, ${lodash.get(i, 'employments[0].position')}`
-            })
-            return res.send(csv.join("\n"))
-        } else if (req.query.qr == 1) {
-            let count = 0
-            employees.forEach((employee, a) => {
-                employee.employments.forEach((employment, b) => {
-                    let qrData = {
-                        type: 2,
-                        employeeId: employee._id,
-                        employmentId: employment._id
-                    }
-                    qrData = Buffer.from(JSON.stringify(qrData)).toString('base64')
-                    // console.log(qrData)
-
-                    qrData = qr.imageSync(qrData, { size: 4, type: 'png' }).toString('base64')
-
-                    employees[a].employments[b].qrCode = {
-                        count: ++count,
-                        data: qrData,
-                        employment: employment,
-                        title: employment.position || 'Employment',
-                    }
-                })
-            })
-            return res.render('employee/qr-codes.html', {
-                flash: flash.get(req, 'employee'),
-                employees: employees,
-                pagination: pagination,
-                query: req.query,
-            });
+        if (req.originalUrl.includes('.xlsx')) {
+            let workbook = await excelGen.templateReportTrainingAll(employees, pagination)
+            let buffer = await workbook.xlsx.writeBuffer();
+            res.set('Content-Disposition', `attachment; filename="overall-trainings.xlsx"`)
+            res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            return res.send(buffer)
         }
         res.render('reports/lad/training/all.html', {
             flash: flash.get(req, 'employee'),

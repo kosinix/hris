@@ -1669,7 +1669,7 @@ let templateReportTrainingAll = async (employees, pagination) => {
             let highest = ''
             let lastSchool = lodash.get(employee, 'lastSchool')
             if (lastSchool){
-                highest = `${lastSchool.course} - ${lastSchool.name} (${lastSchool.periodFrom}-${lastSchool.periodTo}) ${lastSchool.honors} - ${lastSchool.level}`
+                highest = `${lastSchool.course} \n${lastSchool.name} (${lastSchool.periodFrom}-${lastSchool.periodTo}) \n${lastSchool.honors} - ${lastSchool.level}`
             }
 
             let eligibilities = lodash.get(employee, 'personal.eligibilities', [])

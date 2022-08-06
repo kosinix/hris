@@ -1,0 +1,4 @@
+Kng weekend/holidays
+	daily rate x 1.5 / 8 = hourly rate
+weekdays 
+	daily rate x 1.25 / 8 = hourly rate

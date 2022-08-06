@@ -24,19 +24,26 @@ let schema = mongoose.Schema({
     // Logs can be null for blank logs (half-day)
     logs: [
         {
-            scannerId: mongoose.Schema.Types.ObjectId,
             dateTime: Date,
             mode: Number, // 1 = in, 0 = out
-            type: String, // 'online', 'scanner' // normal, wfh, travel, pass
-            extra: {
+
+            // @deprecated: 'online', 'scanner' 
+            // Replaced by: 'normal', 'wfh', 'travel', 'pass'
+            type: String,
+            source: {
+                id: mongoose.Schema.Types.ObjectId,
+                type: String, // 'scanner', 'userAccount', 'adminAccount'
                 lat: String,
                 lon: String,
                 photo: String,
             },
-            source: {
-                id: mongoose.Schema.Types.ObjectId,
-                type: String, // 'scanner', 'userAccount', 'adminAccount'
-            }
+            
+            extra: { // @deprecated. Use source
+                lat: String, // @deprecated. Use source.lat
+                lon: String, // @deprecated. Use source.lon
+                photo: String, // @deprecated. Use source.photo
+            },
+            scannerId: mongoose.Schema.Types.ObjectId, // @deprecated. Use source.id
         }
     ],
     changes: [

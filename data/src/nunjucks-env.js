@@ -59,15 +59,41 @@ env.addFilter('includes', function (array, value) {
     return array.includes(value);
 })
 env.addFilter('mToTime', function (minutes, format) {
-    if (!minutes) return 0
+    if (minutes === undefined || minutes === null) return 0
+    if (minutes === '') return ''
     format = format || 'h:mmA'
     return moment().startOf('year').startOf('day').add(minutes, 'minutes').format(format)
+})
+env.addFilter('mToHour', function (minutes) {
+    if (minutes === undefined || minutes === null) return 0
+    return Math.floor(minutes/60)
+})
+env.addFilter('mToMin', function (minutes) {
+    if (minutes === undefined || minutes === null) return 0
+    return Math.round((minutes/60 - Math.floor(minutes/60))*60)
+})
+env.addFilter('round2', function (num) {
+    return Math.round( ( num + Number.EPSILON ) * 100 ) / 100
 })
 env.addFilter('scheduleBreaks', function (breaks) {
     breaks = breaks.map((br)=>{
         return br.start + ' - ' + br.end
     })
     return breaks.join(', ')
+})
+/**
+ * @param {number} hour 24-hour time from 0 -23
+ */
+env.addFilter('to12Hour', function (hour) {
+    if (hour == 0 ) {
+        return '12AM'
+    } else if (hour <= 11){
+        return hour + 'AM'
+    } else if (hour === 12) {
+        return hour + 'PM'
+    } else {
+        return hour - 12 + 'PM'
+    }
 })
 
 //// Export

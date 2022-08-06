@@ -5,7 +5,7 @@
     {% include 'parts/flash.html' %}
     {% include 'attendance/header.html' %}
     {# {% include 'attendance/tabs-calendar.html' %} #}
-    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3">
+    <div id="vApp" v-cloak style="background: #e3ecf2" class="tab-content pt-3 pb-2 pl-3 pr-3">
         <div class="d-flex mb-3">
             {% if employee.profilePhoto %}
                 <img class="mr-3 privy-photo" width="100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="photo">
@@ -13,12 +13,12 @@
             {% endif %}
             <div class="mt-2">
                 <h1 class="privy-name">  
-                    <a href="/employee/{{employee._id}}/personal">
+                    <a href="/employee/personal/{{employee._id}}">
                         {{employee.lastName}},
                         {{employee.firstName}}
                     </a>
                 </h1>
-                <h2><a class="privy-employment" href="/employee/{{employee._id}}/employment">{{employment.position}} - {{employment.employmentType|capitalize}}</a></h2>
+                <h2><a class="privy-employment" href="/employee/employment/{{employee._id}}">{{employment.position}} - {{employment.employmentType|capitalize}}</a></h2>
             </div>
         </div>
        
@@ -51,11 +51,10 @@
         <div class="table-responsive">
             <table class="table table-dtr">
                 <tr>
-                    <th class="text-center" rowspan="2" colspan="2">Day</th>
-                    <th class="text-center" colspan="2">AM</th>
-                    <th class="text-center" colspan="2">PM</th>
-                    <th class="text-center" colspan="2">Extended</th>
-                    <th class="text-center" colspan="3">
+                    <th width="10%" class="text-center" rowspan="2" colspan="2">Day</th>
+                    <th width="22%" class="text-center" colspan="2">AM</th>
+                    <th width="22%" class="text-center" colspan="2">PM</th>
+                    <th width="22%" class="text-center" colspan="3">
                         {% if showTotalAs == 'undertime' %}
                             <a href="?{{query|query_string({undertime: 0})}}">Undertime</a>
                         {% else %}
@@ -64,9 +63,6 @@
                     </th>
                 </tr>
                 <tr>
-                    <th>Arrival</th>
-                    <th>Departure</th>
-                    
                     <th>Arrival</th>
                     <th>Departure</th>
                     
@@ -82,7 +78,7 @@
                 <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
                     <td class="text-center">
                         {% if attendance %}
-                            <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/{{attendance._id}}/edit">{{day.day}}</a>
+                            <a href="/attendance/{{attendance._id}}/edit">{{day.day}}</a>
                         {% else %}
                             <span class="text-dark">{{day.day}}</span>
                         {% endif %}
@@ -90,16 +86,13 @@
                     <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
                     
                     {% if attendance.type == 'normal' %}
-                        <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                        <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                        <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                        <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-
+                        <td>{% if attendance.timeWorked[0].logSegments[0].start %} {{attendance.timeWorked[0].logSegments[0].start|mToTime('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.timeWorked[0].logSegments[0].end %} {{attendance.timeWorked[0].logSegments[0].end|mToTime('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.timeWorked[1].logSegments[0].start %} {{attendance.timeWorked[1].logSegments[0].start|mToTime('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.timeWorked[1].logSegments[0].end %} {{attendance.timeWorked[1].logSegments[0].end|mToTime('hh:mm A')}} {% endif %}</td>
                     {% else %}
                         <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')|replace('Wfh', 'WFH')}}</td>
                     {% endif %}
-                    <td></td>
-                    <td></td>
                     <td>
                         {% if showTotalAs == 'undertime' %}
                             {{day.dtr.underDays|default('', true)}}
@@ -125,7 +118,7 @@
                 </tr>
                 {% endfor %}
                 <tr>
-                    <td colspan="8"><h5 class="m-0">Total</h5></td>
+                    <td colspan="6"><h5 class="m-0">Total</h5></td>
                     <td>
                         {% if showTotalAs == 'undertime' %}
                             {{timeRecordSummary.underDays|default('', true)}}

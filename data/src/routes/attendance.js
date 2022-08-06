@@ -489,7 +489,7 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
 router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
     try {
         let employment = res.employment.toObject()
-        let employee = await db.main.Employee.findById(employment.employeeId).lean()
+        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
 
         let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
         let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
@@ -519,7 +519,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         if (!options.showWeekDays.length) {
             options.showWeekDays = showWeekDays.split('|')
         }
-        let { days } = await dtrHelper.getDtrByDateRange2(db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days } = await dtrHelper.getDtrByDateRange2(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         // console.log(options)
         let totalMinutes = 0
@@ -597,14 +597,14 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
 router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getAttendance, async (req, res, next) => {
     try {
         let attendance = res.attendance.toObject()
-        let employee = await db.main.Employee.findById(attendance.employeeId)
-        let employment = await db.main.Employment.findById(attendance.employmentId)
-        let workSchedules = await db.main.WorkSchedule.find().lean()
+        let employee = await req.app.locals.db.main.Employee.findById(attendance.employeeId)
+        let employment = await req.app.locals.db.main.Employment.findById(attendance.employmentId)
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
         let workSchedule = {}
         if (attendance.workScheduleId) {
-            workSchedule = await db.main.WorkSchedule.findById(attendance.workScheduleId).lean()
+            workSchedule = await req.app.locals.db.main.WorkSchedule.findById(attendance.workScheduleId).lean()
         } else {
-            workSchedule = await db.main.WorkSchedule.findById(employment.workScheduleId).lean()
+            workSchedule = await req.app.locals.db.main.WorkSchedule.findById(employment.workScheduleId).lean()
         }
 
         let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
@@ -679,7 +679,7 @@ router.post('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_at
             return res.redirect(`/attendance/${attendance._id}/edit`)
         }
 
-        let { changeLogs, att } = await dtrHelper.editAttendance(db, attendance._id, patch, res.user)
+        let { changeLogs, att } = await dtrHelper.editAttendance(req.app.locals.db, attendance._id, patch, res.user)
 
         // return res.send(att)
         if (changeLogs.length) {

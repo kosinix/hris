@@ -21,6 +21,7 @@ router.use(require('./routes/employee'));
 router.use(require('./routes/memo'));
 router.use(require('./routes/payroll'));
 router.use(require('./routes/attendance'));
+router.use(require('./routes/schedule'));
 router.use(require('./routes/scanner'));
 router.use(require('./routes/user'));
 router.use(require('./routes/support'));

@@ -22,7 +22,7 @@ nunjucksFilters.extend(env)
 
 // Custom app specific filter
 env.addFilter('s3_url', function (value, sizePrefix = "") {
-    if(!value){
+    if (!value) {
         return ''
     }
     if (sizePrefix) {
@@ -53,7 +53,7 @@ env.addFilter('padStart', function (value, length = 2, pads = '0') {
     return String(value).padStart(length, pads)
 })
 env.addFilter('maybePluralize', function (count, noun, suffix = 's') {
-    return`${count} ${noun}${count !== 1 ? suffix : ''}`;
+    return `${count} ${noun}${count !== 1 ? suffix : ''}`;
 })
 env.addFilter('includes', function (array, value) {
     return array.includes(value);
@@ -66,17 +66,17 @@ env.addFilter('mToTime', function (minutes, format) {
 })
 env.addFilter('mToHour', function (minutes) {
     if (minutes === undefined || minutes === null) return 0
-    return Math.floor(minutes/60)
+    return Math.floor(minutes / 60)
 })
 env.addFilter('mToMin', function (minutes) {
     if (minutes === undefined || minutes === null) return 0
-    return Math.round((minutes/60 - Math.floor(minutes/60))*60)
+    return Math.round((minutes / 60 - Math.floor(minutes / 60)) * 60)
 })
 env.addFilter('round2', function (num) {
-    return Math.round( ( num + Number.EPSILON ) * 100 ) / 100
+    return Math.round((num + Number.EPSILON) * 100) / 100
 })
 env.addFilter('scheduleBreaks', function (breaks) {
-    breaks = breaks.map((br)=>{
+    breaks = breaks.map((br) => {
         return br.start + ' - ' + br.end
     })
     return breaks.join(', ')
@@ -84,16 +84,26 @@ env.addFilter('scheduleBreaks', function (breaks) {
 /**
  * @param {number} hour 24-hour time from 0 -23
  */
-env.addFilter('to12Hour', function (hour) {
-    if (hour == 0 ) {
-        return '12AM'
-    } else if (hour <= 11){
-        return hour + 'AM'
-    } else if (hour === 12) {
-        return hour + 'PM'
-    } else {
-        return hour - 12 + 'PM'
+env.addFilter('to12Hour', function (hour, compact = false) {
+
+    let h = Math.floor(hour)
+    let m = Math.round((hour - h) * 60)
+
+    let a = h >= 12 ? 'PM' : 'AM'
+    h = h <= 0 ? 12 : h // 12 AM
+    h = h >= 13 ? h - 12 : h // 1 PM onwards
+
+    
+    m = new String(m).padStart(2, '0')
+    let hm = `${h}:${m}`
+    if (compact) {
+        hm = hm.replace(':00', '')
+        return `${hm}${a}`
     }
+    h = new String(h).padStart(2, '0')
+    return `${hm} ${a}`
+
+
 })
 
 //// Export

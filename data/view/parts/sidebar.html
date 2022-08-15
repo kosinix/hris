@@ -44,12 +44,8 @@
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,5.5A3.5,3.5 0 0,1 15.5,9A3.5,3.5 0 0,1 12,12.5A3.5,3.5 0 0,1 8.5,9A3.5,3.5 0 0,1 12,5.5M5,8C5.56,8 6.08,8.15 6.53,8.42C6.38,9.85 6.8,11.27 7.66,12.38C7.16,13.34 6.16,14 5,14A3,3 0 0,1 2,11A3,3 0 0,1 5,8M19,8A3,3 0 0,1 22,11A3,3 0 0,1 19,14C17.84,14 16.84,13.34 16.34,12.38C17.2,11.27 17.62,9.85 17.47,8.42C17.92,8.15 18.44,8 19,8M5.5,18.25C5.5,16.18 8.41,14.5 12,14.5C15.59,14.5 18.5,16.18 18.5,18.25V20H5.5V18.25M0,20V18.5C0,17.11 1.89,15.94 4.45,15.6C3.86,16.28 3.5,17.22 3.5,18.25V20H0M24,20H20.5V18.25C20.5,17.22 20.14,16.28 19.55,15.6C22.11,15.94 24,17.11 24,18.5V20Z" /></svg>
                 <span>Employees</span>
                 <button class="nav-expander" type="button">
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
-                    </svg>
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
-                    </svg>
+                    {% include 'parts/svg-chevron-down.html' %}
+                    {% include 'parts/svg-chevron-up.html' %}
                 </button>
             </a>
             <ul class="nav flex-column">
@@ -77,12 +73,8 @@
                 </svg>
                 <span>Payroll</span>
                 <button class="nav-expander" type="button">
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
-                    </svg>
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
-                    </svg>
+                    {% include 'parts/svg-chevron-down.html' %}
+                    {% include 'parts/svg-chevron-up.html' %}
                 </button>
             </a>
             <ul class="nav flex-column">
@@ -98,19 +90,15 @@
                 </li>
             </ul>
         </li>
-        <li class="nav-item {{urlPath|active_class([r/^\/attendance\/(.)+/, r/^\/attendance\/schedule/], 'expanded')}}" id="nav-item-attendance">
-            <a class="nav-link {{urlPath|active_class([r/^\/attendance\/monthly/, r/^\/attendance\//, r/^\/attendance\/schedule/])}}" href="/attendance/monthly">
+        <li class="nav-item {{urlPath|active_class([r/^\/attendance\/(.)+/, r/^\/attendance\/schedule/, r/^\/schedule\/(.)+/], 'expanded')}}" id="nav-item-attendance">
+            <a class="nav-link {{urlPath|active_class([r/^\/attendance\/monthly/, r/^\/attendance\//, r/^\/attendance\/schedule/, r/^\/schedule\/(.)+/])}}" href="/attendance/monthly">
                 <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19Z" />
                 </svg>
                 <span>Attendance</span>
                 <button class="nav-expander" type="button">
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
-                    </svg>
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
-                    </svg>
+                    {% include 'parts/svg-chevron-down.html' %}
+                    {% include 'parts/svg-chevron-up.html' %}
                 </button>
             </a>
             <ul class="nav flex-column">
@@ -120,7 +108,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{urlPath|active_class([r/^\/attendance\/schedule\/(.)+/])}}" href="/attendance/schedule/all">
+                    <a class="nav-link {{urlPath|active_class([r/^\/attendance\/schedule\/(.)+/, r/^\/schedule\/(.)+/])}}" href="/attendance/schedule/all">
                         Work Schedules
                     </a>
                 </li>
@@ -148,12 +136,8 @@
                 </svg>
                 <span>Online Services</span>
                 <button class="nav-expander" type="button">
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
-                    </svg>
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
-                    </svg>
+                    {% include 'parts/svg-chevron-down.html' %}
+                    {% include 'parts/svg-chevron-up.html' %}
                 </button>
             </a>
             <ul class="nav flex-column">
@@ -180,12 +164,8 @@
                 </svg>
                 <span>Scanners</span>
                 <button class="nav-expander" type="button">
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
-                    </svg>
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
-                    </svg>
+                    {% include 'parts/svg-chevron-down.html' %}
+                    {% include 'parts/svg-chevron-up.html' %}
                 </button>
             </a>
             <ul class="nav flex-column">
@@ -208,12 +188,8 @@
                 </svg>
                 <span>Clinic</span>
                 <button class="nav-expander" type="button">
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
-                    </svg>
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
-                    </svg>
+                    {% include 'parts/svg-chevron-down.html' %}
+                    {% include 'parts/svg-chevron-up.html' %}
                 </button>
             </a>
             <ul class="nav flex-column">
@@ -236,12 +212,8 @@
                 </svg>
                 <span>Access</span>
                 <button class="nav-expander" type="button">
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
-                    </svg>
-                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
-                    </svg>
+                    {% include 'parts/svg-chevron-down.html' %}
+                    {% include 'parts/svg-chevron-up.html' %}
                 </button>
             </a>
             <ul class="nav flex-column">

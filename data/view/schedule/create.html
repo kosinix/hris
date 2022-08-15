@@ -20,7 +20,8 @@
                 <li v-for="error in errors.workSchedule">${error}</li>
             </ul>
         </div>
-        <form ref="form" v-on:submit.prevent="onSubmit" action="/schedule/create" method="POST" class="form-default">
+        <form ref="form" v-on:submit.prevent="onSubmit" v-bind:action="formUrl" method="POST" class="form-default">
+            <input type="hidden" v-model="scheduleId" name="scheduleId">
             <div class="ui-work-schedule mb-5">
                 <div class="ui-work-schedule-group">
                     <div class="ui-work-schedule-weekday">&nbsp;</div>
@@ -150,6 +151,7 @@
             name: '',
             employeeLists: {{employeeLists|default([], true)|stringify|safe}},
             workSchedule: {{workSchedule|default({}, true)|stringify|safe}},
+            scheduleId: "{{scheduleId}}",
             newTimeSegment: {
                 weekDay: '',
                 index: 0,
@@ -178,11 +180,7 @@
                 workSchedule: [],
             }
         },
-        watch: {
-            
-        },
         computed: {
-            
             createModalTitle: function(){
                 var weekDay = weekDayShortToLong(this.newTimeSegment.weekDay)
                 var a = 'Morning (AM)';
@@ -207,6 +205,12 @@
                 return _.map(me.workSchedule.members, function(member){
                     return member.objectId;
                 })
+            },
+            formUrl: function(){
+                if(this.scheduleId){
+                    return '/schedule/' + this.scheduleId
+                }
+                return '/schedule/create'
             },
             package: function(){
                 return JSON.stringify(this.workSchedule)
@@ -343,7 +347,6 @@
                         }
                     }
                 })
-
                 
                 segment.breaks.forEach((br, i) => {
                     let brStart = br.start
@@ -384,14 +387,11 @@
 
                 return errors
             },
-            
             onSubmitTimeSegmentUpdate: function(){
                 var me = this;
                 var timeSegment = me.updateTimeSegment
-
                 me.errors.updateTimeSegment = me.validateSegment(timeSegment, me.workSchedule.weekDays[timeSegment.weekDay].timeSegments)
                 if (me.errors.updateTimeSegment.length <= 0) {
-                    
                     setTimeout(function(){
                         me.setTimeSegment(timeSegment, timeSegment.weekDay, timeSegment.index)
                         me.updateTimeSegment = {
@@ -408,10 +408,8 @@
                         
                         me.errors.updateTimeSegment = []
                     }, 500)
-
                     jQuery('#vModalScheduleUpdate').modal('hide')
                 }
-
             },
             displayTime: function(ts){
                 var me = this;
@@ -467,6 +465,7 @@
                 this.workSchedule.members.push({
                     objectId: o.value,
                     name: o.display,
+                    type: 'employment',
                 });
                 this.$refs.autocomplete.close();
                 this.$refs.autocomplete.clear();
@@ -476,11 +475,11 @@
             dataSource: function(input) {
                 return '/auto-complete/employee?salary=0&s=' + input + '&ignore=' + this.memberIds.join(',');
             },
-
             onSelect2: function(o){
                 this.workSchedule.members.push({
                     objectId: o.value,
                     name: o.display,
+                    type: 'list'
                 });
                 this.$refs.autocomplete2.close();
                 this.$refs.autocomplete2.clear();

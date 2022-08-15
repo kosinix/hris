@@ -91,11 +91,8 @@ router.get('/schedule/create', middlewares.guardRoute(['create_schedule']), asyn
             flash: flash.get(req, 'schedule'),
             hourList: hourList,
             employeeLists: employeeLists,
+            scheduleId: '',
             workSchedule: defaultWorkSchedule,
-            defaultWorkSchedule: defaultWorkSchedule,
-            defaultBreak: defaultBreak,
-            defaultTimeSegment: defaultTimeSegment,
-            defaultWorkSchedule: defaultWorkSchedule,
         });
     } catch (err) {
         next(err);
@@ -107,10 +104,10 @@ router.post('/schedule/create', middlewares.guardRoute(['create_schedule']), asy
         let body = lodash.get(req, 'body')
 
         let workSchedule = JSON.parse(lodash.get(body, 'workSchedule'))
-        let name = lodash.get(workSchedule, 'name')
-        let visibility = lodash.get(workSchedule, 'visibility', '')
-        let memberIds = lodash.get(workSchedule, 'memberIds')
-        // return res.send(workSchedule)
+        // let name = lodash.get(workSchedule, 'name')
+        // let visibility = lodash.get(workSchedule, 'visibility', '')
+        // let memberIds = lodash.get(body, 'memberIds')
+        // return res.send(memberIds)
 
         let errors = []
         if (!workSchedule.name) {
@@ -178,58 +175,53 @@ router.post('/schedule/create', middlewares.guardRoute(['create_schedule']), asy
                 return t
             })
         })
-        return res.send(workSchedule)
+        // return res.send(workSchedule)
 
-        let members = []
-        if (visibility === 'members') {
-            if (!memberIds) {
-                let err = new Error('No members selected.')
-                err.type = 'flash'
-                throw err
-            } else {
-                memberIds = memberIds.split(',').map(id => new req.app.locals.db.mongoose.Types.ObjectId(id))
-                for (let x = 0; x < memberIds.length; x++) {
-                    let memberId = memberIds[x]
-                    let objectId = null
-                    let name = ''
-                    let type = ''
+        // let members = []
+        // if (visibility === 'members') {
+        //     if (!memberIds) {
+        //         let err = new Error('No members selected.')
+        //         err.type = 'flash'
+        //         throw err
+        //     } else {
+        //         memberIds = memberIds.split(',').map(id => new req.app.locals.db.mongoose.Types.ObjectId(id))
+        //         for (let x = 0; x < memberIds.length; x++) {
+        //             let memberId = memberIds[x]
+        //             let objectId = null
+        //             let name = ''
+        //             let type = ''
 
-                    let employment = await req.app.locals.db.main.Employment.findById(memberId)
-                    if (employment) {
-                        objectId = employment._id
-                        type = 'employment'
-                        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId)
-                        if (employee) {
-                            name = `${employee.firstName} ${employee.lastName} - ${employment.position}`
-                        }
-                    } else {
-                        let employeeList = await req.app.locals.db.main.EmployeeList.findById(memberId)
-                        if (employeeList) {
-                            objectId = employeeList._id
-                            name = `${employeeList.name} - ${employeeList.tags.join(',')}`
-                            type = 'list'
-                        }
-                    }
-                    if (objectId && name && type) {
-                        members.push({
-                            objectId: objectId,
-                            name: name,
-                            type: type,
-                        })
-                    }
+        //             let employment = await req.app.locals.db.main.Employment.findById(memberId)
+        //             if (employment) {
+        //                 objectId = employment._id
+        //                 type = 'employment'
+        //                 let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId)
+        //                 if (employee) {
+        //                     name = `${employee.firstName} ${employee.lastName} - ${employment.position}`
+        //                 }
+        //             } else {
+        //                 let employeeList = await req.app.locals.db.main.EmployeeList.findById(memberId)
+        //                 if (employeeList) {
+        //                     objectId = employeeList._id
+        //                     name = `${employeeList.name} - ${employeeList.tags.join(',')}`
+        //                     type = 'list'
+        //                 }
+        //             }
+        //             if (objectId && name && type) {
+        //                 members.push({
+        //                     objectId: objectId,
+        //                     name: name,
+        //                     type: type,
+        //                 })
+        //             }
 
-                }
-            }
-        }
+        //         }
+        //     }
+        // }
 
-        let patch = {
-            name: name,
-            visibility: visibility,
-            members: members,
-            timeSegments: timeSegments
-        }
-        // return res.send(patch)
-        await req.app.locals.db.main.WorkSchedule.create(patch)
+        // workSchedule.members = members
+        // return res.send(workSchedule)
+        await req.app.locals.db.main.WorkSchedule.create(workSchedule)
         flash.ok(req, 'schedule', `Work schedule created.`)
         return res.redirect('/schedule/all')
     } catch (err) {
@@ -303,15 +295,92 @@ router.get('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']),
             hourList: hourList,
             employeeLists: employeeLists,
             workSchedule: workSchedule,
-            defaultWorkSchedule: defaultWorkSchedule,
-            defaultBreak: defaultBreak,
-            defaultTimeSegment: defaultTimeSegment,
-            defaultWorkSchedule: defaultWorkSchedule,
+            scheduleId: workSchedule._id,
         });
     } catch (err) {
         next(err);
     }
 });
+router.post('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']), middlewares.getSchedule, async (req, res, next) => {
+    try {
+        let body = lodash.get(req, 'body')
+
+        let workSchedule = JSON.parse(lodash.get(body, 'workSchedule'))
+
+        let errors = []
+        if (!workSchedule.name) {
+            let err = new Error('Name required.')
+            err.type = 'flash'
+            throw err
+        }
+        if (workSchedule.visibility === 'members' && workSchedule.members.length <= 0) {
+            let err = new Error('No members found.')
+            err.type = 'flash'
+            throw err
+        }
+
+        let timeSegmentCount = 0
+        lodash.each(workSchedule.weekDays, (weekDay, weekName) => {
+            weekDay.timeSegments.forEach((timeSegment, index) => {
+                timeSegmentCount++
+                let { start, end, max } = timeSegment
+                if (!Number.isInteger(start)) {
+                    errors.push('Start Time is invalid.')
+                }
+                if (!Number.isInteger(end)) {
+                    errors.push('End Time is invalid.')
+                }
+                if (max <= 0) {
+                    timeSegment.max = null
+                }
+
+                // segment here contains time in HH:mm format from HTML input
+                if (start % 30 > 0) {
+                    errors.push('Start Time must be in 30-minute increments.')
+                }
+                if (end % 30 > 0) {
+                    errors.push('End Time must be in 30-minute increments.')
+                }
+
+                if (end <= start) {
+                    errors.push('End Time must be more than Start Time.')
+                }
+            })
+        })
+        if (timeSegmentCount <= 0) {
+            errors.push('Invalid schedule. No time segment found.')
+        }
+
+        if (errors.length > 0) {
+            let err = new Error(`${errors.join(' ')}`)
+            err.type = 'flash'
+            throw err
+        }
+
+        lodash.each(workSchedule.weekDays, (weekDay, weekName) => {
+            workSchedule.weekDays[weekName].timeSegments = weekDay.timeSegments.map(t => {
+                t.start = parseInt(t.start)
+                t.end = parseInt(t.end)
+                t.grace = parseInt(t.grace)
+                return t
+            })
+        })
+        
+        // return res.send(workSchedule)
+        await req.app.locals.db.main.WorkSchedule.updateOne({
+            _id: res.schedule._id,
+        }, workSchedule)
+        flash.ok(req, 'schedule', `Work schedule updated.`)
+        return res.redirect('/schedule/all')
+    } catch (err) {
+        // if (err.type === 'flash') {
+        //     flash.error(req, 'schedule', `Error: ${err.message}`)
+        //     return res.redirect('/schedule/create')
+        // }
+        next(err);
+    }
+});
+
 router.post('/schedule/:scheduleId/members', middlewares.guardRoute(['update_schedule']), middlewares.getSchedule, async (req, res, next) => {
     try {
         let listIds = lodash.get(req, 'body.listIds', [])

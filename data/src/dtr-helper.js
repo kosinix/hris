@@ -263,7 +263,7 @@ const calcDailyAttendance = (attendance, hoursPerDay = 8, travelPoints = 480, sh
                 // console.log(minutes)
             }
         }
-        
+
         for (let l = 0; l < attendance.logs.length; l++) {
             let log = attendance.logs[l]
             if (log.mode === 1) { // in
@@ -1061,6 +1061,24 @@ const buildTimeSegments = (timeSegments) => {
     return flattened
 }
 
+const normalizeTimeSegments = (workScheduleTimeSegments) => {
+    if (workScheduleTimeSegments) {
+        workScheduleTimeSegments = workScheduleTimeSegments.map((timeSegment) => {
+            return Object.fromEntries(Object.entries(timeSegment).filter(([key]) => !['_id'].includes(key))) // remove _id
+        })
+    }
+
+    workScheduleTimeSegments = workScheduleTimeSegments.map((t) => {
+        if (t.maxHours) { // TODO: Check sliding time on database as they use maxHours?
+            t.max = t.maxHours * 60 // TODO: Use max only and remove maxHours
+            delete t.maxHours
+        }
+        return t
+    })
+
+    return workScheduleTimeSegments
+}
+
 /**
  * Extract time segments from a work schedule on a given date
  * 
@@ -1085,21 +1103,8 @@ const getWorkScheduleTimeSegments = (workSchedule, givenDate) => {
     if (!workScheduleTimeSegments) { // V1 work schedule schema
         workScheduleTimeSegments = workSchedule.timeSegments
     }
-    if (workScheduleTimeSegments) {
-        workScheduleTimeSegments = workScheduleTimeSegments.map((timeSegment) => {
-            return Object.fromEntries(Object.entries(timeSegment).filter(([key]) => !['_id'].includes(key))) // remove _id
-        })
-    }
 
-    workScheduleTimeSegments = workScheduleTimeSegments.map((t) => {
-        if (t.maxHours) { // TODO: Check sliding time on database as they use maxHours?
-            t.max = t.maxHours * 60 // TODO: Use max only and remove maxHours
-            delete t.maxHours
-        }
-        return t
-    })
-
-    return workScheduleTimeSegments
+    return normalizeTimeSegments(workScheduleTimeSegments)
 }
 
 const buildLogSegments = (logs) => {
@@ -1163,6 +1168,9 @@ let countWork = (timeSegments, logSegments, options) => {
     for (let s = 0; s < timeSegments.length; s++) {
         let timeSegment = timeSegments[s]
 
+        timeSegments[s].counted = 0
+        timeSegments[s].countedUndertime = 0
+
         for (let l = 0; l < logSegments.length; l++) {
             let logSegment = logSegments[l]
             let log = new Map()
@@ -1170,23 +1178,13 @@ let countWork = (timeSegments, logSegments, options) => {
             log.set('end', logSegment.end)
 
             log.set('raw', logSegment.end - logSegment.start)
+
             log.set('countedStart', logSegment.start)
-            log.set('countedEnd', logSegment.end)
-
-            log.set('counted', 0)
-            log.set('countedExcess', 0)
-
-            log.set('tardiness', 0)
-            log.set('undertime', 0)
-
-            // logSegment.countedStart = logSegment.start
             if (logSegment.start <= timeSegment.start + timeSegment.grace) {
-                log.set('countedStart', timeSegment.start) // Set to start if within grace period
-            } else {
-                log.set('tardiness', logSegment.start - timeSegment.start)
+                log.set('countedStart', timeSegment.start) // Backward to timeSegment.start if within grace period
             }
-            // logSegment.countedEnd = logSegment.end 
 
+            log.set('countedEnd', logSegment.end)
             if (logSegment.end >= timeSegment.end) {
                 log.set('countedEnd', timeSegment.end)
             }
@@ -1194,17 +1192,25 @@ let countWork = (timeSegments, logSegments, options) => {
             log.set('counted', log.get('countedEnd') - log.get('countedStart'))
             log.set('counted', log.get('counted') < 0 ? 0 : log.get('counted'))
             log.set('counted', log.get('counted') > timeSegment.max ? timeSegment.max : log.get('counted'))
+
+            // For flexible time segments, we count exceeded max as OT
             log.set('countedExcess', log.get('countedEnd') - log.get('countedStart') - timeSegment.max)
             if (log.get('countedExcess') < 0) {
                 log.set('countedExcess', 0)
             }
-            if (log.get('tardiness') < 0) {
+
+            log.set('tardiness', logSegment.start - timeSegment.start)
+            if (log.get('tardiness') < 0 || log.get('counted') <= 0 || timeSegment.flexible) {
                 log.set('tardiness', 0)
             }
+
             log.set('undertime', timeSegment.end - logSegment.end)
-            if (log.get('undertime') < 0) {
+            if (log.get('undertime') < 0 || log.get('counted') <= 0 || timeSegment.flexible) {
                 log.set('undertime', 0)
             }
+
+            timeSegments[s].counted += log.get('counted')
+            timeSegments[s].countedUndertime = timeSegment.max - timeSegments[s].counted
 
             if (options && options.ignoreZero) {
                 if (log.get('counted') > 0) {
@@ -1215,6 +1221,8 @@ let countWork = (timeSegments, logSegments, options) => {
             }
         }
     }
+
+
     return timeSegments
 }
 
@@ -1540,8 +1548,8 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
         }
 
         //////////
-        console.dir(date, { depth: null })
-        console.dir(attendance, { depth: null })
+        // console.dir(date, { depth: null })
+        // console.dir(attendance, { depth: null })
         if ((holiday && employment.employmentType === 'permanent') || lodash.get(attendance, 'type') === 'wfh') {
             dtr.totalMinutes = 480
         } else if (attendance) {
@@ -1560,18 +1568,21 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
             } catch (errr) {
                 console.log(errr)
             }
+            console.dir(timeSegments, { depth: null })
+            console.dir(logSegments, { depth: null })
+
             let timeWorked = countWork(timeSegments, logSegments, { ignoreZero: true })
             attendance.timeWorked = timeWorked
 
-            // console.dir(timeWorked, { depth: null })
+            console.dir(timeWorked, { depth: null })
 
             timeWorked.forEach(ts => {
                 if (ts.name != 'OT') { // Exclude OT
                     ts.logSegments.forEach(ls => {
-                        dtr.totalMinutes += ls.counted
                         dtr.excessMinutes += ls.countedExcess
-                        dtr.underTimeTotalMinutes += ls.tardiness + ls.undertime
                     })
+                    dtr.totalMinutes += ts.counted
+                    dtr.underTimeTotalMinutes += ts.countedUndertime
                 }
             })
 
@@ -1690,6 +1701,7 @@ module.exports = {
     // 
     breakTimeSegments: breakTimeSegments,
     buildTimeSegments: buildTimeSegments,
+    normalizeTimeSegments: normalizeTimeSegments,
     getWorkScheduleTimeSegments: getWorkScheduleTimeSegments,
     countWork: countWork,
     buildLogSegments: buildLogSegments,

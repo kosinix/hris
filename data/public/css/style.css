@@ -202,6 +202,67 @@ div[data-pending="true"]:after {
     padding: 0;
 }
 
+.ui-work-schedule {
+    position: relative;
+    border-top: dotted 1px gray;
+}
+.ui-work-schedule-group {
+    display: flex;
+    border-bottom: dotted 1px gray;
+}
+.ui-work-schedule-weekday {
+    width: 5%;
+    min-height: 1px;
+    text-align: right;
+    padding-right: 10px;
+    border-right: dotted 1px gray;
+    font-family: monospace;
+}
+.ui-work-schedule-time {
+    width: 95%; 
+    position:relative;
+    font-family: monospace;
+    font-size: 14px;
+}
+.ui-work-schedule-add,
+.ui-work-schedule-bar,
+.ui-work-schedule-bar-break,
+.ui-work-schedule-bar-grace {
+    cursor: pointer;
+    position: absolute; 
+    top: 0; 
+    bottom: 0; 
+}
+.ui-work-schedule-add {
+    right: 0;
+    left: 0;
+}
+.ui-work-schedule-bar {
+    z-index: 1;
+    background:green;
+    border: 1px solid white;
+}
+.ui-work-schedule-bar-break {
+    z-index: 2;
+    background:gray;
+    border: 1px solid white;
+}
+.ui-work-schedule-bar-grace {
+    z-index: 2;
+    background:#a77a25;
+    border: 1px solid white;
+}
+.ui-work-schedule-bar:hover {
+    background:rgb(38, 200, 38);
+}
+.ui-work-schedule-bar-break:hover {
+    background:rgb(240, 240, 240);
+    z-index: 5;
+}
+.ui-work-schedule-bar:hover,
+.ui-work-schedule-bar-break:hover {
+    border: 1px solid orange;
+}
 
 /* Profile cam */
 .target-left {
@@ -248,21 +309,7 @@ h4, h5, h6 {
     margin-bottom: 20px;
 }
 
-.table th {
-    border-top: 1px solid #ddd;
-    border-right: 1px solid #ddd;
-}
-.table th a {
-    color: black
-}
-.table td {
-    border-top: 1px solid #ddd;
-    border-right: 1px solid #ddd;
-}
-.table {
-    border-left: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-}
+
 
 .carousel-item {
     transition: -webkit-transform .2s ease-in-out;

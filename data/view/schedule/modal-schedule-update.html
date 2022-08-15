@@ -1,0 +1,108 @@
+<div id="vModalScheduleUpdate" class="modal fade" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form ref="formTimeSegmentUpdate" v-on:submit.prevent="onSubmitTimeSegmentUpdate" method="GET">
+                <div class="modal-header">
+                    <h5 class="modal-title">${createModalTitle2}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pl-4 pr-4">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div v-if="errors.updateTimeSegment.length > 0" class="alert alert-danger">
+                                <p v-if="errors.updateTimeSegment.length > 1" class="m-0">Please correct this errors:</p>
+                                <ul class="m-0">
+                                    <li v-for="error in errors.updateTimeSegment">${error}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="start">Start Time <span class="text-danger">*</span></label>
+                                        <div class="d-flex">
+                                            <input v-model="updateTimeSegment.start" name="start" id="start" type="time" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="end">End Time <span class="text-danger">*</span></label>
+                                        <div>
+                                            <input v-model="updateTimeSegment.end" name="end" id="end" type="time" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <p v-if="!updateTimeSegment.advance"><a href="#" type="button" v-on:click.prevent="updateTimeSegment.advance=true">More Options ...</a></p>
+                                <p v-else><a href="#" class="" type="button" v-on:click.prevent="updateTimeSegment.advance=false">Less Options ...</a></p>
+                            </div>
+                            <div v-if="updateTimeSegment.advance" class="form-row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="max">Max Hours</label>
+                                        <div>
+                                            <input v-model.number="updateTimeSegment.max" name="max" id="max" type="number" step="1" min="0" max="8" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="grace">Grace Period</label>
+                                        <div>
+                                            <input v-model.number="updateTimeSegment.grace" name="grace" id="grace" type="number" step="15" min="0" max="15" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="flexible">Flexible</label>
+                                        <div>
+                                            <select v-model="updateTimeSegment.flexible" name="flexible" id="flexible" class="form-control">
+                                                <option v-bind:value="false">No</option>
+                                                <option v-bind:value="true">Yes</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="updateTimeSegment.breaks.length > 0" class="col-md-12">
+                            <h2 class="h6">Breaks</h2>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tr v-if="updateTimeSegment.breaks.length > 0">
+                                        <td>Start Time <span class="text-danger">*</span></td>
+                                        <td>End Time <span class="text-danger">*</span></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr v-for="(br, i) in updateTimeSegment.breaks">
+                                        <td>
+                                            <input v-model="br.start" name="start" id="start" type="time" class="form-control">
+                                        </td>
+                                        <td>
+                                            <input v-model="br.end" name="end" id="end" type="time" class="form-control">
+                                        </td>
+                                        <td><button v-on:click.prevent="deleteBreak(br, i)" type="button" class="btn btn-sm btn-danger">X</button></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button v-on:click="deleteTimeSegment(updateTimeSegment.weekDay, updateTimeSegment.index)" type="button" class="btn btn-danger">Delete</button>
+                    <div>
+                        <button data-dismiss="modal" type="button" class="btn btn-light">Cancel</button>
+                        <button v-on:click="addBreak(updateTimeSegment.weekDay, updateTimeSegment.index)" type="button" class="btn btn-info">Add Breaks</button>
+                        <button class="btn btn-success">Update</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

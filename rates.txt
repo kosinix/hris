@@ -2,3 +2,18 @@ Kng weekend/holidays
 	daily rate x 1.5 / 8 = hourly rate
 weekdays 
 	daily rate x 1.25 / 8 = hourly rate
+
+
+
+timeSegments (schedule segments)
+logSegments
+start = odd log
+end = even log
+
+countedStart = starting time that falls within timeSegment
+countedEnd = ending time that falls within timeSegment
+
+counted - countedEnd - countedStart
+
+tardiness = start time - timeSegment.start + grace period
+undertime = end time - timeSegment.end

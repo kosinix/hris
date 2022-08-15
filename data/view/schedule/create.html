@@ -1,0 +1,517 @@
+{% extends "document.html" %}
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">Work Schedules</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/schedule/all" class="btn btn-sm btn-outline-primary">Back </a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+        <div v-if="errors.workSchedule.length > 0" class="alert alert-danger">
+            <p v-if="errors.workSchedule.length > 1" class="m-0">Please correct this errors:</p>
+            <ul class="m-0">
+                <li v-for="error in errors.workSchedule">${error}</li>
+            </ul>
+        </div>
+        <form ref="form" v-on:submit.prevent="onSubmit" action="/schedule/create" method="POST" class="form-default">
+            <div class="ui-work-schedule mb-5">
+                <div class="ui-work-schedule-group">
+                    <div class="ui-work-schedule-weekday">&nbsp;</div>
+                    <div class="ui-work-schedule-time">
+                        {% for h in hourList %}
+                            <div style="position: absolute; top: 0; border-left: 1px solid red; left: {{100/24*h}}%">{{h|to12Hour(true)}}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <template v-for="(weekDay,w) in workSchedule.weekDays">
+                    <div v-if="!['sat', 'sun'].includes(w)" class="ui-work-schedule-group">
+                        <div class="ui-work-schedule-weekday d-flex justify-content-between">
+                            <span class="text-capitalize">${w}</span>
+                            <button v-on:click.prevent="showModalCreate(w)" v-if="weekDay.timeSegments.length <= 1" class="btn btn-sm btn-success p-0 pl-1 pr-1" type="button">+</button>
+                            <button v-else disabled class="btn btn-sm btn-success p-0 pl-1 pr-1" type="button">+</button>
+                        </div>
+                        <div class="ui-work-schedule-time">
+                            <template v-for="(timeSegment, t) in getTimeSegments(w)">
+                                <div class="ui-work-schedule-bar" v-on:click="showModalUpdate(timeSegment, t, w)" v-bind:style="setPosition(timeSegment)" v-bind:title="'Schedule: '+displayTime(timeSegment)"></div>
+                                <template v-for="br in timeSegment.breaks">
+                                    <div class="ui-work-schedule-bar-break" v-on:click="showModalUpdate(timeSegment, t, w)" v-bind:style="setPosition(br)" v-bind:title="'Break: '+displayTime(br)"></div>
+                                </template>
+                                <div v-if="timeSegment.grace > 0" class="ui-work-schedule-bar-grace" v-on:click="showModalUpdate(timeSegment, t, w)" v-bind:style="setLineByLen(timeSegment.start, timeSegment.grace)" v-bind:title="'Grace Period: '+timeSegment.grace"></div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            
+            <div class="form-group">
+                <label for="workSchedule.name">Name <span class="text-danger">*</span></label>
+                <div>
+                    <input v-model="workSchedule.name" name="workSchedule.name" id="workSchedule.name" type="text" class="form-control">
+                </div>
+            </div>
+
+            <div class="visibility">
+                <div class="form-group">
+                    <label for="roles">Visible to:</label>
+                    <div>
+                        <select v-model="workSchedule.visibility" name="visibility" id="visibility" class="">
+                            <option value="">All</option>
+                            <option value="members">Selected Employees Only</option>
+                        </select>
+
+                        <div v-if="workSchedule.visibility" class="p-3">
+                            <div class="d-flex align-items-center">
+                                <autocomplete ref="autocomplete"
+                                    placeholder="Type employee name..."
+                                    :source="dataSource"
+                                    v-on:selected="onSelect"
+                                    v-on:clear="onClear"
+                                    input-class="form-control"
+                                    v-bind:request-headers="headers"
+                                ></autocomplete>
+                                <div class="ml-2 mr-2"> or </div>
+                                <autocomplete ref="autocomplete2"
+                                    placeholder="Type list name..."
+                                    :source="dataSource2"
+                                    v-on:selected="onSelect2"
+                                    v-on:clear="onClear2"
+                                    input-class="form-control"
+                                    v-bind:request-headers="headers"
+                                ></autocomplete>
+                            </div>
+
+                            <div class="p-1" style="max-height: 100px; overflow-y: scroll;">
+                                <div class="d-flex flex-wrap">
+                                    <div v-for="(member, i) in workSchedule.members" class="border border-secondary rounded p-1 m-1">${member.name} <div v-on:click="deleteMember(i)" class="btn btn-sm btn-danger">X</div></div>
+                                </div>
+                            </div>
+
+                            <input type="hidden" name="memberIds" v-model="memberIds">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <input type="hidden" v-model="package" name="workSchedule">
+            <div class="form-group d-flex justify-content-between">
+                <a class="btn btn-outline-primary" href="/schedule/all">Cancel</a>
+                <button class="btn btn-primary">Save Schedule</button>
+            </div>
+        </form>
+        {% include "schedule/modal-schedule-create.html" %}
+        {% include "schedule/modal-schedule-update.html" %}
+    </div>
+</div>
+{# {% include 'parts/vue-timepicker.vue' %} #}
+
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vuejs-auto-complete.js"></script>
+<script src="{{app.url}}/js/vuejs-auto-complete-extend.js"></script>
+<script>
+    let weekDayShortToLong = function(short){
+        let names = new Map()
+        names.set('mon', 'Monday')
+        names.set('tue', 'Tuesday')
+        names.set('wed', 'Wednesday')
+        names.set('thu', 'Thursday')
+        names.set('fri', 'Friday')
+        names.set('sat', 'Saturday')
+        names.set('sun', 'Sunday')
+        return names.get(short)
+    }
+    let overlapped = (start1, end1, start2, end2 ) => {
+        return (((start1 >= start2 && start1 <= end2) || (end1 >= start2 && end1 <= end2))
+                || ((start2 >= start1 && start2 <= end1) || (end2 >= start1 && end2 <= end1)))
+    }
+    let spilled = (start1, end1, start2, end2 ) => {
+        return (start1 < start2 || end1 > end2)
+    }
+    const vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vueJsAutoCompleteExtendMixin,
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        data: {
+            pending: false,
+            name: '',
+            employeeLists: {{employeeLists|default([], true)|stringify|safe}},
+            workSchedule: {{workSchedule|default({}, true)|stringify|safe}},
+            newTimeSegment: {
+                weekDay: '',
+                index: 0,
+                start: '08:00',
+                end: '12:00',
+                grace: 0,
+                flexible: false,
+                max: null,
+                advance: false,
+                breaks:[]
+            },
+            updateTimeSegment: {
+                weekDay: '',
+                index: 0,
+                start: '',
+                end: '',
+                grace: 0,
+                flexible: false,
+                max: null,
+                advance: false,
+                breaks:[]
+            },
+            errors: {
+                newTimeSegment: [],
+                updateTimeSegment: [],
+                workSchedule: [],
+            }
+        },
+        watch: {
+            
+        },
+        computed: {
+            
+            createModalTitle: function(){
+                var weekDay = weekDayShortToLong(this.newTimeSegment.weekDay)
+                var a = 'Morning (AM)';
+                if(this.newTimeSegment.index>0){
+                    a = 'Afternoon (PM)'
+                }
+                return `${weekDay} ${a} Work Schedule`
+            },
+            createModalTitle2: function(){
+                var weekDay = weekDayShortToLong(this.updateTimeSegment.weekDay)
+                var a = 'Morning (AM)';
+                if(this.updateTimeSegment.index > 0){
+                    a = 'Afternoon (PM)'
+                }
+                return `${weekDay} ${a} Work Schedule`
+            },
+            disabledTimeSegment: function(){
+                return !(this.newTimeSegment.start && this.newTimeSegment.end) //|| this.errors.newTimeSegment.length > 0
+            },
+            memberIds: function(){
+                var me = this;
+                return _.map(me.workSchedule.members, function(member){
+                    return member.objectId;
+                })
+            },
+            package: function(){
+                return JSON.stringify(this.workSchedule)
+            }
+        },
+        methods: {
+            validateWorkSchedule: function(workSchedule){
+                let me = this
+                let errors = []
+                if(!workSchedule.name){
+                    errors.push('Name required.')
+                }
+                if(workSchedule.visibility === 'members' && workSchedule.members.length <= 0){
+                    errors.push('Please add members.')
+                }
+                return errors
+            },
+            showModalCreate: function(w){
+                var me = this;
+                me.newTimeSegment.weekDay = w
+                me.newTimeSegment.index = me.workSchedule.weekDays[w].timeSegments.length
+                jQuery('#vModalScheduleCreate').modal('show')
+            },
+            onSubmitTimeSegmentCreate: function(){
+                var me = this;
+                var timeSegment = me.newTimeSegment
+
+                me.errors.newTimeSegment = me.validateSegment(timeSegment, me.workSchedule.weekDays[timeSegment.weekDay].timeSegments)
+                
+                if (me.errors.newTimeSegment.length <= 0) {
+
+                    me.workSchedule.weekDays[timeSegment.weekDay].timeSegments.push({
+                        start: me.timeToM(timeSegment.start),
+                        end: me.timeToM(timeSegment.end),
+                        grace: timeSegment.grace,
+                        max: timeSegment.max,
+                        flexible: timeSegment.flexible,
+                        breaks: []
+                    })
+                    me.newTimeSegment = {
+                        weekDay: '',
+                        index: 0,
+                        start: '',
+                        end: '',
+                        grace: 0,
+                        flexible: false,
+                        max: null,
+                        advance: false,
+                        breaks: []
+                    }
+                    
+                    me.errors.newTimeSegment = []
+
+                    jQuery('#vModalScheduleCreate').modal('hide')
+                }
+            },
+            
+            // Update
+            showModalUpdate: function(timeSegment, t, w){
+                var me = this;
+                me.updateTimeSegment.weekDay = w
+                me.updateTimeSegment.index = t
+                me.updateTimeSegment.start = me.mToTime(timeSegment.start, 'HH:mm')
+                me.updateTimeSegment.end = me.mToTime(timeSegment.end, 'HH:mm')
+                me.updateTimeSegment.grace = timeSegment.grace
+                me.updateTimeSegment.max = timeSegment.max / 60
+                me.updateTimeSegment.flexible = timeSegment.flexible
+                me.updateTimeSegment.breaks = JSON.parse(JSON.stringify(timeSegment.breaks))
+                me.updateTimeSegment.breaks = me.updateTimeSegment.breaks.map(br=>{
+                    br.start = me.mToTime(br.start, 'HH:mm')
+                    br.end = me.mToTime(br.end, 'HH:mm')
+                    return br
+                })
+                jQuery('#vModalScheduleUpdate').modal('show')
+            },
+            setTimeSegment: function(timeSegment, weekDay, index){
+                var me = this;
+                if(_.has(me, 'workSchedule.weekDays.'+ weekDay +'.timeSegments['+ index +']')) {
+                    me.workSchedule.weekDays[weekDay].timeSegments[index] = {
+                        start: me.timeToM(timeSegment.start),
+                        end: me.timeToM(timeSegment.end),
+                        grace: timeSegment.grace,
+                        max: (timeSegment.max) ? timeSegment.max * 60 : timeSegment.max,
+                        flexible: timeSegment.flexible,
+                        breaks: timeSegment.breaks.map(br => {
+                            br.start = me.timeToM(br.start)
+                            br.end = me.timeToM(br.end)
+                            return br
+                        }),
+                    }
+                }
+            },
+            addBreak: function(weekDay, index){
+                this.updateTimeSegment.breaks.push({
+                    type: 'vacant', // or personal
+                    start: '',
+                    end: ''
+                })
+            },
+            deleteBreak: function(br, index){
+                this.updateTimeSegment.breaks.splice(index, 1)
+            },
+
+            validateSegment: function (segment, segments) {
+                let me = this
+                let {start, end} = segment
+                let errors = []
+
+                if(!start) {
+                    errors.push('Start Time is invalid.')
+                }
+                if(!end) {
+                    errors.push('End Time is invalid.')
+                }
+                // segment here contains time in HH:mm format from HTML input
+                start = me.timeToM(start);
+                end = me.timeToM(end);
+
+                if(start % 30 > 0) {
+                    errors.push('Start Time must be in 30-minute increments.')
+                }
+                if(end % 30 > 0) {
+                    errors.push('End Time must be in 30-minute increments.')
+                }
+
+                if(end <= start) {
+                    errors.push('End Time must be more than Start Time.')
+                }
+
+                segments.forEach(function(t, i){
+                    if(segment.index !== i){
+                        if(overlapped(start, end, t.start, t.end)){
+                            errors.push(`Time Segment overlaps with time segment ${me.mToTime(t.start)} - ${me.mToTime(t.end)}.`)
+                        }
+                    }
+                })
+
+                
+                segment.breaks.forEach((br, i) => {
+                    let brStart = br.start
+                    let brEnd = br.end
+                    if(!brStart){
+                        errors.push('Break Start Time is invalid.')
+
+                    } else if (!brEnd) {
+                        errors.push('Break End Time is invalid.')
+
+                    } else {
+                        brStart = me.timeToM(brStart);
+                        brEnd = me.timeToM(brEnd);
+
+                        if(brStart % 30 > 0) {
+                            errors.push('Break Start Time must be in 30-minute increments.')
+                        }
+                        if(brEnd % 30 > 0) {
+                            errors.push('Break End Time must be in 30-minute increments.')
+                        }
+
+                        if(brEnd <= brStart) {
+                            errors.push('Break End Time must be more than its Start Time.')
+                        }
+
+                        if(spilled(brStart, brEnd, start, end)){
+                            errors.push(`Break must be within ${me.mToTime(segment.start)} - ${me.mToTime(segment.end)}.`)
+                        }
+                        segment.breaks.filter((_, _i) => _i != i).forEach((otherBr, _i) => {
+                            let otherBrStart = me.timeToM(otherBr.start)
+                            let otherBrEnd = me.timeToM(otherBr.end)
+                            if(overlapped(brStart, brEnd, otherBrStart, otherBrEnd)){
+                                errors.push(`Break ${me.mToTime(brStart)} - ${me.mToTime(brEnd)} mustn't overlap with break ${me.mToTime(otherBrStart)} - ${me.mToTime(otherBrEnd)}.`)
+                            }
+                        })
+                    }
+                })
+
+                return errors
+            },
+            
+            onSubmitTimeSegmentUpdate: function(){
+                var me = this;
+                var timeSegment = me.updateTimeSegment
+
+                me.errors.updateTimeSegment = me.validateSegment(timeSegment, me.workSchedule.weekDays[timeSegment.weekDay].timeSegments)
+                if (me.errors.updateTimeSegment.length <= 0) {
+                    
+                    setTimeout(function(){
+                        me.setTimeSegment(timeSegment, timeSegment.weekDay, timeSegment.index)
+                        me.updateTimeSegment = {
+                            weekDay: '',
+                            index: 0,
+                            start: '',
+                            end: '',
+                            grace: 0,
+                            flexible: false,
+                            max: null,
+                            advance: timeSegment.advance,
+                            breaks: [],
+                        }
+                        
+                        me.errors.updateTimeSegment = []
+                    }, 500)
+
+                    jQuery('#vModalScheduleUpdate').modal('hide')
+                }
+
+            },
+            displayTime: function(ts){
+                var me = this;
+                return `${me.mToTime(ts.start)} - ${me.mToTime(ts.end)}`
+            },
+            setPosition: function(ts){
+                var me = this;
+                let w = 100 / 1440; // oneMinuteWidth
+                return `left: ${w * ts.start}%; width: ${w * (ts.end - ts.start)}%;`
+            },
+            setLine: function(start, end){
+                var me = this;
+                let w = 100 / 1440; // oneMinuteWidth
+                return `left: ${w * ts.start}%; width: ${w * (ts.end - ts.start)}%;`
+            },
+            setLineByLen: function(start, length){
+                var me = this;
+                let w = 100 / 1440; // oneMinuteWidth
+                var start = parseInt(start)
+                var length = parseInt(length)
+                return `left: ${w * start}%; width: ${w * length}%;`
+            },
+            getTimeSegments: function(weekDay){
+                var me = this;
+                return _.get(me, 'workSchedule.weekDays.' + weekDay + '.timeSegments', [])
+            },
+            deleteTimeSegment: function(weekDay, index){
+                setTimeout(() => {
+                    this.workSchedule.weekDays[weekDay].timeSegments.splice(index, 1)
+                }, 600)
+                jQuery('#vModalScheduleUpdate').modal('hide')
+            },
+            toHtmlTime: function(hours, mins){
+                return String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0')
+            },
+            onSubmit: function(){
+                var me = this;
+                
+                me.errors.workSchedule = me.validateWorkSchedule(me.workSchedule)
+                if (me.errors.workSchedule.length > 0) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            },
+            // vuejs autocomplete
+            deleteMember: function(x){
+                this.$delete(this.workSchedule.members, x)
+            },
+            onSelect: function(o){
+                this.workSchedule.members.push({
+                    objectId: o.value,
+                    name: o.display,
+                });
+                this.$refs.autocomplete.close();
+                this.$refs.autocomplete.clear();
+            },
+            onClear: function(o){
+            },
+            dataSource: function(input) {
+                return '/auto-complete/employee?salary=0&s=' + input + '&ignore=' + this.memberIds.join(',');
+            },
+
+            onSelect2: function(o){
+                this.workSchedule.members.push({
+                    objectId: o.value,
+                    name: o.display,
+                });
+                this.$refs.autocomplete2.close();
+                this.$refs.autocomplete2.clear();
+            },
+            onClear2: function(o){
+            },
+            dataSource2: function(input) {
+                return '/auto-complete/employee-list?s=' + input + '&ignore=' + this.memberIds.join(',');
+            },
+            mToTime: function (minutes, format, date = null) {
+                if (!minutes) return 0
+                format = format || 'h:mm A'
+                let mDate = {}
+                if (date) {
+                    mDate = moment.utc(date)
+                } else {
+                    mDate = moment().startOf('year')
+                }
+                return mDate.startOf('day').add(minutes, 'minutes').format(format)
+            },
+            timeToM: function (time, format) {
+                format = format || 'HH:mm'
+                var momentDayStart = moment().startOf('day')
+
+                var timeParser = moment(time, format)
+                var momentTime = momentDayStart.clone().hours(timeParser.hours()).minutes(timeParser.minutes())
+
+                return momentTime.diff(momentDayStart, 'minutes')
+            },
+        }
+    });
+</script>
+{% endblock %}
+

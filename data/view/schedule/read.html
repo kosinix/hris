@@ -1,0 +1,100 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">Work Schedule: {{schedule.name}}</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/schedule/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    
+    {% if schedules.length <= 0 %}
+        <p>None found.</p>
+    {% else %}
+        <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+            <h1 class="h5">Time Segments</h1>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                           <th class="text-center" width="5%">#</th>
+                           <th>Name</th>
+                           <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="text-center" width="5%">{{loop.index}}</td>
+                            <td>{{schedule.name}}</td>
+                            <td>
+                                <ul>
+                                    {% for segment in schedule.timeSegments %}
+                                        <li>
+                                            {{segment.start}} - {{segment.end}} <em>({{segment.maxHours}} hrs)</em> 
+                                            {% if segment.grace > 0 %} <em>with ({{segment.grace}} minutes grace)</em> {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+
+            </div>
+
+            {# <form action="/schedule/{{schedule._id}}/members" method="POST" class="mb-3">
+                <div class="form-group">
+                    <label for="listIds">List</label>
+                    <select multiple name="listIds" id="listIds" class="form-control">
+                        {% for list in employeeLists %}
+                        <option value="{{list._id}}">{{list.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="btn btn-primary">Apply Work Schedule</button>
+            </form>
+
+
+            {% if schedule.members.length > 0 %}
+                <div class="alert alert-info">Last applied to these employees:</div>
+            {% endif %} #}
+            
+            <h1 class="h5">Visible To: {{schedule.visibility|default('All', true)|replace('members', 'Selected Employees Only')|capitalize}}</h1>
+
+            {% if schedule.visibility == 'members' %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        
+                        {% for member in schedule.members %}
+                            <tr>
+                                <td width="1%">{{loop.index}}</td>
+                                <td width="10%">{{member.type|replace('employment', 'employee')|capitalize}}</td>
+                                <td>
+                                    {% if member.type === 'list' %}
+                                        <a href="/employee/list/{{member.objectId}}">{{member.name}}</a>
+                                    {% else %}
+                                        <a href="/employee/all">{{member.name}}</a>
+
+                                    {% endif %}
+                                </td>
+                                {# <td><a href="/schedule/{{schedule._id}}/members/{{member._id}}/delete" onclick="return confirm('Remove from list?')" class="text-danger">X</a></td> #}
+                            </tr>
+                        {% endfor %}
+
+                    </table>
+                    
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

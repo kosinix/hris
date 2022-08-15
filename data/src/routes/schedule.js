@@ -46,9 +46,56 @@ router.get('/schedule/create', middlewares.guardRoute(['create_schedule']), asyn
     try {
 
         let employeeLists = await req.app.locals.db.main.EmployeeList.find({}, { _id: 1, name: 1 })
+
+        let hourList = []
+        Array.from(Array(24).keys()).map((e, i) => i).forEach(e => {
+            hourList.push(e)
+        })
+
+        //let workSchedule = await req.app.locals.db.main.WorkSchedule.findById('62cce9df59764931cc1dbdea').lean()
+
+        let defaultBreak = {
+            type: 'vacant', // vacant, personal
+            start: 0,
+            end: 0
+        }
+        let defaultTimeSegment = {
+            start: 0,
+            end: 0,
+            grace: 0,
+            max: null, // Absent or if present, limit max minutes per time segment to this
+            flexible: false,
+            breaks: []
+        }
+        let defaultWeekDay = new Map()
+        defaultWeekDay.set('type', 1) // or 2 for weekends
+        defaultWeekDay.set('timeSegments', [])
+
+        let defaultWorkSchedule = {
+            name: '',
+            weekDays: {},
+            visibility: '',
+            members: []
+            // timeSegments: [],
+        }
+
+
+        let weekDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+        weekDays.forEach(w => {
+            defaultWeekDay.set('type', (w === 'sat' || w === 'sun') ? 2 : 1)
+            lodash.set(defaultWorkSchedule, 'weekDays.' + w, Object.fromEntries(defaultWeekDay))
+        })
+
+        // return res.send(defaultWorkSchedule)
         res.render('schedule/create.html', {
             flash: flash.get(req, 'schedule'),
+            hourList: hourList,
             employeeLists: employeeLists,
+            workSchedule: defaultWorkSchedule,
+            defaultWorkSchedule: defaultWorkSchedule,
+            defaultBreak: defaultBreak,
+            defaultTimeSegment: defaultTimeSegment,
+            defaultWorkSchedule: defaultWorkSchedule,
         });
     } catch (err) {
         next(err);
@@ -59,45 +106,79 @@ router.post('/schedule/create', middlewares.guardRoute(['create_schedule']), asy
 
         let body = lodash.get(req, 'body')
 
-        let name = lodash.get(body, 'name')
-        let visibility = lodash.get(body, 'visibility', '')
-        let memberIds = lodash.get(body, 'memberIds')
+        let workSchedule = JSON.parse(lodash.get(body, 'workSchedule'))
+        let name = lodash.get(workSchedule, 'name')
+        let visibility = lodash.get(workSchedule, 'visibility', '')
+        let memberIds = lodash.get(workSchedule, 'memberIds')
+        // return res.send(workSchedule)
 
-        // return res.send(body)
-
-
-
-        let timeSegments = lodash.get(req, 'body.timeSegments', [])
-        if (timeSegments.length <= 0) {
-            let err = new Error('No time segments.')
+        let errors = []
+        if (!workSchedule.name) {
+            let err = new Error('Name required.')
+            err.type = 'flash'
+            throw err
+        }
+        if (workSchedule.visibility === 'members' && workSchedule.members.length <= 0) {
+            let err = new Error('No members found.')
             err.type = 'flash'
             throw err
         }
 
-        let errors = []
-        timeSegments.forEach((timeSegment, i) => {
-            let momentStart = moment.utc(timeSegment.start, 'HH:mm')
-            let momentEnd = moment.utc(timeSegment.end, 'HH:mm')
-            if (!momentStart.isValid()) {
-                errors.push(`Start time for segment #${i + 1} is invalid.`)
-            }
-            if (!momentEnd.isValid()) {
-                errors.push(`End time for segment #${i + 1} is invalid.`)
-            }
+        let overlapped = (start1, end1, start2, end2) => {
+            return (((start1 >= start2 && start1 <= end2) || (end1 >= start2 && end1 <= end2))
+                || ((start2 >= start1 && start2 <= end1) || (end2 >= start1 && end2 <= end1)))
+        }
+        let spilled = (start1, end1, start2, end2) => {
+            return (start1 < start2 || end1 > end2)
+        }
+
+        let timeSegmentCount = 0
+        lodash.each(workSchedule.weekDays, (weekDay, weekName) => {
+            weekDay.timeSegments.forEach((timeSegment, index) => {
+                timeSegmentCount++
+                let { start, end, max } = timeSegment
+                if (!Number.isInteger(start)) {
+                    errors.push('Start Time is invalid.')
+                }
+                if (!Number.isInteger(end)) {
+                    errors.push('End Time is invalid.')
+                }
+                if (max <= 0) {
+                    timeSegment.max = null
+                }
+
+                // segment here contains time in HH:mm format from HTML input
+                if (start % 30 > 0) {
+                    errors.push('Start Time must be in 30-minute increments.')
+                }
+                if (end % 30 > 0) {
+                    errors.push('End Time must be in 30-minute increments.')
+                }
+
+                if (end <= start) {
+                    errors.push('End Time must be more than Start Time.')
+                }
+            })
         })
+        if (timeSegmentCount <= 0) {
+            errors.push('Invalid schedule. No time segment found.')
+        }
+
         if (errors.length > 0) {
             let err = new Error(`${errors.join(' ')}`)
             err.type = 'flash'
             throw err
         }
-        timeSegments = timeSegments.map((timeSegment, i) => {
-            timeSegment.start = moment.utc(timeSegment.start, 'HH:mm').hours() * 60 + moment.utc(timeSegment.start, 'HH:mm').minutes()
-            timeSegment.end = moment.utc(timeSegment.end, 'HH:mm').hours() * 60 + moment.utc(timeSegment.end, 'HH:mm').minutes()
-            timeSegment.grace = (lodash.toNumber(lodash.get(timeSegment, 'grace', 0)))
-            timeSegment.maxHours = (timeSegment.end - timeSegment.start) / 60
-            timeSegment.flexible = false
-            return timeSegment
+
+        lodash.each(workSchedule.weekDays, (weekDay, weekName) => {
+            workSchedule.weekDays[weekName].timeSegments = weekDay.timeSegments.map(t => {
+                t.start = parseInt(t.start)
+                t.end = parseInt(t.end)
+                t.grace = parseInt(t.grace)
+                return t
+            })
         })
+        return res.send(workSchedule)
 
         let members = []
         if (visibility === 'members') {
@@ -152,34 +233,80 @@ router.post('/schedule/create', middlewares.guardRoute(['create_schedule']), asy
         flash.ok(req, 'schedule', `Work schedule created.`)
         return res.redirect('/schedule/all')
     } catch (err) {
-        if (err.type === 'flash') {
-            flash.error(req, 'schedule', `Error: ${err.message}`)
-            return res.redirect('/schedule/create')
-        }
+        // if (err.type === 'flash') {
+        //     flash.error(req, 'schedule', `Error: ${err.message}`)
+        //     return res.redirect('/schedule/create')
+        // }
         next(err);
     }
 });
 
 router.get('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']), middlewares.getSchedule, async (req, res, next) => {
     try {
-        let schedule = res.schedule.toObject()
+        let workSchedule = res.schedule.toObject()
 
-        schedule.timeSegments = schedule.timeSegments.map((t) => {
-            t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
-            t.end = moment().startOf('day').minutes(t.end).format('hh:mm A')
-            return t
+        let employeeLists = await req.app.locals.db.main.EmployeeList.find({}, { _id: 1, name: 1 })
+
+        let hourList = []
+        Array.from(Array(24).keys()).map((e, i) => i).forEach(e => {
+            hourList.push(e)
         })
 
-        let employeeLists = await req.app.locals.db.main.EmployeeList.find({
-            tags: {
-                $in: ['Employment']
-            }
-        })
+        let defaultBreak = {
+            type: 'vacant', // vacant, personal
+            start: 0,
+            end: 0
+        }
+        let defaultTimeSegment = {
+            start: 0,
+            end: 0,
+            grace: 0,
+            max: null, // Absent or if present, limit max minutes per time segment to this
+            flexible: false,
+            breaks: []
+        }
+        let defaultWeekDay = new Map()
+        defaultWeekDay.set('type', 1) // or 2 for weekends
+        defaultWeekDay.set('timeSegments', [])
 
-        res.render('schedule/read.html', {
+        let defaultWorkSchedule = {
+            name: '',
+            weekDays: {},
+            visibility: '',
+            members: []
+            // timeSegments: [],
+        }
+
+        let weekDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+
+        // V1 doesnt have "weekDays" prop
+        if (!lodash.has(workSchedule, 'weekDays')) {
+            // Add weekDays with defaults
+            weekDays.forEach(w => {
+                defaultWeekDay.set('type', (w === 'sat' || w === 'sun') ? 2 : 1)
+                defaultWeekDay.set('timeSegments', dtrHelper.normalizeTimeSegments(lodash.get(workSchedule, 'timeSegments', []))) // Populate from root "timeSegments" prop
+                lodash.set(workSchedule, 'weekDays.' + w, Object.fromEntries(defaultWeekDay))
+            })
+        } else {
+            // Merge each weekDay timeSegments with root timeSegments
+            lodash.each(workSchedule.weekDays, (weekDay, weekName) => {
+                let timeSegments = lodash.merge(workSchedule.weekDays[weekName].timeSegments, lodash.get(workSchedule, 'timeSegments', []))
+                workSchedule.weekDays[weekName].timeSegments = dtrHelper.normalizeTimeSegments(timeSegments)
+            })
+        }
+
+        //workSchedule = lodash.merge(defaultWorkSchedule, workSchedule)
+
+        // return res.send(workSchedule)
+        res.render('schedule/create.html', {
             flash: flash.get(req, 'schedule'),
-            schedule: schedule,
-            employeeLists: employeeLists
+            hourList: hourList,
+            employeeLists: employeeLists,
+            workSchedule: workSchedule,
+            defaultWorkSchedule: defaultWorkSchedule,
+            defaultBreak: defaultBreak,
+            defaultTimeSegment: defaultTimeSegment,
+            defaultWorkSchedule: defaultWorkSchedule,
         });
     } catch (err) {
         next(err);

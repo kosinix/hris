@@ -63,6 +63,10 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
             query[`employments.0.employmentType`] = 'part-time'
             query[`employments.0.group`] = 'faculty'
         }
+        if (['casual'].includes(customFilter)) {
+            query[`employments.0.employmentType`] = 'casual'
+            query[`employments.0.group`] = 'staff'
+        }
 
         let options = { skip: (page - 1) * perPage, limit: perPage };
         let sort = {}
@@ -83,6 +87,22 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
                 foreignField: "employeeId",
                 from: "employments",
                 as: "employments"
+            }
+        })
+        aggr.push({
+            $project:
+            {
+                lastName: 1,
+                firstName: 1,
+                employments:
+                {
+                    $filter:
+                    {
+                        input: "$employments",
+                        as: "employment",
+                        cond: { $eq: ["$$employment.active", true] }
+                    }
+                }
             }
         })
         aggr.push({ $match: query })
@@ -523,7 +543,7 @@ router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewar
             var momentDayStart = moment().startOf('day')
 
             var timeParser = moment(time, format, strict)
-            if(!timeParser.isValid()){
+            if (!timeParser.isValid()) {
                 // throw new Error(`Invalid time "${time}". Format must be in "${format}"`)
                 return 0
             }
@@ -861,7 +881,7 @@ router.get('/employee/:employeeId/photo', middlewares.guardRoute(['read_employee
         next(err);
     }
 });
-router.post('/employee/:employeeId/photo', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee,  middlewares.dataUrlToReqFiles(['photo']), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"]}), async (req, res, next) => {
+router.post('/employee/:employeeId/photo', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.dataUrlToReqFiles(['photo']), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"] }), async (req, res, next) => {
     try {
         let employee = res.employee
 
@@ -1101,10 +1121,10 @@ router.get('/employee/:employeeId/document/create', middlewares.guardRoute(['rea
         next(err);
     }
 });
-router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, fileUpload(),  middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"]}), async (req, res, next) => {
+router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"] }), async (req, res, next) => {
     try {
         let employee = res.employee
-        
+
         employee.documents.push({
             name: lodash.get(req, 'body.name'),
             key: lodash.get(req, 'saveList.document[0]'),
@@ -1119,15 +1139,15 @@ router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['cr
     }
 });
 // D
-router.get('/employee/:employeeId/document/:documentId/delete', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, fileUpload(),  middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"]}), async (req, res, next) => {
+router.get('/employee/:employeeId/document/:documentId/delete', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"] }), async (req, res, next) => {
     try {
         let employee = res.employee
         let documentId = req.params.documentId
 
-        let document = employee.toObject().documents.find(o=>{
+        let document = employee.toObject().documents.find(o => {
             return o._id.toString() === documentId
         })
-        if(!document){
+        if (!document) {
             throw new Error('Document not found.')
         }
         // Delete files on AWS S3
@@ -1150,7 +1170,7 @@ router.get('/employee/:employeeId/document/:documentId/delete', middlewares.guar
             console.log(resx)
         }
 
-        let documents = employee.toObject().documents.filter(o=>{
+        let documents = employee.toObject().documents.filter(o => {
             return o._id.toString() !== documentId
         })
         await req.app.locals.db.main.Employee.updateOne({

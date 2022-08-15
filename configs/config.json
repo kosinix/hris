@@ -90,6 +90,28 @@
   },
   "minPasswordLength": 8,
   "minSaltLength": 8,
+  "employmentTypes": [
+    {
+      "value": "permanent",
+      "text": "Permanent"
+    },
+    {
+      "value": "cos",
+      "text": "Contract of Service"
+    },
+    {
+      "value": "jo",
+      "text": "Job Order"
+    },
+    {
+      "value": "part-time",
+      "text": "Part-Time"
+    },
+    {
+      "value": "casual",
+      "text": "Casual"
+    }
+  ],
   "attendance": {
     "types": [
       {

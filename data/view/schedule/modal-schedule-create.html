@@ -1,0 +1,83 @@
+<div id="vModalScheduleCreate" class="modal fade" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form ref="formTimeSegmentCreate" v-on:submit.prevent="onSubmitTimeSegmentCreate" method="GET">
+                <div class="modal-header">
+                    <h5 class="modal-title">${createModalTitle}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pl-4 pr-4">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div v-if="errors.newTimeSegment.length > 0" class="alert alert-danger">
+                                <p v-if="errors.newTimeSegment.length > 1" class="m-0">Please correct this errors:</p>
+                                <ul class="m-0">
+                                    <li v-for="error in errors.newTimeSegment">${error}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="start">Start Time <span class="text-danger">*</span></label>
+                                        <div class="d-flex">
+                                            <input v-model="newTimeSegment.start" name="start" id="start" type="time" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="end">End Time <span class="text-danger">*</span></label>
+                                        <div>
+                                            <input v-model="newTimeSegment.end" name="end" id="end" type="time" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <p v-if="!newTimeSegment.advance"><a href="#" type="button" v-on:click.prevent="newTimeSegment.advance=true">More Options ...</a></p>
+                                <p v-else><a href="#" class="" type="button" v-on:click.prevent="newTimeSegment.advance=false">Less Options ...</a></p>
+                            </div>
+                            <div v-if="newTimeSegment.advance" class="form-row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="max">Max (hours)</label>
+                                        <div>
+                                            <input v-model="newTimeSegment.max" name="max" id="max" type="number" step="1" min="0" max="8" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="grace">Grace Period</label>
+                                        <div>
+                                            <input v-model.number="newTimeSegment.grace" name="grace" id="grace" type="number" step="15" min="0" max="15" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="flexible">Flexible</label>
+                                        <div>
+                                            <select v-model="newTimeSegment.flexible" name="flexible" id="flexible" class="form-control">
+                                                <option v-bind:value="false">No</option>
+                                                <option v-bind:value="true">Yes</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <span></span>
+                    <button v-bind:disabled="disabledTimeSegment" class="btn btn-success">Add Time Segment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -316,6 +316,7 @@ router.get(['/attendance/flag/all', '/attendance/flag.xlsx'], middlewares.guardR
     }
 });
 
+// V1
 router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewares.guardRoute(['read_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -421,71 +422,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
     }
 });
 
-router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let employment = res.employment.toObject()
-        let attendance = res.attendance.toObject()
-        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
-
-        attendance = lodash.merge({
-            createdAt: '',
-            employeeId: '',
-            employmentId: '',
-            logs: [],
-            type: 'normal',
-            workScheduleId: '',
-        }, attendance)
-
-        res.render('attendance/edit.html', {
-            flash: flash.get(req, 'attendance'),
-            attendanceTypes: CONFIG.attendance.types,
-            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
-            employee: employee,
-            employment: employment,
-            attendance: attendance,
-            workSchedules: workSchedules,
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-router.post('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let employment = res.employment.toObject()
-        let attendance = res.attendance.toObject()
-
-        let body = req.body
-        // return res.send(body)
-        let patch = {}
-        lodash.set(patch, 'type', lodash.get(body, 'type'))
-        lodash.set(patch, 'workScheduleId', lodash.get(body, 'workScheduleId'))
-        lodash.set(patch, 'log0', lodash.get(body, 'log0'))
-        lodash.set(patch, 'log1', lodash.get(body, 'log1'))
-        lodash.set(patch, 'log2', lodash.get(body, 'log2'))
-        lodash.set(patch, 'log3', lodash.get(body, 'log3'))
-        lodash.set(patch, 'comment', lodash.get(body, 'comment'))
-
-        if (patch.type === '') {
-            return res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
-        }
-
-        let { changeLogs, att } = await dtrHelper.editAttendance(req.app.locals.db, attendance._id, patch, res.user)
-
-        // return res.send(att)
-        if (changeLogs.length) {
-            flash.ok(req, 'attendance', `${changeLogs.join(' ')}`)
-        } else {
-
-        }
-        res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
-        // res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}?start=2021-11-02&end=2021-11-02`)
-    } catch (err) {
-        next(err);
-    }
-});
-
+// V2
 router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
     try {
         let employment = res.employment.toObject()
@@ -586,12 +523,78 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
             compatibilityUrl: compatibilityUrl,
         }
-		//return res.send(days)
+		// return res.send(days)
         res.render('attendance/employment2.html', data);
     } catch (err) {
         next(err);
     }
 });
+router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment.toObject()
+        let attendance = res.attendance.toObject()
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
+
+        attendance = lodash.merge({
+            createdAt: '',
+            employeeId: '',
+            employmentId: '',
+            logs: [],
+            type: 'normal',
+            workScheduleId: '',
+        }, attendance)
+
+        res.render('attendance/edit.html', {
+            flash: flash.get(req, 'attendance'),
+            attendanceTypes: CONFIG.attendance.types,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+            employee: employee,
+            employment: employment,
+            attendance: attendance,
+            workSchedules: workSchedules,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment.toObject()
+        let attendance = res.attendance.toObject()
+
+        let body = req.body
+        // return res.send(body)
+        let patch = {}
+        lodash.set(patch, 'type', lodash.get(body, 'type'))
+        lodash.set(patch, 'workScheduleId', lodash.get(body, 'workScheduleId'))
+        lodash.set(patch, 'log0', lodash.get(body, 'log0'))
+        lodash.set(patch, 'log1', lodash.get(body, 'log1'))
+        lodash.set(patch, 'log2', lodash.get(body, 'log2'))
+        lodash.set(patch, 'log3', lodash.get(body, 'log3'))
+        lodash.set(patch, 'comment', lodash.get(body, 'comment'))
+
+        if (patch.type === '') {
+            return res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
+        }
+
+        let { changeLogs, att } = await dtrHelper.editAttendance(req.app.locals.db, attendance._id, patch, res.user)
+
+        // return res.send(att)
+        if (changeLogs.length) {
+            flash.ok(req, 'attendance', `${changeLogs.join(' ')}`)
+        } else {
+
+        }
+        res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
+        // res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}?start=2021-11-02&end=2021-11-02`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+
 
 // New edit
 router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getAttendance, async (req, res, next) => {

@@ -11,7 +11,7 @@
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}?start={{attendance.createdAt|format_date('YYYY-MM-DD')}}&amp;end={{attendance.createdAt|format_date('YYYY-MM-DD')}}" class="btn btn-sm btn-outline-primary">Back</a>
+                <a href="/attendance/employment/{{employment._id}}?start={{attendance.createdAt|format_date('YYYY-MM-DD')}}&amp;end={{attendance.createdAt|format_date('YYYY-MM-DD')}}" class="btn btn-sm btn-outline-primary">Back</a>
             </div>
         </div>
     </div>
@@ -111,7 +111,7 @@
                                 {% for logSegment in timeWork.logSegments %}
                                     <div class="t-bar-segment" style="background: #294b81; width: {{logSegment.counted/1440*100}}%;  left: {{logSegment.countedStart/1440*100}}%;">
                                         <div>
-                                            {% if logSegment.counted > 60 %}
+                                            {% if logSegment.counted >= 60 %}
                                                 {{logSegment.counted|mToHour}}h {{logSegment.counted|mToMin}}m
                                             {% else %}
                                                 {{logSegment.counted|mToMin}}m

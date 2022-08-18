@@ -8,7 +8,8 @@
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                <a href="/attendance/schedule/create" class="btn btn-sm btn-primary">Create Schedule</a>
+                <a href="/schedule/create" class="btn btn-sm btn-primary">Create Schedule</a>
+                <a href="/attendance/schedule/all" class="btn btn-sm btn-outline-primary">Classic Schedule System</a>
             </div>
         </div>
     </div>
@@ -18,7 +19,7 @@
     {% if schedules.length <= 0 %}
         <p>None found.</p>
     {% else %}
-        <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+        <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5" style="background: rgba(37, 116, 181, 0.24)">
             <div class="table-responsive">
                 <table class="table table-sm table-striped">
                     <thead>
@@ -33,7 +34,7 @@
                     {% for schedule in schedules %}
                         <tr>
                             <td class="text-center" width="5%">{{loop.index}}</td>
-                            <td><a href="/attendance/schedule/{{schedule._id}}">{{schedule.name}}</a></td>
+                            <td><a href="/schedule/{{schedule._id}}">{{schedule.name}}</a></td>
                             <td>
                                 <ul>
                                     {% for segment in schedule.timeSegments %}

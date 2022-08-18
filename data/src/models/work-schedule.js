@@ -26,7 +26,7 @@ const weekDaySchema = {
                 default: 0
             },
             max: {
-                $type: Number, // Null or if present, limit max minutes per time segment to this
+                $type: Number, // Absent or if present, limit max minutes per time segment to this
             },
             flexible: {
                 $type: Boolean,

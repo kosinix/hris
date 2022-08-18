@@ -40,8 +40,8 @@
                         <td>{{employment.employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</td>
                         <td>{{employment.campus|capitalize}}</td>
                         <td>
-                            <a href="/employee/{{employee._id}}/employment/{{employment._id}}/update">Edit</a> | 
-                            <a href="/employee/{{employee._id}}/employment/{{employment._id}}/schedule/{{employment.workScheduleId}}">Sched</a>
+                            <a href="/employee/{{employee._id}}/employment/{{employment._id}}/update">Edit</a>
+                            {# | <a href="/employee/{{employee._id}}/employment/{{employment._id}}/schedule/{{employment.workScheduleId}}">Sched</a> #}
                         </td>
                         <td>
                             <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}">Att.</a> | 

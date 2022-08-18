@@ -94,6 +94,7 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
             {
                 lastName: 1,
                 firstName: 1,
+                profilePhoto: 1,
                 employments:
                 {
                     $filter:

@@ -205,6 +205,7 @@ div[data-pending="true"]:after {
 .ui-work-schedule {
     position: relative;
     border-top: dotted 1px gray;
+    background: lightgray;
 }
 .ui-work-schedule-group {
     display: flex;
@@ -214,7 +215,7 @@ div[data-pending="true"]:after {
     width: 5%;
     min-height: 1px;
     text-align: right;
-    padding-right: 10px;
+    padding: 0 5px;
     border-right: dotted 1px gray;
     font-family: monospace;
 }
@@ -222,7 +223,7 @@ div[data-pending="true"]:after {
     width: 95%; 
     position:relative;
     font-family: monospace;
-    font-size: 14px;
+    font-size: 11px;
 }
 .ui-work-schedule-add,
 .ui-work-schedule-bar,
@@ -239,7 +240,7 @@ div[data-pending="true"]:after {
 }
 .ui-work-schedule-bar {
     z-index: 1;
-    background:green;
+    background:rgb(96 163 34);
     border: 1px solid white;
 }
 .ui-work-schedule-bar-break {
@@ -249,7 +250,7 @@ div[data-pending="true"]:after {
 }
 .ui-work-schedule-bar-grace {
     z-index: 2;
-    background:#a77a25;
+    background:goldenrod;
     border: 1px solid white;
 }
 .ui-work-schedule-bar:hover {

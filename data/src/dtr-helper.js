@@ -1610,6 +1610,7 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
         dtr.underHours = Math.floor(dtr.underHours)
         dtr.underMinutes = Math.round(dtr.underMinutes)
 
+        if (null === attendance) dtr = null
         ////////
         //let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments, holiday)
 

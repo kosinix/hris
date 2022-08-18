@@ -30,22 +30,26 @@
             {% endif %}
         </h2>
         <div class="mb-3">
-            <div class="d-flex align-items-center">
-                <input v-model="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}">
-                <span class="m-1">to</span> 
-                <input v-model="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}">
-                <select v-model="showWeekDays" name="showWeekDays" class="ml-1" id="showWeekDays">
+            <form action="" ref="form" v-on:submit.prevent="reloado">
+            <div class="form-row align-items-center">
+                <label for="startDate" class="mb-0 mr-1">From</label>
+                <input v-model="startDate" id="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}" class="col-1 col-md-2 form-control form-control-sm">
+                <label for="endDate" class="m-1">to</label>
+                <input v-model="endDate" id="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}" class="form-control form-control-sm col-1 col-md-2">
+                <select v-model="showWeekDays" name="showWeekDays" id="showWeekDays" class="form-control form-control-sm ml-1 col-1">
                     <option value="Mon|Tue|Wed|Thu|Fri">Mon-Fri</option>
                     <option value="Sat|Sun">Sat,Sun</option>
                     <option value="Mon|Tue|Wed|Thu|Fri|Sat|Sun">All days</option>
                 </select>
-                <button v-on:click="reloado" type="button" class="ml-1 btn btn-sm btn-primary">Change</button>
+                <button class="ml-1 btn btn-sm btn-primary col-2">Change</button>
             </div>
+            </form>
         </div>
-        
-        <div class="text-right mb-2">
-            <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm">Insert Attendance</a>
-            <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/print?{{compatibilityUrl}}" class="btn btn-light btn-sm" target="_blank">Print DTR</a>
+        <div class="btn-toolbar justify-content-end mb-3">
+            <div class="btn-group mr-2">
+                <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm">Insert Attendance</a>
+                <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/print?{{compatibilityUrl}}" class="btn btn-light btn-sm" target="_blank">Print DTR</a>
+            </div>
         </div>
 
         <div class="table-responsive">
@@ -76,15 +80,14 @@
                 {% for day in days %}
                 {% set attendance = day.attendance %}
                 <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
-                    <td class="text-center">
+                    <td class="text-left">
                         {% if attendance %}
-                            <a href="/attendance/{{attendance._id}}/edit">{{day.day}}</a>
+                            <a href="/attendance/{{attendance._id}}/edit">{{day.date|format_date('MMM')}} {{day.day}}</a>
                         {% else %}
-                            <span class="text-dark">{{day.day}}</span>
+                            <span class="text-dark">{{day.date|format_date('MMM')}} {{day.day}}</span>
                         {% endif %}
                     </td>
                     <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
-                    
                     {% if attendance.type == 'normal' %}
                         <td>{% if attendance.timeWorked[0].logSegments[0].start %} {{attendance.timeWorked[0].logSegments[0].start|mToTime('hh:mm A')}} {% endif %}</td>
                         <td>{% if attendance.timeWorked[0].logSegments[0].end %} {{attendance.timeWorked[0].logSegments[0].end|mToTime('hh:mm A')}} {% endif %}</td>

@@ -1529,6 +1529,7 @@ router.get('/e-profile/photo', middlewares.guardRoute(['use_employee_profile']),
     try {
         let employee = res.employee
 
+        throw new Error('Profile photo temporarily locked.')
         res.render('e-profile/photo.html', {
             employee: employee.toObject()
         });
@@ -1539,6 +1540,7 @@ router.get('/e-profile/photo', middlewares.guardRoute(['use_employee_profile']),
 router.post('/e-profile/photo', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, fileUpload(), middlewares.handleExpressUploadMagic, async (req, res, next) => {
     try {
         let employee = res.employee
+        throw new Error('Profile photo temporarily locked.')
 
         // Delete files on AWS S3
         const bucketName = CONFIG.aws.bucket1.name

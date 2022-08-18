@@ -152,6 +152,7 @@
             employeeLists: {{employeeLists|default([], true)|stringify|safe}},
             workSchedule: {{workSchedule|default({}, true)|stringify|safe}},
             scheduleId: "{{scheduleId}}",
+            package: '',
             newTimeSegment: {
                 weekDay: '',
                 index: 0,
@@ -211,9 +212,6 @@
                     return '/schedule/' + this.scheduleId
                 }
                 return '/schedule/create'
-            },
-            package: function(){
-                return JSON.stringify(this.workSchedule)
             }
         },
         methods: {
@@ -452,6 +450,7 @@
                 if (me.errors.workSchedule.length > 0) {
                     alert('Please correct the errors to continue.')
                 } else {
+                    me.package = JSON.stringify(me.workSchedule)
                     me.$nextTick(function() {
                         me.$refs.form.submit();
                     });

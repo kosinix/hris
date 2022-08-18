@@ -212,6 +212,36 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
     }
 });
 
+router.get('/employee/:employeeId/delete', middlewares.guardRoute(['delete_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject();
+        let employment = await req.app.locals.db.main.Employment.findOne({
+            employeeId: employee._id
+        }).lean()
+
+        let data = {
+            employee: employee,
+            employment: employment
+        }
+        res.render('employee/delete.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/:employeeId/delete', middlewares.guardRoute(['delete_employee']), middlewares.antiCsrfCheck, middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee
+
+        let r = await employee.remove()
+
+        flash.ok(req, 'employee', `Deleted "${r.firstName} ${r.lastName}".`)
+
+        res.redirect(`/employee/all`)
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/employee/history/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee

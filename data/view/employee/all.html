@@ -75,7 +75,7 @@
                     <tbody>
                     {% for employee in employees %}
                         <tr>
-                            <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
+                            <td><a href="/employee/{{employee._id}}/personal">{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</a></td>
                             <td>
                                 {% if employee.profilePhoto %}
                                     <a href="/employee/{{employee._id}}/personal"><img class="privy-photo" src="{{employee.profilePhoto|s3_url('tiny')}}" alt=""></a>

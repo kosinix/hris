@@ -56,6 +56,9 @@ div[data-pending="true"]:after {
     font-style: italic;
 } 
 
+.min-height-500 {
+    min-height: 500px;
+}
 /*
  * Navbar
  */

@@ -269,7 +269,7 @@ router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']),
 
         let template = 'scanner/scan.html'
         if (scanner.device === 'qrCodeDevice' || scanner.device === 'rfid') {
-            template = 'scanner/scan-device.html'
+            template = 'scanner/scan-device2.html'
         }
         res.render(template, {
             qrData: qrData,

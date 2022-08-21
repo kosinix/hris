@@ -8,9 +8,13 @@ body {
 body.body-public {
     background: hsla(95, 47%, 71%, 1);
     background: linear-gradient(135deg, hsla(95, 47%, 71%, 1) 0%, hsla(168, 41%, 50%, 1) 28%, hsla(184, 62%, 39%, 1) 44%, rgb(37, 117, 182) 54%, hsla(211, 80%, 33%, 1) 100%) fixed;
-    /* background: rgb(128,0,128); */
-    /* background: linear-gradient(135deg, rgba(128,0,128,1) 0%, rgba(255,126,255,1) 100%) fixed; */
 }
+
+body.body-scanner {
+    background: ghostwhite;
+    font-family: 'Cutive Mono', monospace;
+}
+
 body, pre {
     color: #4b4b4b;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -1042,15 +1046,198 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     left: -5px;
 }
 
+/* Wall clock */
+.wall-clock {
+    position: relative; 
+    width: 300px; 
+    height: 300px; 
+    border-radius: 100%; 
+    margin: 15px auto; 
+    box-shadow: 2px 5px 15px #252525;
+    text-align: center;
+    background: white;
+}
+.wall-clock .hour {
+    position: absolute;
+    font-size: 20px;
+    padding: 0 5px;
+}
+.wall-clock .hour-12 {
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+.wall-clock .hour-1 {
+    top: 11%;
+    left: 73%;
+    transform: translate(-50%, -50%);
+}
+.wall-clock .hour-2 {
+    top: 27%;
+    left: 89%;
+    transform: translate(-50%, -50%);
+}
+.wall-clock .hour-3 {
+    top: 50%;
+    right: 0;
+    transform: translate(0, -50%);
+}
+.wall-clock .hour-4 {
+    top: 72%;
+    left: 90%;
+    transform: translate(-50%, -50%);
+}
+.wall-clock .hour-5 {
+    top: 89%;
+    left: 73%;
+    transform: translate(-50%, -50%);
+}
+.wall-clock .hour-6 {
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+.wall-clock .hour-7 {
+    top: 89%;
+    left: 27%;
+    transform: translate(-50%, -50%);
+}
+.wall-clock .hour-8 {
+    top: 72%;
+    left: 10%;
+    transform: translate(-50%, -50%);
+}
+.wall-clock .hour-9 {
+    top: 50%;
+    left: 0;
+    transform: translate(0, -50%);
+}
+.wall-clock .hour-10 {
+    top: 28%;
+    left: 12%;
+    transform: translate(-50%, -50%);
+}
+.wall-clock .hour-11 {
+    top: 11%;
+    left: 27%;
+    transform: translate(-50%, -50%);
+}
+
+.wall-clock .arm-second {
+    position: absolute; 
+    left: 0; 
+    top: 50%; 
+    width: 100%; 
+    height: 1px; 
+    z-index: 1;
+}
+.wall-clock .arm-second::after{
+    content:"";
+    position: absolute; 
+    left: 45%; 
+    top: 0; 
+    width: 50%; 
+    background: #dc3545; 
+    height: 1px;
+}
+.wall-clock .arm-second::before {
+    content:"";
+    position: absolute; 
+    left: 50%; 
+    top: 50%; 
+    width: 6px; 
+    height: 6px; 
+    background: #dc3545; 
+    border-radius: 100%;
+    transform: translate(-50%, -50%); 
+}
+
+.wall-clock .arm-minute {
+    position: absolute; 
+    left: 0; 
+    top: 50%; 
+    width: 100%; 
+    height: 2px; 
+    margin-top:-1px;
+}
+.wall-clock .arm-minute::after{
+    content:"";
+    position: absolute; 
+    left: 50%; 
+    top: 0; 
+    width: 40%; 
+    background: #212529; 
+    height: 2px;
+    border-radius: 2px;
+}
+
+.wall-clock .arm-hour {
+    position: absolute; 
+    left: 0; 
+    top: 50%; 
+    width: 100%; 
+    height: 4px; 
+    margin-top:-2px;
+}
+.wall-clock .arm-hour::after{
+    content:"";
+    position: absolute; 
+    left: 50%; 
+    top: 0; 
+    width: 40%; 
+    background: #212529; 
+    height: 5px;
+    border-radius: 2px;
+}
+.wall-clock .arm-hour::before {
+    content:"";
+    position: absolute; 
+    left: 50%; 
+    top: 50%; 
+    width: 12px; 
+    height: 12px; 
+    background: #212529; 
+    border-radius: 100%;
+    transform: translate(-50%, -50%); 
+}
+
+/* Scanner Calendar */
+.scanner-calendar .time {
+    color: #001968; 
+    font-size: 85px; 
+    text-align: center;
+}
+.scanner-calendar .date {
+    color: #0b51af; 
+    font-size: 28px; 
+    text-align: center;
+}
+.scanner-calendar .weekDays .weekDay {
+    color: #001968;
+    padding: 3px 6px;
+    margin: 0 2px;
+    font-size: 22px;
+    opacity: 0.5;
+}
+.scanner-calendar .weekDays .weekDay[data-today="true"] {
+    font-size: 28px;
+    padding: 3px 10px;
+    border-bottom: 2px solid #dc3545;
+    opacity: 1;
+}
+
+
 /* Breakpoints */
 /* ≥1200px Extra large */
 @media (max-width:1200px){
 
 }
+
 /* ≥992px	Large */
 @media (max-width:992px){
 
 }
+
 /* ≥768px	Medium */
 @media (max-width:768px){
     .main {
@@ -1062,19 +1249,26 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
         visibility: hidden;
     }
 }
+
 /* ≥576px	Small */
 @media (max-width:576px){
     .table-dtr {
         font-size: 10px;
     }
-
-    
 }
+
 /* <576px Extra Small */
-@media (min-width:575px){
-
+@media (max-width:575px){
+    .body-scanner .header .title {
+        font-size: 18px;
+    }
+    .scanner-calendar .time {
+        font-size: 60px;
+    }
+    .scanner-calendar .weekDays .weekDay {
+        font-size: 16px;
+    }
+    .scanner-calendar .weekDays .weekDay[data-today="true"] {
+        font-size: 18px;
+    }
 }
-
-
-
-

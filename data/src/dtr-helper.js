@@ -1562,7 +1562,7 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
             let timeSegments = buildTimeSegments(workScheduleTimeSegments)
 
             // console.log(date, attendance)
-            let logSegments = {}
+            let logSegments = []
             try {
                 logSegments = buildLogSegments(attendance.logs)
             } catch (errr) {

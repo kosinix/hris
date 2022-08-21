@@ -620,7 +620,12 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
         // Schedule segments
         let timeSegments = dtrHelper.buildTimeSegments(workScheduleTimeSegments)
 
-        let logSegments = dtrHelper.buildLogSegments(attendance.logs)
+        let logSegments = []
+        try {
+            logSegments = dtrHelper.buildLogSegments(attendance.logs)
+        } catch (errr) {
+            console.log(errr)
+        }
 
         let timeWorked = dtrHelper.countWork(timeSegments, logSegments, { ignoreZero: true })
 

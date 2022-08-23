@@ -112,14 +112,14 @@
                         </div>
                     </div>
                 </div>
-                {# <div class="row mb-2">
+                <div class="row mb-2">
                     <div class="col-sm-3">Work Sched:</div>
                     <div class="col-sm-9">
-                        <select disabled v-model="workScheduleId" name="workScheduleId" id="workScheduleId" class="form-control form-control-sm">
+                        <select v-model="workScheduleId" name="workScheduleId" id="workScheduleId" class="form-control form-control-sm">
                             <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.times}</option>
                         </select>
                     </div>
-                </div> #}
+                </div>
                 <div class="row mb-2">
                     <div class="col-sm-3">In Charge:</div>
                     <div class="col-sm-9">

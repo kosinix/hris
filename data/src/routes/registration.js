@@ -103,7 +103,7 @@ router.get('/registration/all', middlewares.guardRoute(['read_all_user', 'read_u
 });
 
 // check email look
-router.get('/registration/email', middlewares.guardRoute(['create_user']), async (req, res, next) => {
+router.get('/registration/email', middlewares.guardRoute(['read_employee']), async (req, res, next) => {
     try {
         let firstName = lodash.get(req, 'query.firstName', 'Juan')
         let email = lodash.get(req, 'query.email', 'juan@example.com')

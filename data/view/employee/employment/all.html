@@ -7,10 +7,13 @@
     {% include 'employee/employee-profile-photo.html' %}
     {% include 'employee/employee-view-tabs.html' %}
 
-    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
-        
+    <div class="tab-content p-3 pt-4 min-height-500">
+        <div class="d-flex align-items-center mb-4">
+            <h1 class="h4 mr-3 mb-0">Employments</h1>
+            <a href="/employee/{{employee._id}}/employment/create" class="btn btn-sm btn-light">Add Employment</a>
+        </div>
         {% if employee.employments.length > 0 %}
-        <div class="table-responsive">
+        <div class="table-responsive mb-4">
             <table class="table table-sm table-striped">
                 <thead>
                     <tr>
@@ -34,7 +37,9 @@
                                 <span class="text-dark">Inactive</span>
                             {% endif %}
                         </td>
-                        <td>{{employment.position}}</td>
+                        <td>
+                            <a href="/employee/{{employee._id}}/employment/{{employment._id}}/update">{{employment.position}}</a>
+                        </td>
                         <td>{{employment.salary|currency}}</td>
                         <td>{{employment.salaryType}}</td>
                         <td>{{employment.employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</td>
@@ -53,13 +58,8 @@
             </table>
         </div>
         {% else %}
-            <p>No employment. <a href="/employee/{{employee._id}}/employment/create" class="btn btn-link">Add Employment</a></p>
+            <p>No employment found. <em><a href="/employee/{{employee._id}}/employment/create" class="">Add Employment</a></em></p>
         {% endif %}
-        <div class="form-row pt-3 pb-3">
-            <div class="col-md-12">
-                <a href="/employee/{{employee._id}}/employment/create" class="btn btn-primary">Add Employment</a>
-            </div>
-        </div>
 
     </div>
 

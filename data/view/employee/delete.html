@@ -9,7 +9,14 @@
        
     </div>
     {% if employment %}
-        <div class="alert alert-danger"><p class="mb-0">Cannot delete employee having employments.</p></div>
+        <div class="alert alert-danger"><p class="mb-0">Cannot delete employee with employments. Please delete all associated employments first.</p></div>
+        <div class="form-row pt-3 pb-3">
+            <div class="col-md-12">
+                <a href="/employee/{{employee._id}}/personal" class="btn btn-light">Cancel</a>
+            </div>
+        </div>
+    {% elif webAccess %}
+        <div class="alert alert-danger"><p class="mb-0">Cannot delete employee with an Online Account. Please delete the Online Account first.</p></div>
         <div class="form-row pt-3 pb-3">
             <div class="col-md-12">
                 <a href="/employee/{{employee._id}}/personal" class="btn btn-light">Cancel</a>

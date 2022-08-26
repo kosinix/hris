@@ -8,30 +8,23 @@
     {% include 'employee/employee-view-tabs.html' %}
 
     <div class="tab-content p-3 pt-4 min-height-500">
-        <div class="d-flex align-items-center">
-            <h1 class="h4 mr-3 mb-3">Add</h1>
-        </div>
-
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/document/create" method="POST" enctype="multipart/form-data" class="form-default">
-            {% set name = 'document' %}
-            <div class="form-group">
-                <label for="{{name}}">Document (JPEG, PNG, PDF)</label>
-                <div>
-                    <input name="{{name}}" id="{{name}}" ref="{{('file_'+name)|camel_case}}" type="file" class="form-control">
-                    <small class="invalid-feedback">${getError('{{name}}')}</small>
-                </div>
-            </div>
-            <div class="form-row pt-3 pb-3">
-                <div class="col-md-12">
-                    <button class="btn btn-primary">Upload</button>
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/user/delete" method="POST" class="form-default">
+            <input type="hidden" name="acsrf" value="{{acsrf}}">
+            <p><em>Delete online account?</em></p>
+            <div class="form-row">
+                <div class="col-6 text-left">
+                    <a class="btn btn-link" href="/employee/{{employee._id}}/user">Cancel</a>
+                    <button class="btn btn-danger">Delete Permanently</button>
                 </div>
             </div>
         </form>
     </div>
 </div>
+{# {% include "parts/modal-employment.html" %} #}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
+{# {% include "parts/script-employment.html" %} #}
 <script>
     var vApp = new Vue({
         el: '#vApp',
@@ -41,9 +34,10 @@
             window.vuelidateExtendMixin,
         ],
         data: {
-            photo: '',
+          
         },
         validations: {
+            
         },
         methods: {
             onSubmit: function(){
@@ -61,3 +55,4 @@
     });
 </script>
 {% endblock %}
+

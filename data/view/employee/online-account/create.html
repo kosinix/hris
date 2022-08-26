@@ -1,0 +1,114 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'employee/employee-header.html' %}
+    {% include 'employee/employee-profile-photo.html' %}
+    {% include 'employee/employee-view-tabs.html' %}
+
+    <div class="tab-content p-3 pt-4 min-height-500">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/user/create" method="POST" class="form-default">
+
+            <div class="form-group">
+                <label for="username">New Username <span class="text-danger">*</span></label>
+                <div>
+                    <input name="username" id="username" v-model="username" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('username')}</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">New Password <span class="text-danger">*</span></label>
+                <div>
+                    <input name="password" id="password" v-model="password" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('password')}</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email <em>(Used for password reset and other HRIS notifications)</em> <span class="text-danger">*</span></label>
+                <div>
+                    <input name="email" id="email" v-model="email" type="email" class="form-control">
+                    <small class="invalid-feedback">${getError('email')}</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Message Preview:</label>
+
+                <iframe width="100%" height="250px" v-bind:src="iframeUrl" frameborder="0"></iframe>
+            </div>
+
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-6 text-md-left">
+                    <a class="btn btn-link" href="/employee/{{employee._id}}/user">Cancel</a>
+                </div>
+                <div class="col-md-6 text-md-right">
+                    <button class="btn btn-primary">Create Online Account and Send Email</button>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{# {% include "parts/modal-employment.html" %} #}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{# {% include "parts/script-employment.html" %} #}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            firstName: '{{employee.firstName}}',
+            username: '{{username}}',
+            password: '{{password}}',
+            email: '{{email}}',
+            baseUrl: '/registration/email',
+        },
+        validations: {
+            username: {
+                required: window.validators.required
+            },
+            password: {
+                required: window.validators.required,
+                minLength: window.validators.minLength(8)
+            },
+            email: {
+                required: window.validators.required
+            },
+        },
+        mounted: function(){
+            let me = this;
+        },
+        computed:{
+            iframeUrl: function(){
+                let me = this;
+                return me.baseUrl + `?username=${me.username}&firstName=${me.firstName}&email=${me.email}&password=${me.password}`
+            }
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

@@ -1,0 +1,93 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'employee/employee-header.html' %}
+    {% include 'employee/employee-profile-photo.html' %}
+    {% include 'employee/employee-view-tabs.html' %}
+
+    <div class="tab-content p-3 pt-4 min-height-500">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/user/{{onlineAccount._id}}/update" method="POST" class="form-default">
+
+            <div class="form-group">
+                <label for="username">Username <span class="text-danger">*</span></label>
+                <div>
+                    <input name="username" id="username" v-model="username" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('username')}</small>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password <em>(Leave blank to remain the same)</em></label>
+                <div>
+                    <input name="password" id="password" v-model="password" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('password')}</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email <span class="text-danger">*</span></label>
+                <div>
+                    <input name="email" id="email" v-model="email" type="email" class="form-control">
+                    <small class="invalid-feedback">${getError('email')}</small>
+                </div>
+            </div>
+
+            <div class="form-row pt-3 pb-3">
+                <div class="col-6 text-left">
+                    <a class="btn btn-link" href="/employee/{{employee._id}}/user">Cancel</a>
+                    <a class="btn btn-danger" href="/employee/{{employee._id}}/user/delete">Delete</a>
+                </div>
+                <div class="col-6 text-right">
+                    <button class="btn btn-primary">Update</button>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{# {% include "parts/modal-employment.html" %} #}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{# {% include "parts/script-employment.html" %} #}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            username: '{{onlineAccount.username}}',
+            password: '',
+            email: '{{onlineAccount.email}}',
+        },
+        validations: {
+            username: {
+                required: window.validators.required
+            },
+            email: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

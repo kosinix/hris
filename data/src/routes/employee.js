@@ -14,6 +14,7 @@ const qr = require('qr-image')
 //// Modules
 const dtrHelper = require('../dtr-helper');
 const excelGen = require('../excel-gen');
+const mailer = require('../mailer');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
 const passwordMan = require('../password-man');
@@ -219,9 +220,14 @@ router.get('/employee/:employeeId/delete', middlewares.guardRoute(['delete_emplo
             employeeId: employee._id
         }).lean()
 
+        let webAccess = await req.app.locals.db.main.User.findById({
+            _id: employee.userId
+        }).lean()
+
         let data = {
             employee: employee,
-            employment: employment
+            employment: employment,
+            webAccess: webAccess,
         }
         res.render('employee/delete.html', data);
     } catch (err) {
@@ -1004,14 +1010,15 @@ router.get('/employee/find', middlewares.guardRoute(['create_employee', 'update_
 router.get('/employee/:employeeId/user', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        employee.user = await req.app.locals.db.main.User.findById(employee.userId)
+        let onlineAccount = await req.app.locals.db.main.User.findById(employee.userId)
 
         let username = passwordMan.genUsername(employee.firstName, employee.lastName)
         let password = passwordMan.randomString(8)
 
-        res.render('employee/web-access.html', {
+        res.render('employee/online-account/all.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
+            onlineAccount: onlineAccount,
             username: username,
             password: password,
         });
@@ -1019,20 +1026,44 @@ router.get('/employee/:employeeId/user', middlewares.guardRoute(['read_employee'
         next(err);
     }
 });
-router.post('/employee/:employeeId/user', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.get('/employee/:employeeId/user/create', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let onlineAccount = await req.app.locals.db.main.User.findById(employee.userId)
+        if (onlineAccount) {
+            flash.error(req, 'employee', 'Already have an account.')
+            return res.redirect(`/employee/${employee._id}/user`)
+        }
+
+        let username = passwordMan.genUsername(employee.firstName, employee.lastName)
+        let password = passwordMan.randomString(8)
+
+        res.render('employee/online-account/create.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            onlineAccount: onlineAccount,
+            username: username,
+            password: password,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/:employeeId/user/create', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
 
         let body = req.body
         body.username = lodash.trim(lodash.get(body, 'username'))
         body.password = lodash.trim(lodash.get(body, 'password'))
+        body.email = lodash.trim(lodash.get(body, 'email'))
 
         let salt = passwordMan.randomString(16)
         let passwordHash = passwordMan.hashPassword(body.password, salt)
 
         let employeeUser = await req.app.locals.db.main.User.findById(employee.userId)
-        if (employeeUser) { // Assoc user
-            // Check username avail
+        if (employeeUser) { // Associated user
+            // Check username availability
             let found = await req.app.locals.db.main.User.findOne({
                 username: body.username,
                 _id: {
@@ -1041,7 +1072,19 @@ router.post('/employee/:employeeId/user', middlewares.guardRoute(['update_employ
             })
             if (found) {
                 flash.error(req, 'employee', `Username "${body.username}" already exists. Please choose a different one.`)
-                return res.redirect(`/employee/${employee._id}/user`)
+                return res.redirect(`/employee/${employee._id}/user/create`)
+            }
+
+            // Check email availability
+            let existingEmail = await req.app.locals.db.main.User.findOne({
+                email: body.email,
+                _id: {
+                    $ne: employeeUser._id
+                }
+            })
+            if (existingEmail) {
+                flash.error(req, 'employee', `Email "${body.email}" already exists. Please choose a different one.`)
+                return res.redirect(`/employee/${employee._id}/user/create`)
             }
 
             employeeUser.username = body.username
@@ -1049,7 +1092,7 @@ router.post('/employee/:employeeId/user', middlewares.guardRoute(['update_employ
             employeeUser.passwordHash = passwordHash
             await employeeUser.save()
 
-        } else { // No assoc user
+        } else { // No associated user
 
             // Check username avail
             let found = await req.app.locals.db.main.User.findOne({
@@ -1057,7 +1100,16 @@ router.post('/employee/:employeeId/user', middlewares.guardRoute(['update_employ
             })
             if (found) {
                 flash.error(req, 'employee', `Username "${body.username}" already exists. Please choose a different one.`)
-                return res.redirect(`/employee/${employee._id}/user`)
+                return res.redirect(`/employee/${employee._id}/user/create`)
+            }
+
+            // Check email availability
+            let existingEmail = await req.app.locals.db.main.User.findOne({
+                email: body.email
+            })
+            if (existingEmail) {
+                flash.error(req, 'employee', `Email "${body.email}" already exists. Please choose a different one.`)
+                return res.redirect(`/employee/${employee._id}/user/create`)
             }
 
             employeeUser = new req.app.locals.db.main.User({
@@ -1068,6 +1120,7 @@ router.post('/employee/:employeeId/user', middlewares.guardRoute(['update_employ
                 middleName: employee.middleName,
                 lastName: employee.lastName,
                 username: body.username,
+                email: body.email,
                 active: true,
                 permissions: [],
             });
@@ -1075,8 +1128,19 @@ router.post('/employee/:employeeId/user', middlewares.guardRoute(['update_employ
             employee.userId = employeeUser._id
             await employee.save()
         }
+        let data = {
+            to: employeeUser.email,
+            firstName: employee.firstName,
+            username: employeeUser.username,
+            password: body.password,
+            // loginUrl: `${CONFIG.app.url}/login?username=${employeeUser.username}`
+        }
 
-        flash.ok(req, 'employee', `Web access account created with username "${body.username}" and password "${body.password}".`)
+        let info = await mailer.send('verified.html', data)
+        console.log(info)
+        
+
+        flash.ok(req, 'employee', `Account created with username "${body.username}" and password "${body.password}".`)
         res.redirect(`/employee/${employee._id}/user`)
 
     } catch (err) {
@@ -1109,7 +1173,123 @@ router.post('/employee/:employeeId/user/password', middlewares.guardRoute(['upda
         next(err);
     }
 });
+router.get('/employee/:employeeId/user/delete', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        employee.user = await req.app.locals.db.main.User.findById(employee.userId)
 
+        res.render('employee/online-account/delete.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/:employeeId/user/delete', middlewares.guardRoute(['update_employee']), middlewares.antiCsrfCheck, middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let user = await req.app.locals.db.main.User.findById(employee.userId)
+
+        let deleted = await user.remove()
+
+        flash.ok(req, 'employee', `Account "${deleted.username}" deleted.`)
+        res.redirect(`/employee/${employee._id}/user`)
+
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/employee/:employeeId/user/:userId/update', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let onlineAccount = await req.app.locals.db.main.User.findById(employee.userId)
+        if (!onlineAccount) {
+            flash.error(req, 'employee', 'Account do not exist.')
+            return res.redirect(`/employee/${employee._id}/user`)
+        }
+        let username = passwordMan.genUsername(employee.firstName, employee.lastName)
+        let password = passwordMan.randomString(8)
+
+        res.render('employee/online-account/update.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            onlineAccount: onlineAccount,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/:employeeId/user/:userId/update', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employeeUser = await req.app.locals.db.main.User.findById(employee.userId)
+        if (!employeeUser) {
+            flash.error(req, 'employee', 'Account do not exist.')
+            return res.redirect(`/employee/${employee._id}/user`)
+        }
+        let body = req.body
+        body.username = lodash.trim(lodash.get(body, 'username'))
+        body.password = lodash.trim(lodash.get(body, 'password'))
+        body.email = lodash.trim(lodash.get(body, 'email'))
+
+
+        // Check username availability
+        let existingUsername = await req.app.locals.db.main.User.findOne({
+            username: body.username,
+            _id: {
+                $ne: employeeUser._id
+            }
+        })
+        if (existingUsername) {
+            let error = new Error(`Username "${body.username}" already exists. Please choose a different one.`)
+            flash.error(req, 'employee', error.message)
+            error.type = 'flash'
+            error.redirect = `/employee/${employee._id}/user/${employeeUser._id}/update`
+            throw error
+        }
+
+        // Check email availability
+        let existingEmail = await req.app.locals.db.main.User.findOne({
+            email: body.email,
+            _id: {
+                $ne: employeeUser._id
+            }
+        })
+        if (existingEmail) {
+            let error = new Error(`Email "${body.email}" already exists. Please choose a different one.`)
+            flash.error(req, 'employee', error.message)
+            error.type = 'flash'
+            error.redirect = `/employee/${employee._id}/user/${employeeUser._id}/update`
+            throw error
+        }
+
+        let messages = []
+        if (employeeUser.username !== body.username) {
+            messages.push('username')
+            employeeUser.username = body.username
+        }
+        if (body.password) {
+            messages.push('password')
+            employeeUser.passwordHash = passwordMan.hashPassword(body.password, employeeUser.salt)
+        }
+        if (employeeUser.email !== body.email) {
+            messages.push('email')
+            employeeUser.email = body.email
+        }
+        await employeeUser.save()
+
+        if (messages.length > 0) {
+            flash.ok(req, 'employee', `Account ${messages.join(', ')} updated.`)
+        } else {
+            flash.ok(req, 'employee', `No changes.`)
+        }
+        res.redirect(`/employee/${employee._id}/user/${employeeUser._id}/update`)
+    } catch (err) {
+        next(err);
+    }
+});
 
 // Documents
 router.get('/employee/:employeeId/document/all', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {

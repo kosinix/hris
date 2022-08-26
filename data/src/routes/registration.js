@@ -105,13 +105,15 @@ router.get('/registration/all', middlewares.guardRoute(['read_all_user', 'read_u
 // check email look
 router.get('/registration/email', middlewares.guardRoute(['create_user']), async (req, res, next) => {
     try {
-
-        let username = 'juan.cruz'
+        let firstName = lodash.get(req, 'query.firstName', 'Juan')
+        let email = lodash.get(req, 'query.email', 'juan@example.com')
+        let username = lodash.get(req, 'query.username', 'juan.cruz')
+        let password = lodash.get(req, 'query.password', passwordMan.genPassword(10))
         res.render('emails/verified.html', {
-            to: 'juan@example.com',
-            firstName: 'Juan',
+            to: email,
+            firstName: firstName,
             username: username,
-            password: passwordMan.genPassword(10),
+            password: password,
             appUrl: `${CONFIG.app.url}`,
         });
     } catch (err) {

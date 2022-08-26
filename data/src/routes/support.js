@@ -90,7 +90,6 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
         //
 
         let rfid = lodash.trim(lodash.get(req, 'body.uid'))
-        let email = lodash.trim(lodash.get(req, 'body.email'))
         let employmentId = employment._id
 
 
@@ -101,6 +100,12 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
             throw new Error('Invalid RFID length.')
         }
 
+        //// User
+        let userAccount = await req.app.locals.db.main.User.findById(employee.userId).lean()
+        if (!userAccount) {
+            throw new Error('You dont have an user account.')
+        }
+        let email = userAccount.email
         
         let registrationForm = await req.app.locals.db.main.RegistrationForm.findOne({
             uid: rfid,
@@ -122,12 +127,7 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
             })
         }
 
-        ////
-
-        let userAccount = await req.app.locals.db.main.User.findById(employee.userId).lean()
-        if (!userAccount) {
-            throw new Error('You dont have an user account.')
-        }
+        
 
         registrationForm.employment = employment
         registrationForm.employee = employee
@@ -145,16 +145,6 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
         await req.app.locals.db.main.Employee.updateOne({ _id: registrationForm.employee._id }, {
             uid: registrationForm.uid // ID card number
         })
-
-        let data = {
-            to: registrationForm.email,
-            firstName: registrationForm.employee.firstName,
-            username: username,
-            password: password,
-            loginUrl: `${CONFIG.app.url}/login?username=${username}`
-        }
-
-        let info = await mailer.send('verified.html', data)
 
         await req.app.locals.db.main.RegistrationForm.updateOne({ _id: registrationForm._id }, {
             status: 'verified'

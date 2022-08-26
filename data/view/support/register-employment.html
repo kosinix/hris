@@ -34,13 +34,13 @@
                 <small class="invalid-feedback">${getError('uid')}</small>
             </div>
 
-            <div class="form-group">
+            {# <div class="form-group">
                 <label for="email">Email <span class="text-danger">*</span></label>
                 <div>
                     <input name="email" id="email" v-model="email" type="email" class="form-control">
                     <small class="invalid-feedback">${getError('email')}</small>
                 </div>
-            </div>
+            </div> #}
 
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
@@ -70,7 +70,7 @@
         },
         data: {
             uid: '',
-            email: '',
+            {# email: '', #}
             pending: false,
         },
         validations: {
@@ -79,9 +79,9 @@
                 minLength: window.validators.minLength(10),
                 maxLength: window.validators.maxLength(10),
             },
-            email: {
+            {# email: {
                 required: window.validators.required
-            },
+            }, #}
         },
         computed: {
             message: function(){
@@ -100,9 +100,9 @@
             })
         },
         methods: {
-            onEnter: function(){
+            {# onEnter: function(){
                 document.getElementById("email").focus();
-            },
+            }, #}
             trim: function(){
                 this.uid = _.trim(this.uid)
             },

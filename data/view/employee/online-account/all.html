@@ -1,0 +1,81 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'employee/employee-header.html' %}
+    {% include 'employee/employee-profile-photo.html' %}
+    {% include 'employee/employee-view-tabs.html' %}
+
+    <div class="tab-content p-3 pt-4 min-height-500">
+        <div class="d-flex align-items-center mb-4">
+            <h1 class="h4 mr-3 mb-0">Online Account</h1>
+        </div>
+        {% if onlineAccount %}
+        <div class="table-responsive mb-4">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th width="25%">Username</th>
+                        <th>Password</th>
+                        <th>Email</th>
+                        <th>UID</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <a href="/employee/{{employee._id}}/user/{{onlineAccount._id}}/update">{{onlineAccount.username}}</a>
+                        </td>
+                        <td>****</td>
+                        <td>{{onlineAccount.email}}</td>
+                        <td>{{employee.uid}}</td>
+                        <td>
+                            <a href="/employee/{{employee._id}}/user/{{onlineAccount._id}}/update">Edit</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p>No online account yet. <em><a href="/employee/{{employee._id}}/user/create" class="">Create Online Account</a></em></p>
+        {% endif %}
+    </div>
+</div>
+{# {% include "parts/modal-employment.html" %} #}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{# {% include "parts/script-employment.html" %} #}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            
+        },
+        validations: {
+            
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

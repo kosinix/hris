@@ -4,19 +4,16 @@
             <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/personal/])}}" href="/employee/{{employee._id}}/personal">Personal Info</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/employment/, r/^\/employee\/([a-f\d]{24})\/employment\/(.)+/])}}" href="/employee/{{employee._id}}/employment">Employment</a>
+            <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/employment/, r/^\/employee\/([a-f\d]{24})\/employment\/(.)+/])}}" href="/employee/{{employee._id}}/employment">Employments</a>
         </li>
         <li class="nav-item">
             <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/address/])}}" href="/employee/{{employee._id}}/address">Address</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/user/])}}" href="/employee/{{employee._id}}/user">Web Access</a>
+            <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/user/])}}" href="/employee/{{employee._id}}/user">Online Account</a>
         </li>
         <li class="nav-item">
             <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/document\/(.)+/])}}" href="/employee/{{employee._id}}/document/all">E-201</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/delete\/(.)+/])}}" href="/employee/{{employee._id}}/delete">Delete</a>
         </li>
     </ul>
 </div>

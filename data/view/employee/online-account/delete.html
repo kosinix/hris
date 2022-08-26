@@ -1,0 +1,58 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'employee/employee-header.html' %}
+    {% include 'employee/employee-profile-photo.html' %}
+    {% include 'employee/employee-view-tabs.html' %}
+
+    <div class="tab-content p-3 pt-4 min-height-500">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/user/delete" method="POST" class="form-default">
+            <input type="hidden" name="acsrf" value="{{acsrf}}">
+            <p><em>Delete online account?</em></p>
+            <div class="form-row">
+                <div class="col-6 text-left">
+                    <a class="btn btn-link" href="/employee/{{employee._id}}/user">Cancel</a>
+                    <button class="btn btn-danger">Delete Permanently</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{# {% include "parts/modal-employment.html" %} #}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{# {% include "parts/script-employment.html" %} #}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+          
+        },
+        validations: {
+            
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

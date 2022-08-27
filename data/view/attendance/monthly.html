@@ -18,7 +18,7 @@
         </div>
         {# <h1 class="h4 mb-3 mt-3">{{mCalendar|format_date('MMMM YYYY')}}</h1> #}
         <div class="table-responsive">
-            <table class="table table-calendar">
+            <table class="table table-calendar table-bordered">
                 {% for row in matrix.splice(0, 1) %}
                     <tr>
                         {% for cell in row %}

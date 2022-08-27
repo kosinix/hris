@@ -12,7 +12,7 @@ body.body-public {
 
 body.body-scanner {
     background: ghostwhite;
-    font-family: 'Cutive Mono', monospace;
+    font-family: monospace;
 }
 
 body, pre {
@@ -224,12 +224,10 @@ div[data-pending="true"]:after {
     text-align: right;
     padding: 0 5px;
     border-right: dotted 1px gray;
-    font-family: monospace;
 }
 .ui-work-schedule-time {
     width: 95%; 
     position:relative;
-    font-family: monospace;
     font-size: 11px;
 }
 .ui-work-schedule-add,

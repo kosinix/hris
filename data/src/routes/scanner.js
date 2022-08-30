@@ -335,7 +335,9 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
                     // console.log(uploadList, saveList)
                 }
 
-                log = await dtrHelper.logAttendance(req.app.locals.db, scanData.employee, scanData.employment, scanner._id, undefined, { photo: lodash.get(saveList, 'photos[0]', '') })
+                for (let c = 0; c < scanData.employments.length; c++) {
+                    log = await dtrHelper.logAttendance(req.app.locals.db, scanData.employee, scanData.employments[c], scanner._id, undefined, { photo: lodash.get(saveList, 'photos[0]', '') })
+                }
             } catch (err) {
                 throw err// Format for xhr
             }

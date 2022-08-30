@@ -731,12 +731,18 @@ module.exports = {
                     })
                 }
 
+                let employments = await req.app.locals.db.main.Employment.find({
+                    employeeId: employee._id,
+                    active: true,
+                }).lean()
+
                 res.scanData = {
                     dataType: 'rfid',
                     code: code,
                     photo: photo,
                     employee: employee,
                     employment: employment,
+                    employments: employments,
                 }
 
             } else { // QR

@@ -13,12 +13,12 @@
             {% endif %}
             <div class="mt-2">
                 <h1 class="privy-name">  
-                    <a href="/employee/personal/{{employee._id}}">
+                    <a href="/employee/{{employee._id}}/personal">
                         {{employee.lastName}},
                         {{employee.firstName}}
                     </a>
                 </h1>
-                <h2><a class="privy-employment" href="/employee/employment/{{employee._id}}">{{employment.position}} - {{employment.employmentType|capitalize}}</a></h2>
+                <h2><a class="privy-employment" href="/employee/{{employee._id}}/employment/{{employment._id}}/update">{{employment.position}} - {{employment.employmentType|capitalize}}</a></h2>
             </div>
         </div>
        
@@ -33,15 +33,15 @@
             <form action="" ref="form" v-on:submit.prevent="reloado">
             <div class="form-row align-items-center">
                 <label for="startDate" class="mb-0 mr-1">From</label>
-                <input v-model="startDate" id="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}" class="col-1 col-md-2 form-control form-control-sm">
+                <input v-model="startDate" id="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}" class="col-md-2 col-4 form-control form-control-sm">
                 <label for="endDate" class="m-1">to</label>
-                <input v-model="endDate" id="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}" class="form-control form-control-sm col-1 col-md-2">
-                <select v-model="showWeekDays" name="showWeekDays" id="showWeekDays" class="form-control form-control-sm ml-1 col-1">
+                <input v-model="endDate" id="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}" class="form-control form-control-sm col-4 col-md-2">
+                <select v-model="showWeekDays" name="showWeekDays" id="showWeekDays" class="form-control form-control-sm ml-md-1 col-md-2 col-6 mt-2 mt-md-0">
                     <option value="Mon|Tue|Wed|Thu|Fri">Mon-Fri</option>
                     <option value="Sat|Sun">Sat,Sun</option>
                     <option value="Mon|Tue|Wed|Thu|Fri|Sat|Sun">All days</option>
                 </select>
-                <button class="ml-1 btn btn-sm btn-primary col-2">Change</button>
+                <button class="ml-md-1 btn btn-sm btn-primary col-6 col-md-1 mt-2 mt-md-0">Change</button>
             </div>
             </form>
         </div>

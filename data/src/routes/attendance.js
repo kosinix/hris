@@ -529,6 +529,88 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         next(err);
     }
 });
+router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
+    try {
+        let employment = res.employment
+        let employmentId = employment._id
+        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
+
+        let {
+            periodMonthYear,
+            periodSlice,
+            periodWeekDays,
+            showTotalAs,
+            showWeekDays,
+            startMoment,
+            endMoment,
+            countTimeBy,
+        } = res
+
+
+        let options = {
+            padded: true,
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
+        }
+
+        let { days, stats } = await dtrHelper.getDtrByDateRange2(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+
+        let periodMonthYearMoment = moment(periodMonthYear)
+        const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
+        let months = Array.from(range1.by('months')).reverse()
+
+        let periodMonthYearList = months.map((_moment) => {
+            let date = _moment.startOf('month')
+
+            return {
+                value: date.format('YYYY-MM-DD'),
+                text: date.format('MMM YYYY'),
+            }
+        })
+
+        let workSchedules = await workScheduler.getEmploymentWorkSchedule(req.app.locals.db, employmentId)
+
+        let workSchedule = workSchedules.find(o => {
+            return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
+        })
+
+        let data = {
+            title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
+
+            flash: flash.get(req, 'employee'),
+
+            employee: employee,
+            employment: employment,
+
+            // Data that might change
+            days: days,
+            stats: stats,
+
+            showTotalAs: showTotalAs,
+            workSchedules: workSchedules,
+            periodMonthYearList: periodMonthYearList,
+            periodMonthYear: periodMonthYearMoment.format('YYYY-MM-DD'),
+            periodWeekDays: periodWeekDays,
+            periodSlice: periodSlice,
+            inCharge: employment.inCharge,
+            countTimeBy: countTimeBy,
+
+            startDate: startMoment.format('YYYY-MM-DD'),
+            endDate: endMoment.format('YYYY-MM-DD'),
+
+            workSchedule: workSchedule,
+            shared: true,
+
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+
+        }
+
+        // return res.send(days)
+        return res.render('e-profile/dtr-print2.html', data)
+    } catch (err) {
+        next(err);
+    }
+});
 router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()

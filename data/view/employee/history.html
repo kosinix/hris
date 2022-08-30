@@ -7,7 +7,15 @@
     {% include 'employee/employee-profile-photo.html' %}
     {% include 'employee/employee-view-tabs.html' %}
 
-    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+    <div class="tab-content p-3 pt-4 min-height-500">
+        <div class="d-flex align-items-center mb-4">
+            <h1 class="h4 mr-3 mb-0">History</h1>
+        </div>
+        <ul>
+            {% for h in employee.history%}
+            <li>{{h.summary}} - <em>{{h.createdAt|from_now}}</em></li>
+            {% endfor %}
+        </ul>
 
     </div>
 

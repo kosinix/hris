@@ -1030,7 +1030,8 @@ const buildTimeSegments = (timeSegments) => {
 
     let hasFlexi = timeSegments.filter(o => o.flexible)
     // Add OT to computation
-    if (hasFlexi.length <= 0) {
+    // if (hasFlexi.length <= 0) {
+    if (false) {
         // Overtime
         let start = timeSegments[timeSegments.length - 1].end
         // let end = 1439 // 11:59pm

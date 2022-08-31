@@ -1115,7 +1115,7 @@ const buildLogSegments = (logs) => {
 
     let isOdd = points.length % 2 > 0
     if (isOdd) {
-        throw new Error('Odd points. Every point should have a partner.')
+        // throw new Error('Odd points. Every point should have a partner.')
     }
     let chunks = []
     let chunkSize = 2
@@ -1124,10 +1124,14 @@ const buildLogSegments = (logs) => {
     }
 
     return chunks.map((chunk, i) => {
+        let start = chunk[0] === undefined ? 0 : chunk[0]
+        let end = chunk[1] === undefined ? 0 : chunk[1]
+        let raw = end - start
+        raw = raw < 0 ? 0 : raw
         return {
-            start: chunk[0],
-            end: chunk[1],
-            raw: chunk[1] - chunk[0],
+            start: start,
+            end: end,
+            raw: raw,
             type: logs[i * chunkSize].type
         }
     })
@@ -1569,13 +1573,13 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
             } catch (errr) {
                 console.log(errr)
             }
-            console.dir(timeSegments, { depth: null })
-            console.dir(logSegments, { depth: null })
+            // console.dir(timeSegments, { depth: null })
+            // console.dir(logSegments, { depth: null })
 
             let timeWorked = countWork(timeSegments, logSegments, { ignoreZero: true })
             attendance.timeWorked = timeWorked
 
-            console.dir(timeWorked, { depth: null })
+            // console.dir(timeWorked, { depth: null })
 
             timeWorked.forEach(ts => {
                 if (ts.name != 'OT') { // Exclude OT

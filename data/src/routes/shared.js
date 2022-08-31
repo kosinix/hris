@@ -111,7 +111,7 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
             showWeekDays: showWeekDays,
         }
 
-        let { days, stats } = await dtrHelper.getDtrByDateRange(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days, stats } = await dtrHelper.getDtrByDateRange2(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
         let months = Array.from(range1.by('months')).reverse()
@@ -212,7 +212,7 @@ router.get('/shared/dtr/print/:secureKey', middlewares.decodeSharedResource, asy
 
         }
 
-        return res.render('e-profile/dtr-print.html', data)
+        return res.render('e-profile/dtr-print2.html', data)
     } catch (err) {
         next(err);
     }

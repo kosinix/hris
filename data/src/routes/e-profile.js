@@ -313,7 +313,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
         if (/^\/e-profile\/dtr\/print/.test(req.path)) {
             return res.render('e-profile/dtr-print2.html', data)
         }
-        res.render('e-profile/dtr.html', data)
+        res.render('e-profile/dtr2.html', data)
     } catch (err) {
         next(err);
     }

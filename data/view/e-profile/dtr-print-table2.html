@@ -65,17 +65,21 @@
         <td class="text-center" width="10%">{{day.day}}</td>
         <td class="text-center weekday" width="10%">{{day.weekDay}}</td>
         {% if attendanceTypesList.includes(attendance.type) %}
-            {% if attendance.type === 'travel' and attendance.logs.length > 1 %}
-                {% if attendance.logs[0].type === 'travel' %}
+            {% if attendance.type === 'travel'  %}
+                {% if attendance.logs.length === 4 and attendance.logs[0].type === 'travel' %}
                     <td class="text-center" colspan="2">
                         Travel
                     </td>
-                    <td class="text-center">{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                     <td class="text-center">{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                {% else %}
+                    <td class="text-center">{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'travel' %}
                     <td class="text-center">{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                     <td class="text-center">{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                     <td class="text-center" colspan="2">
+                        Travel
+                    </td>
+                {% else %}
+                    <td class="text-center" colspan="4">
                         Travel
                     </td>
                 {% endif %}

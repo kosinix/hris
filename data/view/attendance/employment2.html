@@ -93,6 +93,26 @@
                         <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                         <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
                         <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                    {% elif  attendance.type == 'travel' %}
+                        
+                        {#  #}
+                        {% if attendance.logs.length === 4 and attendance.logs[0].type === 'travel' %}
+                            <td class="text-center" colspan="2">
+                                Travel
+                            </td>
+                            <td class="text-center">{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                            <td class="text-center">{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'travel' %}
+                            <td class="text-center">{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                            <td class="text-center">{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                            <td class="text-center" colspan="2">
+                                Travel
+                            </td>
+                        {% else %}
+                            <td class="text-center" colspan="4">
+                                Travel
+                            </td>
+                        {% endif %}
                     {% else %}
                         <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')|replace('Wfh', 'WFH')}}</td>
                     {% endif %}

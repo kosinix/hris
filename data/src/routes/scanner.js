@@ -274,6 +274,7 @@ router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']),
         res.render(template, {
             qrData: qrData,
             scanner: scanner,
+            serverUrl: CONFIG.app.url
         })
     } catch (err) {
         res.render('scanner/error.html', {

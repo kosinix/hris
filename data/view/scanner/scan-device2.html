@@ -2,7 +2,7 @@
 
 {% block body %}
 <div id="vApp" v-cloak v-bind:data-pending="pending" v-on:click.prevent="focus" class="col-12">
-    <div class="form-row pt-md-5 pt-3">
+    <div v-if="!duplicate" class="form-row pt-md-5 pt-3">
         <div class="col-md-7 col-lg-6 ml-auto pt-md-5 text-center">
             <div class="d-flex align-items-center justify-content-center pl-md-3 header">
                 <img class="mr-3" src="/images/logo-md.png" width="50" height="50" alt="Logo">
@@ -85,7 +85,7 @@
             
         </div>
     </div>
-    <form ref="form" class=" text-center" v-on:submit.prevent="onSubmit" action="/scanner/{{scanner.uid}}/scan" method="POST" novalidate>
+    <form v-if="!duplicate" ref="form" class=" text-center" v-on:submit.prevent="onSubmit" action="/scanner/{{scanner.uid}}/scan" method="POST" novalidate>
         <div style="position:relative; overflow:hidden">
             <div style="position:absolute; left:0; right:0; top:0; bottom:0; background: ghostwhite; z-index:1; opacity:1"></div>
             <input style="outline: none" v-on:blur="focus" v-model="code" name="code" id="code" type="text" autocomplete="off">
@@ -102,7 +102,13 @@
 <script src="{{app.url}}/js/moment-timezone-with-data-10-year-range.min.js"></script>
 <script src="{{app.url}}/js/axios.min.js"></script>
 <script src="{{app.url}}/js/media-devices.js"></script>
+<script src="{{app.url}}/js/socket.io.min.js"></script>
 <script>
+    var socket = io("{{serverUrl}}", {
+        query: {
+            scanner: '{{scanner._id}}',
+        }
+    });
     let enumerateDaysBetweenDates = (startDate, endDate) => {
         let now = startDate.clone(), dates = [];
         let currentDate = moment();
@@ -205,6 +211,36 @@
             }
             slowTick();
             setInterval(slowTick, 10000);
+
+            // client-side
+            socket.on("connect", () => {
+                me.status = 'online'
+                //console.log('connected ', socket.id); // x8WIv7-mJelg7on_ALbx
+            });
+
+            socket.on("disconnect", () => {
+                me.status = 'offline'
+                //console.log('disconnected ', socket.id); // undefined
+            });
+            
+            socket.on("connect_error", (err) => {
+                
+                if(err.message == 'Duplicate scanner.'){
+                    me.duplicate = true
+                    alert(err.message)
+                }
+                console.error(err.message);
+            });
+            
+            socket.on("refresh", (args) => {
+                var scanner = args.scanner
+                if('{{scanner._id}}' === scanner){
+                    setTimeout(function(){
+                        window.location.reload(false); 
+                    }, 3000)
+                    console.log('REFRESH', args);
+                }
+            });
 
             if(me.useWebcam) me.webcamStart();
 

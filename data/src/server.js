@@ -136,7 +136,7 @@
                 return next(new Error("Missing scanner details."));
             }
 
-            let scanner = await req.app.locals.db.main.Scanner.findById(scannerId)
+            let scanner = await app.locals.db.main.Scanner.findById(scannerId)
             if (!scanner) {
                 return next(new Error("Scanner not found."));
             }

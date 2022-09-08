@@ -26,7 +26,7 @@ let router = express.Router()
 
 router.use('/employee', middlewares.requireAuthUser)
 
-router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+router.get(['/employee/all', '/employee/all.csv'], middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
     try {
         let page = parseInt(lodash.get(req, 'query.page', 1))
         let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
@@ -95,6 +95,7 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
             {
                 lastName: 1,
                 firstName: 1,
+                middleName: 1,
                 profilePhoto: 1,
                 employments:
                 {
@@ -130,10 +131,20 @@ router.get('/employee/all', middlewares.guardRoute(['read_all_employee', 'read_e
         // console.log(util.inspect(aggr, false, null, true))
 
         // return res.send(employees)
-        if (req.query.csv == 1) {
+        if (req.originalUrl.includes('.csv')) {
+
             let csv = employees.map((i) => {
-                return `${i.lastName}, ${i.firstName}, ${i.middleName}, ${lodash.get(i, 'employments[0].position')}`
+                let lastName = i.lastName || ''
+                let firstName = i.firstName || ''
+                let middleName = i.middleName || ''
+                let position = lodash.get(i, 'employments[0].position', '')
+                let department = lodash.get(i, 'employments[0].department', '')
+                let employmentType = lodash.capitalize(lodash.get(i, 'employments[0].employmentType', '')).replace(/^jo$/i, 'Job Order').replace(/^cos$/i, 'COS')
+                let group = lodash.capitalize(lodash.get(i, 'employments[0].group', ''))
+
+                return `${lastName}, ${firstName}, ${middleName}, ${position}, ${department}, ${employmentType}, ${group}`
             })
+            res.set('Content-Type', 'text/csv')
             return res.send(csv.join("\n"))
         } else if (req.query.qr == 1) {
             let count = 0
@@ -1138,7 +1149,7 @@ router.post('/employee/:employeeId/user/create', middlewares.guardRoute(['update
 
         let info = await mailer.send('verified.html', data)
         console.log(info)
-        
+
 
         flash.ok(req, 'employee', `Account created with username "${body.username}" and password "${body.password}".`)
         res.redirect(`/employee/${employee._id}/user`)

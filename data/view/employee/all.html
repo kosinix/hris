@@ -59,6 +59,10 @@
                                 {% include 'parts/sorted-th.html' %}
                             </th>
                             <th>
+                                {% set thId = 'department' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
                                 {% set thId = 'employmentType' %}
                                 {% include 'parts/sorted-th.html' %}
                             </th>
@@ -86,6 +90,7 @@
                             </td>
                             <td><a class="privy-name privy-last-name" href="/employee/{{employee._id}}/personal">{{employee.firstName}}</a></td>
                             <td><a href="/employee/{{employee._id}}/employment">{{employee.employments[0].position}}</a></td>
+                            <td><a href="/employee/{{employee._id}}/employment">{{employee.employments[0].department}}</a></td>
                             <td><a href="/employee/{{employee._id}}/employment">{{employee.employments[0].employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</a></td>
                             <td><a href="/employee/{{employee._id}}/employment">{{employee.employments[0].group|capitalize}}</a></td>
                             <td><a href="/employee/all?customFilter=campus&customFilterValue={{employee.employments[0].campus}}">{{employee.employments[0].campus|capitalize}}</a></td>
@@ -93,6 +98,11 @@
                     {% endfor %}
                     </tbody>
                 </table>
+            </div>
+            <div class="row">
+                <div class="col-md-12 text-center text-md-left pt-3 pb-5">
+                    <a href="/employee/all.csv?{{pagination.query}}" class="btn btn-primary btn-sm">Download CSV</a>
+                </div>
             </div>
             <div class="row">
                 <div class="col-md-12 text-center text-md-left pt-3 pb-5">

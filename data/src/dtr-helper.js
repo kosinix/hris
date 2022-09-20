@@ -859,6 +859,143 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
     }
 }
 
+const editAttendance2 = async (db, attendance, attendancePatch, user) => {
+    if (!attendance) {
+        throw new Error('Attendance not found.')
+    }
+
+    attendancePatch = lodash.merge({
+        type: 'normal',
+    }, attendancePatch)
+
+    let whiteList = CONFIG.attendance.types.map(o => o.value)
+    if (!whiteList.includes(attendancePatch.type)) {
+        throw new Error(`Invalid attendance type "${attendancePatch.type}".`)
+    }
+
+    if (!attendance.changes) {
+        attendance.changes = []
+    }
+    if (!attendance.comments) {
+        attendance.comments = []
+    }
+
+    let changeLogs = []
+
+
+    if (lodash.invoke(attendance, 'workScheduleId.toString') !== lodash.invoke(attendancePatch, 'workScheduleId.toString')) {
+        let workSchedule1 = await db.main.WorkSchedule.findById(attendance.workScheduleId)
+        let workSchedule2 = await db.main.WorkSchedule.findById(attendancePatch.workScheduleId)
+        let message = `${user.username} changed work schedule from ${lodash.get(workSchedule1, 'name')} to ${lodash.get(workSchedule2, 'name')}.`
+        changeLogs.push(message)
+        attendance.workScheduleId = attendancePatch.workScheduleId
+        attendance.changes.push({
+            summary: message,
+            objectId: user._id,
+            createdAt: moment().toDate()
+        })
+    }
+
+
+    for (x = 0; x < 4; x++) {
+        let logPatch = lodash.get(attendancePatch, `log${x}`)
+        if (logPatch) {
+
+            let time = logPatch.split(':')
+            let hours = parseInt(time[0])
+            let minutes = parseInt(time[1])
+            let mDate = moment(attendance.createdAt).hour(hours).minute(minutes)
+
+            if (attendance.logs[x]) {
+                let oldTime = moment(attendance.logs[x].dateTime).format('hh:mm A')
+                let newTime = mDate.format('hh:mm A')
+                if (oldTime !== newTime) {
+                    let message = `${user.username} changed time log #${x + 1} from ${oldTime} to ${newTime}.`
+                    changeLogs.push(message)
+                    attendance.changes.push({
+                        summary: message,
+                        objectId: user._id,
+                        createdAt: moment().toDate()
+                    })
+                    attendance.logs[x].dateTime = mDate.toDate()
+                }
+            } else {
+                let mode = 1 // 1 = "time-in" which is always the first log mode
+                let lastLog = attendance.logs[attendance.logs.length - 1]
+                if (lastLog) {
+                    mode = lastLog.mode === 1 ? 0 : 1 // Flip 1 or 0
+                }
+
+                attendance.logs.push({
+                    scannerId: null,
+                    dateTime: mDate.toDate(),
+                    mode: mode
+                })
+
+                let newTime = mDate.format('hh:mm A')
+
+                let message = `${user.username} added time log #${x + 1} set to ${newTime}.`
+                changeLogs.push(message)
+                attendance.changes.push({
+                    summary: message,
+                    objectId: user._id,
+                    createdAt: moment().toDate()
+                })
+
+            }
+        } else {
+            if (attendance.logs[x]) {
+
+                let message = `${user.username} removed time log #${x + 1} ${moment(attendance.logs[x].dateTime).format('hh:mm A')}.`
+                changeLogs.push(message)
+                attendance.changes.push({
+                    summary: message,
+                    objectId: user._id,
+                    createdAt: moment().toDate()
+                })
+
+                attendance.logs[x].dateTime = null
+
+            }
+        }
+    }
+
+    attendance.logs = attendance.logs.filter(o => o.dateTime !== null)
+
+    if (attendance.type !== attendancePatch.type) {
+        let message = `${user.username} changed attendance type from ${attendance.type} to ${attendancePatch.type}.`
+        changeLogs.push(message)
+        attendance.type = attendancePatch.type
+        attendance.changes.push({
+            summary: message,
+            objectId: user._id,
+            createdAt: moment().toDate()
+        })
+    }
+
+    if (attendancePatch.comment) {
+        attendance.comments.push({
+            summary: attendancePatch.comment,
+            objectId: user._id,
+            createdAt: moment().toDate()
+        })
+
+        let message = `${user.username} added a new comment.`
+        changeLogs.push(message)
+        attendance.changes.push({
+            summary: message,
+            objectId: user._id,
+            createdAt: moment().toDate()
+        })
+
+    }
+    await db.main.Attendance.updateOne({ _id: attendance._id }, attendance)
+    return {
+        changeLogs: changeLogs,
+        attendance: attendance,
+    }
+}
+
 // Convert from minutes from midnight into HTML time input HH:mm
 let mToTime = (minutes, format, date = null) => {
     if (!minutes) return 0
@@ -1308,7 +1445,7 @@ let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
 
                 let adjustedLogs = [
                     {
-                        dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt), // Begin on start of shift
+                        dateTime: moment(mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(), // Begin on start of shift
                         type: 'travel',
                         source: {
                             id: employee.userId,
@@ -1338,7 +1475,7 @@ let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
                     logs[0], // As is
                     logs[1], // As is
                     {
-                        dateTime: mToTime(nextShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt), // Begin on start of shift
+                        dateTime: moment(mToTime(nextShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(), // Begin on start of shift
                         type: 'travel',
                         source: {
                             id: employee.userId,
@@ -1347,7 +1484,7 @@ let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
                     },
                     // Inserted log
                     {
-                        dateTime: mToTime(nextShift.end + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                        dateTime: moment(mToTime(nextShift.end + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(),
                         type: 'travel',
                         source: {
                             id: employee.userId,
@@ -1724,5 +1861,6 @@ module.exports = {
     normalizeAttendance: normalizeAttendance,
     logSegmentsDtrFormat: logSegmentsDtrFormat,
     getDtrByDateRange2: getDtrByDateRange2,
+    editAttendance2: editAttendance2,
 }
 

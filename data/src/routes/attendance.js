@@ -543,8 +543,8 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
         let attendance = res.attendance.toObject()
 
         let body = req.body
-        return res.send(body)
-        
+
+
         let patch = {}
         lodash.set(patch, 'type', lodash.get(body, 'type'))
         lodash.set(patch, 'workScheduleId', lodash.get(body, 'workScheduleId'))
@@ -658,7 +658,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         compatibilityUrl = compatibilityUrl.join('&')
 
 
-		let data = {
+        let data = {
             flash: flash.get(req, 'attendance'),
             employee: employee,
             employment: employment,
@@ -674,7 +674,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
             compatibilityUrl: compatibilityUrl,
         }
-		// return res.send(days)
+        // return res.send(days)
         res.render('attendance/employment2.html', data);
     } catch (err) {
         next(err);
@@ -837,23 +837,78 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
 router.post('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getAttendance, async (req, res, next) => {
     try {
         let attendance = res.attendance.toObject()
+        let employee = await req.app.locals.db.main.Employee.findById(attendance.employeeId).lean()
+        let employment = await req.app.locals.db.main.Employee.findById(attendance.employmentId).lean()
+        let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(attendance.workScheduleId).lean()
+        let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
 
+        // original attendance normalized
+        let attendance1 = await dtrHelper.normalizeAttendance(attendance, employee, workScheduleTimeSegments)
         let body = req.body
+
         return res.send(body)
+        // return res.send(newAttendance)
+
+        let guessType = 'normal'
+        let workSchedule2 = await req.app.locals.db.main.WorkSchedule.findById(body.workScheduleId).lean()
+        let workScheduleTimeSegments2 = dtrHelper.getWorkScheduleTimeSegments(workSchedule2, attendance.createdAt)
+        let attendance2 = {
+            employeeId: employee._id,
+            employmentId: employment._id,
+            workScheduleId: workSchedule2._id,
+            type: guessType,
+            logs: [
+                {
+                    dateTime: Date,
+                    mode: 1,
+                    type: String,
+                    source: {
+                        id: mongoose.Schema.Types.ObjectId,
+                        type: String, // 'scanner', 'userAccount', 'adminAccount'
+                        lat: String,
+                        lon: String,
+                        photo: String,
+                    },
+
+                    extra: { // @deprecated. Use source
+                        lat: String, // @deprecated. Use source.lat
+                        lon: String, // @deprecated. Use source.lon
+                        photo: String, // @deprecated. Use source.photo
+                    },
+                    scannerId: mongoose.Schema.Types.ObjectId, // @deprecated. Use source.id
+                }
+            ],
+            changes: [],
+            comments: []
+        }
+        attendance2 = await dtrHelper.normalizeAttendance(attendance2, employee, workScheduleTimeSegments2)
+
         let patch = {}
         lodash.set(patch, 'type', lodash.get(body, 'type'))
         lodash.set(patch, 'workScheduleId', lodash.get(body, 'workScheduleId'))
-        lodash.set(patch, 'log0', lodash.get(body, 'log0'))
-        lodash.set(patch, 'log1', lodash.get(body, 'log1'))
-        lodash.set(patch, 'log2', lodash.get(body, 'log2'))
-        lodash.set(patch, 'log3', lodash.get(body, 'log3'))
+        lodash.set(patch, 'log0', lodash.get(body, 'logSegmentsDtr.am.start'))
+        lodash.set(patch, 'log0Type', lodash.get(body, 'logSegmentsDtr.am.type'))
+        lodash.set(patch, 'log1', lodash.get(body, 'logSegmentsDtr.am.end'))
+        lodash.set(patch, 'log2', lodash.get(body, 'logSegmentsDtr.pm.start'))
+        lodash.set(patch, 'log2Type', lodash.get(body, 'logSegmentsDtr.pm.type'))
+        lodash.set(patch, 'log3', lodash.get(body, 'logSegmentsDtr.pm.end'))
         lodash.set(patch, 'comment', lodash.get(body, 'comment'))
 
         if (patch.type === '') {
             return res.redirect(`/attendance/${attendance._id}/edit`)
         }
 
-        let { changeLogs, att } = await dtrHelper.editAttendance(req.app.locals.db, attendance._id, patch, res.user)
+        let changes = []
+        let noChanges = []
+
+        let autoTimeToMinutes = (HHmm, format = 'HH:mm') => {
+            if (!HHmm) {
+                return HHmm
+            }
+            return dtrHelper.timeToM(HHmm, format)
+        }
+
+        let { changeLogs, att } = await dtrHelper.editAttendance2(req.app.locals.db, attendance._id, patch, res.user)
 
         // return res.send(att)
         if (changeLogs.length) {

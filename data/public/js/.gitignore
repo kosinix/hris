@@ -16,3 +16,5 @@
 !vuejs-auto-complete-extend.js
 !media-devices.js
 !moment-timezone-with-data-10-year-range.min.js
+!socket.io.min.js
+!socket.io.min.js.map

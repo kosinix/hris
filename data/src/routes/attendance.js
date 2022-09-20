@@ -421,6 +421,157 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
         next(err);
     }
 });
+// V1 Print
+router.get('/attendance/employee/:employeeId/employment/:employmentId/print', middlewares.guardRoute(['read_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+        let employmentId = employment._id
+
+
+
+        let {
+            periodMonthYear,
+            periodSlice,
+            periodWeekDays,
+            showTotalAs,
+            showWeekDays,
+            startMoment,
+            endMoment,
+            countTimeBy,
+        } = res
+
+
+        let options = {
+            padded: true,
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
+        }
+
+        let { days, stats } = await dtrHelper.getDtrByDateRange(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+
+        let periodMonthYearMoment = moment(periodMonthYear)
+        const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
+        let months = Array.from(range1.by('months')).reverse()
+
+        let periodMonthYearList = months.map((_moment) => {
+            let date = _moment.startOf('month')
+
+            return {
+                value: date.format('YYYY-MM-DD'),
+                text: date.format('MMM YYYY'),
+            }
+        })
+
+        let workSchedules = await workScheduler.getEmploymentWorkSchedule(req.app.locals.db, employmentId)
+
+        let workSchedule = workSchedules.find(o => {
+            return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
+        })
+
+        let data = {
+            title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
+
+            flash: flash.get(req, 'employee'),
+
+            employee: employee,
+            employment: employment,
+
+            // Data that might change
+            days: days,
+            stats: stats,
+
+            showTotalAs: showTotalAs,
+            workSchedules: workSchedules,
+            periodMonthYearList: periodMonthYearList,
+            periodMonthYear: periodMonthYearMoment.format('YYYY-MM-DD'),
+            periodWeekDays: periodWeekDays,
+            periodSlice: periodSlice,
+            inCharge: employment.inCharge,
+            countTimeBy: countTimeBy,
+
+            startDate: startMoment.format('YYYY-MM-DD'),
+            endDate: endMoment.format('YYYY-MM-DD'),
+
+            workSchedule: workSchedule,
+            shared: true,
+
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+
+        }
+
+        // return res.send(days)
+        return res.render('e-profile/dtr-print.html', data)
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment.toObject()
+        let attendance = res.attendance.toObject()
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
+
+        attendance = lodash.merge({
+            createdAt: '',
+            employeeId: '',
+            employmentId: '',
+            logs: [],
+            type: 'normal',
+            workScheduleId: '',
+        }, attendance)
+
+        res.render('attendance/edit.html', {
+            flash: flash.get(req, 'attendance'),
+            attendanceTypes: CONFIG.attendance.types,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+            employee: employee,
+            employment: employment,
+            attendance: attendance,
+            workSchedules: workSchedules,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment.toObject()
+        let attendance = res.attendance.toObject()
+
+        let body = req.body
+
+
+        let patch = {}
+        lodash.set(patch, 'type', lodash.get(body, 'type'))
+        lodash.set(patch, 'workScheduleId', lodash.get(body, 'workScheduleId'))
+        lodash.set(patch, 'log0', lodash.get(body, 'log0'))
+        lodash.set(patch, 'log1', lodash.get(body, 'log1'))
+        lodash.set(patch, 'log2', lodash.get(body, 'log2'))
+        lodash.set(patch, 'log3', lodash.get(body, 'log3'))
+        lodash.set(patch, 'comment', lodash.get(body, 'comment'))
+
+        if (patch.type === '') {
+            return res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
+        }
+
+        let { changeLogs, att } = await dtrHelper.editAttendance(req.app.locals.db, attendance._id, patch, res.user)
+
+        // return res.send(att)
+        if (changeLogs.length) {
+            flash.ok(req, 'attendance', `${changeLogs.join(' ')}`)
+        } else {
+
+        }
+        res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
+        // res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}?start=2021-11-02&end=2021-11-02`)
+    } catch (err) {
+        next(err);
+    }
+});
 
 // V2
 router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
@@ -507,7 +658,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         compatibilityUrl = compatibilityUrl.join('&')
 
 
-		let data = {
+        let data = {
             flash: flash.get(req, 'attendance'),
             employee: employee,
             employment: employment,
@@ -523,80 +674,95 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
             compatibilityUrl: compatibilityUrl,
         }
-		// return res.send(days)
+        // return res.send(days)
         res.render('attendance/employment2.html', data);
     } catch (err) {
         next(err);
     }
 });
-router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
+router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
-        let employment = res.employment.toObject()
-        let attendance = res.attendance.toObject()
-        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
+        let employment = res.employment
+        let employmentId = employment._id
+        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
 
-        attendance = lodash.merge({
-            createdAt: '',
-            employeeId: '',
-            employmentId: '',
-            logs: [],
-            type: 'normal',
-            workScheduleId: '',
-        }, attendance)
+        let {
+            periodMonthYear,
+            periodSlice,
+            periodWeekDays,
+            showTotalAs,
+            showWeekDays,
+            startMoment,
+            endMoment,
+            countTimeBy,
+        } = res
 
-        res.render('attendance/edit.html', {
-            flash: flash.get(req, 'attendance'),
-            attendanceTypes: CONFIG.attendance.types,
-            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+
+        let options = {
+            padded: true,
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
+        }
+
+        let { days, stats } = await dtrHelper.getDtrByDateRange2(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+
+        let periodMonthYearMoment = moment(periodMonthYear)
+        const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
+        let months = Array.from(range1.by('months')).reverse()
+
+        let periodMonthYearList = months.map((_moment) => {
+            let date = _moment.startOf('month')
+
+            return {
+                value: date.format('YYYY-MM-DD'),
+                text: date.format('MMM YYYY'),
+            }
+        })
+
+        let workSchedules = await workScheduler.getEmploymentWorkSchedule(req.app.locals.db, employmentId)
+
+        let workSchedule = workSchedules.find(o => {
+            return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
+        })
+
+        let data = {
+            title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
+
+            flash: flash.get(req, 'employee'),
+
             employee: employee,
             employment: employment,
-            attendance: attendance,
+
+            // Data that might change
+            days: days,
+            stats: stats,
+
+            showTotalAs: showTotalAs,
             workSchedules: workSchedules,
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-router.post('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let employment = res.employment.toObject()
-        let attendance = res.attendance.toObject()
+            periodMonthYearList: periodMonthYearList,
+            periodMonthYear: periodMonthYearMoment.format('YYYY-MM-DD'),
+            periodWeekDays: periodWeekDays,
+            periodSlice: periodSlice,
+            inCharge: employment.inCharge,
+            countTimeBy: countTimeBy,
 
-        let body = req.body
-        // return res.send(body)
-        let patch = {}
-        lodash.set(patch, 'type', lodash.get(body, 'type'))
-        lodash.set(patch, 'workScheduleId', lodash.get(body, 'workScheduleId'))
-        lodash.set(patch, 'log0', lodash.get(body, 'log0'))
-        lodash.set(patch, 'log1', lodash.get(body, 'log1'))
-        lodash.set(patch, 'log2', lodash.get(body, 'log2'))
-        lodash.set(patch, 'log3', lodash.get(body, 'log3'))
-        lodash.set(patch, 'comment', lodash.get(body, 'comment'))
+            startDate: startMoment.format('YYYY-MM-DD'),
+            endDate: endMoment.format('YYYY-MM-DD'),
 
-        if (patch.type === '') {
-            return res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
-        }
+            workSchedule: workSchedule,
+            shared: true,
 
-        let { changeLogs, att } = await dtrHelper.editAttendance(req.app.locals.db, attendance._id, patch, res.user)
-
-        // return res.send(att)
-        if (changeLogs.length) {
-            flash.ok(req, 'attendance', `${changeLogs.join(' ')}`)
-        } else {
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
 
         }
-        res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
-        // res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}?start=2021-11-02&end=2021-11-02`)
+
+        // return res.send(days)
+        return res.render('e-profile/dtr-print2.html', data)
     } catch (err) {
         next(err);
     }
 });
 
-
-
-// New edit
 router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getAttendance, async (req, res, next) => {
     try {
         let attendance = res.attendance.toObject()
@@ -671,23 +837,78 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
 router.post('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getAttendance, async (req, res, next) => {
     try {
         let attendance = res.attendance.toObject()
+        let employee = await req.app.locals.db.main.Employee.findById(attendance.employeeId).lean()
+        let employment = await req.app.locals.db.main.Employee.findById(attendance.employmentId).lean()
+        let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(attendance.workScheduleId).lean()
+        let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
 
+        // original attendance normalized
+        let attendance1 = await dtrHelper.normalizeAttendance(attendance, employee, workScheduleTimeSegments)
         let body = req.body
+
         return res.send(body)
+        // return res.send(newAttendance)
+
+        let guessType = 'normal'
+        let workSchedule2 = await req.app.locals.db.main.WorkSchedule.findById(body.workScheduleId).lean()
+        let workScheduleTimeSegments2 = dtrHelper.getWorkScheduleTimeSegments(workSchedule2, attendance.createdAt)
+        let attendance2 = {
+            employeeId: employee._id,
+            employmentId: employment._id,
+            workScheduleId: workSchedule2._id,
+            type: guessType,
+            logs: [
+                {
+                    dateTime: Date,
+                    mode: 1,
+                    type: String,
+                    source: {
+                        id: mongoose.Schema.Types.ObjectId,
+                        type: String, // 'scanner', 'userAccount', 'adminAccount'
+                        lat: String,
+                        lon: String,
+                        photo: String,
+                    },
+
+                    extra: { // @deprecated. Use source
+                        lat: String, // @deprecated. Use source.lat
+                        lon: String, // @deprecated. Use source.lon
+                        photo: String, // @deprecated. Use source.photo
+                    },
+                    scannerId: mongoose.Schema.Types.ObjectId, // @deprecated. Use source.id
+                }
+            ],
+            changes: [],
+            comments: []
+        }
+        attendance2 = await dtrHelper.normalizeAttendance(attendance2, employee, workScheduleTimeSegments2)
+
         let patch = {}
         lodash.set(patch, 'type', lodash.get(body, 'type'))
         lodash.set(patch, 'workScheduleId', lodash.get(body, 'workScheduleId'))
-        lodash.set(patch, 'log0', lodash.get(body, 'log0'))
-        lodash.set(patch, 'log1', lodash.get(body, 'log1'))
-        lodash.set(patch, 'log2', lodash.get(body, 'log2'))
-        lodash.set(patch, 'log3', lodash.get(body, 'log3'))
+        lodash.set(patch, 'log0', lodash.get(body, 'logSegmentsDtr.am.start'))
+        lodash.set(patch, 'log0Type', lodash.get(body, 'logSegmentsDtr.am.type'))
+        lodash.set(patch, 'log1', lodash.get(body, 'logSegmentsDtr.am.end'))
+        lodash.set(patch, 'log2', lodash.get(body, 'logSegmentsDtr.pm.start'))
+        lodash.set(patch, 'log2Type', lodash.get(body, 'logSegmentsDtr.pm.type'))
+        lodash.set(patch, 'log3', lodash.get(body, 'logSegmentsDtr.pm.end'))
         lodash.set(patch, 'comment', lodash.get(body, 'comment'))
 
         if (patch.type === '') {
             return res.redirect(`/attendance/${attendance._id}/edit`)
         }
 
-        let { changeLogs, att } = await dtrHelper.editAttendance(req.app.locals.db, attendance._id, patch, res.user)
+        let changes = []
+        let noChanges = []
+
+        let autoTimeToMinutes = (HHmm, format = 'HH:mm') => {
+            if (!HHmm) {
+                return HHmm
+            }
+            return dtrHelper.timeToM(HHmm, format)
+        }
+
+        let { changeLogs, att } = await dtrHelper.editAttendance2(req.app.locals.db, attendance._id, patch, res.user)
 
         // return res.send(att)
         if (changeLogs.length) {
@@ -698,6 +919,8 @@ router.post('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_at
         next(err);
     }
 });
+
+// end V2
 
 router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance/create', middlewares.guardRoute(['create_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
@@ -833,92 +1056,6 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
 
         flash.ok(req, 'attendance', `Inserted new attendance.`)
         res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}/attendance/${attendance._id}/edit`)
-    } catch (err) {
-        next(err);
-    }
-});
-
-// Print
-router.get('/attendance/employee/:employeeId/employment/:employmentId/print', middlewares.guardRoute(['read_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let employment = res.employment
-        let employmentId = employment._id
-
-
-
-        let {
-            periodMonthYear,
-            periodSlice,
-            periodWeekDays,
-            showTotalAs,
-            showWeekDays,
-            startMoment,
-            endMoment,
-            countTimeBy,
-        } = res
-
-
-        let options = {
-            padded: true,
-            showTotalAs: showTotalAs,
-            showWeekDays: showWeekDays,
-        }
-
-        let { days, stats } = await dtrHelper.getDtrByDateRange(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
-
-        let periodMonthYearMoment = moment(periodMonthYear)
-        const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
-        let months = Array.from(range1.by('months')).reverse()
-
-        let periodMonthYearList = months.map((_moment) => {
-            let date = _moment.startOf('month')
-
-            return {
-                value: date.format('YYYY-MM-DD'),
-                text: date.format('MMM YYYY'),
-            }
-        })
-
-        let workSchedules = await workScheduler.getEmploymentWorkSchedule(req.app.locals.db, employmentId)
-
-        let workSchedule = workSchedules.find(o => {
-            return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
-        })
-
-        let data = {
-            title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
-
-            flash: flash.get(req, 'employee'),
-
-            employee: employee,
-            employment: employment,
-
-            // Data that might change
-            days: days,
-            stats: stats,
-
-            showTotalAs: showTotalAs,
-            workSchedules: workSchedules,
-            periodMonthYearList: periodMonthYearList,
-            periodMonthYear: periodMonthYearMoment.format('YYYY-MM-DD'),
-            periodWeekDays: periodWeekDays,
-            periodSlice: periodSlice,
-            inCharge: employment.inCharge,
-            countTimeBy: countTimeBy,
-
-            startDate: startMoment.format('YYYY-MM-DD'),
-            endDate: endMoment.format('YYYY-MM-DD'),
-
-            workSchedule: workSchedule,
-            shared: true,
-
-            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
-
-        }
-
-        // return res.send(days)
-        return res.render('e-profile/dtr-print.html', data)
     } catch (err) {
         next(err);
     }

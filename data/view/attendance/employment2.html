@@ -48,7 +48,7 @@
         <div class="btn-toolbar justify-content-end mb-3">
             <div class="btn-group mr-2">
                 <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm">Insert Attendance</a>
-                <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/print?{{compatibilityUrl}}" class="btn btn-light btn-sm" target="_blank">Print DTR</a>
+                <a href="/attendance/employment/{{employment._id}}/print?{{compatibilityUrl}}" class="btn btn-light btn-sm" target="_blank">Print DTR</a>
             </div>
         </div>
 
@@ -89,10 +89,30 @@
                     </td>
                     <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
                     {% if attendance.type == 'normal' %}
-                        <td>{% if attendance.timeWorked[0].logSegments[0].start %} {{attendance.timeWorked[0].logSegments[0].start|mToTime('hh:mm A')}} {% endif %}</td>
-                        <td>{% if attendance.timeWorked[0].logSegments[0].end %} {{attendance.timeWorked[0].logSegments[0].end|mToTime('hh:mm A')}} {% endif %}</td>
-                        <td>{% if attendance.timeWorked[1].logSegments[0].start %} {{attendance.timeWorked[1].logSegments[0].start|mToTime('hh:mm A')}} {% endif %}</td>
-                        <td>{% if attendance.timeWorked[1].logSegments[0].end %} {{attendance.timeWorked[1].logSegments[0].end|mToTime('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                    {% elif  attendance.type == 'travel' %}
+                        
+                        {#  #}
+                        {% if attendance.logs.length === 4 and attendance.logs[0].type === 'travel' %}
+                            <td class="text-center" colspan="2">
+                                Travel
+                            </td>
+                            <td class="text-center">{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                            <td class="text-center">{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'travel' %}
+                            <td class="text-center">{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                            <td class="text-center">{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                            <td class="text-center" colspan="2">
+                                Travel
+                            </td>
+                        {% else %}
+                            <td class="text-center" colspan="4">
+                                Travel
+                            </td>
+                        {% endif %}
                     {% else %}
                         <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')|replace('Wfh', 'WFH')}}</td>
                     {% endif %}

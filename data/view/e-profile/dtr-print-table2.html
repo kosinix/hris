@@ -1,0 +1,228 @@
+<p class="template">Civil Service Form No. 48</p>
+
+<div class="text-center mb-3">
+    <h1 class="mb-0">Daily Time Record</h1>
+    <div class="separator mb-3">-----o0o-----</div>
+    <div class="name underline">
+        {{employee.firstName}} {{employee.middleName}} {{employee.lastName}} {{employee.suffix}}
+    </div>
+    <div class="name-under mb-3">(Name)</div>
+
+    <table class="table-sched font-italic fz-10">
+        <tr>
+            <td style="width:20%">For the month of</td>
+            <td colspan="3">
+                <div class="underline text-left pl-3 font-weight-bold name">
+                {{periodMonthYear|format_date('MMMM, YYYY')}}
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:25%" colspan="2" rowspan="2" class="align-middle">Official hours for <br>arrival and departure</td>
+            <td style="width:20%" class="text-right pr-2">Regular days</td>
+            <td class="text-left">
+                <div class="underline pl-5 pt-1" style="white-space: pre;">{{workSchedule.times|replace(',', '')}}</div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:20%" class="text-right pr-2">Saturdays</td>
+            <td class="text-left">
+                <div class="underline pl-5">
+                    <div>&nbsp;</div>
+                    <div>&nbsp;</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<table style="width:100%" class="table table-bordered table-dtr table-sm">
+    <tr>
+        <th width="25%" class="text-center" rowspan="2" colspan="2">Day</th>
+        <th width="25%" class="text-center" colspan="2"><div class="am-pm">A.M.</div></th>
+        <th width="25%" class="text-center am-pm" colspan="2"><div class="am-pm">P.M.</div></th>
+        <th width="25%" class="text-center" colspan="2">
+            {% if showTotalAs === 'time' %}
+            <div>Time</div>
+            {% else %}
+            <div>Undertime</div>
+            {% endif %}
+        </th>
+    </tr>
+    <tr class="subcols">
+        <th>Arrival</th>
+        <th class="pl-0 pr-0">Departure</th>
+        
+        <th>Arrival</th>
+        <th class="pl-0 pr-0">Departure</th>
+
+        <th>Hours</th>
+        <th>Minutes</th>
+    </tr>
+    {% for day in days %}
+    {% set attendance = day.attendance %}
+    <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
+        <td class="text-center" width="10%">{{day.day}}</td>
+        <td class="text-center weekday" width="10%">{{day.weekDay}}</td>
+        {% if attendanceTypesList.includes(attendance.type) %}
+            {% if attendance.type === 'travel'  %}
+                {% if attendance.logs.length === 4 and attendance.logs[0].type === 'travel' %}
+                    <td class="text-center" colspan="2">
+                        Travel
+                    </td>
+                    <td class="text-center">{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                    <td class="text-center">{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'travel' %}
+                    <td class="text-center">{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                    <td class="text-center">{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                    <td class="text-center" colspan="2">
+                        Travel
+                    </td>
+                {% else %}
+                    <td class="text-center" colspan="4">
+                        Travel
+                    </td>
+                {% endif %}
+            {% else %}
+                <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass','Pass Slip')|replace('Wfh', 'WFH')}}</td>
+            {% endif %}
+            <td>
+                {% set res = 0 %}
+                {% if (attendance.logs.length > 1 or attendanceTypesList.includes(attendance.type)) %}
+                    {% if showTotalAs == 'time' %}
+                        {% set res = day.dtr.renderedDays|default(0, true) * 8 + day.dtr.renderedHours|default(0, true) %}
+                    {% else %}
+                        {% set res = day.dtr.underDays|default(0, true) * 8 + day.dtr.underHours|default(0, true) %}
+                    {% endif %}
+                {% endif %}
+
+                {% if res == 0 %}
+                    {% set res = '' %}
+                {% endif %}
+
+                {{res}}
+
+            </td>
+            <td>
+                {% set res = 0 %}
+                {% if (attendance.logs.length > 1 or attendanceTypesList.includes(attendance.type)) %}
+                    {% if showTotalAs == 'time' %}
+                        {% set res = day.dtr.renderedMinutes|default(0, true) %}
+                    {% else %}
+                        {% set res = day.dtr.underMinutes|default(0, true) %}
+                    {% endif %}
+                {% endif %}
+
+                {% if res == 0 %}
+                    {% set res = '' %}
+                {% endif %}
+
+                {{res}}
+            </td>
+        {% else %}
+            <td>{% if day.dtr.totalMinutes > 0 %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+            <td>{% if day.dtr.totalMinutes > 0 %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+            <td>{% if day.dtr.totalMinutes > 0 %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+            <td>{% if day.dtr.totalMinutes > 0 %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+            <td>
+                {% set res = 0 %}
+                {% if (attendance.logs.length > 1 or attendanceTypesList.includes(attendance.type)) %}
+                    {% if showTotalAs == 'time' %}
+                        {% set res = day.dtr.renderedDays|default(0, true) * 8 + day.dtr.renderedHours|default(0, true) %}
+                    {% else %}
+                        {% set res = day.dtr.underDays|default(0, true) * 8 + day.dtr.underHours|default(0, true) %}
+                    {% endif %}
+                {% endif %}
+
+                {% if res == 0 %}
+                    {% set res = '' %}
+                {% endif %}
+
+                {{res}}
+
+            </td>
+            <td>
+                {% set res = 0 %}
+                {% if (attendance.logs.length > 1 or attendanceTypesList.includes(attendance.type)) %}
+                    {% if showTotalAs == 'time' %}
+                        {% set res = day.dtr.renderedMinutes|default(0, true) %}
+                    {% else %}
+                        {% set res = day.dtr.underMinutes|default(0, true) %}
+                    {% endif %}
+                {% endif %}
+
+                {% if res == 0 %}
+                    {% set res = '' %}
+                {% endif %}
+
+                {{res}}
+            </td>
+        {% endif %}
+    </tr>
+    {% endfor %}
+    
+    {% if ['none']|includes(countTimeBy) %}
+        <tr>
+            <td class="text-right total" colspan="6">Total</td>
+            <td class="text-center" colspan="2">
+                
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td class="text-right total" colspan="6">Total Weekdays</td>
+            <td class="text-center total-num" colspan="2">
+                {% if ['weekdays', 'all']|includes(countTimeBy) %}
+                    {% if showTotalAs == 'undertime' %}
+                        {{stats.weekdays.underDays|default(0, true)|maybePluralize('day')}}
+                        {{stats.weekdays.underHours|default(0, true)|maybePluralize('hr')}}
+                        {{stats.weekdays.underMinutes|default(0, true)|maybePluralize('min')}}
+                    {% else %}
+                        {{stats.weekdays.renderedDays|default(0, true)|maybePluralize('day')}}
+                        {{stats.weekdays.renderedHours|default(0, true)|maybePluralize('hr')}}
+                        {{stats.weekdays.renderedMinutes|default(0, true)|maybePluralize('min')}}
+                    {% endif %}
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td class="text-right total" colspan="6">Total Weekends</td>
+            <td class="text-center total-num" colspan="2">
+                {% if ['weekends', 'all']|includes(countTimeBy) %}
+                    {% if showTotalAs == 'undertime' %}
+                        {{stats.weekends.underDays|default(0, true)|maybePluralize('day')}}
+                        {{stats.weekends.underHours|default(0, true)|maybePluralize('hr')}}
+                        {{stats.weekends.underMinutes|default(0, true)|maybePluralize('min')}}
+                    {% else %}
+                        {{stats.weekends.renderedDays|default(0, true)|maybePluralize('day')}}
+                        {{stats.weekends.renderedHours|default(0, true)|maybePluralize('hr')}}
+                        {{stats.weekends.renderedMinutes|default(0, true)|maybePluralize('min')}}
+                    {% endif %}
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td class="text-right total" colspan="6">Total</td>
+            <td class="text-center total-num" colspan="2">
+                {% if showTotalAs == 'undertime' %}
+                    {{stats.days.underDays|default(0, true)|maybePluralize('day')}}
+                    {{stats.days.underHours|default(0, true)|maybePluralize('hr')}}
+                    {{stats.days.underMinutes|default(0, true)|maybePluralize('min')}}
+                {% else %}
+                    {{stats.days.renderedDays|default(0, true)|maybePluralize('day')}}
+                    {{stats.days.renderedHours|default(0, true)|maybePluralize('hr')}}
+                    {{stats.days.renderedMinutes|default(0, true)|maybePluralize('min')}}
+                {% endif %}
+            </td>
+        </tr>
+    {% endif %}
+
+</table>
+
+<div class="certify p-4">
+I certify on my honor that the above is a true and correct report of the hours of work performed, record of which was made daily at the time of arrival and departure from office.
+</div>
+<div class="underline pb-2 mb-2"></div>
+<div class="font-italic pl-4 mb-2">VERIFIED as to the prescribed office hours:</div>
+<div class="underline pt-4 text-center font-weight-bold name" contenteditable="true">{{inCharge}}</div>
+<div class="text-center font-italic">In Charge</div>

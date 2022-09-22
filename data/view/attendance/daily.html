@@ -56,7 +56,7 @@
                         <td class="text-center">{{loop.index}}</td>
                         <td><em>{{attendance.employment.campus|capitalize}}</em></td>
                         <td>
-                            <a class="privy-name text-left d-block" href="/attendance/employment/{{attendance.employmentId}}?start={{mCalendar.startOf('month').format('YYYY-MM-DD')}}&amp;end={{mCalendar.endOf('month').format('YYYY-MM-DD')}}&amp;showWeekDays=Mon|Tue|Wed|Thu|Fri|Sat|Sun">
+                            <a class="privy-name text-left d-block" href="/attendance/employee/{{attendance.employeeId}}/employment/{{attendance.employmentId}}?start={{mCalendar.startOf('month').format('YYYY-MM-DD')}}&amp;end={{mCalendar.endOf('month').format('YYYY-MM-DD')}}&amp;showWeekDays=Mon|Tue|Wed|Thu|Fri|Sat|Sun">
                                 {{attendance.employee.firstName}} {{attendance.employee.lastName}} {{attendance.employee.suffix}}
                             </a>
                             

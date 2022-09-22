@@ -965,7 +965,7 @@ const editAttendance2 = async (db, attendance, attendancePatch, user) => {
         if (logPatchType) {
             let oldType = lodash.get(attendance, `logs[${x}].type`)
             let newType = logPatchType
-            if (oldType !== newType) {
+            if (oldType !== newType && attendance.logs[x]) {
                 let message = `${user.username} changed time log #${x + 1} type from ${oldType} to ${newType}.`
                 changeLogs.push(message)
                 attendance.changes.push({
@@ -978,7 +978,7 @@ const editAttendance2 = async (db, attendance, attendancePatch, user) => {
 
             let endIndex = x + 1
             oldType = lodash.get(attendance, `logs[${endIndex}].type`)
-            if (oldType !== newType) {
+            if (oldType !== newType && attendance.logs[endIndex]) {
                 let message = `${user.username} changed time log #${endIndex + 1} type from ${oldType} to ${newType}.`
                 changeLogs.push(message)
                 attendance.changes.push({

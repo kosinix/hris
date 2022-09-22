@@ -1,0 +1,95 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <div>
+                <h1>Delete Attendance</h1>
+                <p class="mb-0 pl-1"></p>
+            </div>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/attendance/{{attendance._id}}/edit" class="btn btn-sm btn-outline-primary">Back to Edit</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3">
+        <div class="row">
+            <div class="col-md-6">
+                <h1 class="h2 mt-2 mb-3">
+                    <u title="First Name">{{employee.firstName}}</u>
+                    <u title="Middle Name">{{employee.middleName}}</u>
+                    <u title="LastName Name">{{employee.lastName}}</u>
+                    <u title="Suffix">{{employee.suffix}}</u>
+                    <em class="h5 pl-2"> {{employment.position}} </em>
+                </h1>
+            </div>
+            <div class="col-md-6 text-md-right">
+                <h2 class="h5">
+                    {{attendance.createdAt|format_date('MMM DD, YYYY - dddd')}}
+                </h2>
+                <h2 class="h6 mb-3"></h2>
+            </div>
+        </div>
+        
+        <div class="mb-5">
+            {% if attendance.changes.length > 0 %}
+                <h2 class="h2">History</h2>
+                <ul>
+                    {% for change in attendance.changes.reverse() %}
+                        <li>{{change.summary}} - <a href="#"><em title="{{change.createdAt|format_date('MMM DD, YYYY - h:mm:ss A')}}">{{change.createdAt|from_now}}</em></a>
+                         </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if attendance.comments.length > 0 %}
+                <h2 class="h2">Comments</h2>
+                <ul>
+                    {% for comment in attendance.comments.reverse() %}
+                        <li>{{comment.summary}} - <a href="#"><em title="{{comment.createdAt|format_date('MMM DD, YYYY - h:mm:ss A')}}">{{comment.createdAt|from_now}}</em></a>
+                         </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <form action="/attendance/{{attendance._id}}/delete" method="POST" class="form-default">
+            <input type="hidden" name="acsrf" value="{{acsrf}}">
+            <div class="text-right">
+                <button class="btn btn-danger btn-sm">Delete Permanently</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+           
+        },
+        validations: {
+            
+        },
+        created: function(){
+            
+        },
+        mounted: function(){
+        },
+        methods: {
+            
+        }
+    });
+</script>
+{% endblock %}
+

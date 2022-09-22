@@ -919,6 +919,8 @@ const editAttendance2 = async (db, attendance, attendancePatch, user) => {
                     })
                     attendance.logs[x].dateTime = mDate.toDate()
                 }
+
+
             } else {
                 let mode = 1 // 1 = "time-in" which is always the first log mode
                 let lastLog = attendance.logs[attendance.logs.length - 1]
@@ -958,10 +960,46 @@ const editAttendance2 = async (db, attendance, attendancePatch, user) => {
 
             }
         }
+        // Because we deal with a timesegment:
+        let logPatchType = lodash.get(attendancePatch, `log${x}Type`)
+        if (logPatchType) {
+            let oldType = lodash.get(attendance, `logs[${x}].type`)
+            let newType = logPatchType
+            if (oldType !== newType) {
+                let message = `${user.username} changed time log #${x + 1} type from ${oldType} to ${newType}.`
+                changeLogs.push(message)
+                attendance.changes.push({
+                    summary: message,
+                    objectId: user._id,
+                    createdAt: moment().toDate()
+                })
+                attendance.logs[x].type = newType // start
+            }
+
+            let endIndex = x + 1
+            oldType = lodash.get(attendance, `logs[${endIndex}].type`)
+            if (oldType !== newType) {
+                let message = `${user.username} changed time log #${endIndex + 1} type from ${oldType} to ${newType}.`
+                changeLogs.push(message)
+                attendance.changes.push({
+                    summary: message,
+                    objectId: user._id,
+                    createdAt: moment().toDate()
+                })
+                attendance.logs[endIndex].type = newType // end
+            }
+        }
+
     }
 
     attendance.logs = attendance.logs.filter(o => o.dateTime !== null)
 
+    if (lodash.get(attendancePatch, 'log0Type') === 'travel' || lodash.get(attendancePatch, 'log2Type') === 'travel') {
+        attendancePatch.type = 'travel'
+    }
+    if (lodash.get(attendancePatch, 'log0Type') === 'normal' && lodash.get(attendancePatch, 'log2Type') === 'normal') {
+        attendancePatch.type = 'normal'
+    }
     if (attendance.type !== attendancePatch.type) {
         let message = `${user.username} changed attendance type from ${attendance.type} to ${attendancePatch.type}.`
         changeLogs.push(message)

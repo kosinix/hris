@@ -164,9 +164,9 @@
                     <a onclick="return confirm('Do you want to set your attendance today to \'Leave\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=leave" data-toggle="tooltip" data-placement="top" title="On Leave" class="btn btn-sm btn-primary">
                         <span>On Leave </span>
                     </a>
-                    <a onclick="return confirm('Do you want to set your attendance today to \'Pass Slip\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=pass" data-toggle="tooltip" data-placement="top" title="Pass Slip" class="btn btn-sm btn-primary">
+                    {# <a onclick="return confirm('Do you want to set your attendance today to \'Pass Slip\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=pass" data-toggle="tooltip" data-placement="top" title="Pass Slip" class="btn btn-sm btn-primary">
                         <span>Pass Slip</span>
-                    </a>
+                    </a> #}
                     {% if employment.employmentType === 'permanent' %}
                     <a onclick="return confirm('Do you want to set your attendance today to \'Holiday\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=holiday" data-toggle="tooltip" data-placement="top" title="Holiday" class="btn btn-sm btn-primary">
                         <span>Holiday</span>

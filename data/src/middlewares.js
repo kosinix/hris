@@ -571,6 +571,27 @@ module.exports = {
             next(err)
         }
     },
+    getEmployeeAttendance: async (req, res, next) => {
+        try {
+            if (!res.employee) {
+                throw new Error('Employee needed.')
+            }
+            let employee = res.employee.toObject()
+            let attendanceId = lodash.get(req, 'params.attendanceId', '')
+            let attendance = await req.app.locals.db.main.Attendance.findOne({
+                _id: attendanceId,
+                employeeId: employee._id,
+            })
+            if (!attendance) {
+                throw new Error('Attendance not found.')
+            }
+            res.attendance = attendance
+
+            next();
+        } catch (err) {
+            next(err)
+        }
+    },
     getDtrQueries: async (req, res, next) => {
         try {
             // Dependencies

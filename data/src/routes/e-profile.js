@@ -1655,4 +1655,69 @@ router.post('/e-profile/webcam', middlewares.guardRoute(['use_employee_profile']
     }
 });
 
+
+// Attendance
+router.get('/e-profile/attendance/:attendanceId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeAttendance, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let attendance = res.attendance.toObject()
+        let employment = await req.app.locals.db.main.Employment.findById(lodash.get(attendance, 'employmentId'))
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
+        let workSchedule = {}
+        if (attendance.workScheduleId) {
+            workSchedule = await req.app.locals.db.main.WorkSchedule.findById(attendance.workScheduleId).lean()
+        } else {
+            workSchedule = await req.app.locals.db.main.WorkSchedule.findById(employment.workScheduleId).lean()
+        }
+
+        let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
+
+        // return res.send(workScheduleTimeSegments)
+
+        // Normalize schema
+        attendance = dtrHelper.normalizeAttendance(attendance, employee, workScheduleTimeSegments)
+
+        // Schedule segments
+        let timeSegments = dtrHelper.buildTimeSegments(workScheduleTimeSegments)
+
+        let logSegments = []
+        try {
+            logSegments = dtrHelper.buildLogSegments(attendance.logs)
+        } catch (errr) {
+            console.log(errr)
+        }
+
+        let timeWorked = dtrHelper.countWork(timeSegments, logSegments, { ignoreZero: true, noSpill: true })
+
+        let readableSchedule = workScheduleTimeSegments.map(o => {
+            let brs = lodash.get(o, 'breaks', []).map(o => {
+                return `${dtrHelper.mToTime(o.start, 'hh:mmA')} - ${dtrHelper.mToTime(o.end, 'hh:mmA')}`
+            }).join(', ')
+            if (brs) {
+                brs = ` (Breaks: ${brs})`
+            }
+            return `${dtrHelper.mToTime(o.start, 'hh:mmA')} - ${dtrHelper.mToTime(o.end, 'hh:mmA')}${brs}`
+        }).join(', ')
+
+        // return res.send(attendance)
+        res.render('e-profile/attendance/analysis.html', {
+            flash: flash.get(req, 'employee'),
+            attendanceTypes: CONFIG.attendance.types,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+            employee: employee,
+            employment: employment,
+            attendance: attendance,
+            workSchedules: workSchedules,
+            workSchedule: workSchedule,
+            timeSegments: timeSegments,
+            logSegments: logSegments,
+            logSegmentsDtr: dtrHelper.logSegmentsDtrFormat(logSegments),
+            timeWorked: timeWorked,
+            readableSchedule: readableSchedule,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
 module.exports = router;

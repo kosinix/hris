@@ -121,7 +121,7 @@ scripts/install-data/import.txt
 
 
 # scratch file
-scripts/scratch.js
+scripts/scratch*.js
 
 # db export import
 *.sh

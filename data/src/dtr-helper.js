@@ -1338,6 +1338,7 @@ const fromPointsToLogSegments = (points) => {
  * @param {Array} timeSegments 
  * @param {Array} logSegments 
  * @param {Boolean} options.ignoreZero - Ignore zero counted
+ * @param {Boolean} options.noSpill - If true, dont count a log segment that starts from another time segment
  * @returns {Array}
  */
 let countWork = (timeSegments, logSegments, options) => {
@@ -1347,6 +1348,7 @@ let countWork = (timeSegments, logSegments, options) => {
     })
     for (let s = 0; s < timeSegments.length; s++) {
         let timeSegment = timeSegments[s]
+        let prevTimeSegment = timeSegments[s-1]
 
         timeSegments[s].counted = 0
         timeSegments[s].countedUndertime = 0
@@ -1356,7 +1358,6 @@ let countWork = (timeSegments, logSegments, options) => {
             let log = new Map()
             log.set('start', logSegment.start)
             log.set('end', logSegment.end)
-
             log.set('raw', logSegment.end - logSegment.start)
 
             log.set('countedStart', logSegment.start)
@@ -1376,17 +1377,21 @@ let countWork = (timeSegments, logSegments, options) => {
             // For flexible time segments, we count exceeded max as OT
             log.set('countedExcess', log.get('countedEnd') - log.get('countedStart') - timeSegment.max)
             if (log.get('countedExcess') < 0) {
-                log.set('countedExcess', 0)
+                // log.set('countedExcess', 0)
             }
 
             log.set('tardiness', logSegment.start - timeSegment.start)
             if (log.get('tardiness') < 0 || log.get('counted') <= 0 || timeSegment.flexible) {
-                log.set('tardiness', 0)
+                // log.set('tardiness', 0)
             }
 
             log.set('undertime', timeSegment.end - logSegment.end)
             if (log.get('undertime') < 0 || log.get('counted') <= 0 || timeSegment.flexible) {
-                log.set('undertime', 0)
+                // log.set('undertime', 0)
+            }
+
+            if(options.noSpill && prevTimeSegment && logSegment.start <= prevTimeSegment.end) {
+                log.set('counted', 0)
             }
 
             timeSegments[s].counted += log.get('counted')
@@ -1760,7 +1765,7 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
             // console.dir(timeSegments, { depth: null })
             // console.dir(logSegments, { depth: null })
 
-            let timeWorked = countWork(timeSegments, logSegments, { ignoreZero: true })
+            let timeWorked = countWork(timeSegments, logSegments, { ignoreZero: true, noSpill: true })
             attendance.timeWorked = timeWorked
 
             // console.dir(timeWorked, { depth: null })

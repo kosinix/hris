@@ -793,7 +793,7 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
             console.log(errr)
         }
 
-        let timeWorked = dtrHelper.countWork(timeSegments, logSegments, { ignoreZero: true })
+        let timeWorked = dtrHelper.countWork(timeSegments, logSegments, { ignoreZero: true, noSpill: true })
 
         let readableSchedule = workScheduleTimeSegments.map(o => {
             let brs = lodash.get(o, 'breaks', []).map(o => {

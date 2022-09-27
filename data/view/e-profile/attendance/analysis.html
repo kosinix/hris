@@ -12,7 +12,7 @@
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
                 <a href="/e-profile/dtr/{{employment._id}}/attendance/{{attendance._id}}/edit" class="btn btn-sm btn-primary">Apply for Correction</a>
-                <a href="/attendance/employment/{{employment._id}}?start={{attendance.createdAt|format_date('YYYY-MM-DD')}}&amp;end={{attendance.createdAt|format_date('YYYY-MM-DD')}}" class="btn btn-sm btn-outline-primary">Back</a>
+                <a href="/e-profile/dtr/{{employment._id}}" class="btn btn-sm btn-outline-primary">Back</a>
             </div>
         </div>
     </div>
@@ -21,7 +21,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="h6 mb-3">
-                    <span class="text-info">{{attendance.createdAt|format_date('MMM DD, YYYY - dddd')}}</span>
+                    <span class="text-info">{{attendance.createdAt|format_date('MMM DD, YYYY - dddd')}} - {{attendance.type|capitalize}}</span>
                 </h1>
                 {#  #}
                 <h2 class="h6">
@@ -32,6 +32,11 @@
         <form id="vApp" v-cloak ref="form" v-on:submit.prevent="onSubmit" action="/attendance/{{attendance._id}}/edit" method="POST" class="form-default">
             {% include 'parts/flash.html' %}
             {# <h2 class="h6 mb-4">Time Analysis</h2> #}
+            <div class="d-flex justify-content-end">
+                <button type="button" v-on:click="enlarge" class="btn btn-sm btn-light">+</button>
+                <button type="button" v-on:click="ensmall" class="btn btn-sm btn-light">-</button>
+            </div>
+            
             <div class="d-flex pb-3 text-center" style="position: relative; font-size: 10px;">
                 <div style="width: 60px;">Time</div>
                 <div style="width: 60px;">Schedule</div>
@@ -44,7 +49,7 @@
                 </div>
                 {% for i in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23] %}
                     <div style="border-top: 1px dotted black; width: 60px;">
-                        <div style="text-align: right; width: 55px; height: 20px; position: relative;">
+                        <div v-bind:style="rowSize">
                             <div style="color: gray; position:absolute; top: 0; transform: translateY(-50%); background: #fff; width: 100%; padding-right: 3px;">{{i|to12Hour}}</div>
                         </div>
                     </div>
@@ -112,6 +117,7 @@
             log1: '',
             log2: '',
             log3: '',
+            size: 20,
         },
         validations: {
             
@@ -122,9 +128,20 @@
                 me['log' + x] = moment(me.attendance.logs[x].dateTime).format('HH:mm')
             }
         },
-        mounted: function(){
+        computed: {
+            rowSize: function() {
+                return 'text-align: right; width: 55px; height: '+this.size+'px; position: relative;'
+            }
         },
         methods: {
+            enlarge: function(){
+                var s = this.size += 20
+                this.size = s > 160 ? 160 : s
+            },
+            ensmall: function(){
+                var s = this.size -= 20
+                this.size = s <= 20 ? 20 : s
+            },
             onSubmit: function(){
                 var me = this;
                 me.$v.$touch()

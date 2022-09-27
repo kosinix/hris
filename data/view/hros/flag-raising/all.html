@@ -17,16 +17,16 @@
         </div>
        
         <div class="text-center">
-            {% if isMonday %}
+            {# {% if isMonday %} #}
                 {% if alreadyLogged %}
                     <button type="btn" disabled class="btn btn-lg btn-primary">Log My Attendance</button>
                 {% else %}
                     <a href="/hros/flag/create" class="btn btn-lg btn-primary">Log My Attendance</a>
                 {% endif %}
-
+{# 
             {% else %}
                 <button type="btn" disabled class="btn btn-lg btn-primary">Log My Attendance</button>
-            {% endif %}
+            {% endif %} #}
         </div>
         {% if attendances.length > 0 %}
             <div class="table-responsive mt-4">

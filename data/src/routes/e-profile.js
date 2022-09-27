@@ -1686,8 +1686,14 @@ router.get('/e-profile/attendance/:attendanceId', middlewares.guardRoute(['use_e
         } catch (errr) {
             console.log(errr)
         }
-
-        let timeWorked = dtrHelper.countWork(timeSegments, logSegments, { ignoreZero: true, noSpill: true })
+        let options = {
+            ignoreZero: true,
+            noSpill: true
+        }
+        if (employment.employmentType === 'part-time' || attendance.type !== 'normal') {
+            options.noSpill = false
+        }
+        let timeWorked = dtrHelper.countWork(timeSegments, logSegments, options)
 
         let readableSchedule = workScheduleTimeSegments.map(o => {
             let brs = lodash.get(o, 'breaks', []).map(o => {

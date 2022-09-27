@@ -1348,7 +1348,7 @@ let countWork = (timeSegments, logSegments, options) => {
     })
     for (let s = 0; s < timeSegments.length; s++) {
         let timeSegment = timeSegments[s]
-        let prevTimeSegment = timeSegments[s-1]
+        let prevTimeSegment = timeSegments[s - 1]
 
         timeSegments[s].counted = 0
         timeSegments[s].countedUndertime = 0
@@ -1390,7 +1390,7 @@ let countWork = (timeSegments, logSegments, options) => {
                 // log.set('undertime', 0)
             }
 
-            if(options.noSpill && prevTimeSegment && logSegment.start <= prevTimeSegment.end) {
+            if (options.noSpill && prevTimeSegment && logSegment.start <= prevTimeSegment.end) {
                 log.set('counted', 0)
             }
 
@@ -1765,7 +1765,14 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
             // console.dir(timeSegments, { depth: null })
             // console.dir(logSegments, { depth: null })
 
-            let timeWorked = countWork(timeSegments, logSegments, { ignoreZero: true, noSpill: true })
+            let options = {
+                ignoreZero: true,
+                noSpill: true
+            }
+            if (employment.employmentType === 'part-time' || attendance.type !== 'normal') {
+                options.noSpill = false
+            }
+            let timeWorked = countWork(timeSegments, logSegments, options)
             attendance.timeWorked = timeWorked
 
             // console.dir(timeWorked, { depth: null })

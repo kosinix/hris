@@ -37,17 +37,20 @@
                 <button type="button" v-on:click="ensmall" class="btn btn-sm btn-light">-</button>
             </div>
             <div class="time-analysis">
-                <div class="d-flex pb-3 text-center" style="position: relative; font-size: 10px;">
-                    <div style="width: 25%;"></div>
-                    <div style="width: 25%;">Schedule</div>
-                    <div style="width: 25%;">Logs</div>
-                    <div style="width: 25%;">Counted</div>
-                </div>
                 <div class="tian-display">
                     <div style="position: absolute; left: 0; top: 0; width: 70px; height: 100%; border-right: 1px dotted gray; z-index:1"></div>
-                    <div style="position: absolute; left: 80px; top: -10px; width: 4px; height: 100%; background: lightgray"></div>
-                    <div style="position: absolute; left: 150px; top: -10px; width: 4px; height: 100%; background: lightgray"></div>
-                    <div style="position: absolute; left: 220px; top: -10px; width: 4px; height: 100%; background: lightgray"></div>
+                    <div style="position: absolute; left: 80px; top: 0; width: 4px; height: 100%; background: lightgray">
+                        <div style="position: absolute; left: 7px; top: -21px;width: 1px;height: 20px;background: lightgray;transform: rotate(30deg);"></div>
+                        <div style="position: absolute; left: 11px; top: -35px; ">Schedule</div>
+                    </div>
+                    <div style="position: absolute; left: 150px; top: 0; width: 4px; height: 100%; background: lightgray">
+                        <div style="position: absolute; left: 7px; top: -21px;width: 1px;height: 20px;background: lightgray;transform: rotate(30deg);"></div>
+                        <div style="position: absolute; left: 11px; top: -35px; ">Logs</div>
+                    </div>
+                    <div style="position: absolute; left: 220px; top: 0; width: 4px; height: 100%; background: lightgray">
+                        <div style="position: absolute; left: 7px; top: -21px;width: 1px;height: 20px;background: lightgray;transform: rotate(30deg);"></div>
+                        <div style="position: absolute; left: 11px; top: -35px; ">Counted</div>
+                    </div>
                     {% for i in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23] %}
                         <div class="tian-marking">
                             <div class="tian-filler" v-bind:style="rowSize">

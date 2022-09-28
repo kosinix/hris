@@ -275,10 +275,13 @@ div[data-pending="true"]:after {
 .time-analysis {
     font-size: 12px;
     font-family: "Courier New", monospace;
+    color: rgb(102, 102, 102); 
+
 }
 
 .tian-display{
     position: relative; 
+    margin-top: 60px;
 }
 .tian-marking {
     border-top: 1px dotted black; 
@@ -291,7 +294,6 @@ div[data-pending="true"]:after {
     position: relative;
 }
 .tian-time {
-    color: gray; 
     position:absolute; 
     top: 0; 
     transform: translateY(-50%); 

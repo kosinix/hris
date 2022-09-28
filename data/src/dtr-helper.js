@@ -1277,7 +1277,7 @@ const getWorkScheduleTimeSegments = (workSchedule, givenDate) => {
     // Get if v1 or v2 schedule
     let workScheduleTimeSegments = lodash.get(workSchedule, `weekDays.${weekDay}.timeSegments`) // V2 work schedule schema
     if (!workScheduleTimeSegments) { // V1 work schedule schema
-        workScheduleTimeSegments = workSchedule.timeSegments
+        workScheduleTimeSegments = lodash.get(workSchedule, 'timeSegments', [])
     }
 
     return normalizeTimeSegments(workScheduleTimeSegments)

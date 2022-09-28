@@ -33,3 +33,11 @@ flexi - http://localhost:9094/attendance/629951e8603f36030a070419/edit
 
 COS part time
 http://localhost:9094/attendance/employee/61513765e1d53f182a5d7ea5/employment/6281a8ad555efa02eb171bf9/attendance/6297fa0d7a2f21735e8fbacf/edit
+
+
+HOLIDAY not working correctly with schedule
+
+http://localhost:9094/attendance/6332ff0f35ffd65090d57740/edit
+
+
+CHECK WFH and Leave not leaving logs

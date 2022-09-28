@@ -36,62 +36,68 @@
                 <button type="button" v-on:click="enlarge" class="btn btn-sm btn-light">+</button>
                 <button type="button" v-on:click="ensmall" class="btn btn-sm btn-light">-</button>
             </div>
-            
-            <div class="d-flex pb-3 text-center" style="position: relative; font-size: 10px;">
-                <div style="width: 60px;">Time</div>
-                <div style="width: 60px;">Schedule</div>
-                <div style="width: 80px;">Logs</div>
-                <div style="width: 60px;">Counted</div>
-            </div>
-            <div style="position: relative; font-size: 12px;">
-                <div style="position: absolute; left: 0; top: 0; width: 60px; height: 100%; border-right: 1px dotted gray; z-index:1">
-
+            <div class="time-analysis">
+                <div class="d-flex pb-3 text-center" style="position: relative; font-size: 10px;">
+                    <div style="width: 60px;">Time</div>
+                    <div style="width: 60px;">Schedule</div>
+                    <div style="width: 60px;">Logs</div>
+                    <div style="width: 100px;">Counted</div>
                 </div>
-                {% for i in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23] %}
-                    <div style="border-top: 1px dotted black; width: 60px;">
-                        <div v-bind:style="rowSize">
-                            <div style="color: gray; position:absolute; top: 0; transform: translateY(-50%); background: #fff; width: 100%; padding-right: 3px;">{{i|to12Hour}}</div>
-                        </div>
-                    </div>
-                {% endfor %}
-                {% for timeSegment in timeSegments %}
-                    <div class="t-bar-segment" style="background: rgb(18, 81, 150); left: 65px; width: 4px; height: {{(timeSegment.end-timeSegment.start)/1440*100}}%;  top: {{timeSegment.start/1440*100}}%;">
-                        {# <div style="position: absolute; left: 0px; top: -7px; background: #fff; border: 4px solid #125196; border-radius: 100%; width: 14px; height: 14px;"></div> #}
-                        {# <div style="position: absolute; left: 0px; bottom: -7px; background: #fff; border: 4px solid #125196; border-radius: 100%; width: 14px; height: 14px;"></div> #}
-                        {# <div style="position: absolute; left: 5px; top: 0; background: rgb(18, 81, 150); width: 4px; bottom: 0;"></div> #}
-                        <div style="position: absolute; left: 100%; top: 0; background: rgba(41, 75, 129, 0.6); padding:0 2px;"> {{timeSegment.start|mToTime}}</div>
-                        <div style="position: absolute; left: 100%; bottom: 0; background: rgba(41, 75, 129, 0.6); padding:0 2px;">{{timeSegment.end|mToTime}} </div>
-                        {# <div style="position: absolute; left:0; right:0; top: 50%; margin-top: -50%; padding: 0 2px;" title="{{timeSegment.max}}">{{timeSegment.name}} max {{(timeSegment.max/60)|round2}}h</div> #}
-                        {# <div class="t-bar-grace bg-warning" style="width:100%; height: {{timeSegment.grace/240*100}}%; top:0; left: 0; opacity: 0.6" title="Grace period"></div> #}
-                    </div>
-                {% endfor %}
-                {% for logSegment in logSegments %}
-                    <div class="t-bar-segment" style="background: #60a322; left: 145px; width: 4px; height: {{logSegment.raw/1440*100}}%;  top: {{logSegment.start/1440*100}}%;">
-                        <div style="position: absolute; left: 100%; top: 0; background: rgba(96, 163, 34, 0.8);"> {{logSegment.start|mToTime}}</div>
-                        <div style="position: absolute; left: 100%; bottom: 0; background: rgba(96, 163, 34, 0.8);">{{logSegment.end|mToTime}} </div>
-                        {# <div style="position: absolute; left:0; right:0; top: 50%; margin-top: -10px; height: 20px; padding: 0 2px;">{{logSegment.raw|mToHour}}h {{logSegment.raw|mToMin}}m</div> #}
-                    </div>
-                {% endfor %}
-                {% for timeWork in timeWorked %}
-                    {% if timeWork.name != 'OT' %}
-                        {% for logSegment in timeWork.logSegments %}
-                            <div class="t-bar-segment" style="background: #294b81; left: 220px; width: 35px; height: {{logSegment.counted/1440*100}}%;  top: {{logSegment.countedStart/1440*100}}%;">
-                                <div style="position: absolute; left: -150px; top: 0px; border-top: 1px dotted red; height: 1px;width: 160px;"></div>
-                                <div style="position: absolute; left: -150px; bottom: 0px; border-bottom: 1px dotted red; height: 1px;width: 160px;"></div>
-                                {# <div class="t-bar-grace bg-warning" style="width:100%; height: {{15/240*100}}%; top:0; left: 0; opacity: 0.6" title="Grace period"></div> #}
+                <div class="tian-display">
+                    <div style="position: absolute; left: 0; top: 0; width: 60px; height: 100%; border-right: 1px dotted gray; z-index:1">
 
-                                <div style="position: absolute; top: 50%; transform: translateY(-50%); text-align: center; width: 100%;">
-                                    {% if logSegment.counted > 60 %}
-                                        {{logSegment.counted|mToHour}}h <br>{{logSegment.counted|mToMin}}m
-                                    {% else %}
-                                        {{logSegment.counted|mToMin}}m
-                                    {% endif %}
-                                </div>
+                    </div>
+
+                    <div style="position: absolute; left: 70px; top: -10px; width: 4px; height: 100%; background: lightgray"></div>
+                    <div style="position: absolute; left: 150px; top: -10px; width: 4px; height: 100%; background: lightgray"></div>
+                    <div style="position: absolute; left: 230px; top: -10px; width: 4px; height: 100%; background: lightgray"></div>
+                    {% for i in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23] %}
+                        <div class="tian-marking">
+                            <div class="tian-filler" v-bind:style="rowSize">
+                                <div class="tian-time">{{i|to12Hour}}</div>
                             </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endfor %}
+                        </div>
+                    {% endfor %}
+                    {% for timeSegment in timeSegments %}
+                        <div class="tian-bar-segment" style="background: rgb(18, 81, 150); left: 70px; width: 4px; height: {{(timeSegment.end-timeSegment.start)/1440*100}}%;  top: {{timeSegment.start/1440*100}}%;">
+                            {# <div style="position: absolute; left: 0px; top: -7px; background: #fff; border: 4px solid #125196; border-radius: 100%; width: 14px; height: 14px;"></div> #}
+                            {# <div style="position: absolute; left: 0px; bottom: -7px; background: #fff; border: 4px solid #125196; border-radius: 100%; width: 14px; height: 14px;"></div> #}
+                            {# <div style="position: absolute; left: 5px; top: 0; background: rgb(18, 81, 150); width: 4px; bottom: 0;"></div> #}
+                            <div class="tian-flaglets-1"> {{timeSegment.start|mToTime}}</div>
+                            <div class="tian-flaglets-2">{{timeSegment.end|mToTime}} </div>
+                            {# <div style="position: absolute; left:0; right:0; top: 50%; margin-top: -50%; padding: 0 2px;" title="{{timeSegment.max}}">{{timeSegment.name}} max {{(timeSegment.max/60)|round2}}h</div> #}
+                            {# <div class="t-bar-grace bg-warning" style="width:100%; height: {{timeSegment.grace/240*100}}%; top:0; left: 0; opacity: 0.6" title="Grace period"></div> #}
+                        </div>
+                    {% endfor %}
+                    {% for logSegment in logSegments %}
+                        <div class="tian-bar-segment" style="background: #60a322; left: 150px; width: 4px; height: {{logSegment.raw/1440*100}}%;  top: {{logSegment.start/1440*100}}%;">
+                            <div class="tian-flaglets-3"> {{logSegment.start|mToTime}}</div>
+                            <div class="tian-flaglets-4">{{logSegment.end|mToTime}} </div>
+                            {# <div style="position: absolute; left:0; right:0; top: 50%; margin-top: -10px; height: 20px; padding: 0 2px;">{{logSegment.raw|mToHour}}h {{logSegment.raw|mToMin}}m</div> #}
+                        </div>
+                    {% endfor %}
+                    {% for timeWork in timeWorked %}
+                        {% if timeWork.name != 'OT' %}
+                            {% for logSegment in timeWork.logSegments %}
+                                <div class="tian-bar-segment" style="background: #294b81; left: 230px; width: 35px; height: {{logSegment.counted/1440*100}}%;  top: {{logSegment.countedStart/1440*100}}%;">
+                                    <div style="position: absolute; left: -160px; top: 0px; border-top: 1px dotted red; height: 1px;width: 160px;"></div>
+                                    <div style="position: absolute; left: -160px; bottom: -1px; border-bottom: 1px dotted red; height: 1px;width: 160px;"></div>
+                                    {# <div class="t-bar-grace bg-warning" style="width:100%; height: {{15/240*100}}%; top:0; left: 0; opacity: 0.6" title="Grace period"></div> #}
+
+                                    <div style="position: absolute; top: 50%; transform: translateY(-50%); text-align: center; width: 100%;">
+                                        {% if logSegment.counted > 60 %}
+                                            {{logSegment.counted|mToHour}}h <br>{{logSegment.counted|mToMin}}m
+                                        {% else %}
+                                            {{logSegment.counted|mToMin}}m
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
             </div>
+           
                 
         </form>
     </div>
@@ -130,7 +136,7 @@
         },
         computed: {
             rowSize: function() {
-                return 'text-align: right; width: 55px; height: '+this.size+'px; position: relative;'
+                return 'height: ' + this.size + 'px;'
             }
         },
         methods: {

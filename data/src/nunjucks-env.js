@@ -58,11 +58,15 @@ env.addFilter('maybePluralize', function (count, noun, suffix = 's') {
 env.addFilter('includes', function (array, value) {
     return array.includes(value);
 })
-env.addFilter('mToTime', function (minutes, format) {
+env.addFilter('mToTime', function (minutes, format, shorten = false) {
     if (minutes === undefined || minutes === null) return 0
     if (minutes === '') return ''
     format = format || 'h:mmA'
-    return moment().startOf('year').startOf('day').add(minutes, 'minutes').format(format)
+    let m = moment().startOf('year').startOf('day').add(minutes, 'minutes')
+    if (shorten && m.format('m') === '0') {
+        return m.format('h A')
+    }
+    return m.format(format)
 })
 env.addFilter('mToHour', function (minutes) {
     if (minutes === undefined || minutes === null) return 0
@@ -93,7 +97,7 @@ env.addFilter('to12Hour', function (hour, compact = false) {
     h = h <= 0 ? 12 : h // 12 AM
     h = h >= 13 ? h - 12 : h // 1 PM onwards
 
-    
+
     m = new String(m).padStart(2, '0')
     let hm = `${h}:${m}`
     if (compact) {

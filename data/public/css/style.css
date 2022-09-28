@@ -270,6 +270,100 @@ div[data-pending="true"]:after {
     border: 1px solid orange;
 }
 
+
+/* Time Analysis */
+.time-analysis {
+    font-size: 12px;
+    font-family: monospace;
+}
+
+.tian-display{
+    position: relative; 
+}
+.tian-marking {
+    border-top: 1px dotted black; 
+    width: 60px;
+}
+.tian-filler {
+    text-align: right; 
+    width: 55px; 
+    height: 20px; 
+    position: relative;
+}
+.tian-time {
+    color: gray; 
+    position:absolute; 
+    top: 0; 
+    transform: translateY(-50%); 
+    background: #fff; 
+    width: 100%; 
+    padding-right: 3px;
+}
+
+.tian-bar-segment {
+    color: white;
+    background: darkgrey;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    text-align: center;
+}
+.tian-flaglets-1,
+.tian-flaglets-2,
+.tian-flaglets-3,
+.tian-flaglets-4 {
+    position: absolute; 
+    left: 200%; 
+    padding:0 3px; 
+    white-space: nowrap
+}
+.tian-flaglets-1::after,
+.tian-flaglets-3::after {
+    display: block;
+    content:"";
+    width: 4px;
+    height: 1px;
+    background: #000;
+    position: absolute;
+    left: -4px;
+    top:0
+}
+.tian-flaglets-2::after,
+.tian-flaglets-4::after {
+    display: block;
+    content:"";
+    width: 4px;
+    height: 1px;
+    background: #000;
+    position: absolute;
+    left: -4px;
+    bottom:0
+}
+.tian-flaglets-1::after,
+.tian-flaglets-2::after {
+    background: rgba(41, 75, 129, 0.6); 
+}
+.tian-flaglets-3::after,
+.tian-flaglets-4::after {
+    background: rgba(96, 163, 34, 0.8);
+}
+.tian-flaglets-1 {
+    top: 0; 
+    background: rgba(41, 75, 129, 0.6); 
+}
+.tian-flaglets-2 {
+    bottom: 0; 
+    background: rgba(41, 75, 129, 0.6); 
+}
+.tian-flaglets-3 {
+    top: 0; 
+    background: rgba(96, 163, 34, 0.8);
+}
+.tian-flaglets-4 {
+    bottom: 0; 
+    background: rgba(96, 163, 34, 0.8);
+}
+
 /* Profile cam */
 .target-left {
     position: absolute;

@@ -145,11 +145,11 @@ router.post('/schedule/create', middlewares.guardRoute(['create_schedule']), asy
                 }
 
                 // segment here contains time in HH:mm format from HTML input
-                if (start % 30 > 0) {
-                    errors.push('Start Time must be in 30-minute increments.')
+                if (start % 15 > 0) {
+                    errors.push('Start Time must be in 15-minute increments.')
                 }
-                if (end % 30 > 0) {
-                    errors.push('End Time must be in 30-minute increments.')
+                if (end % 15 > 0) {
+                    errors.push('End Time must be in 15-minute increments.')
                 }
 
                 if (end <= start) {
@@ -335,11 +335,11 @@ router.post('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule'])
                 }
 
                 // segment here contains time in HH:mm format from HTML input
-                if (start % 30 > 0) {
-                    errors.push('Start Time must be in 30-minute increments.')
+                if (start % 15 > 0) {
+                    errors.push('Start Time must be in 15-minute increments.')
                 }
-                if (end % 30 > 0) {
-                    errors.push('End Time must be in 30-minute increments.')
+                if (end % 15 > 0) {
+                    errors.push('End Time must be in 15-minute increments.')
                 }
 
                 if (end <= start) {

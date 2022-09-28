@@ -71,8 +71,8 @@
                     {% endfor %}
                     {% for logSegment in logSegments %}
                         <div class="tian-bar-segment" style="background: #60a322; left: 150px; width: 4px; height: {{logSegment.raw/1440*100}}%;  top: {{logSegment.start/1440*100}}%;">
-                            <div class="tian-flaglets-3"> {{logSegment.start|mToTime}}</div>
-                            <div class="tian-flaglets-4">{{logSegment.end|mToTime}} </div>
+                            {% if logSegment.start %}<div class="tian-flaglets-3"> {{logSegment.start|mToTime}}</div>{% endif%}
+                            {% if logSegment.end %}<div class="tian-flaglets-4">{{logSegment.end|mToTime}} </div>{% endif%}
                             {# <div style="position: absolute; left:0; right:0; top: 50%; margin-top: -10px; height: 20px; padding: 0 2px;">{{logSegment.raw|mToHour}}h {{logSegment.raw|mToMin}}m</div> #}
                         </div>
                     {% endfor %}

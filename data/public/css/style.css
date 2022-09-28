@@ -274,7 +274,7 @@ div[data-pending="true"]:after {
 /* Time Analysis */
 .time-analysis {
     font-size: 12px;
-    font-family: monospace;
+    font-family: "Courier New", monospace;
 }
 
 .tian-display{
@@ -282,11 +282,11 @@ div[data-pending="true"]:after {
 }
 .tian-marking {
     border-top: 1px dotted black; 
-    width: 60px;
+    width: 70px;
 }
 .tian-filler {
     text-align: right; 
-    width: 55px; 
+    width: 65px; 
     height: 20px; 
     position: relative;
 }

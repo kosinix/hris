@@ -327,11 +327,11 @@
                 start = me.timeToM(start);
                 end = me.timeToM(end);
 
-                if(start % 30 > 0) {
-                    errors.push('Start Time must be in 30-minute increments.')
+                if(start % 15 > 0) {
+                    errors.push('Start Time must be in 15-minute increments.')
                 }
-                if(end % 30 > 0) {
-                    errors.push('End Time must be in 30-minute increments.')
+                if(end % 15 > 0) {
+                    errors.push('End Time must be in 15-minute increments.')
                 }
 
                 if(end <= start) {
@@ -359,11 +359,11 @@
                         brStart = me.timeToM(brStart);
                         brEnd = me.timeToM(brEnd);
 
-                        if(brStart % 30 > 0) {
-                            errors.push('Break Start Time must be in 30-minute increments.')
+                        if(brStart % 15 > 0) {
+                            errors.push('Break Start Time must be in 15-minute increments.')
                         }
-                        if(brEnd % 30 > 0) {
-                            errors.push('Break End Time must be in 30-minute increments.')
+                        if(brEnd % 15 > 0) {
+                            errors.push('Break End Time must be in 15-minute increments.')
                         }
 
                         if(brEnd <= brStart) {

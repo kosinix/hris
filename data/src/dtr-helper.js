@@ -1713,9 +1713,7 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
         return moment(h.date).format('YYYY-MM-DD')
     })
 
-    let defaultWorkSched = await db.main.WorkSchedule.findOne({
-        name: 'Regular Working Hours'
-    }).lean()
+    let defaultWorkSched = await db.main.WorkSchedule.findById(employment.workScheduleId).lean()
 
     days = days.map((_moment) => {
         let year = _moment.format('YYYY')

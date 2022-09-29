@@ -317,6 +317,66 @@
 
             </table>
         </div>
+        {% if employment.salaryType === 'daily' %}
+            {% if countTimeBy == 'all' %}
+                {# <div class="col-md-6" style="padding: 10px 15px; border-radius: 5px; border: 1px solid gray; background: white">
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${salary} x ${totalDays(stats.days)} days</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${toFixed(salary * totalDays(stats.days))}</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perHour()} x ${totalHours(stats.days)} hours</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${perHour() * totalHours(stats.days)}</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perMinute()} x ${totalMinutes(stats.days)} minutes</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${perMinute() * totalMinutes(stats.days)}</div>
+                    </div>
+                    <div class="form-row align-items-center">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">Gross Pay</span></div>
+                        <div class="col-6 text-right" style="font-size: 18px;">₱ <span class="text-success">${netPay(stats.days.totalMinutes) | currency}</span></div>
+                    </div>
+                </div> #}
+            {% elif countTimeBy == 'weekdays' %}
+                <div class="col-md-6" style="padding: 10px 15px; border-radius: 5px; border: 1px solid gray; background: white">
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${salary} x ${totalDays(stats.weekdays)} days</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${toFixed(salary * totalDays(stats.weekdays))}</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perHour()} x ${totalHours(stats.weekdays)} hours</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${perHour() * totalHours(stats.weekdays)}</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perMinute()} x ${totalMinutes(stats.weekdays)} minutes</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${perMinute() * totalMinutes(stats.weekdays)}</div>
+                    </div>
+                    <div class="form-row align-items-center">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">Gross Pay</span></div>
+                        <div class="col-6 text-right" style="font-size: 18px;">₱ <span class="text-success">${netPay(stats.weekdays.totalMinutes) | currency}</span></div>
+                    </div>
+                </div>
+            {% elif countTimeBy == 'weekends' %}
+                {# <div class="col-md-6" style="padding: 10px 15px; border-radius: 5px; border: 1px solid gray; background: white">
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${salary} x ${totalDays(stats.weekends)} days</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${toFixed(salary * totalDays(stats.weekends))}</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perHour()} x ${totalHours(stats.weekends)} hours</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${perHour() * totalHours(stats.weekends)}</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perMinute()} x ${totalMinutes(stats.weekends)} minutes</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${perMinute() * totalMinutes(stats.weekends)}</div>
+                    </div>
+                    <div class="form-row align-items-center">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">Gross Pay</span></div>
+                        <div class="col-6 text-right" style="font-size: 18px;">₱ <span class="text-success">${netPay(stats.weekends.totalMinutes) | currency}</span></div>
+                    </div>
+                </div> #}
+            {% endif %}
+        {% endif %}
     </div>
 </div>
 {% include "parts/modal-consent-eprofile.html" %}
@@ -324,13 +384,16 @@
 {% block scripts %}
 {{ super() }}
 <script src="{{app.url}}/js/axios.min.js"></script>
+<script src="{{app.url}}/js/vue-money.js"></script>
 {% include "parts/modal-consent-eprofile-script.html" %}
 <script>
     var geo = _.get(window, 'navigator.geolocation');
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
-        mixins: [],
+        mixins: [
+            VueMoney.mixin,
+        ],
         data: {
             pending: false,
             settingsEditable: false,
@@ -356,7 +419,8 @@
             countTimeBy: '{{countTimeBy}}',
             lat: null,
             lon: null,
-            timeZone: 0 - (new Date().getTimezoneOffset() / 60)
+            timeZone: 0 - (new Date().getTimezoneOffset() / 60),
+            salary: {{employment.salary|default(0, true)}}
         },
         validations: {},
         computed: {
@@ -416,6 +480,22 @@
             var me = this;
         },
         methods: {
+            precisionRound: function(number, precision) {
+                var factor = Math.pow(10, precision);
+                return Math.round(number * factor) / factor;
+            },
+            toFixed: function(n){
+                return n.toFixed(2)
+            },
+            perHour: function(){
+                return this.precisionRound(this.salary / 8, 9)
+            },
+            perMinute: function(){
+                return this.precisionRound(this.salary / 8 / 60, 9)
+            },
+            netPay: function(minutes){
+                return this.precisionRound((this.salary / 8 / 60) * minutes, 9).toFixed(2)
+            },
             subTotalDays: function(day) {
                 var x = _.get(day, 'dtr.renderedDays', '');
                 if(this.showTotalAs === 'undertime'){

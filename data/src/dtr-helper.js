@@ -1450,7 +1450,7 @@ let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
     } else if (attendance.type == 'travel') {
         if (logs.length <= 1) { // all day travel
 
-            let start = timeToM(moment(attendance.createdAt).format('HH:mm'))
+            let start = 450 // 7:30
             let currentShift = getNextShift(start, workScheduleTimeSegments)
             let mToTime = (minutes, format, date = null) => {
                 format = format || 'HH:mm'

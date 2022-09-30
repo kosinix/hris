@@ -1429,9 +1429,21 @@ let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
 
     let timeZone = -480 // ph -8 hrs
     if (attendance.type == 'holiday') {
+        let start = 450 // 7:30
+        let currentShift = getNextShift(start, workScheduleTimeSegments)
+        let mToTime = (minutes, format, date = null) => {
+            format = format || 'HH:mm'
+            let mDate = {}
+            if (date) {
+                mDate = moment.utc(date)
+            } else {
+                mDate = moment().startOf('year')
+            }
+            return mDate.startOf('day').add(minutes, 'minutes').format(format)
+        }
         attendance.logs = [
             {
-                dateTime: mToTime(480 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
                 type: 'holiday',
                 source: {
                     id: employee.userId,

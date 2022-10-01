@@ -845,8 +845,16 @@ router.post('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_at
         let user = res.user.toObject()
         let attendance = res.attendance.toObject()
         let employee = await req.app.locals.db.main.Employee.findById(attendance.employeeId).lean()
-        let employment = await req.app.locals.db.main.Employee.findById(attendance.employmentId).lean()
+        if (!employee) throw new Error('Employee not found.')
+        let employment = await req.app.locals.db.main.Employment.findById(attendance.employmentId).lean()
+        if (!employment) throw new Error('Employment not found.')
+        if (!lodash.get(employment, 'workScheduleId')) throw new Error('No work schedule for this employment.')
+        if (!lodash.get(attendance, 'workScheduleId')) {
+            attendance.workScheduleId = employment.workScheduleId
+        }
         let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(attendance.workScheduleId).lean()
+        if (!workSchedule) throw new Error('WorkSchedule not found.')
+
         let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
 
         // original attendance normalized

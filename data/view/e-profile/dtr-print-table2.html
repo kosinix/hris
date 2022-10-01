@@ -120,10 +120,10 @@
                 {{res}}
             </td>
         {% else %}
-            <td>{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-            <td>{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-            <td>{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-            <td>{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+            <td>{% if attendance.logs[0].dateTime and day.dtr.totalMinutes > 0 %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+            <td>{% if attendance.logs[1].dateTime and day.dtr.totalMinutes > 0 %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+            <td>{% if attendance.logs[2].dateTime and day.dtr.totalMinutes > 0 %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+            <td>{% if attendance.logs[3].dateTime and day.dtr.totalMinutes > 0 %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
             <td>
                 {% set res = 0 %}
                 {% if (attendance.logs.length > 1 or attendanceTypesList.includes(attendance.type)) %}

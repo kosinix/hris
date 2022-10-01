@@ -1754,7 +1754,7 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
         //////////
         // console.dir(date, { depth: null })
         // console.dir(attendance, { depth: null })
-        if ((holiday && employment.employmentType === 'permanent') || lodash.get(attendance, 'type') === 'wfh') {
+        if ((holiday && employment.employmentType === 'permanent')) {
             dtr.totalMinutes = 480
         } else if (attendance) {
             let workScheduleTimeSegments = getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)

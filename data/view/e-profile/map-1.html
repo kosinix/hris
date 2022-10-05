@@ -1,6 +1,6 @@
 {% extends "document.html" %}
 {% block styles %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="   crossorigin=""/>
+<link rel="stylesheet" href="{{app.url}}/leaflet/leaflet.css"/>
 {% endblock %}
 
 {% block body %}
@@ -176,7 +176,7 @@
 {{ super() }}
 <script src="{{app.url}}/js/axios.min.js"></script>
 <script src="{{app.url}}/js/media-devices.js"></script>
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="   crossorigin=""></script>
+<script src="{{app.url}}/leaflet/leaflet.js"></script>
 <script>
     var employmentId = '{{employment._id}}';
     var employeeId = '{{employee._id}}';

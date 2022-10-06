@@ -97,12 +97,12 @@
                     <small class="invalid-feedback">${getError('correctionReason')}</small>
                 </div>
                 <div class="form-group" v-if="['normal', 'pass'].includes(_.get(attendance, 'type'))">
-                    <label for="logsheetNumber" class="font-weight-bold">Your Number on the Log Sheet</label>
+                    <label for="logsheetNumber" class="font-weight-bold">Your Number on the Attendance Sheet</label>
                     <input type="number" v-model="logsheetNumber" name="logsheetNumber" id="logsheetNumber" class="form-control">
                     <small class="invalid-feedback">${getError('logsheetNumber')}</small>
                 </div>
                 <div class="form-group">
-                    <label for="photo" class="font-weight-bold">Select ${attachmentLabel} </label>
+                    <label for="photo" class="font-weight-bold">${attachmentLabel} </label>
                     <div v-if="photo" class="position-relative text-center bg-white" style="overflow: hidden">
                         <img v-bind:src="photo" v-bind:style="rotationCss" id="preview" alt="photo" class="img-fluid">
                         <button v-on:click="rotate" class="btn btn-sm btn-light mb-2" type="button" style="display:inline-block; position: relative; z-index:2;">
@@ -190,7 +190,7 @@
             },
             attachmentLabel: function(){
                 if(this.type === 'normal'){
-                    return 'Log Sheet Photo (Log sheet date and your name must be present)'
+                    return 'Attendance Sheet Photo (Must have your name and Date)'
                 }  else if(this.type === 'travel'){
                     return 'Photo of Authority to Travel'
                 }   else if(this.type === 'pass'){
@@ -261,6 +261,11 @@
                             alert('Invalid Time. Afternoon In is more than Afternoon Out.')
                             goodTime = false
                         }
+                    }
+
+                    if(me.type === 'normal' && (!me.photo && !me.photo2)){
+                        alert('Please select or upload a photo of the Attendance Sheet.')
+                        goodTime = false
                     }
                    
                     if(goodTime){

@@ -521,7 +521,13 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
 
         if(photo2) {
             photo2 = path.basename(photo2)
-            photo2 = photo2.split('-')[1]
+
+            let pos = photo2.indexOf('-') // Get position of -. If absent, returns -1
+            if(pos > -1){
+                pos += 1 // Add 1 to start after -
+            }
+            photo2 = photo2.substring(pos) // Cut part after -. If no -, return whole string
+
             attachments = []
             attachments.push(photo2)
         }

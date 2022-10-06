@@ -121,7 +121,8 @@
                         {% if logSheets.length > 0 %}
                             {% for logSheet in logSheets %}
                                 <div class="log-sheets">
-                                    <div class="btn p-1" v-on:click.prevent="select('{{logSheet.attachments[0]|s3_url('xlarge')}}')" class="m-2 {% if loop.index0 == 0 %}active{% endif %}">
+                                    {# <div class="btn p-1" v-on:click.prevent="select('{{logSheet.attachments[0]|s3_url('xlarge')}}')" class="m-2 {% if loop.index0 == 0 %}active{% endif %}"> #}
+                                    <div class="btn p-1" v-on:click.prevent="select('{{logSheet.attachments[0]|s3_url}}')" class="m-2 {% if loop.index0 == 0 %}active{% endif %}">
                                         <img src="{{logSheet.attachments[0]|s3_url('medium')}}" class="img-fluid">
                                     </div>
                                 </div>

@@ -38,25 +38,35 @@
                 <div class="form-row" v-if="!attendanceTypesList.includes(_.get(attendance, 'type'))">
                     <div class="col-md-3">
                         <div class="form-group">
-                            <label for="log0" class="font-weight-bold">Morning In </label>
+                            <label for="log0" class="font-weight-bold">Morning In 
+                                <button title="Move Time" v-bind:disabled="(attendance.ui.log0=='')" v-on:click.prevent="moveTimeLog(0, 1)" class="btn btn-sm p-0" type="button"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M10,17L15,12L10,7V17Z" /></svg></button>
+                            </label>
                             <input type="time" name="log0" v-model="attendance.ui.log0" id="log0" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="form-group">
-                            <label for="log1" class="font-weight-bold">Morning Out </label>
+                            <label for="log1" class="font-weight-bold">Morning Out 
+                                <button title="Move Time" v-bind:disabled="(attendance.ui.log1=='')" v-on:click.prevent="moveTimeLog(1, 0)" class="btn btn-sm p-0" type="button"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M14,7L9,12L14,17V7Z" /></svg></button>
+                                <button title="Move Time" v-bind:disabled="(attendance.ui.log1=='')" v-on:click.prevent="moveTimeLog(1, 2)" class="btn btn-sm p-0" type="button"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M10,17L15,12L10,7V17Z" /></svg></button>
+                            </label>
                             <input type="time" name="log1" v-model="attendance.ui.log1" id="log1" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="form-group">
-                            <label for="log2" class="font-weight-bold">Afternoon In </label>
+                            <label for="log2" class="font-weight-bold">Afternoon In 
+                                <button title="Move Time" v-bind:disabled="(attendance.ui.log2=='')" v-on:click.prevent="moveTimeLog(2, 1)" class="btn btn-sm p-0" type="button"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M14,7L9,12L14,17V7Z" /></svg></button>
+                                <button title="Move Time" v-bind:disabled="(attendance.ui.log2=='')" v-on:click.prevent="moveTimeLog(2, 3)" class="btn btn-sm p-0" type="button"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M10,17L15,12L10,7V17Z" /></svg></button>
+                            </label>
                             <input type="time" name="log2" v-model="attendance.ui.log2" id="log2" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="form-group">
-                            <label for="log3" class="font-weight-bold">Afternoon Out </label>
+                            <label for="log3" class="font-weight-bold">Afternoon Out 
+                                <button title="Move Time" v-bind:disabled="(attendance.ui.log3=='')" v-on:click.prevent="moveTimeLog(3, 2)" class="btn btn-sm p-0" type="button"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M14,7L9,12L14,17V7Z" /></svg></button>
+                            </label>
                             <input type="time" name="log3" v-model="attendance.ui.log3" id="log3" class="form-control">
                         </div>
                     </div>
@@ -143,6 +153,15 @@
             }
         },
         methods: {
+            moveTimeLog: function(current, next){
+                var me = this;
+                var currentLog = _.get(me, 'attendance.ui.log' + current);
+                var nextLog = _.get(me, 'attendance.ui.log' + next);
+                if(currentLog && !nextLog){
+                    me.attendance.ui['log' + next] = currentLog
+                    me.attendance.ui['log' + current] = ''
+                }
+            },
             formatDate: function(date, format){
                 return moment(date).format(format);
             },
@@ -152,10 +171,31 @@
                 if (me.$v.$error) {
                     alert('Please correct the errors to continue.')
                 } else {
-                    me.pending = true
-                    me.$nextTick(function() {
-                        me.$refs.form.submit();
-                    });
+                    var goodTime = true
+                    var log0 = me.attendance.ui.log0
+                    var log1 = me.attendance.ui.log1
+                    var log2 = me.attendance.ui.log2
+                    var log3 = me.attendance.ui.log3
+
+                    if(log0 && log1){
+                        if(moment(log0, 'HH:mm').format('x') > moment(log1, 'HH:mm').format('x')){
+                            alert('Invalid Time. Morning In is greater than Morning Out.')
+                            goodTime = false
+                        }
+                    }
+                    if(log2 && log3){
+                        if(moment(log2, 'HH:mm').format('x') > moment(log3, 'HH:mm').format('x')){
+                            alert('Invalid Time. Afternoon In is greater than Afternoon Out.')
+                            goodTime = false
+                        }
+                    }
+                   
+                    if(goodTime){
+                        me.pending = true
+                        me.$nextTick(function() {
+                            me.$refs.form.submit();
+                        });
+                    }
                 }
             }
         }

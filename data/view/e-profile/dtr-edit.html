@@ -27,7 +27,7 @@
             </div>
             <div class="alert alert-warning">Reminder: Please have your attendance corrected not later than 3 days after your incorrect log transaction.</div>
 
-            <form id="vApp" v-cloak ref="form" enctype="multipart/form-data" v-on:submit.prevent="onSubmit" action="/e-profile/dtr/{{employment._id}}/attendance/{{attendance._id}}/edit" method="POST" class="form-default">
+            <form id="vApp" v-cloak ref="form" v-on:submit.prevent="onSubmit" action="/e-profile/dtr/{{employment._id}}/attendance/{{attendance._id}}/edit" method="POST" class="form-default">
                 
                 <div class="form-group">
                     <label for="type" class="font-weight-bold">Attendance Type <span class="text-danger">*</span></label>
@@ -101,41 +101,47 @@
                     <input type="number" v-model="logsheetNumber" name="logsheetNumber" id="logsheetNumber" class="form-control">
                     <small class="invalid-feedback">${getError('logsheetNumber')}</small>
                 </div>
-                {% if logSheets.length > 0 %}
-                    <div class="form-group">
-                        <div id="carouselExampleIndicators" class="carousel slide" data-interval="false" data-ride="false">
-                            <ol class="carousel-indicators">
-                                {% for logSheet in logSheets %}
-                                    <li data-target="#carouselExampleIndicators" data-slide-to="{{loop.index0}}" class="{% if loop.index0 == 0 %}active{% endif %}"></li>
-                                {% endfor %}
-                            </ol>
-                            <div class="carousel-inner">
-                                {% for logSheet in logSheets %}
-                                <div class="carousel-item text-center {% if loop.index0 == 0 %}active{% endif %}">
-                                    <img src="{{logSheet.attachments[0]|s3_url}}" class="img-fluid">
+                <div class="form-group">
+                    <label for="photo" class="font-weight-bold">Select ${attachmentLabel} </label>
+                    <div v-if="photo" class="position-relative text-center bg-white" style="overflow: hidden">
+                        <img v-bind:src="photo" v-bind:style="rotationCss" id="preview" alt="photo" class="img-fluid">
+                        <button v-on:click="rotate" class="btn btn-sm btn-light mb-2" type="button" style="display:inline-block; position: relative; z-index:2;">
+                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><path fill="currentColor" d="M7.34,6.41L0.86,12.9L7.35,19.38L13.84,12.9L7.34,6.41M3.69,12.9L7.35,9.24L11,12.9L7.34,16.56L3.69,12.9M19.36,6.64C17.61,4.88 15.3,4 13,4V0.76L8.76,5L13,9.24V6C14.79,6 16.58,6.68 17.95,8.05C20.68,10.78 20.68,15.22 17.95,17.95C16.58,19.32 14.79,20 13,20C12.03,20 11.06,19.79 10.16,19.39L8.67,20.88C10,21.62 11.5,22 13,22C15.3,22 17.61,21.12 19.36,19.36C22.88,15.85 22.88,10.15 19.36,6.64Z"></path></svg>
+                        </button>
+                        <button v-on:click="photo=''" class="btn btn-danger" type="button" style="position: absolute; top: 15px; right: 15px;">X</button>
+                    </div>
+                    <div v-else-if="photo2" class="position-relative text-center bg-white" style="overflow: hidden">
+                        <img v-bind:src="photo2" v-bind:style="rotationCss" id="preview" alt="photo2" class="img-fluid">
+                        <button v-on:click="rotate" class="btn btn-sm btn-light mb-2" type="button" style="display:inline-block; position: relative; z-index:2;">
+                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><path fill="currentColor" d="M7.34,6.41L0.86,12.9L7.35,19.38L13.84,12.9L7.34,6.41M3.69,12.9L7.35,9.24L11,12.9L7.34,16.56L3.69,12.9M19.36,6.64C17.61,4.88 15.3,4 13,4V0.76L8.76,5L13,9.24V6C14.79,6 16.58,6.68 17.95,8.05C20.68,10.78 20.68,15.22 17.95,17.95C16.58,19.32 14.79,20 13,20C12.03,20 11.06,19.79 10.16,19.39L8.67,20.88C10,21.62 11.5,22 13,22C15.3,22 17.61,21.12 19.36,19.36C22.88,15.85 22.88,10.15 19.36,6.64Z"></path></svg>
+                        </button>
+                        <button v-on:click="photo2=''" class="btn btn-danger" type="button" style="position: absolute; top: 15px; right: 15px;">X</button>
+                    </div>
+                    <div class="d-flex flex-wrap text-center" v-else>
+                        {% if logSheets.length > 0 %}
+                            {% for logSheet in logSheets %}
+                                <div class="log-sheets">
+                                    <div class="btn p-1" v-on:click.prevent="select('{{logSheet.attachments[0]|s3_url('xlarge')}}')" class="m-2 {% if loop.index0 == 0 %}active{% endif %}">
+                                        <img src="{{logSheet.attachments[0]|s3_url('medium')}}" class="img-fluid">
+                                    </div>
                                 </div>
-                                {% endfor %}
+                            {% endfor %}
+                        {% endif %}
+                        <div class="log-sheets">
+                            <div class="btn p-1 text-center border position-relative" style="max-width: 200px; max-height: 200px; width: 100%; height: 100%;">
+                                <label for="photo" class="font-weight-bold btn-link" style="position: absolute; left:0; top: 50%; width: 100%; transform: translateY(-50%);">Upload New</label>
+                                <input v-on:change="readFile($event, 'photo', 'canvas')" style="visibility:hidden; position: absolute;" name="photo" id="photo" ref="filePhoto" type="file" class="form-control" accept="accept" />
+                                <canvas id="canvas" class="" style="display: none"></canvas>
                             </div>
-                            <button class="carousel-control-prev" type="button" data-target="#carouselExampleIndicators" data-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="sr-only">Previous</span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-target="#carouselExampleIndicators" data-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="sr-only">Next</span>
-                            </button>
                         </div>
                     </div>
-                {% endif %}
-                <div class="form-group">
-                    <label for="photo" class="font-weight-bold">Upload ${attachmentLabel} </label>
-                    <div>
-                        <input name="photo" id="photo" ref="filePhoto" type="file" class="form-control">
-                    </div>
                 </div>
+               
+                <input type="hidden" name="photo" v-model="photo"> {# base64 image for uploading #}
+                <input type="hidden" name="photo2" v-model="photo2"> {# s3 image already uploaded #}
                 
                 <div class="text-center mb-4">
-                    <button class="btn btn-primary">Submit</button>
+                    <button class="btn btn-full-width btn-primary">Submit</button>
                 </div>
             </form>
         </div>
@@ -144,6 +150,7 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
+<script src="{{app.url}}/js/vue-file-upload.js"></script>
 <script src="{{app.url}}/js/axios.min.js"></script>
 <script>
     var vApp = new Vue({
@@ -152,10 +159,12 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
+            VueFileUpload.mixin,
         ],
         data: {
             pending: false,
             workScheduleId: '{{attendance.workScheduleId}}',
+            employee: {{employee|default([], true)|stringify|safe}},
             workSchedules: {{workSchedules|default([], true)|stringify|safe}},
             attendance: {{attendance|default({}, true)|stringify|safe}},
             attendanceTypes: {{attendanceTypes|default([], true)|stringify|safe}},
@@ -164,20 +173,24 @@
             correctionReason: '',
             logsheetNumber: '',
             photo: '',
+            photo2: '',
+            rotation: 0,
         },
         validations: {
             correctionReason: {
                 required: window.validators.required
             },
-            
         },
         computed: {
             type: function(){
                 return this.attendance.type
             },
+            rotationCss: function(){
+                return 'transform: rotate(-'+this.rotation+'deg); transition: transform 100ms ease-out;'
+            },
             attachmentLabel: function(){
                 if(this.type === 'normal'){
-                    return 'Log Sheet Photo (Must include log sheet date and your name)'
+                    return 'Log Sheet Photo (Log sheet date and your name must be present)'
                 }  else if(this.type === 'travel'){
                     return 'Photo of Authority to Travel'
                 }   else if(this.type === 'pass'){
@@ -187,6 +200,21 @@
             }
         },
         methods: {
+            watermark: function(){
+                return 'Uploaded by ' + this.employee.firstName + ' ' + this.employee.lastName + ' on ' + moment().format('YYYY-MM-DD hh:mm:ss A');
+            },
+            select: function(src){
+                this.photo2 = src
+            },
+            rotate: function(){
+                var x = this.rotation;
+                x += 90;
+                if(x > 270){
+                    x = 0;
+                }
+                this.rotation = x;
+            },
+            
             moveTimeLog: function(current, next){
                 var me = this;
                 var currentLog = _.get(me, 'attendance.ui.log' + current);

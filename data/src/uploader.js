@@ -114,6 +114,30 @@ const _imageSizes = [
         }
     },
     {
+        name: 'xlarge',
+        allowedMimes: ["image/jpeg", "image/png"], // Resize only if source file is this mime type
+        mimeType: 'image/jpeg', // Destination file type
+        fxFileName: (baseName) => { // Basename without extension (.jpeg)
+            return `xlarge-${baseName}.jpeg`
+        },
+        fx: async (srcFile, destFile) => {
+            sharp.cache(false) // Disable unlink error due files not released
+            // returns Promise
+            return sharp(srcFile)
+                .rotate() // Auto rotate based on device orientation
+                .resize({
+                    width: 1000,
+                    height: 1000,
+                    fit: 'contain', // fill with bg
+                    background: { r: 255, g: 255, b: 255, alpha: 1 }
+                })
+                .flatten()
+                .jpeg()
+                .toFile(destFile);
+
+        }
+    },
+    {
         name: 'orig',
         allowedMimes: ["image/jpeg", "image/png"], // Resize only if source file is this mime type
         mimeType: 'image/jpeg', // Destination file type

@@ -58,9 +58,12 @@ let dataUrlToReqFiles = (names = []) => {
         try {
 
             names.forEach((fieldName) => {
-                lodash.set(req, `files.${fieldName}`, [
-                    uploader.toReqFile(lodash.get(req, `body.${fieldName}`))
-                ])
+                let fieldValue = lodash.get(req, `body.${fieldName}`)
+                if (fieldValue) {
+                    lodash.set(req, `files.${fieldName}`, [
+                        uploader.toReqFile(fieldValue)
+                    ])
+                }
             })
 
             next()
@@ -151,10 +154,10 @@ module.exports = {
             let authorization = ''
             try {
                 authorization = lodash.get(req, 'headers.authorization', '').replace('Bearer', '').replace(' ', '')
-        
+
                 res.jwt = authorization
                 res.jwtDecoded = jwt.verify(authorization, CRED.jwt.secret)
-        
+
                 next()
             } catch (err) {
                 next(err)
@@ -165,7 +168,7 @@ module.exports = {
                 if (req.query.key !== CRED.api.secret) {
                     throw new Error('Not allowed. API keys dont match.')
                 }
-        
+
                 next()
             } catch (err) {
                 next(err)
@@ -190,9 +193,9 @@ module.exports = {
                         timeOut: 10
                     })
                 }
-    
+
                 let photo = lodash.get(req, 'body.photo', '')
-    
+
                 let employee = await req.app.locals.db.main.Employee.findOne({
                     uid: code
                 }).lean()
@@ -202,7 +205,7 @@ module.exports = {
                         timeOut: 10
                     })
                 }
-    
+
                 // TODO: Allow choose employment for rfid
                 let employment = await req.app.locals.db.main.Employment.findOne({
                     employeeId: employee._id
@@ -213,7 +216,7 @@ module.exports = {
                         timeOut: 10
                     })
                 }
-    
+
                 res.scanData = {
                     dataType: 'rfid',
                     code: code,
@@ -221,7 +224,7 @@ module.exports = {
                     employee: employee,
                     employment: employment,
                 }
-    
+
                 next();
             } catch (err) {
                 next(err);
@@ -620,13 +623,13 @@ module.exports = {
                     periodSlice = 'all'
                 }
             }
-            if (!['Mon-Fri', 'Sat-Sun', 'All'].includes(periodWeekDays)) {
+            if (!['Mon-Fri', 'Sat-Sun', 'Sat-Sun-Holiday', 'All'].includes(periodWeekDays)) {
                 periodWeekDays = 'Mon-Fri'
             }
             if (!['time', 'undertime'].includes(showTotalAs)) {
                 showTotalAs = 'time'
             }
-            if (!['weekdays', 'weekends', 'all', 'none'].includes(countTimeBy)) {
+            if (!['weekdays', 'weekends', 'weekends-holidays', 'all', 'none'].includes(countTimeBy)) {
                 countTimeBy = 'weekdays'
             }
 
@@ -642,7 +645,7 @@ module.exports = {
             }
 
             let showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
-            if (periodWeekDays === 'Sat-Sun') {
+            if (periodWeekDays === 'Sat-Sun' || periodWeekDays === 'Sat-Sun-Holiday') {
                 showWeekDays = ['Sat', 'Sun']
             }
             if (periodWeekDays === 'All') {

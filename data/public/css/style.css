@@ -390,6 +390,11 @@ div[data-pending="true"]:after {
     border-left: 0;
 }
 
+.log-sheets {
+    width: 200px;
+    height: 200px;
+}
+
 /* Bootstrap Overrides */
 .btn-full-width {
     width: 100%;
@@ -1342,6 +1347,11 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     .grecaptcha-badge { 
         visibility: hidden;
     }
+
+    .log-sheets {
+        width: 150px;
+        height: 150px;
+    }
 }
 
 /* ≥576px	Small */
@@ -1364,5 +1374,9 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     }
     .scanner-calendar .weekDays .weekDay[data-today="true"] {
         font-size: 18px;
+    }
+    .log-sheets {
+        width: 100px;
+        height: 100px;
     }
 }

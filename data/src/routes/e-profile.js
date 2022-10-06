@@ -1,4 +1,5 @@
 //// Core modules
+const path = require('path')
 
 //// External modules
 const express = require('express')
@@ -486,7 +487,7 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
         next(err);
     }
 });
-router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, fileUpload(), middlewares.handleExpressUploadMagic, async (req, res, next) => {
+router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.dataUrlToReqFiles(['photo']), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"] }), async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employmentId = res.employmentId
@@ -514,8 +515,16 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
         }
 
         let saveList = lodash.get(req, 'saveList')
-        let attachments = lodash.get(saveList, 'photo')
+        let attachments = lodash.get(saveList, 'photo') // Use base64 uploaded image
         let body = lodash.get(req, 'body')
+        let photo2 = lodash.get(body, 'photo2') // Use existing already uploaded
+
+        if(photo2) {
+            photo2 = path.basename(photo2)
+            photo2 = photo2.split('-')[1]
+            attachments = []
+            attachments.push(photo2)
+        }
 
 
         // ORIG

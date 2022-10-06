@@ -250,9 +250,10 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             padded: true,
             showTotalAs: showTotalAs,
             showWeekDays: showWeekDays,
+            periodWeekDays: periodWeekDays
         }
 
-        let { days, stats } = await dtrHelper.getDtrByDateRange2(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days, stats, compute } = await dtrHelper.getDtrByDateRange2(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         let periodMonthYearMoment = moment(periodMonthYear)
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
@@ -284,6 +285,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             // Data that might change
             days: days,
             stats: stats,
+            compute: compute,
 
             showTotalAs: showTotalAs,
             workSchedules: workSchedules,
@@ -308,6 +310,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
         if (req.xhr) {
             return res.json(data)
         }
+        // console.log(stats)
         // return res.send(days)
 
         if (/^\/e-profile\/dtr\/print/.test(req.path)) {
@@ -343,6 +346,9 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
         }).sort({ _id: -1 }).lean()
 
 
+        
+
+
         // Get attendance
         let attendance = await req.app.locals.db.main.Attendance.findOne({
             _id: attendanceId,
@@ -352,6 +358,63 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
         if (!attendance) {
             throw new Error('Attendance not found.')
         }
+
+        // Get related logsheet images
+        let momentDate = moment(attendance.createdAt)
+        let aggr = [
+            {
+                $match: {
+                    createdAt: {
+                        $gte: momentDate.clone().startOf('day').toDate(),
+                        $lt: momentDate.clone().endOf('day').toDate(),
+                    },
+                    status: 'approved',
+                    attachments: {
+                        $exists: true,
+                        $ne: []
+                    },
+                }
+            },
+            {
+                $lookup: {
+                    localField: 'employmentId',
+                    foreignField: '_id',
+                    from: 'employments',
+                    as: 'employments'
+                }
+            },
+            {
+                $match: { 
+                    "employments": {
+                        $elemMatch: {
+                            "employmentType" : employment.employmentType, // COS or whatevs
+                        }  
+                    } 
+                }
+            },
+            {
+                $addFields: {
+                    "employment": {
+                        $arrayElemAt: ["$employments", 0]
+                    }
+                }
+            },
+            {
+                $project: {
+                    employments: 0,
+                }
+            },
+            { 
+                $limit : 5 
+            },
+            { 
+                $sort : {
+                    createdAt: -1
+                }
+            },
+        ]
+        let logSheets = await req.app.locals.db.main.AttendanceReview.aggregate(aggr)
+        // return res.send(logSheets)
 
         // let now = moment()
         // let created = moment(attendance.createdAt).add(8, 'hours')
@@ -417,6 +480,7 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal', 'wfh', 'pass'].includes(o)),
             correctionReasons: CONFIG.attendance.correctionReasons,
             attendanceDenied: attendanceDenied,
+            logSheets: logSheets,
         });
     } catch (err) {
         next(err);

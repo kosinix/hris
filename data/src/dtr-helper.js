@@ -1459,6 +1459,39 @@ let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
                 }
             }
         ]
+    } else if (attendance.type == 'wfh') {
+        if (logs.length <= 0) { // no log
+            let start = 420 // 7:00
+            let currentShift = getNextShift(start, workScheduleTimeSegments)
+            let mToTime = (minutes, format, date = null) => {
+                format = format || 'HH:mm'
+                let mDate = {}
+                if (date) {
+                    mDate = moment.utc(date)
+                } else {
+                    mDate = moment().startOf('year')
+                }
+                return mDate.startOf('day').add(minutes, 'minutes').format(format)
+            }
+            attendance.logs = [
+                {
+                    dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                    type: 'normal',
+                    source: {
+                        id: employee.userId,
+                        type: 'userAccount'
+                    }
+                },
+                {
+                    dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                    type: 'normal',
+                    source: {
+                        id: employee.userId,
+                        type: 'userAccount'
+                    }
+                }
+            ]
+        }
     } else if (attendance.type == 'travel') {
         if (logs.length <= 1) { // all day travel
 

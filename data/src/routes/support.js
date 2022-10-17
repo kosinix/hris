@@ -183,7 +183,7 @@ router.get('/support/dtr/:employmentId', middlewares.guardRoute(['read_attendanc
             throw new Error('Employee not found.')
         }
 
-        return res.redirect(`/attendance/employee/${employee._id}/employment/${employment._id}`)
+        return res.redirect(`/attendance/employment/${employment._id}`)
         
     } catch (err) {
         next(err);

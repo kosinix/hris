@@ -7,9 +7,10 @@ const mongoose = require('mongoose');
 
 let schema = mongoose.Schema({
     scannerId: mongoose.Schema.Types.ObjectId,
-    offline: Date,
-    online: Date,
-    duration: String,
+    status: { // 1 if scanner is connected to server or 0 is offline
+        $type: Number,
+        default: 0
+    }
 }, { timestamps: { createdAt: true, updatedAt: false }, typeKey: '$type' })
 
 //// Instance methods

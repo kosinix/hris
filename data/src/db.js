@@ -44,6 +44,7 @@ main.Position = main.model('Position', require('./models/position'));
 main.RegistrationForm = main.model('RegistrationForm', require('./models/registration-form'));
 main.Role = main.model('Role', require('./models/role'));
 main.Scanner = main.model('Scanner', require('./models/scanner'));
+main.ScannerPing = main.model('ScannerPing', require('./models/scanner-ping'));
 main.ScannerStatus = main.model('ScannerStatus', require('./models/scanner-status'));
 main.Share = main.model('Share', require('./models/share'));
 main.User = main.model('User', require('./models/user'));

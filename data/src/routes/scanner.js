@@ -179,76 +179,57 @@ router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner',
         let scanner = res.scanner.toObject()
         scanner.user = await req.app.locals.db.main.User.findById(scanner.userId)
 
-        // Scanner status today
-        let momentDate = lodash.get(req, 'query.date')
-        if (momentDate) {
-            momentDate = moment(momentDate)
-        } else {
-            momentDate = moment()
+        let scannerPings = await req.app.locals.db.main.ScannerPing.find({
+            scannerId: scanner._id
+        }).sort({ createdAt: 1 }).lean()
+
+        let timeFr = (seconds) => {
+            let hrs = Math.floor(seconds / 60 / 60)
+            let mins = Math.floor(seconds / 60 % 60)
+            let secs = Math.round(((seconds / 60 % 60) - mins) * 60)
+            hrs = (hrs > 0) ? `${hrs}h` : ''
+            mins = (mins > 0) ? `${mins}m` : ''
+            secs = (secs > 0) ? `${secs}s` : ''
+            return `${hrs} ${mins} ${secs}`
         }
+        let downTimes = []
+        let forDeletion = []
+        scannerPings = scannerPings.forEach((ping, index) => {
+            let prevPing = scannerPings[index - 1]
+            let nextPing = scannerPings[index + 1]
+            if (ping.status === 0) {
+                let momentStart = moment(ping.createdAt)
 
-
-
-        // let momentStart = null
-        // let threshold = 5 // minutes
-        // threshold *= 60 // to secs
-        // let downTimes = []
-        // scannerPings.forEach((ping, index) => {
-        //     momentStart = moment(ping.createdAt)
-        //     let nextPing = scannerPings[index + 1]
-        //     if (nextPing) {
-        //         let momentEnd = moment(nextPing.createdAt)
-        //         let diff = momentEnd.diff(momentStart, 'seconds')
-
-        //         if (diff > threshold) {
-        //             console.log(diff, 's')
-        //             downTimes.push(`${momentStart.toISOString()}|${momentEnd.toISOString()}|${diff}`)
-        //         }
-        //     }
-        // })
-
-        let scannerStatus = await req.app.locals.db.main.ScannerStatus.findOne({
-            scannerId: scanner._id,
-            createdAt: {
-                $gte: momentDate.clone().startOf('day').toDate(),
-                $lte: momentDate.clone().endOf('day').toDate(),
-            }
-        }).lean()
-
-        if (scannerStatus) {
-            scannerStatus.downTimes.push(...downTimes)
-            scannerStatus.downTimes = lodash.uniq(scannerStatus.downTimes)
-            await req.app.locals.db.main.ScannerStatus.updateOne({
-                scannerId: scanner._id,
-                createdAt: momentDate.clone().startOf('day').toDate(),
-            }, scannerStatus)
-        } else {
-            scannerStatus = await req.app.locals.db.main.ScannerStatus.create({
-                scannerId: scanner._id,
-                createdAt: momentDate.clone().startOf('day').toDate(),
-                downTimes: downTimes
-            })
-        }
-
-        scannerStatus.downTimes = scannerStatus.downTimes.map((o) => {
-            let data = o.split('|')
-            let diff = parseInt(data[2])
-            let hrs = diff / 3600
-            let mins = (hrs - Math.floor(hrs)) * 60
-
-            return {
-                date: moment(data[0]).format('MMM DD, YYYY'),
-                start: moment(data[0]).format('hh:mm A'),
-                end: moment(data[1]).format('hh:mm A'),
-                diff: diff,
-                hrs: Math.floor(hrs),
-                mins: Math.round(mins),
+                if (nextPing && nextPing.status === 1) {
+                    let momentEnd = moment(nextPing.createdAt)
+                    let diff = timeFr(momentEnd.diff(momentStart, 'seconds'))
+                    downTimes.push(`${momentStart.toISOString()}|${momentEnd.toISOString()}|${diff}`)
+                } else {
+                    let momentEnd = moment()
+                    let diff = timeFr(momentEnd.diff(momentStart, 'seconds'))
+                    downTimes.push(`${momentStart.toISOString()}|offline|${diff}`)
+                }
+            } else if (ping.status === 1) {
+                if ((prevPing && prevPing.status === 1) && (nextPing && (nextPing.status === 0 || nextPing.status === 1))) {
+                    forDeletion.push(ping._id)
+                }
             }
         })
+
+        // Remove dupe 1s
+        let rr = await req.app.locals.db.main.ScannerPing.deleteMany({
+            scannerId: scanner._id,
+            _id: {
+                $in: forDeletion
+            }
+        })
+        
+        // return res.send(downTimes)
+
         res.render('scanner/status.html', {
             flash: flash.get(req, 'scanner'),
             scanner: scanner,
-            scannerStatus: scannerStatus,
+            downTimes: downTimes.map(d => d.split('|')),
         });
     } catch (err) {
         next(err);

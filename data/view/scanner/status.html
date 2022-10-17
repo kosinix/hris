@@ -15,14 +15,29 @@
     {% include 'parts/flash.html' %}
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
-            <p>Campus: {{scanner.campus|capitalize}}</p>
-            <p>Device: {{scanner.device|capitalize}}</p>
-            <p>Active: {{scanner.active|capitalize}}</p>
-            <ol>
-                {% for downTime in scannerStatus.downTimes %}
-                    <li><span class="text-danger">{{downTime.date}}</span> from <strong>{{downTime.start}}</strong> to <strong>{{downTime.end}}</strong> for <em class="text-danger">{{downTime.hrs}}</em> hrs <em class="text-danger">{{downTime.mins}}</em> minutes</li>
-                {% endfor %}
-            </ol>
+        <h1 class="h6">Offline</h1>
+        <table class="table table-striped table-sm">
+            <tr>
+                <th>Start</th>
+                <th>End</th>
+                <th>Duration</th>
+            </tr>
+            {% for downTime in downTimes %}
+                <tr>
+                    <td>{{downTime[0]|format_date('MMM DD, YYYY hh:mm:ss A')}}</td>
+                    <td>{{downTime[1]|format_date('MMM DD, YYYY hh:mm:ss A')}}</td>
+                    <td>{{downTime[2]}}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <p>Campus: {{scanner.campus|capitalize}}</p>
+        <p>Device: {{scanner.device|capitalize}}</p>
+        <p>Active: {{scanner.active|capitalize}}</p>
+        <ol>
+            {% for downTime in scannerStatus.downTimes %}
+                <li><span class="text-danger">{{downTime.date}}</span> from <strong>{{downTime.start}}</strong> to <strong>{{downTime.end}}</strong> for <em class="text-danger">{{downTime.hrs}}</em> hrs <em class="text-danger">{{downTime.mins}}</em> minutes</li>
+            {% endfor %}
+        </ol>
     </div>
 
 </div>

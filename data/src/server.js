@@ -164,11 +164,11 @@
         scanner.online = true
         scanner.save().then(r => {
             // console.log('Saved', r)
-            app.locals.db.main.ScannerStatus.create({
+            app.locals.db.main.ScannerPing.create({
                 scannerId: scannerId,
-                online: true
+                status: 1
             }).then(r2 => { 
-                // console.log('Online', r2)
+                // console.log('Online', r.name)
             }).catch(err2 => {
                 console.error(err2)
             })
@@ -181,11 +181,11 @@
             scanner.online = false
             scanner.save().then(r => {
                 // console.log('Saved', r)
-                app.locals.db.main.ScannerStatus.create({
+                app.locals.db.main.ScannerPing.create({
                     scannerId: scannerId,
-                    online: false
+                    status: 0
                 }).then(r2 => { 
-                    // console.log('Offline', r2)
+                    // console.log('Offline', r.name)
                 }).catch(err2 => {
                     console.error(err2)
                 })

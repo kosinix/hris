@@ -159,9 +159,19 @@
         // console.log(`A scanner connected`, scanner, 'with socket ID', socket.id);
         scanners.push(scannerId)
 
+
+
         scanner.online = true
-        scanner.save().then((r) => {
+        scanner.save().then(r => {
             // console.log('Saved', r)
+            app.locals.db.main.ScannerStatus.create({
+                scannerId: scannerId,
+                online: true
+            }).then(r2 => { 
+                // console.log('Online', r2)
+            }).catch(err2 => {
+                console.error(err2)
+            })
         }).catch((err) => {
             console.error(err)
         })
@@ -169,8 +179,16 @@
         socket.on('disconnect', function () {
             // console.log(`A scanner disconnected`, scanner, 'with socket ID', socket.id);
             scanner.online = false
-            scanner.save().then((r) => {
+            scanner.save().then(r => {
                 // console.log('Saved', r)
+                app.locals.db.main.ScannerStatus.create({
+                    scannerId: scannerId,
+                    online: false
+                }).then(r2 => { 
+                    // console.log('Offline', r2)
+                }).catch(err2 => {
+                    console.error(err2)
+                })
             }).catch((err) => {
                 console.error(err)
             })

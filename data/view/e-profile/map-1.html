@@ -337,7 +337,11 @@
                         // console.error(error.response.status)
                         var err = error.response.data;
                         console.error(err)
-                        alert(err.msg)
+                        if(err.msg){
+                            alert(err.msg)
+                        } else {
+                            alert(err)
+                        }
 
                     } else if (error.request) {
                         var msg = 'The request was made but no response was received'

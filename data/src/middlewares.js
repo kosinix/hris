@@ -52,7 +52,11 @@ let antiCsrfCheck = async (req, res, next) => {
         next(err);
     }
 }
-
+/**
+ * 
+ * @param {Array} names Array of field names found in req.body.<name>
+ * @returns {object} Populate req.files.<name>
+ */
 let dataUrlToReqFiles = (names = []) => {
     return async (req, res, next) => {
         try {

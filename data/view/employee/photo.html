@@ -6,67 +6,44 @@
     {% include 'employee/employee-header.html' %}
 
     <form ref="form" v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/photo" method="POST" class="form-default">
-        <div v-if="photo" class="text-center">
+        <div v-if="photo" class="text-center position-relative">
+
             <img v-bind:src="photo" id="preview" alt="photo">
         </div>
-        
+
+        {% set name = 'photo' %}
+        <div class="form-group">
+            <label for="{{name}}">Photo</label>
+            <div>
+                <input v-if="!photo" v-on:change="readFile($event, 'photo', 'canvas')"  id="{{name}}" ref="{{('file_'+name)|camel_case}}" type="file" class="form-control">
+                <small class="invalid-feedback">${getError('{{name}}')}</small>
+            </div>
+        </div>
         <canvas id="canvas" class="" style="display: none"></canvas>
-
         <input type="hidden" name="photo" v-model="photo">
-
         <div class="form-row pt-3 pb-3">
             <div class="col-md-12">
                 <button class="btn btn-primary">Update Profile Photo</button>
+                <a v-if="photo" onclick="return confirm('Delete permanently?');" href="/employee/{{employee._id}}/photo/delete" class="btn btn-danger">X</a>
+
             </div>
         </div>
     </form>
-
-    {% set name = 'photo' %}
-    <div class="form-group">
-        <label for="{{name}}">
-            {% if label %}
-                {{label}}
-            {% else %}
-                {{name|start_case}}
-            {% endif %}
-        </label>
-        <div>
-            <input v-on:change="readFile" name="{{name}}" id="{{name}}" ref="{{('file_'+name)|camel_case}}" type="file" class="form-control">
-            <small class="invalid-feedback">${getError('{{name}}')}</small>
-        </div>
-    </div>
 </div>
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-<script src="{{app.url}}/js/vue-ph-address.js"></script>
+<script src="{{app.url}}/js/vue-file-upload.js"></script>
 <script>
-    function resizeDimensions(width, height, newWidth, newHeight){
-        var ratio = width / height
-
-        // Try basing it on width first
-        var resizeWidth  = newWidth;
-        var resizeHeight = Math.round(newWidth / ratio);
-
-        if ((resizeWidth > newWidth) || (resizeHeight > newHeight)) { // Oops, either width or height does not fit
-            // So base on height instead
-            resizeHeight = newHeight;
-            resizeWidth  = newHeight * ratio;
-        }
-        return {
-            resizeWidth: resizeWidth,
-            resizeHeight: resizeHeight,
-        }
-    }
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
+            VueFileUpload.mixin, // vue-file-upload.js
         ],
         data: {
-            accept: ['image/jpeg', 'image/png'],
             photo: '{{employee.profilePhoto|default('', true)|s3_url('medium')}}',
         },
         validations: {
@@ -74,71 +51,9 @@
                 required: window.validators.required
             },
         },
-        mounted: function(){
-        },
         methods: {
-            readFile: function(event){
-                var me = this;
-                var files = [];
-                if('target' in event){
-                    if('files' in event.target){
-                        files = event.target.files
-                    }
-                }
-                if(files){
-                    var count = files.length;
-                    me.photo = "";
-
-                    if(count > 1){
-                        // Remove all FileList content
-                        event.target.value = "";
-                        return alert('Maximum of 1 file only');
-                    }
-
-                    for(var i = 0; i < count; i++){
-                        if(me.accept.indexOf(files.item(i).type) === -1){
-                            // Remove all FileList content
-                            event.target.value = "";
-
-                            return alert('File type not allowed. Must be one of the following: ' + me.accept.join(', '));
-                        }
-                    }
-                    
-                    for(var i = 0; i < count; i++){
-                        let file = files.item(i);
-                        let reader = new FileReader();
-                        reader.onload = function(e) {
-                            var base64Data = e.target.result
-                            var mime = base64Data.split(';')[0].replace('data:','')
-                            if (['image/jpeg', 'image/png'].includes(mime)) {
-                                let blank = new Image();
-                                blank.onload = function(e) {
-                                    let img = e.target;
-                                    let canvas = document.getElementById("canvas");
-                                    let {resizeWidth, resizeHeight} = resizeDimensions(img.width, img.height, 1100, 1100)
-                                    canvas.width = resizeWidth;
-                                    canvas.height = resizeHeight;
-                                    let ctx = canvas.getContext("2d");
-
-                                    ctx.drawImage(img, 0, 0, resizeWidth, resizeHeight);
-                                    let date = new Date();
-                                    
-                                    ctx.shadowColor="white";
-                                    ctx.shadowBlur=7;
-                                    ctx.lineWidth=5;
-                                    ctx.font = "bold 14px verdana, sans-serif"
-                                    ctx.fillStyle = "#000000";
-                                    ctx.fillText('HRIS '+moment().format('YYYY-MM-DD hh:mm:ss A'), 10, resizeHeight - 10)
-                                    me.photo = canvas.toDataURL("image/jpeg");
-                                }
-                                blank.src = base64Data; // data URL base64 encoded
-                            } else {
-                                me.photo = base64Data;
-                            }
-                        }
-                        reader.readAsDataURL(file);
-                    }
-                }
+            watermark: function(){ // vue-file-upload.js
+                return 'HRIS '+ moment().format('YYYY-MM-DD hh:mm:ss A');
             },
             onSubmit: function(){
                 var me = this;

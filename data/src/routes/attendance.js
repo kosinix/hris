@@ -906,6 +906,8 @@ router.get('/attendance/:attendanceId/copy', middlewares.guardRoute(['update_att
         delete payload._id
         payload.employmentId = req.query.employmentId
         payload.workScheduleId = req.query.workScheduleId
+        payload.changes = []
+        payload.comments = []
 
         let newAttendance = await req.app.locals.db.main.Attendance.create(payload) 
         res.send(newAttendance)

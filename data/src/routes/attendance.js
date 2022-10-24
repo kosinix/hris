@@ -896,6 +896,24 @@ router.post('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_at
     }
 });
 
+// Copy
+router.get('/attendance/:attendanceId/copy', middlewares.guardRoute(['update_attendance']), middlewares.getAttendance, async (req, res, next) => {
+    try {
+        let attendance = res.attendance.toObject()
+        
+        let payload = attendance 
+        payload._id = null
+        delete payload._id
+        payload.employmentId = req.query.employmentId
+        payload.workScheduleId = req.query.workScheduleId
+
+        let newAttendance = await req.app.locals.db.main.Attendance.create(payload) 
+        res.send(newAttendance)
+    } catch (err) {
+        next(err);
+    }
+});
+
 // Delete
 router.get('/attendance/:attendanceId/delete', middlewares.guardRoute(['delete_attendance']), middlewares.getAttendance, async (req, res, next) => {
     try {

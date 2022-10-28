@@ -900,8 +900,8 @@ router.post('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_at
 router.get('/attendance/:attendanceId/copy', middlewares.guardRoute(['update_attendance']), middlewares.getAttendance, async (req, res, next) => {
     try {
         let attendance = res.attendance.toObject()
-        
-        let payload = attendance 
+
+        let payload = attendance
         payload._id = null
         delete payload._id
         payload.employmentId = req.query.employmentId
@@ -909,7 +909,7 @@ router.get('/attendance/:attendanceId/copy', middlewares.guardRoute(['update_att
         payload.changes = []
         payload.comments = []
 
-        let newAttendance = await req.app.locals.db.main.Attendance.create(payload) 
+        let newAttendance = await req.app.locals.db.main.Attendance.create(payload)
         res.send(newAttendance)
     } catch (err) {
         next(err);
@@ -1598,6 +1598,141 @@ router.post('/attendance/review/:reviewId', middlewares.guardRoute(['update_atte
             attendance: attendance,
         }
         return res.redirect('/attendance/review/all')
+    } catch (err) {
+        next(err);
+    }
+});
+
+//reports
+router.get('/attendance/review2/approved', middlewares.guardRoute(['read_all_attendance', 'update_attendance']), async (req, res, next) => {
+    try {
+
+        let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+
+        let startMoment = moment(start).startOf('day')
+        let endMoment = moment(end).endOf('day')
+
+        if (!startMoment.isValid()) {
+            throw new Error(`Invalid start date.`)
+        }
+        if (!endMoment.isValid()) {
+            throw new Error(`Invalid end date.`)
+        }
+
+        if (endMoment.isBefore(startMoment)) {
+            throw new Error(`Invalid end date. Must not be less than the start date.`)
+        }
+
+        let aggr = [
+            {
+                $match: {
+                    status: 'approved'
+                }
+            },
+            {
+                $lookup: {
+                    localField: 'attendanceId',
+                    foreignField: '_id',
+                    from: 'attendances',
+                    as: 'attendances'
+                }
+            },
+            {
+                $addFields: {
+                    "attendance": {
+                        $arrayElemAt: ["$attendances", 0]
+                    }
+                }
+            },
+            {
+                $project: {
+                    attendances: 0,
+                }
+            },
+
+
+            {
+                $lookup: {
+                    localField: 'employeeId',
+                    foreignField: '_id',
+                    from: 'employees',
+                    as: 'employees'
+                }
+            },
+            {
+                $addFields: {
+                    "employee": {
+                        $arrayElemAt: ["$employees", 0]
+                    }
+                }
+            },
+            {
+                $project: {
+                    employees: 0,
+                }
+            },
+            {
+                $project: {
+                    employee: {
+                        employments: 0,
+                        addresses: 0,
+                        personal: 0,
+                    }
+                }
+            },
+            
+            // {
+            //     $limit: 100
+            // },
+            
+        ]
+        let attendanceReviews = await req.app.locals.db.main.AttendanceReview.aggregate(aggr)
+        let attendanceReview = attendanceReviews[0]
+
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find()
+        let workSchedule1 = workSchedules.find(o => {
+            return lodash.invoke(o, '_id.toString') === lodash.invoke(attendanceReview, 'employment.workScheduleId.toString')
+        })
+        let workSchedule2 = workSchedules.find(o => {
+            return lodash.invoke(o, '_id.toString') === lodash.invoke(attendanceReview, 'workScheduleId.toString')
+        })
+
+        let data = {
+            flash: flash.get(req, 'attendance'),
+            attendanceReviews: attendanceReviews,
+            attendanceReview: attendanceReview,
+            workSchedule1: workSchedule1,
+            workSchedule2: workSchedule2,
+        }
+        attendanceReviews = attendanceReviews.map((a) => {
+            let timeA = lodash.get(a, 'attendance.changes[0].createdAt')
+            let timeB = a.attendance.createdAt
+            let diff = moment(timeA).diff(moment(timeB), 'days')
+            return {
+                reviewId: a._id,
+                employeeId: a.employeeId,
+                firstName: a.employee.firstName,
+                middleName: a.employee.middleName,
+                lastName: a.employee.lastName,
+                timeA: timeA,
+                timeB: timeB,
+                diff: diff,
+            }
+        })
+        attendanceReviews = attendanceReviews.filter((a, i) => {
+            return a.diff > 3
+        })
+        attendanceReviews = lodash.groupBy(attendanceReviews, (a) => {
+            return a.employeeId
+        })
+        attendanceReviews = lodash.sortBy(attendanceReviews, (a) => {
+            return a.length
+        }).reverse()
+        // return res.send(attendanceReviews)
+        res.render('attendance/review2.html', {
+            attendanceReviews: attendanceReviews
+        });
     } catch (err) {
         next(err);
     }

@@ -1,0 +1,58 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">Attendance Corrections Review <em>({{attendanceReviews.length}})</em></h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                {# <a href="/attendance/schedule/create" class="btn btn-sm btn-outline-primary">Create Schedule</a> #}
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    
+    {% if attendanceReviews.length <= 0 %}
+        <p>None found.</p>
+    {% else %}
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <tr>
+                    <th>Name</th>
+                    <th class="text-center">Total Count (> 3 days)</th>
+                    <th></th>
+                </tr>
+                {% for a in attendanceReviews %}
+                <tr>
+                    <td><a href="/employee/{{a[0].employeeId}}/personal">{{a[0].lastName}}, {{a[0].firstName}}</a></td>
+                    <td class="text-center">{{a.length}}</td>
+                    <td>
+                        <table class="table table-sm text-center">
+                            <tr>
+                                <th>#</th>
+                                <th>Attendance Date</th>
+                                <th>Date Corrected</th>
+                                <th>Days Delayed</th>
+                            </tr>
+                            {% for review in a %}
+                                <tr>
+                                    <td>{{loop.index}}</td>
+                                    <td>{{review.timeB|format_date('ddd - MMM DD, YYYY')}}</td>
+                                    <td>{{review.timeA|format_date('ddd - MMM DD, YYYY')}}</td>
+                                    <td><a href="/attendance/review/{{review.reviewId}}">{{review.diff}}</a></td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

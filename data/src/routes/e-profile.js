@@ -536,10 +536,12 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
         // ORIG
         let orig = JSON.parse(JSON.stringify(attendance))
         delete orig._id
+        delete orig.createdAt
 
         // PATCH
         let patch = JSON.parse(JSON.stringify(attendance))
         delete patch._id
+        delete patch.createdAt
 
         patch.attendanceId = attendance._id.toString()
         patch.attachments = attachments

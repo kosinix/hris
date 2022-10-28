@@ -61,7 +61,7 @@ let schema = mongoose.Schema({
             createdAt: Date
         }
     ],
-}, { timestamps: { createdAt: true, updatedAt: false }, typeKey: '$type', versionKey: false })
+}, { timestamps: true, typeKey: '$type' })
 
 //// Instance methods
 

@@ -40,7 +40,7 @@ let schema = mongoose.Schema({
     logsheetNumber: Number,
     attachments: [],
     comment: String
-}, { timestamps: { createdAt: true, updatedAt: false }, typeKey: '$type', versionKey: false })
+}, { timestamps: true, typeKey: '$type' })
 
 //// Instance methods
 

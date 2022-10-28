@@ -20,7 +20,7 @@ let schema = mongoose.Schema({
         id: mongoose.Schema.Types.ObjectId,
         type: String, // 'scanner', 'userAccount', 'adminAccount'
     }
-}, { timestamps: { createdAt: true, updatedAt: false }, typeKey: '$type', versionKey: false })
+}, { timestamps: true, typeKey: '$type' })
 
 //// Instance methods
 

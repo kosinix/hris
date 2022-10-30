@@ -6,26 +6,27 @@
         ],
         data: {
             mode: 'create', // or edit
+            employmentId: '',
             attendanceId: '',
         },
         computed: {
             urlCorrection: function() {
                 if(this.attendanceId) {
-                    return '/e-profile/attendance/' + this.attendanceId + '/edit'
+                    return '/e-profile/attendance/' + this.attendanceId + '/apply'
                 }
                 return '/e-profile/attendance/create'
             },
             urlTravel: function() {
                 if(this.attendanceId) {
-                    return '/e-profile/attendance/' + this.attendanceId + '/edit/type?type=travel'
+                    return '/e-profile/attendance/' + this.attendanceId + '/travel'
                 }
-                return '/e-profile/attendance/create?type=travel'
+                return '/e-profile/dtr/'+ this.employmentId + '/travel'
             },
             urlWfh: function() {
                 if(this.attendanceId) {
-                    return '/e-profile/attendance/' + this.attendanceId + '/edit/type?type=wfh'
+                    return '/e-profile/attendance/' + this.attendanceId + '/wfh'
                 }
-                return '/e-profile/attendance/create?type=wfh'
+                return '/e-profile/dtr/'+ this.employmentId + '/wfh'
             },
             urlAnal: function() {
                 if(this.attendanceId) {

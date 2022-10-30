@@ -311,24 +311,48 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
         if (req.xhr) {
             return res.json(data)
         }
+        
+        
         // console.log(stats)
         // return res.send(days)
 
         if (/^\/e-profile\/dtr\/print/.test(req.path)) {
             return res.render('e-profile/dtr-print2.html', data)
         }
-        res.render('e-profile/dtr2.html', data)
+        res.render('e-profile/dtr3.html', data)
     } catch (err) {
         next(err);
     }
 });
 
-router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+// Apply for correction
+router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
+        // Get employee
+        if (!res.employee) {
+            throw new Error('Employee needed.')
+        }
         let employee = res.employee.toObject()
-        let employmentId = res.employmentId
-        let employment = res.employment
+
+        // Get attendance
         let attendanceId = lodash.get(req, 'params.attendanceId')
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
+            _id: attendanceId,
+            employeeId: employee._id,
+        }).lean()
+        if (!attendance) {
+            throw new Error('Attendance not found.')
+        }
+
+        // Employment
+        let employment = await req.app.locals.db.main.Employment.findOne({
+            _id: attendance.employmentId,
+            employeeId: employee._id,
+        }).lean()
+        if (!employment) {
+            throw new Error('Employment not found.')
+        }
+
 
         // Get pending
         let attendanceReview = await req.app.locals.db.main.AttendanceReview.findOne({
@@ -346,19 +370,6 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
             status: 'rejected'
         }).sort({ _id: -1 }).lean()
 
-
-        
-
-
-        // Get attendance
-        let attendance = await req.app.locals.db.main.Attendance.findOne({
-            _id: attendanceId,
-            employmentId: employmentId,
-        }).lean()
-
-        if (!attendance) {
-            throw new Error('Attendance not found.')
-        }
 
         // Get related logsheet images
         let momentDate = moment(attendance.createdAt)
@@ -385,12 +396,12 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
                 }
             },
             {
-                $match: { 
+                $match: {
                     "employments": {
                         $elemMatch: {
-                            "employmentType" : employment.employmentType, // COS or whatevs
-                        }  
-                    } 
+                            "employmentType": employment.employmentType, // COS or whatevs
+                        }
+                    }
                 }
             },
             {
@@ -405,11 +416,11 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
                     employments: 0,
                 }
             },
-            { 
-                $limit : 10 
+            {
+                $limit: 10
             },
-            { 
-                $sort : {
+            {
+                $sort: {
                     createdAt: -1
                 }
             },
@@ -471,7 +482,7 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
 
 
         // return res.send(attendance)
-        res.render('e-profile/dtr-edit.html', {
+        res.render('e-profile/attendance/apply.html', {
             flash: flash.get(req, 'employee'),
             attendance: attendance,
             employee: employee,
@@ -487,7 +498,7 @@ router.get('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlew
         next(err);
     }
 });
-router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.dataUrlToReqFiles(['photo']), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"] }), async (req, res, next) => {
+router.post('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.dataUrlToReqFiles(['photo']), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"] }), async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let employmentId = res.employmentId
@@ -519,11 +530,11 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
         let body = lodash.get(req, 'body')
         let photo2 = lodash.get(body, 'photo2') // Use existing already uploaded
 
-        if(photo2) {
+        if (photo2) {
             photo2 = path.basename(photo2)
 
             let pos = photo2.indexOf('-') // Get position of -. If absent, returns -1
-            if(pos > -1){
+            if (pos > -1) {
                 pos += 1 // Add 1 to start after -
             }
             photo2 = photo2.substring(pos) // Cut part after -. If no -, return whole string
@@ -536,10 +547,12 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
         // ORIG
         let orig = JSON.parse(JSON.stringify(attendance))
         delete orig._id
+        delete orig.createdAt
 
         // PATCH
         let patch = JSON.parse(JSON.stringify(attendance))
         delete patch._id
+        delete patch.createdAt
 
         patch.attendanceId = attendance._id.toString()
         patch.attachments = attachments
@@ -612,6 +625,142 @@ router.post('/e-profile/dtr/:employmentId/attendance/:attendanceId/edit', middle
         next(err);
     }
 });
+
+// Set attendance to wfh
+router.get('/e-profile/dtr/:employmentId/wfh', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let user = res.user.toObject()
+        // Get employee
+        if (!res.employee) {
+            throw new Error('Employee needed.')
+        }
+        let employee = res.employee.toObject()
+        let employment = res.employment
+        if (!employment.active) {
+            throw new Error('Cannot modify DTR as employment is no longer active.')
+        }
+
+        let source = {
+            id: user._id,
+            type: 'userAccount',
+        }
+        let message = `Attendance set to WFH. Please secure your accomplishment report and other supporting documents.`
+        await dtrHelper.logTravelAndWfh(req.app.locals.db, moment(), employee, employment, source, 'wfh')
+        flash.ok(req, 'employee', `${message}`)
+        return res.redirect(`/e-profile/dtr/${employment._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/e-profile/attendance/:attendanceId/wfh', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let user = res.user.toObject()
+        // Get employee
+        if (!res.employee) {
+            throw new Error('Employee needed.')
+        }
+        let employee = res.employee.toObject()
+
+        // Get attendance
+        let attendanceId = lodash.get(req, 'params.attendanceId')
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
+            _id: attendanceId,
+            employeeId: employee._id,
+        }).lean()
+        if (!attendance) {
+            throw new Error('Attendance not found.')
+        }
+
+        // Employment
+        let employment = await req.app.locals.db.main.Employment.findOne({
+            _id: attendance.employmentId,
+            employeeId: employee._id,
+        }).lean()
+        if (!employment) {
+            throw new Error('Employment not found.')
+        }
+        if (!employment.active) {
+            throw new Error('Cannot modify DTR as employment is no longer active.')
+        }
+        let source = {
+            id: user._id,
+            type: 'userAccount',
+        }
+        let message = `Attendance set to WFH. Please secure your accomplishment report and other supporting documents.`
+        await dtrHelper.logTravelAndWfh(req.app.locals.db, attendance.createdAt, employee, employment, source, 'wfh')
+        flash.ok(req, 'employee', `${message}`)
+        res.redirect(`/e-profile/dtr/${employment._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Set attendance to travel
+router.get('/e-profile/dtr/:employmentId/travel', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let user = res.user.toObject()
+        // Get employee
+        if (!res.employee) {
+            throw new Error('Employee needed.')
+        }
+        let employee = res.employee.toObject()
+        let employment = res.employment
+        if (!employment.active) {
+            throw new Error('Cannot modify DTR as employment is no longer active.')
+        }
+
+        let source = {
+            id: user._id,
+            type: 'userAccount',
+        }
+        let message = `Attendance set to Travel. Please secure your appearance and other supporting documents.`
+        await dtrHelper.logTravelAndWfh(req.app.locals.db, moment(), employee, employment, source, 'travel')
+        flash.ok(req, 'employee', `${message}`)
+        return res.redirect(`/e-profile/dtr/${employment._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/e-profile/attendance/:attendanceId/travel', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let user = res.user
+        let employee = res.employee
+
+        // Get attendance
+        let attendanceId = lodash.get(req, 'params.attendanceId')
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
+            _id: attendanceId,
+            employeeId: employee._id,
+        }).lean()
+        if (!attendance) {
+            throw new Error('Attendance not found.')
+        }
+
+        // Employment
+        let employment = await req.app.locals.db.main.Employment.findOne({
+            _id: attendance.employmentId,
+            employeeId: employee._id,
+        }).lean()
+        if (!employment) {
+            throw new Error('Employment not found.')
+        }
+        if (!employment.active) {
+            throw new Error('Cannot modify DTR as employment is no longer active.')
+        }
+
+        let source = {
+            id: user._id,
+            type: 'userAccount',
+        }
+        let message = `Attendance set to Travel. Please secure your appearance and other supporting documents.`
+        await dtrHelper.logTravelAndWfh(req.app.locals.db, attendance.createdAt, employee, employment, source, 'travel')
+        flash.ok(req, 'employee', `${message}`)
+        res.redirect(`/e-profile/dtr/${employment._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.patch('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -906,10 +1055,10 @@ router.get('/e-profile/dtr/:employmentId/online', middlewares.guardRoute(['use_e
             }
         })
 
-        maps = lodash.keyBy(maps, (m)=>{
+        maps = lodash.keyBy(maps, (m) => {
             return m.name.toLowerCase().replace(' campus', '')
         })
-        
+
         res.render('e-profile/map-1.html', {
             employee: employee,
             employment: employment,
@@ -1107,86 +1256,6 @@ router.get('/e-profile/travel/:employmentId', middlewares.guardRoute(['use_emplo
         next(err);
     }
 });
-
-router.get('/e-profile/dtr-set/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let employment = res.employment
-        let attendanceType = lodash.get(req, 'query.type')
-
-        if (!employment.active) {
-            throw new Error('Cannot modify DTR as employment is no longer active.')
-        }
-        if (!['wfh', 'travel', 'leave', 'pass', 'holiday'].includes(attendanceType)) {
-            throw new Error('Invalid attendance type.')
-        }
-        // Today attendance
-        let attendance = await req.app.locals.db.main.Attendance.findOne({
-            employeeId: employee._id,
-            employmentId: employment._id,
-            createdAt: {
-                $gte: moment().startOf('day').toDate(),
-                $lt: moment().endOf('day').toDate(),
-            }
-        })
-
-        if (attendanceType === 'holiday') {
-            if (employment.employmentType != 'permanent') {
-                flash.error(req, 'employee', `Only permanent employees can tap Holiday.`)
-                return res.redirect(`/e-profile/dtr/${employment._id}`)
-            }
-        }
-
-        if (attendance && attendanceType != 'travel') {
-            flash.error(req, 'employee', `You already have an attendance for today.`)
-            return res.redirect(`/e-profile/dtr/${employment._id}`)
-        }
-        let message = ''
-        if (attendance) {
-            if ('travel' === attendanceType && attendance.type === 'normal') {
-                attendance.type = 'travel'
-                attendance.logs.push({
-                    scannerId: null,
-                    dateTime: moment().toDate(),
-                    type: 'travel'
-                })
-                await attendance.save()
-                message = 'Attendance changed to travel.'
-            }
-        } else {
-            let logs = []
-
-            if ('wfh' === attendanceType) {
-                message = `Attendance set to WFH. Please secure your accomplishment report and other supporting documents.`
-            } else if ('leave' === attendanceType) {
-                message = `Attendance set to Leave. Please secure your supporting documents.`
-            } else if ('pass' === attendanceType) {
-                message = `Attendance set to Pass Slip. Please secure your supporting documents such as your Pass Slip.`
-            } else if ('holiday' === attendanceType) {
-                message = `Attendance set to Holiday.`
-            } else if ('travel' === attendanceType) {
-                logs = [{
-                    scannerId: null,
-                    dateTime: moment().toDate(),
-                    type: 'travel'
-                }]
-                message = `Attendance set to Travel. Please secure your appearance and other supporting documents.`
-            }
-
-            await req.app.locals.db.main.Attendance.create({
-                employeeId: employee._id,
-                employmentId: employment._id,
-                type: attendanceType,
-                logs: logs
-            })
-        }
-        flash.ok(req, 'employee', `${message}`)
-        return res.redirect(`/e-profile/dtr/${employment._id}`)
-    } catch (err) {
-        next(err);
-    }
-});
-
 
 router.get('/e-profile/payroll', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
@@ -1608,7 +1677,7 @@ router.get('/e-profile/photo', middlewares.guardRoute(['use_employee_profile']),
     try {
         let employee = res.employee
 
-        if(employee.profilePhoto){
+        if (employee.profilePhoto) {
             throw new Error('Profile photo temporarily locked.')
         }
         res.render('e-profile/photo.html', {
@@ -1621,7 +1690,7 @@ router.get('/e-profile/photo', middlewares.guardRoute(['use_employee_profile']),
 router.post('/e-profile/photo', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, fileUpload(), middlewares.handleExpressUploadMagic, async (req, res, next) => {
     try {
         let employee = res.employee
-        if(employee.profilePhoto){
+        if (employee.profilePhoto) {
             throw new Error('Profile photo temporarily locked.')
         }
 
@@ -1736,7 +1805,7 @@ router.post('/e-profile/webcam', middlewares.guardRoute(['use_employee_profile']
 
 
 // Attendance
-router.get('/e-profile/attendance/:attendanceId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeAttendance, async (req, res, next) => {
+router.get('/e-profile/attendance/:attendanceId/analyze', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeAttendance, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let attendance = res.attendance.toObject()

@@ -150,34 +150,6 @@
                
             </div>
         </div>
-  
-        {% if employment.active %}
-        <div class="justify-content-center mb-4 d-flex">
-            <div class="btn-toolbar mb-2 mb-md-0">
-                <div class="btn-group">
-                    {# <a onclick="return confirm('Do you want to set your attendance today to \'WFH\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=wfh" data-toggle="tooltip" data-placement="top" title="Work From Home" class="btn btn-sm btn-primary">
-                        <span>WFH</span>
-                    </a>
-                    <a onclick="return confirm('Do you want to set your attendance today to \'Travel\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=travel" data-toggle="tooltip" data-placement="top" title="On Travel" class="btn btn-sm btn-primary">
-                        <span>Travel </span>
-                    </a> #}
-                    
-                    {# <a onclick="return confirm('Do you want to set your attendance today to \'Pass Slip\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=pass" data-toggle="tooltip" data-placement="top" title="Pass Slip" class="btn btn-sm btn-primary">
-                        <span>Pass Slip</span>
-                    </a> #}
-                    {% if employment.employmentType === 'permanent' %}
-                    <a onclick="return confirm('Do you want to set your attendance today to \'Leave\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=leave" data-toggle="tooltip" data-placement="top" title="On Leave" class="btn btn-sm btn-primary">
-                        <span>On Leave </span>
-                    </a>
-                    <a onclick="return confirm('Do you want to set your attendance today to \'Holiday\'?')" href="/e-profile/dtr-set/{{employment._id}}?type=holiday" data-toggle="tooltip" data-placement="top" title="Holiday" class="btn btn-sm btn-primary">
-                        <span>Holiday</span>
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
         <div class="table-responsive">
             <table class="table table-dtr bg-white">
                 <tr>
@@ -200,10 +172,10 @@
                 <tr v-for="day in days" v-bind:class="dayCssClasses(day)">
                     <td class="text-center">
                         <template v-if="day.attendance">
-                            <button v-on:click="showModalSelect('edit', day.attendance._id)">${day.day}</button>
+                            <button v-on:click="showModalSelect('edit', '{{employment._id}}', day.attendance._id)">${day.day}</button>
                         </template>
                         <template v-else-if="day.isNow">
-                            <button v-on:click="showModalSelect('create', '')">${day.day}</button>
+                            <button v-on:click="showModalSelect('create', '{{employment._id}}', '')">${day.day}</button>
                         </template>
                         <template v-else>
                             <span class="text-dark">${day.day}</span>
@@ -212,9 +184,9 @@
                     <td :class="weekDayCssClasses(day)">${day.weekDay}</td>
                     
                     <template v-if="_.get(day, 'attendance.type') === 'normal'">
-                        <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[0].dateTime'))}</td>
+                        <td class="text-center">${day.display.inAM}</td>
                         <td class="text-center">
-                            ${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}
+                            ${day.display.outAM}
 
                             <div v-if="isTimeOutShown(day)">
                                 <a v-on:click="onlineLog" href="/e-profile/dtr/{{employment._id}}/online" class="btn btn-sm btn-light">OUT</a>
@@ -222,23 +194,23 @@
                             </div>
                         </td>
                         <td class="text-center">
-                            ${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}
+                            ${day.display.inPM}
                             <div v-if="isTimeInShown(day)">
                                 <a v-on:click="onlineLog" href="/e-profile/dtr/{{employment._id}}/online" class="btn btn-sm btn-light">IN</a>
                                 {# <button v-on:click="logTime(1)" class="btn-sm" style="font-size:10px">IN</button> #}
                             </div>
                         </td>
-                        <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>
+                        <td class="text-center">${day.display.outPM}</td>
                     </template>
                     <template v-else-if="_.get(day, 'attendance.type') === 'travel'">
-                        <template v-if="_.get(day, 'attendance.logs.length') === 4 && _.get(day, 'attendance.logs[0].type') === 'travel'">
+                        <template v-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[0].type') === 'travel'">
                             <td class="text-center" colspan="2">
                                 Travel
                             </td>
                             <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}</td>
                             <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>
                         </template>
-                        <template v-else-if="_.get(day, 'attendance.logs.length') === 4 && _.get(day, 'attendance.logs[2].type') === 'travel'">
+                        <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[2].type') === 'travel'">
                             
                             <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[0].dateTime'))}</td>
                             <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}</td>
@@ -249,6 +221,29 @@
                         <template v-else>
                             <td class="text-center" colspan="4">
                                 Travel
+                            </td>
+                        </template>
+                        
+                    </template>
+                    <template v-else-if="_.get(day, 'attendance.type') === 'wfh'">
+                        <template v-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[0].type') === 'wfh'">
+                            <td class="text-center" colspan="2">
+                                WFH
+                            </td>
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}</td>
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>
+                        </template>
+                        <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[2].type') === 'wfh'">
+                            
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[0].dateTime'))}</td>
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}</td>
+                            <td class="text-center" colspan="2">
+                                WFH
+                            </td>
+                        </template>
+                        <template v-else>
+                            <td class="text-center" colspan="4">
+                                WFH
                             </td>
                         </template>
                         
@@ -489,9 +484,10 @@
             var me = this;
         },
         methods: {
-            showModalSelect: function(mode, attendanceId) {
-                vModalSelectAction.attendanceId = attendanceId
+            showModalSelect: function(mode, employmentId, attendanceId) {
                 vModalSelectAction.mode = mode
+                vModalSelectAction.employmentId = employmentId
+                vModalSelectAction.attendanceId = attendanceId
                 jQuery('#modal-select-action').modal('show')
             },
             precisionRound: function(number, precision) {

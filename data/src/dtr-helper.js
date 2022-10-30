@@ -865,7 +865,11 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
         }
 
         if (attendance.logs.length === 1) {
-
+            let endingLogMinutes = timeToM(moment().format('YYYY-MM-DD[T]HH:mm:ss.SSS[Z]'), 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]')
+            if(endingLogMinutes > lastShift.end){
+                throw new Error(`Could not set attendance. Your previous log is more than the current time.`)
+            }
+            
             // We need 3 more logs
             attendance.logs.push({
                 _id: db.mongoose.Types.ObjectId(),

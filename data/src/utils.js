@@ -66,5 +66,38 @@ module.exports = {
         position = position.replace(/(AutoCad)|(Auto CAD)/, 'AutoCAD')
         position = position.replace(/(\/[ \.\,\w]+)/, '') // remove designation (after slash "/")
         return position
+    },
+    /**
+     * Filter object
+     * Source: https://stackoverflow.com/questions/38750705/filter-object-properties-by-key-in-es6
+     * @param {*} raw 
+     * @param {*} allowed 
+     * @returns 
+     */
+     filter: (raw, allowed = []) => {
+        let keys = Object.keys(raw)
+        if (allowed.length > 0) {
+            keys = keys.filter(key => allowed.includes(key))
+        }
+        return keys.reduce((obj, key) => {
+            return {
+                ...obj,
+                [key]: raw[key]
+            };
+        }, {});
+    },
+    safeMerge: (target, source, allowed = []) => {
+        let srcKeys = Object.keys(source)
+        if (allowed.length > 0) {
+            srcKeys = srcKeys.filter(key => allowed.includes(key))
+        }
+        let filtered = srcKeys.reduce((obj, key) => {
+            return {
+                ...obj,
+                [key]: source[key]
+            };
+        }, {});
+
+        return Object.assign(target, filtered)
     }
 }

@@ -1925,6 +1925,11 @@ let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
             newLog.source.id = employee.userId
             newLog.source.type = 'userAccount'
         }
+        if ('leave' === log.type) {
+            newLog.type = 'leave'
+            newLog.source.id = employee.userId
+            newLog.source.type = 'userAccount'
+        }
         if (lodash.has(log, 'extra.id')) {
             newLog.source.id = log.extra.id
         }

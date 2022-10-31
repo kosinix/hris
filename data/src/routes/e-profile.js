@@ -761,6 +761,72 @@ router.get('/e-profile/attendance/:attendanceId/travel', middlewares.guardRoute(
     }
 });
 
+// Set attendance to leave
+router.get('/e-profile/dtr/:employmentId/leave', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
+    try {
+        let user = res.user.toObject()
+        // Get employee
+        if (!res.employee) {
+            throw new Error('Employee needed.')
+        }
+        let employee = res.employee.toObject()
+        let employment = res.employment
+        if (!employment.active) {
+            throw new Error('Cannot modify DTR as employment is no longer active.')
+        }
+
+        let source = {
+            id: user._id,
+            type: 'userAccount',
+        }
+        let message = `Attendance set to Leave. Please secure your supporting documents.`
+        await dtrHelper.logTravelAndWfh(req.app.locals.db, moment(), employee, employment, source, 'leave')
+        flash.ok(req, 'employee', `${message}`)
+        return res.redirect(`/e-profile/dtr/${employment._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/e-profile/attendance/:attendanceId/leave', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let user = res.user
+        let employee = res.employee
+
+        // Get attendance
+        let attendanceId = lodash.get(req, 'params.attendanceId')
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
+            _id: attendanceId,
+            employeeId: employee._id,
+        }).lean()
+        if (!attendance) {
+            throw new Error('Attendance not found.')
+        }
+
+        // Employment
+        let employment = await req.app.locals.db.main.Employment.findOne({
+            _id: attendance.employmentId,
+            employeeId: employee._id,
+        }).lean()
+        if (!employment) {
+            throw new Error('Employment not found.')
+        }
+        if (!employment.active) {
+            throw new Error('Cannot modify DTR as employment is no longer active.')
+        }
+
+        let source = {
+            id: user._id,
+            type: 'userAccount',
+        }
+        let message = `Attendance set to Leave. Please secure your supporting documents.`
+        await dtrHelper.logTravelAndWfh(req.app.locals.db, attendance.createdAt, employee, employment, source, 'leave')
+        flash.ok(req, 'employee', `${message}`)
+        res.redirect(`/e-profile/dtr/${employment._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.patch('/e-profile/dtr/:employmentId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()

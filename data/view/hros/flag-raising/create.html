@@ -204,6 +204,7 @@
             mapLocationErrorMode: 0,
             mapLocationResultName: '',
             locationMessage: '',
+            campus: '',
 
             webcamPhotoSnapper: null,
             webcamLoaded: false,
@@ -306,6 +307,7 @@
                     webcamPhoto: me.webcamPhoto,
                     lat: _.get(me, 'latLon.0'),
                     lon: _.get(me, 'latLon.1'),
+                    campus: _.get(me, 'campus'),
                 };
 
                 axios.post('/hros/flag/log', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
@@ -365,6 +367,9 @@
                             lon = 122.65108  
                             */
 
+                            lat = 10.69994
+                            lon = 122.65108  
+
                             let body = {
                                 coordinates: [lon, lat],
                             }
@@ -389,6 +394,7 @@
                                 me.mapLocationResultName = data
                                 me.latLon = [lat, lon]
                                 me.locationMessage = 'Your are inside ' + data + '.'
+                                me.campus = ('' + data).replace(' Campus', '')
 
                             }).catch(function (error) {
                                 if (error.response) {

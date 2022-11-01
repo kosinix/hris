@@ -6,59 +6,85 @@
         {% include 'parts/flash.html' %}
         <div class="row">
             <div class="col-md-2 text-center mb-3">
-                <svg style="max-width: 150px;" width="100%" height="auto" viewBox="-28 -45 180 90" fill="#fcd116">	<path fill="#0038a8" d="m-28-45h180V0L0 44z"/>	<path fill="#ce1126" d="m0 0h152v45H-28z"/>	<path fill="#fff" d="m49.942 0L-28 45v-90z"/>	<circle r="9"/>	<g id="c">		<g id="b">			<path id="a" d="m0 0-3.164-15.909.945-.946zl-1.169-17.831L0-19l1.169 1.169zl2.219-16.855.945.946z"/>			<use transform="scale(-1)" xlink:href="#a"/>		</g>		<use transform="rotate(90)" xlink:href="#b"/>	</g>	<use transform="rotate(45)" xlink:href="#c"/>	<path id="s" d="m40.942 0-3.382 1.176L37.487 4.755l-2.163-2.853-3.427 1.037L33.942 0l-2.045-2.939 3.427 1.037 2.163-2.853L37.56-1.176z"/>	<use transform="rotate(120,-2.019,0)" xlink:href="#s"/>	<use transform="rotate(240,-2.019,0)" xlink:href="#s"/></svg>
+                <svg style="max-width: 150px;" viewBox="-28 -45 180 90" fill="#fcd116">	<path fill="#0038a8" d="m-28-45h180V0L0 44z"/>	<path fill="#ce1126" d="m0 0h152v45H-28z"/>	<path fill="#fff" d="m49.942 0L-28 45v-90z"/>	<circle r="9"/>	<g id="c">		<g id="b">			<path id="a" d="m0 0-3.164-15.909.945-.946zl-1.169-17.831L0-19l1.169 1.169zl2.219-16.855.945.946z"/>			<use transform="scale(-1)" xlink:href="#a"/>		</g>		<use transform="rotate(90)" xlink:href="#b"/>	</g>	<use transform="rotate(45)" xlink:href="#c"/>	<path id="s" d="m40.942 0-3.382 1.176L37.487 4.755l-2.163-2.853-3.427 1.037L33.942 0l-2.045-2.939 3.427 1.037 2.163-2.853L37.56-1.176z"/>	<use transform="rotate(120,-2.019,0)" xlink:href="#s"/>	<use transform="rotate(240,-2.019,0)" xlink:href="#s"/></svg>
             </div>
             <div class="col-md-10 text-center text-md-left mb-3">
-                <h1 class="h5 mb-2">Flag Raising Ceremony Electronic Attendance Sheet</h1>
+                <h1 class="h5 mb-2">Flag Raising Attendance</h1>
                 <p class="h6">{{mCalendar|format_date('dddd - MMM DD, YYYY')}}</p>
             </div>
         </div>
-        <div class="text-center">
-            {% if alreadyLogged %}
-                <button type="btn" disabled class="btn btn-lg btn-primary m-1">Log My Attendance</button>
-            {% else %}
-                <a href="/hros/flag/create" class="btn btn-lg btn-primary">Log My Attendance</a>
-            {% endif %}
-            <a href="https://www.gsu.edu.ph/hymn/" class="btn btn-lg btn-success">GSU Hymn Lyrics</a>
-        </div>
-        {% if attendances.length > 0 %}
-            <div class="table-responsive mt-4">
-                <table class="table table-sm table-striped">
-                    <tr class="text-center">
-                        <th width="20%" class="align-middle text-center">No.</th>
-                        <th width="30%" class="align-middle text-left">Name</th>
-                        <th width="20%" class="align-middle">Sex</th>
-                        <th width="30%" class="align-middle">Time</th>
-                    </tr>
-                    <tr v-for="attendance, i in attendances">
-                        <td class="text-center">${i+1}</td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="mr-2">
-                                    <a :href="attendance.viewPhoto" style="width:20px; height:20px; border-radius: 100%; display:block; overflow: hidden; border: 2px solid teal"><img :src="attendance.photoUrl" alt="Photo"></a>
-                                </div>
-                                <div class="privy-name">${attendance.employee.firstName} ${attendance.employee.lastName} ${attendance.employee.suffix}</div>
-                            </div>
-                        </td>
-                        <td class="text-center">${attendance.employee.gender == 'M' ? 'M' : 'F'}</td>
-                        <td class="text-center">
-                            ${(attendance.dateTime)}
-                        </td>
-                    </tr>
-                </table>
+        <div class="btn-toolbar justify-content-center">
+            <div class="btn-group">
+                {#  #}
+                <button v-if="alreadyLogged" type="button" disabled class="btn btn-primary" style="cursor: not-allowed; opacity:0.3" title="You have already logged.">
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
+                    </svg>
+                    Log My Attendance
+                </button>
+                <a v-else href="/hros/flag/create" class="btn btn-primary">
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
+                    </svg>
+                    Log My Attendance
+                </a>
+                {#  #}
+                <a target="_blank" href="https://www.gsu.edu.ph/hymn/" class="btn btn-success align-items-center">
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12 3V13.55C11.41 13.21 10.73 13 10 13C7.79 13 6 14.79 6 17S7.79 21 10 21 14 19.21 14 17V7H18V3H12Z" />
+                    </svg>
+                    GSU Hymn Lyrics
+                </a>
             </div>
-        {% endif %}
-        {# <div>
-            <a class="btn btn-sm btn-light" href="/attendance/daily.xlsx?{{query|query_string}}">Download</a>
-        </div> #}
+        </div>
+        <div v-if="attendances.length > 0" class="table-responsive mt-4">
+            <table class="table table-flag-attendance table-sm table-striped">
+                <tr class="text-center">
+                    <th width="10%" class="align-middle text-center">No.</th>
+                    <th width="40%" class="align-middle text-left">Name</th>
+                    <th width="20%" class="align-middle">Time</th>
+                    <th width="10%" class="align-middle">Sex</th>
+                    <th width="10%" class="align-middle">Campus</th>
+                    <th width="10%" class="align-middle">Log By</th>
+                </tr>
+                <tr v-for="attendance, i in attendances">
+                    <td class="text-center">${i+1}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="mr-2">
+                                <a v-if="attendance.source.photo" target="_blank" :href="viewPhoto(attendance.source.photo)" style="width:20px; height:20px; border-radius: 100%; display:block; overflow: hidden; border: 2px solid teal">
+                                    <img :src="photoUrl(attendance.source.photo)" alt="Photo">
+                                </a>
+                            </div>
+                            <div class="privy-name">
+                                <u>${attendance.employee.firstName}</u> 
+                                <u>${attendance.employee.lastName}</u> 
+                                <u>${attendance.employee.suffix}</u> 
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        ${(attendance.logTime)}
+                    </td>
+                    <td class="text-center">${attendance.employee.gender == 'M' ? 'M' : 'F'}</td>
+                    <td class="text-center">
+                        ${(attendance.source.campus)}
+                    </td>
+                    <td class="text-center">
+                        ${friendlyType(attendance.source.type, attendance.source.id)}
+                    </td>
+                </tr>
+            </table>
+        </div>
     </div>
+    
 </div>
 {% endblock %}
 {% block scripts %}
 {{ super() }}
 <script src="{{app.url}}/js/socket.io.min.js"></script>
 <script>
-    var socket = io("{{serverUrl}}/flag-raising", {
+    let socket = io("{{serverUrl}}/flag-raising", {
         query: {
         }
     });
@@ -67,27 +93,79 @@
         delimiters: ["${", "}"],
         mixins: [],
         data: {
-            attendances: {{attendances|default([], true)|stringify|safe}}
+            alreadyLogged: {{alreadyLogged|default(false, true)}},
+            s3Prefix: '{{s3Prefix}}',
+            user: {{user|default({}, true)|stringify|safe}},
+            attendances: {{attendances|default([], true)|stringify|safe}},
+            counter: 2
         },
         methods: {
-            
+            viewPhoto: function(photo){
+                if(!photo){
+                    return ''
+                }
+                return `/file-viewer${this.s3Prefix}/${photo}`
+            },
+            photoUrl: function(photo, size = 'tiny'){
+                if(!photo){
+                    return ''
+                }
+                return `/file-getter${this.s3Prefix}/${size}-${photo}`
+            },
+            friendlyType: function(sourceType, sourceId){
+                if(sourceType == 'userAccount'){
+                    if('{{user._id}}' === sourceId){
+                        return 'You'
+                    }
+                    return 'Employee'
+                } else if (sourceType == 'adminAccount'){
+                    return 'HR Admin'
+                }
+            },
         },
         mounted: function(){
-            // client-side
+            {# 
             socket.on("connect", () => {
-                console.log('connected ', socket.id); // x8WIv7-mJelg7on_ALbx
             });
 
             socket.on("disconnect", () => {
-                console.log('disconnected ', socket.id); // undefined
             });
-            
+             #}
+
             socket.on("connect_error", (err) => {
                 console.error(err.message);
             });
 
-            socket.on("added", (args) => {
-                console.log(args)
+            socket.on("added", (attendance) => {
+                let me = this;
+                if(attendance){
+                    if(attendance.source.photo){
+                        jQuery(document).find('#vApp').append('<div class="animated-flag-profile fx-pops'+me.counter+'"><img src="' + me.photoUrl(attendance.source.photo, 'medium') + '" alt=""></div>')
+                        me.counter += 2
+                        if(me.counter > 8){
+                            me.counter = 2
+                        }
+                    }
+                    if(attendance.userId === me.user._id){
+                        me.alreadyLogged = true
+                    }
+                    this.attendances.push(attendance)
+                }
+            });
+
+            socket.on("deleted", (deleted) => {
+                let me = this;
+                if(deleted){
+                   
+                    let index = me.attendances.findIndex(function(a){
+                        return a._id === deleted._id
+                    })
+                    console.log(me.user._id, deleted.userId)
+                    if(me.user._id === deleted.userId){
+                        me.alreadyLogged = false
+                    }
+                    Vue.delete(me.attendances, index)
+                }
             });
         }
     })

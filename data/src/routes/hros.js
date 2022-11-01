@@ -472,47 +472,63 @@ router.get('/hros/flag/all', middlewares.guardRoute(['use_employee_profile']), m
             }
         })
 
-        //console.log(aggr)
-        let attendances = await req.app.locals.db.main.AttendanceFlag.aggregate(aggr)
-        //return res.send(attendances)
-
-        if (req.originalUrl.includes('.xlsx')) {
-            let workbook = await excelGen.templateAttendanceDaily(mCalendar, attendances)
-
-            let buffer = await workbook.xlsx.writeBuffer();
-            res.set('Content-Disposition', `attachment; filename="attendance.xlsx"`)
-            res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            return res.send(buffer)
-        }
-
-        // Today attendance
-        let alreadyLogged = false
-        let attendance = await req.app.locals.db.main.AttendanceFlag.findOne({
-            employeeId: employee._id,
-            createdAt: {
-                $gte: mCalendar.clone().startOf('day').toDate(),
-                $lt: mCalendar.clone().endOf('day').toDate(),
+        // Hide not needed for lighter payload
+        aggr.push({
+            $project: {
+                employee: {
+                    addresses: 0,
+                    personal: 0,
+                    employments: 0,
+                    mobileNumber: 0,
+                    phoneNumber: 0,
+                    documents: 0,
+                    createdAt: 0,
+                    updatedAt: 0,
+                    uuid: 0,
+                    uid: 0,
+                    group: 0,
+                    __v: 0,
+                    profilePhoto: 0,
+                    acceptedDataPrivacy: 0,
+                    birthDate: 0,
+                    civilStatus: 0,
+                    addressPermanent: 0,
+                    addressPresent: 0,
+                    email: 0,
+                    history: 0,
+                    speechSynthesisName: 0,
+                    address: 0
+                }
             }
-        }).lean()
-        if (attendance) {
-            alreadyLogged = true
-        }
-
-        attendances = attendances.map((a)=>{
-            a.dateTime = moment(a.dateTime).format('hh:mm A')
-            
-            a.viewPhoto = `/file-viewer/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/${a.extra.photo}`
-            a.photoUrl = `/file-getter/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/${'tiny'}-${a.extra.photo}`
-            return a
         })
+
+        //console.log(aggr)
+        let alreadyLogged = false
+
+        let attendances = await req.app.locals.db.main.AttendanceFlag.aggregate(aggr)
+        attendances = attendances.map(attendance => {
+            if (!attendance.source.photo) {
+                attendance.source.photo = lodash.get(attendance, 'extra.photo', '')
+            }
+            attendance.logTime = moment(attendance.dateTime).format('hh:mm A')
+
+            if (lodash.invoke(employee, '_id.toString') === lodash.invoke(attendance, 'employeeId.toString')) {
+                alreadyLogged = true
+            }
+            attendance = lodash.pickBy(attendance, function (a, key) {
+                return ['_id', 'employeeId', 'logTime', 'source', 'employee'].includes(key)
+            });
+            return attendance
+        })
+        // return res.send(attendances)
 
         res.render('hros/flag-raising/all.html', {
             flash: flash.get(req, 'attendance'),
             mCalendar: mCalendar,
             attendances: attendances,
             alreadyLogged: alreadyLogged,
-            isMonday: mCalendar.format('ddd') === 'Mon',
-            serverUrl: CONFIG.app.url
+            s3Prefix: `/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}`,
+            serverUrl: CONFIG.app.url,
         });
     } catch (err) {
         next(err);
@@ -568,6 +584,7 @@ router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), 
         let lat = body.lat
         let lon = body.lon
         let webcamPhoto = body.webcamPhoto
+        let campus = body.campus
 
         // Photo
         let saveList = null
@@ -590,21 +607,106 @@ router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), 
             // console.log(uploadList, saveList)
         }
 
+        let momentDate = moment()
+
         // Log
-        attendance = await req.app.locals.db.main.AttendanceFlag.create({
+        let attendance = await req.app.locals.db.main.AttendanceFlag.create({
             employeeId: employee._id,
-            dateTime: momentNow.toDate(),
-            type: 'online',
-            extra: {
-                lat: lat,
-                lon: lon,
-                photo: lodash.get(saveList, 'photos[0]', ''),
-            },
+            dateTime: momentDate.toDate(),
+            type: 'normal',
             source: {
                 id: res.user._id,
                 type: 'userAccount', // Online user account
+                lat: lat,
+                lon: lon,
+                campus: campus,
+                photo: lodash.get(saveList, 'photos[0]', ''),
             }
         })
+
+        // 
+        let query = {
+            createdAt: {
+                $gte: momentDate.clone().startOf('day').toDate(),
+                $lte: momentDate.clone().endOf('day').toDate(),
+            }
+        }
+
+        let aggr = []
+        aggr.push({ $match: query })
+        aggr.push({
+            $lookup: {
+                from: "employees",
+                localField: "employeeId",
+                foreignField: "_id",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                },
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+            }
+        })
+
+        // Hide not needed for lighter payload
+        aggr.push({
+            $project: {
+                employee: {
+                    addresses: 0,
+                    personal: 0,
+                    employments: 0,
+                    mobileNumber: 0,
+                    phoneNumber: 0,
+                    documents: 0,
+                    createdAt: 0,
+                    updatedAt: 0,
+                    uuid: 0,
+                    uid: 0,
+                    group: 0,
+                    __v: 0,
+                    profilePhoto: 0,
+                    acceptedDataPrivacy: 0,
+                    birthDate: 0,
+                    civilStatus: 0,
+                    addressPermanent: 0,
+                    addressPresent: 0,
+                    email: 0,
+                    history: 0,
+                    speechSynthesisName: 0,
+                    address: 0
+                }
+            }
+        })
+
+        aggr.push({
+            $sort: { createdAt: 1 }
+        })
+
+        //console.log(aggr)
+        let attendances = await req.app.locals.db.main.AttendanceFlag.aggregate(aggr)
+        attendances = attendances.map(attendance => {
+            if (!attendance.source.photo) {
+                attendance.source.photo = lodash.get(attendance, 'extra.photo', '')
+            }
+            attendance.logTime = moment(attendance.dateTime).format('hh:mm A')
+
+            attendance = lodash.pickBy(attendance, function (a, key) {
+                return ['_id', 'employeeId', 'logTime', 'source', 'employee'].includes(key)
+            });
+            return attendance
+        })
+        //return res.send(attendances)
+
+        req.ioFlagRaising.emit('added', attendances.pop())
 
         flash.ok(req, 'attendance', 'Flag raising attendance saved.')
         res.send(attendance)

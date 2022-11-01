@@ -25,6 +25,7 @@
     //// Server and socket.io
     const httpServer = http.createServer(app)
     const io = new Server(httpServer, CONFIG.socketio)
+    const ioFlagRaising = io.of("/flag-raising")
 
 
     //// Setup view
@@ -49,6 +50,7 @@
         app.locals.app.description = CONFIG.description;
         app.locals.CONFIG = lodash.cloneDeep(CONFIG) // Config
         req.io = io
+        req.ioFlagRaising = ioFlagRaising
         next();
     });
 
@@ -127,25 +129,23 @@
         }
     });
 
-    // Socker IO middlewares and handlers
+    // Socket IO middlewares and handlers
     let scanners = [] // List of scanner IDs
     io.use(async (socket, next) => {
         try {
             let scannerId = lodash.get(socket, 'handshake.query.scanner')
-            if (!scannerId) {
-                return next(new Error("Missing scanner details."));
-            }
+            if (scannerId) {
+                let scanner = await app.locals.db.main.Scanner.findById(scannerId)
+                if (!scanner) {
+                    return next(new Error("Scanner not found."));
+                }
 
-            let scanner = await app.locals.db.main.Scanner.findById(scannerId)
-            if (!scanner) {
-                return next(new Error("Scanner not found."));
-            }
+                if (scanners.includes(scannerId)) {
+                    return next(new Error("Duplicate scanner."));
+                }
 
-            if (scanners.includes(scannerId)) {
-                return next(new Error("Duplicate scanner."));
+                socket.request.scanner = scanner
             }
-
-            socket.request.scanner = scanner
             next()
         } catch (err) {
             next(err)
@@ -159,15 +159,13 @@
         // console.log(`A scanner connected`, scanner, 'with socket ID', socket.id);
         scanners.push(scannerId)
 
-
-
         scanner.online = true
         scanner.save().then(r => {
             // console.log('Saved', r)
             app.locals.db.main.ScannerPing.create({
                 scannerId: scannerId,
                 status: 1
-            }).then(r2 => { 
+            }).then(r2 => {
                 // console.log('Online', r.name)
             }).catch(err2 => {
                 console.error(err2)
@@ -184,7 +182,7 @@
                 app.locals.db.main.ScannerPing.create({
                     scannerId: scannerId,
                     status: 0
-                }).then(r2 => { 
+                }).then(r2 => {
                     // console.log('Offline', r.name)
                 }).catch(err2 => {
                     console.error(err2)
@@ -198,6 +196,14 @@
             })
         });
     });
+
+    // Flag raising namespaced websocket connection
+    ioFlagRaising.on('connection', function (socket) {
+        // console.log(socket.id)
+    })
+    ioFlagRaising.on('disconnect', function (socket) {
+        // console.log(socket.id)
+    })
 
     //// Routes
     app.use(routes);

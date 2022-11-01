@@ -1325,6 +1325,64 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     opacity: 1;
 }
 
+.animated-flag-profile {
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    margin-left: -50px;
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+    border-radius: 100%;
+    z-index: 999;
+}
+.animated-flag-profile img {
+    max-width: 100%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+}
+
+.fx-pops2 {
+    display: block;
+    animation: fxPops2 5s ease-in 1 forwards;
+    animation-delay: 2s;
+}
+.fx-pops4 {
+    display: block;
+    animation: fxPops4 5s ease-in 1 forwards;
+    animation-delay: 2s;
+}
+.fx-pops6 {
+    display: block;
+    animation: fxPops6 5s ease-in 1 forwards;
+    animation-delay: 2s;
+}
+.fx-pops8 {
+    display: block;
+    animation: fxPops8 5s ease-in 1 forwards;
+    animation-delay: 2s;
+}
+
+
+@keyframes fxPops2 {
+    0% { transform: translateY(1px); }
+    100% { transform: translate(0, -1000px); opacity: 0; }
+}
+@keyframes fxPops4 {
+    0% { transform: translateY(1px); }
+    100% { transform: translate(40%, -1000px); opacity: 0; }
+}
+@keyframes fxPops6 {
+    0% { transform: translateY(1px); }
+    100% { transform: translate(60%, -1000px); opacity: 0; }
+}
+@keyframes fxPops8 {
+    0% { transform: translateY(1px); }
+    100% { transform: translate(100%, -1000px); opacity: 0; }
+}
+
 
 /* Breakpoints */
 /* ≥1200px Extra large */
@@ -1363,6 +1421,9 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
 
 /* <576px Extra Small */
 @media (max-width:575px){
+    .table-flag-attendance {
+        font-size: 12px;
+    }
     .body-scanner .header .title {
         font-size: 18px;
     }

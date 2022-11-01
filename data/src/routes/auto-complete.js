@@ -315,6 +315,94 @@ router.get('/auto-complete/employee-list', middlewares.guardRoute(['read_all_emp
     }
 });
 
+// Get employee only
+router.get('/auto-complete/emp', middlewares.guardRoute(['read_all_employee', 'read_employee', 'can_register_rfid', 'read_memo'], 'or'), async (req, res, next) => {
+    try {
+        let search = lodash.get(req, 'query.s', '')
+        let ignore = lodash.get(req, 'query.ignore', '')
+
+        let words = search.split(' ')
+        words = lodash.map(words, (o) => {
+            o = lodash.trim(o)
+            return new RegExp(o, "i")
+        })
+        // console.log(words)
+
+        let query = {
+            $and: []
+        }
+        // Ignore employees with these IDs
+        if (ignore) {
+            query['$and'].push({
+                _id: {
+                    $nin: ignore.split(',').map(id => new req.app.locals.db.mongoose.Types.ObjectId(id))
+                }
+            })
+        }
+        // 1 word
+        if (words.length === 1) {
+            query['$and'].push({
+                $or: [
+                    {
+                        'firstName': words[0]
+                    },
+                    {
+                        'lastName': words[0]
+                    },
+                ],
+            })
+        } else if (words.length > 1) { // 2 or more words
+            query['$and'].push({
+                $or: [
+                    {
+                        'firstName': words[0]
+                    },
+                    {
+                        'lastName': words[1]
+                    },
+                    {
+                        'firstName': words[1]
+                    },
+                    {
+                        'lastName': words[0]
+                    },
+                ],
+            })
+        }
+
+        // console.log(util.inspect(query, false, null, true /* enable colors */))
+        let aggr = []
+
+        // Our search query
+        aggr.push({ $match: query })
+        // Limit to 10 results only to reduce http load
+        aggr.push({ $limit: 10 })
+
+
+        let employees = await req.app.locals.db.main.Employee.aggregate(aggr)
+        // console.log(util.inspect(aggr, false, null, true /* enable colors */))
+
+        let results = employees.map((employee, i) => {
+            let display = []
+            if (employee.firstName) {
+                display.push(employee.firstName)
+            }
+            if (employee.lastName) {
+                display.push(employee.lastName)
+            }
+
+            return {
+                id: employee._id,
+                name: display.join(' ')
+            }
+        })
+
+        res.send(results)
+
+    } catch (err) {
+        next(err);
+    }
+});
 router.get('/auto-complete/search-memo', middlewares.guardRoute(['read_memo', 'use_employee_profile'], 'or'), async (req, res, next) => {
     try {
         let search = lodash.get(req, 'query.s', '')

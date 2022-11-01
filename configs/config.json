@@ -213,8 +213,8 @@
   },
   "campuses": [
     {
-      "value": "main",
-      "text": "Salvador (Main)"
+      "value": "salvador",
+      "text": "Salvador"
     },
     {
       "value": "mosqueda",

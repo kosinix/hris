@@ -256,7 +256,9 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
 router.get(['/attendance/flag/all', '/attendance/flag.xlsx'], middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
     try {
 
-        let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
+        let date = lodash.get(req, 'query.date', lodash.get(req, 'session.attendanceFlag.date', moment().format('YYYY-MM-DD')))
+        lodash.set(req, 'session.attendanceFlag.date', date)
+
         let mCalendar = moment(date)
 
         let query = {
@@ -287,13 +289,57 @@ router.get(['/attendance/flag/all', '/attendance/flag.xlsx'], middlewares.guardR
         // Add field employee
         aggr.push({
             $project: {
-                employees: 0,
+                employees: 0
             }
         })
 
+        // Hide not needed for lighter payload
+        aggr.push({
+            $project: {
+                employee: {
+                    addresses: 0,
+                    personal: 0,
+                    employments: 0,
+                    mobileNumber: 0,
+                    phoneNumber: 0,
+                    documents: 0,
+                    createdAt: 0,
+                    updatedAt: 0,
+                    uuid: 0,
+                    uid: 0,
+                    group: 0,
+                    __v: 0,
+                    profilePhoto: 0,
+                    acceptedDataPrivacy: 0,
+                    birthDate: 0,
+                    civilStatus: 0,
+                    addressPermanent: 0,
+                    addressPresent: 0,
+                    email: 0,
+                    history: 0,
+                    speechSynthesisName: 0,
+                    address: 0
+                }
+            }
+        })
+
+        aggr.push({
+            $sort: { createdAt: 1 }
+        })
+
         //console.log(aggr)
-        attendances = await req.app.locals.db.main.AttendanceFlag.aggregate(aggr)
-        //return res.send(attendances)
+        let attendances = await req.app.locals.db.main.AttendanceFlag.aggregate(aggr)
+        attendances = attendances.map((attendance, i) => {
+            if (!attendance.source.photo) {
+                attendance.source.photo = lodash.get(attendance, 'extra.photo', '')
+            }
+            attendance.logTime = moment(attendance.dateTime).format('hh:mm A')
+            attendance = lodash.pickBy(attendance, function (a, key) {
+                return ['_id', 'logTime', 'source', 'employee'].includes(key)
+            });
+            return attendance
+        })
+        // return res.send(attendances)
 
         if (req.originalUrl.includes('.xlsx')) {
             let workbook = await excelGen.templateAttendanceFlag(mCalendar, attendances)
@@ -304,13 +350,188 @@ router.get(['/attendance/flag/all', '/attendance/flag.xlsx'], middlewares.guardR
             return res.send(buffer)
         }
 
+
         res.render('attendance/flag-raising/all.html', {
             flash: flash.get(req, 'attendance'),
             mCalendar: mCalendar,
             attendances: attendances,
+            s3Prefix: `/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}`,
+            serverUrl: CONFIG.app.url,
             next: mCalendar.clone().startOf('isoWeek').add(1, 'week').day("monday").format('YYYY-MM-DD'),
             prev: mCalendar.clone().startOf('isoWeek').subtract(1, 'week').day("monday").format('YYYY-MM-DD'),
         });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/attendance/flag/create', middlewares.guardRoute(['create_attendance']), async (req, res, next) => {
+    try {
+        res.render('attendance/flag-raising/create.html', {
+            flash: flash.get(req, 'attendance'),
+            time: moment().format('HH:mm'),
+            campus: 'Salvador'
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/flag/create', middlewares.guardRoute(['create_attendance']), async (req, res, next) => {
+    try {
+        // return res.send(req.body)
+        let body = req.body
+
+        let employee = await req.app.locals.db.main.Employee.findById(body.employeeId)
+        let time = body.time
+        let campus = body.campus
+        if(!employee){
+            throw new Error('Employee not found.')
+        }
+
+        let momentDate = moment(time, 'HH:mm')
+
+        let attendance = await req.app.locals.db.main.AttendanceFlag.findOne({
+            employeeId: employee._id,
+            createdAt: {
+                $gte: momentDate.clone().startOf('day').toDate(),
+                $lt: momentDate.clone().endOf('day').toDate(),
+            }
+        }).lean()
+        if (attendance) {
+            throw new Error('Employee has already logged.')
+        }
+
+        // Log
+        attendance = await req.app.locals.db.main.AttendanceFlag.create({
+            employeeId: employee._id,
+            dateTime: momentDate.toDate(),
+            type: 'normal',
+            source: {
+                id: res.user._id,
+                type: 'adminAccount', 
+                campus: campus, 
+            }
+        })
+
+        // 
+        let query = {
+            createdAt: {
+                $gte: momentDate.clone().startOf('day').toDate(),
+                $lte: momentDate.clone().endOf('day').toDate(),
+            }
+        }
+
+        let aggr = []
+        aggr.push({ $match: query })
+        aggr.push({
+            $lookup: {
+                from: "employees",
+                localField: "employeeId",
+                foreignField: "_id",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                },
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+            }
+        })
+
+        // Hide not needed for lighter payload
+        aggr.push({
+            $project: {
+                employee: {
+                    addresses: 0,
+                    personal: 0,
+                    employments: 0,
+                    mobileNumber: 0,
+                    phoneNumber: 0,
+                    documents: 0,
+                    createdAt: 0,
+                    updatedAt: 0,
+                    uuid: 0,
+                    uid: 0,
+                    group: 0,
+                    __v: 0,
+                    profilePhoto: 0,
+                    acceptedDataPrivacy: 0,
+                    birthDate: 0,
+                    civilStatus: 0,
+                    addressPermanent: 0,
+                    addressPresent: 0,
+                    email: 0,
+                    history: 0,
+                    speechSynthesisName: 0,
+                    address: 0
+                }
+            }
+        })
+
+        aggr.push({
+            $sort: { createdAt: 1 }
+        })
+
+        //console.log(aggr)
+        let attendances = await req.app.locals.db.main.AttendanceFlag.aggregate(aggr)
+        attendances = attendances.map(attendance => {
+            if (!attendance.source.photo) {
+                attendance.source.photo = lodash.get(attendance, 'extra.photo', '')
+            }
+            attendance.logTime = moment(attendance.dateTime).format('hh:mm A')
+
+            attendance = lodash.pickBy(attendance, function (a, key) {
+                return ['_id', 'employeeId', 'logTime', 'source', 'employee'].includes(key)
+            });
+            return attendance
+        })
+
+        //return res.send(attendances)
+        attendance = attendances.pop()
+        let user = await req.app.locals.db.main.User.findById(attendance.employee.userId)
+        attendance.userId = user._id
+        req.ioFlagRaising.emit('added', attendance)
+
+        flash.ok(req, 'attendance', 'Flag raising attendance saved.')
+        res.redirect('/attendance/flag/all')
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/attendance/flag/:attendanceFlagId/delete', middlewares.guardRoute(['read_attendance', 'update_attendance']), async (req, res, next) => {
+    try {
+        let attendanceFlagId = lodash.get(req, 'params.attendanceFlagId')
+        let attendance = await req.app.locals.db.main.AttendanceFlag.findById(attendanceFlagId)
+        if (!attendance) {
+            throw new Error('Attendance not found.')
+        }
+        let employee = await req.app.locals.db.main.Employee.findById(attendance.employeeId)
+        if(!employee){
+            throw new Error('Employee not found.')
+        }
+        let user = await req.app.locals.db.main.User.findById(employee.userId)
+        if(!user){
+            throw new Error('User not found.')
+        }
+
+        let deleted = await attendance.remove()
+
+        req.ioFlagRaising.emit('deleted', {
+            _id: deleted._id,
+            employeeId: employee._id,
+            userId: user._id,
+        })
+
+        flash.ok(req, 'attendance', `Attendance deleted.`)
+        res.redirect('/attendance/flag/all')
     } catch (err) {
         next(err);
     }
@@ -1681,11 +1902,11 @@ router.get('/attendance/review2/approved', middlewares.guardRoute(['read_all_att
                     }
                 }
             },
-            
+
             // {
             //     $limit: 100
             // },
-            
+
         ]
         let attendanceReviews = await req.app.locals.db.main.AttendanceReview.aggregate(aggr)
         let attendanceReview = attendanceReviews[0]

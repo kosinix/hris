@@ -11,6 +11,7 @@ const moment = require('moment')
 
 //// Modules
 const AppError = require('./errors').AppError
+const dtrHelper = require('./dtr-helper')
 const passwordMan = require('./password-man')
 const uploader = require('./uploader')
 
@@ -834,6 +835,41 @@ module.exports = {
                 throw new Error('Holiday not found.')
             }
             res.holiday = holiday
+
+            next();
+        } catch (err) {
+            next(err)
+        }
+    },
+    isFlagRaisingDay: async (req, res, next) => {
+        try {
+            let employee = res.employee
+            if(!employee){
+                throw new Error('Employee ID needed.')
+            }
+            let momentDate = moment()
+            let attendance = await req.app.locals.db.main.AttendanceFlag.findOne({
+                employeeId: employee._id,
+                createdAt: {
+                    $gte: momentDate.clone().startOf('day').toDate(),
+                    $lt: momentDate.clone().endOf('day').toDate(),
+                }
+            }).lean()
+            if (attendance) {
+                throw new Error('You have already logged.')
+            }
+
+            let flag = await dtrHelper.isFlagRaisingDay(req)
+            if (!flag) {
+                throw new Error(`There is no flag raising ceremony today (${moment().format('dddd, MMMM D')}).`)
+            }
+
+            
+            let { hour, minute } = CONFIG.hros.flagRaising.end
+            let momentFlagEnd = momentDate.clone().hours(hour).minutes(minute)
+            if (momentDate.isAfter(momentFlagEnd)) {
+                throw new Error('The flag ceremony ended ' + momentFlagEnd.from(momentDate))
+            }
 
             next();
         } catch (err) {

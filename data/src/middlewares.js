@@ -848,6 +848,7 @@ module.exports = {
                 throw new Error('Employee ID needed.')
             }
             let momentDate = moment()
+            // let momentDate = moment().month(10).date(2).hour(7) // Test
             let attendance = await req.app.locals.db.main.AttendanceFlag.findOne({
                 employeeId: employee._id,
                 createdAt: {
@@ -859,16 +860,17 @@ module.exports = {
                 throw new Error('You have already logged.')
             }
 
-            let flag = await dtrHelper.isFlagRaisingDay(req)
+            let flag = await dtrHelper.isFlagRaisingDay(req, momentDate)
             if (!flag) {
-                throw new Error(`There is no flag raising ceremony today (${moment().format('dddd, MMMM D')}).`)
+                throw new Error(`There is no flag raising ceremony today (${momentDate.format('dddd, MMMM D')}).`)
             }
 
             
             let { hour, minute } = CONFIG.hros.flagRaising.end
-            let momentFlagEnd = momentDate.clone().hours(hour).minutes(minute)
+            let momentFlagEnd = momentDate.clone().startOf('day').hours(hour).minutes(minute)
+            // console.log(momentDate.format('MMMM-DD hh:mm A'), momentFlagEnd.format('MMMM-DD hh:mm A'))
             if (momentDate.isAfter(momentFlagEnd)) {
-                throw new Error('The flag ceremony ended ' + momentFlagEnd.from(momentDate))
+                throw new Error(`Flag raising attendance is only until ${momentFlagEnd.format('hh:mm A')}.`)
             }
 
             next();

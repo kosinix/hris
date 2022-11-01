@@ -1927,18 +1927,17 @@ const isFlagRaisingDay = async (req, date, threshold = 10) => {
     let momentDate = (date) ? moment(date) : moment()
     let weekDay = 'Mon'
     if (momentDate.format('ddd') !== weekDay) { // Not monday
-
-        let momentYesterday = momentDate.clone().subtract(1, 'day')
+        // If date is not Monday, get all attendances for the entire week
         let flagAttendances = await req.app.locals.db.main.AttendanceFlag.find({
             createdAt: {
-                $gte: momentYesterday.clone().startOf('day').toDate(),
-                $lte: momentYesterday.clone().endOf('day').toDate(),
+                $gte: momentDate.clone().startOf('week').toDate(),
+                $lte: momentDate.clone().endOf('week').toDate(),
             }
         })
-
+        // If there are attendances found, it means a flag ceremony was held this week
         if (flagAttendances.length > threshold) return false
     }
-    return true
+    return true // Yes its manic Monday!
 }
 
 module.exports = {

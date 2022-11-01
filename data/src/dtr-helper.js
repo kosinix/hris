@@ -1923,6 +1923,24 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
     }
 }
 
+const isFlagRaisingDay = async (req, date, threshold = 10) => {
+    let momentDate = (date) ? moment(date) : moment()
+    let weekDay = 'Mon'
+    if (momentDate.format('ddd') !== weekDay) { // Not monday
+
+        let momentYesterday = momentDate.clone().subtract(1, 'day')
+        let flagAttendances = await req.app.locals.db.main.AttendanceFlag.find({
+            createdAt: {
+                $gte: momentYesterday.clone().startOf('day').toDate(),
+                $lte: momentYesterday.clone().endOf('day').toDate(),
+            }
+        })
+
+        if (flagAttendances.length > threshold) return false
+    }
+    return true
+}
+
 module.exports = {
     logAttendance: logAttendance,
     editAttendance: editAttendance,
@@ -1955,5 +1973,6 @@ module.exports = {
     logSegmentsDtrFormat: logSegmentsDtrFormat,
     getDtrByDateRange2: getDtrByDateRange2,
     editAttendance2: editAttendance2,
+    isFlagRaisingDay: isFlagRaisingDay,
 }
 

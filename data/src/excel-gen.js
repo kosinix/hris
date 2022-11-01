@@ -1554,12 +1554,7 @@ let templateAttendanceFlag = async (mCalendar, attendances) => {
             slex.getCell(`A${row}`).value(x + 1)
             slex.getCell(`B${row}`).value(`${attendance.employee.firstName} ${attendance.employee.lastName} ${attendance.employee.suffix}`)
             slex.getCell(`C${row}`).value((attendance.employee.gender === 'M' ? 'M' : 'F'))
-
-            // 'hh:mm'
-            let morningIn = moment(lodash.get(attendance, 'dateTime', null))
-            morningIn = morningIn.isValid() ? morningIn.format('hh:mm A') : ''
-
-            slex.getCell(`D${row}`).value(morningIn)
+            slex.getCell(`D${row}`).value(lodash.get(attendance, 'logTime', ''))
 
         }
 

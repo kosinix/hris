@@ -852,12 +852,12 @@ module.exports = {
             let attendance = await req.app.locals.db.main.AttendanceFlag.findOne({
                 employeeId: employee._id,
                 createdAt: {
-                    $gte: momentDate.clone().startOf('day').toDate(),
-                    $lt: momentDate.clone().endOf('day').toDate(),
+                    $gte: momentDate.clone().startOf('week').toDate(),
+                    $lt: momentDate.clone().endOf('week').toDate(),
                 }
             }).lean()
             if (attendance) {
-                throw new Error('You have already logged.')
+                throw new Error('You have already logged this week.')
             }
 
             let flag = await dtrHelper.isFlagRaisingDay(req, momentDate)

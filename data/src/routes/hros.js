@@ -473,7 +473,7 @@ router.get('/hros/flag/all', middlewares.guardRoute(['use_employee_profile']), m
         })
 
         //console.log(aggr)
-        attendances = await req.app.locals.db.main.AttendanceFlag.aggregate(aggr)
+        let attendances = await req.app.locals.db.main.AttendanceFlag.aggregate(aggr)
         //return res.send(attendances)
 
         if (req.originalUrl.includes('.xlsx')) {
@@ -498,48 +498,30 @@ router.get('/hros/flag/all', middlewares.guardRoute(['use_employee_profile']), m
             alreadyLogged = true
         }
 
+        attendances = attendances.map((a)=>{
+            a.dateTime = moment(a.dateTime).format('hh:mm A')
+            
+            a.viewPhoto = `/file-viewer/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/${a.extra.photo}`
+            a.photoUrl = `/file-getter/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/${'tiny'}-${a.extra.photo}`
+            return a
+        })
+
         res.render('hros/flag-raising/all.html', {
             flash: flash.get(req, 'attendance'),
             mCalendar: mCalendar,
             attendances: attendances,
             alreadyLogged: alreadyLogged,
-            isMonday: mCalendar.format('ddd') === 'Mon'
+            isMonday: mCalendar.format('ddd') === 'Mon',
+            serverUrl: CONFIG.app.url
         });
     } catch (err) {
         next(err);
     }
 });
-router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.isFlagRaisingDay, async (req, res, next) => {
     try {
         let user = res.user.toObject()
         let employee = res.employee.toObject()
-
-        let momentNow = moment()
-
-        // Today attendance
-        let attendance = await req.app.locals.db.main.AttendanceFlag.findOne({
-            employeeId: employee._id,
-            createdAt: {
-                $gte: momentNow.clone().startOf('day').toDate(),
-                $lt: momentNow.clone().endOf('day').toDate(),
-            }
-        }).lean()
-        if (attendance) {
-            throw new Error('You have already logged.')
-        }
-
-        let { hour, minute } = CONFIG.hros.flagRaising.end
-        let weekDay = CONFIG.hros.flagRaising.weekDay
-
-        if (momentNow.format('ddd') !== weekDay) {
-            //throw new Error('There is no flag raising.')
-        }
-
-        let momentFlagEnd = moment().hours(hour).minutes(minute)
-        if (momentNow.isAfter(momentFlagEnd)) {
-            throw new Error('The flag ceremony ended ' + momentFlagEnd.fromNow())
-        }
-
 
         let data = {
             title: 'Human Resource Online Services (HROS) - Flag',
@@ -576,7 +558,7 @@ router.post('/hros/flag/location', middlewares.guardRoute(['use_employee_profile
         next(new AppError(err.message));
     }
 });
-router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.isFlagRaisingDay, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
 
@@ -586,32 +568,6 @@ router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), 
         let lat = body.lat
         let lon = body.lon
         let webcamPhoto = body.webcamPhoto
-
-        let momentNow = moment()
-
-        // Today attendance
-        let attendance = await req.app.locals.db.main.AttendanceFlag.findOne({
-            employeeId: employee._id,
-            createdAt: {
-                $gte: momentNow.clone().startOf('day').toDate(),
-                $lt: momentNow.clone().endOf('day').toDate(),
-            }
-        }).lean()
-        if (attendance) {
-            throw new Error('You have already logged.')
-        }
-
-        let { hour, minute } = CONFIG.hros.flagRaising.end
-        let weekDay = CONFIG.hros.flagRaising.weekDay
-
-        if (momentNow.format('ddd') !== weekDay) {
-            throw new Error('There is no flag raising.')
-        }
-
-        let momentFlagEnd = moment().hours(hour).minutes(minute)
-        if (momentNow.isAfter(momentFlagEnd)) {
-            throw new Error('The flag ceremony ended ' + momentFlagEnd.fromNow())
-        }
 
         // Photo
         let saveList = null

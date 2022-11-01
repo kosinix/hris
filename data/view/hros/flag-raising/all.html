@@ -2,9 +2,7 @@
 
 {% block body %}
 <div class="col-md-12">
-
-
-    <div class="tab-content p-3 mt-3">
+    <div id="vApp" v-cloak class="tab-content p-3 mt-3">
         {% include 'parts/flash.html' %}
         <div class="row">
             <div class="col-md-2 text-center mb-3">
@@ -15,45 +13,38 @@
                 <p class="h6">{{mCalendar|format_date('dddd - MMM DD, YYYY')}}</p>
             </div>
         </div>
-       
         <div class="text-center">
-            {# {% if isMonday %} #}
-                {% if alreadyLogged %}
-                    <button type="btn" disabled class="btn btn-lg btn-primary">Log My Attendance</button>
-                {% else %}
-                    <a href="/hros/flag/create" class="btn btn-lg btn-primary">Log My Attendance</a>
-                {% endif %}
-{# 
+            {% if alreadyLogged %}
+                <button type="btn" disabled class="btn btn-lg btn-primary m-1">Log My Attendance</button>
             {% else %}
-                <button type="btn" disabled class="btn btn-lg btn-primary">Log My Attendance</button>
-            {% endif %} #}
+                <a href="/hros/flag/create" class="btn btn-lg btn-primary">Log My Attendance</a>
+            {% endif %}
+            <a href="https://www.gsu.edu.ph/hymn/" class="btn btn-lg btn-success">GSU Hymn Lyrics</a>
         </div>
         {% if attendances.length > 0 %}
             <div class="table-responsive mt-4">
-                <table class="table table-sm">
+                <table class="table table-sm table-striped">
                     <tr class="text-center">
-                        <th class="align-middle text-center" width="5%">No.</th>
-                        <th class="align-middle" width="10%">Name</th>
-                        <th class="align-middle" width="5%">Sex</th>
-                        <th class="align-middle" width="10%">Time</th>
+                        <th width="20%" class="align-middle text-center">No.</th>
+                        <th width="30%" class="align-middle text-left">Name</th>
+                        <th width="20%" class="align-middle">Sex</th>
+                        <th width="30%" class="align-middle">Time</th>
                     </tr>
-                  
-                
-                    {% for attendance in attendances %}
-                        <tr>
-                            <td class="text-center">{{loop.index}}</td>
-                            <td class="privy-name">
-                                {{attendance.employee.firstName}} {{attendance.employee.lastName}} {{attendance.employee.suffix}}
-                            </td>
-                            <td class="text-center">{% if attendance.employee.gender == 'M' %}M{% else %}F{% endif %}</td>
-                            <td class="text-center">
-                                <div class="d-flex align-items-center">
-                                <div class="mr-1 mr-md-3">{{attendance.dateTime|default('', true)|format_date('hh:mm A')}}</div>
-                                <a href="{{attendance.extra.photo|view_url}}" style="width:20px; height:20px; border-radius: 100%; display:block; overflow: hidden; border: 2px solid teal"><img src="{{attendance.extra.photo|s3_url('tiny')}}" alt="Photo"></a>
+                    <tr v-for="attendance, i in attendances">
+                        <td class="text-center">${i+1}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="mr-2">
+                                    <a :href="attendance.viewPhoto" style="width:20px; height:20px; border-radius: 100%; display:block; overflow: hidden; border: 2px solid teal"><img :src="attendance.photoUrl" alt="Photo"></a>
                                 </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
+                                <div class="privy-name">${attendance.employee.firstName} ${attendance.employee.lastName} ${attendance.employee.suffix}</div>
+                            </div>
+                        </td>
+                        <td class="text-center">${attendance.employee.gender == 'M' ? 'M' : 'F'}</td>
+                        <td class="text-center">
+                            ${(attendance.dateTime)}
+                        </td>
+                    </tr>
                 </table>
             </div>
         {% endif %}
@@ -62,4 +53,43 @@
         </div> #}
     </div>
 </div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/socket.io.min.js"></script>
+<script>
+    var socket = io("{{serverUrl}}/flag-raising", {
+        query: {
+        }
+    });
+    let vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            attendances: {{attendances|default([], true)|stringify|safe}}
+        },
+        methods: {
+            
+        },
+        mounted: function(){
+            // client-side
+            socket.on("connect", () => {
+                console.log('connected ', socket.id); // x8WIv7-mJelg7on_ALbx
+            });
+
+            socket.on("disconnect", () => {
+                console.log('disconnected ', socket.id); // undefined
+            });
+            
+            socket.on("connect_error", (err) => {
+                console.error(err.message);
+            });
+
+            socket.on("added", (args) => {
+                console.log(args)
+            });
+        }
+    })
+</script>
 {% endblock %}

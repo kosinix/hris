@@ -2,56 +2,156 @@
 
 {% block body %}
 <div class="col-md-12">
-
-
-    <div class="tab-content p-3 mt-3">
+    <div id="vApp" v-cloak class="tab-content p-3 mt-3">
         {% include 'parts/flash.html' %}
         <div class="row">
             <div class="col-md-2 text-center mb-3">
-                <svg style="max-width: 150px;" width="100%" height="auto" viewBox="-28 -45 180 90" fill="#fcd116">	<path fill="#0038a8" d="m-28-45h180V0L0 44z"/>	<path fill="#ce1126" d="m0 0h152v45H-28z"/>	<path fill="#fff" d="m49.942 0L-28 45v-90z"/>	<circle r="9"/>	<g id="c">		<g id="b">			<path id="a" d="m0 0-3.164-15.909.945-.946zl-1.169-17.831L0-19l1.169 1.169zl2.219-16.855.945.946z"/>			<use transform="scale(-1)" xlink:href="#a"/>		</g>		<use transform="rotate(90)" xlink:href="#b"/>	</g>	<use transform="rotate(45)" xlink:href="#c"/>	<path id="s" d="m40.942 0-3.382 1.176L37.487 4.755l-2.163-2.853-3.427 1.037L33.942 0l-2.045-2.939 3.427 1.037 2.163-2.853L37.56-1.176z"/>	<use transform="rotate(120,-2.019,0)" xlink:href="#s"/>	<use transform="rotate(240,-2.019,0)" xlink:href="#s"/></svg>
+                <svg style="max-width: 150px;" viewBox="-28 -45 180 90" fill="#fcd116">	<path fill="#0038a8" d="m-28-45h180V0L0 44z"/>	<path fill="#ce1126" d="m0 0h152v45H-28z"/>	<path fill="#fff" d="m49.942 0L-28 45v-90z"/>	<circle r="9"/>	<g id="c">		<g id="b">			<path id="a" d="m0 0-3.164-15.909.945-.946zl-1.169-17.831L0-19l1.169 1.169zl2.219-16.855.945.946z"/>			<use transform="scale(-1)" xlink:href="#a"/>		</g>		<use transform="rotate(90)" xlink:href="#b"/>	</g>	<use transform="rotate(45)" xlink:href="#c"/>	<path id="s" d="m40.942 0-3.382 1.176L37.487 4.755l-2.163-2.853-3.427 1.037L33.942 0l-2.045-2.939 3.427 1.037 2.163-2.853L37.56-1.176z"/>	<use transform="rotate(120,-2.019,0)" xlink:href="#s"/>	<use transform="rotate(240,-2.019,0)" xlink:href="#s"/></svg>
             </div>
             <div class="col-md-10 text-center text-md-left mb-3">
-                <h1 class="h5 mb-2">Flag Raising Ceremony Electronic Attendance Sheet</h1>
-                <p class="h6">{{mCalendar|format_date('dddd - MMM DD, YYYY')}} 
-
-                    <a href="?date={{prev}}" class="btn btn-sm btn-light">&lt;</a>
-                    <a href="?date={{next}}" class="btn btn-sm btn-light">&gt;</a>
-                </p>
+                <h1 class="h5 mb-2">Flag Raising Attendance</h1>
+                <h2 class="h6 mb-2"></h2>
+                <div class="d-flex flex-wrap align-items-center">
+                    <div>
+                        <label for="date">{{mCalendar|format_date('dddd')}}</label>
+                        <input v-on:change="changeDate" id="date" type="date" value="{{mCalendar|format_date('YYYY-MM-DD')}}"> 
+                    </div>
+                    <div class="btn-toolbar justify-content-center ml-3">
+                        <div class="btn-group">
+                            <a href="?date={{prev}}" class="btn btn-sm btn-outline-primary">&lt;</a>
+                            <a href="?date={{next}}" class="btn btn-sm btn-outline-primary">&gt;</a>
+                            <a class="btn btn-sm btn-primary" href="/attendance/flag/create">Create Log</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-       
-        {% if attendances.length > 0 %}
+        
+        <div v-if="attendances.length > 0">
             <div class="table-responsive mt-4">
-                <table class="table table-sm">
+                <table class="table table-flag-attendance table-sm table-striped">
                     <tr class="text-center">
-                        <th class="align-middle text-center" width="5%">No.</th>
-                        <th class="align-middle" width="10%">Name</th>
-                        <th class="align-middle" width="5%">Sex</th>
-                        <th class="align-middle" width="10%">Time</th>
+                        <th width="10%" class="align-middle text-center">No.</th>
+                        <th width="40%" class="align-middle text-left">Name</th>
+                        <th width="20%" class="align-middle">Time</th>
+                        <th width="10%" class="align-middle">Sex</th>
+                        <th width="10%" class="align-middle">Campus</th>
+                        <th width="10%" class="align-middle"></th>
                     </tr>
-                
-                    {% for attendance in attendances %}
-                        <tr>
-                            <td class="text-center">{{loop.index}}</td>
-                            <td class="privy-name">
-                                <u>{{attendance.employee.firstName}}</u> <u>{{attendance.employee.lastName}}</u> <u>{{attendance.employee.suffix}}</u>
-                            </td>
-                            <td class="text-center">{% if attendance.employee.gender == 'M' %}M{% else %}F{% endif %}</td>
-                            <td class="text-center">
-                                <div class="d-flex align-items-center">
-                                <div class="mr-1 mr-md-3">{{attendance.dateTime|default('', true)|format_date('hh:mm A')}}</div>
-                                <a href="{{attendance.extra.photo|view_url}}" style="width:20px; height:20px; border-radius: 100%; display:block; overflow: hidden; border: 2px solid teal"><img src="{{attendance.extra.photo|s3_url('tiny')}}" alt="Photo"></a>
+                    <tr v-for="attendance, i in attendances">
+                        <td class="text-center">${i+1}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="mr-2">
+                                    <a v-if="attendance.source.photo" target="_blank" :href="viewPhoto(attendance.source.photo)" style="width:20px; height:20px; border-radius: 100%; display:block; overflow: hidden; border: 2px solid teal">
+                                        <img :src="photoUrl(attendance.source.photo)" alt="Photo">
+                                    </a>
                                 </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
+                                <div class="privy-name">
+                                    <u>${attendance.employee.firstName}</u> 
+                                    <u>${attendance.employee.lastName}</u> 
+                                    <u>${attendance.employee.suffix}</u> 
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            ${(attendance.logTime)}
+                        </td>
+                        <td class="text-center">${attendance.employee.gender == 'M' ? 'M' : 'F'}</td>
+                        <td class="text-center">
+                            ${(attendance.source.campus)}
+                        </td>
+                        <td class="text-center">
+                            <a onclick="return confirm('Delete permanently?')" :href="'/attendance/flag/' + attendance._id + '/delete'" class="btn btn-danger btn-sm">X</a>
+                        </td>
+                    </tr>
                 </table>
             </div>
-        {% endif %}
-
-        <div>
-            <a class="btn btn-sm btn-primary" href="/attendance/flag.xlsx?{{query|query_string}}">Download</a>
+            <div>
+                <a class="btn btn-sm btn-primary" href="/attendance/flag.xlsx?{{query|query_string}}">Download</a>
+            </div>
+        </div>
+        <div v-else class="text-center">
+            <p><em>No attendance logs found.</em></p>
         </div>
     </div>
 </div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/socket.io.min.js"></script>
+<script>
+    var socket = io("{{serverUrl}}/flag-raising", {
+        query: {
+        }
+    });
+    let vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            s3Prefix: '{{s3Prefix}}',
+            attendances: {{attendances|default([], true)|stringify|safe}},
+            counter: 2
+        },
+        methods: {
+            viewPhoto: function(photo){
+                if(!photo){
+                    return ''
+                }
+                return `/file-viewer${this.s3Prefix}/${photo}`
+            },
+            photoUrl: function(photo, size = 'tiny'){
+                if(!photo){
+                    return ''
+                }
+                return `/file-getter${this.s3Prefix}/${size}-${photo}`
+            },
+            changeDate: function(e){
+                var href = new URL(window.location.href);
+                href.searchParams.set('date', e.target.value);
+                window.location.href = href.toString()
+            },
+        },
+        mounted: function(){
+            {#             
+            socket.on("connect", () => {
+            });
+
+            socket.on("disconnect", () => {
+            });
+             #}
+
+            socket.on("connect_error", (err) => {
+                console.error(err.message);
+            });
+
+            socket.on("added", (attendance) => {
+                let me = this;
+                if(attendance){
+                    if(attendance.source.photo){
+                        jQuery(document).find('#vApp').append('<div class="animated-flag-profile fx-pops'+me.counter+'"><img src="' + me.photoUrl(attendance.source.photo, 'medium') + '" alt=""></div>')
+                        me.counter += 2
+                        if(me.counter > 8){
+                            me.counter = 2
+                        }
+                    }
+                   
+                    this.attendances.push(attendance)
+                }
+            });
+
+            socket.on("deleted", (deleted) => {
+                let me = this;
+                if(deleted){
+                    let index = me.attendances.findIndex(function(a){
+                        return a._id === deleted._id
+                    })
+                    
+                    Vue.delete(me.attendances, index)
+                }
+            });
+        }
+    })
+</script>
 {% endblock %}

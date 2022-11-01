@@ -1,0 +1,131 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Flag Raising Attendance</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/attendance/flag/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    <div class="tab-content p-3 pt-4 min-height-500">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/attendance/flag/create" method="POST" class="form-default">
+            <div class="form-group">
+                <label for="employeeId">Employee <span class="text-danger">*</span></label>
+                <div>
+                    <autocomplete ref="autocomplete"
+                        placeholder="Type Last Name..."
+                        :source="dataSource"
+                        v-on:selected="onSelect"
+                        v-on:clear="onClear"
+                        input-class="form-control"
+                        v-bind:request-headers="headers"
+                    ></autocomplete>
+                    <input name="employeeId" id="employeeId" v-model="employeeId" type="hidden" class="form-control">
+                    <small class="invalid-feedback">${getError('employeeId')}</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="time">Time <span class="text-danger">*</span></label>
+                <div>
+                    <input name="time" id="time" v-model="time" type="time" class="form-control">
+                    <small class="invalid-feedback">${getError('time')}</small>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="campus">Campus <span class="text-danger">*</span></label>
+                <div>
+                    <select name="campus" id="campus" v-model="campus" class="form-control">
+                        <option value=""></option>
+                        {% for campus in CONFIG.campuses %}
+                            <option value="{{campus.text}}">{{campus.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('campus')}</small>
+                </div>
+            </div>
+            <div class="form-row pt-3 pb-3">
+                <div class="col-6 text-left">
+                    <a class="btn btn-link" href="/attendance/flag/all">Cancel</a>
+                </div>
+                <div class="col-6 text-right">
+                    <button class="btn btn-primary">Create Log</button>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vuejs-auto-complete.js"></script>
+<script src="{{app.url}}/js/vuejs-auto-complete-extend.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            window.vueJsAutoCompleteExtendMixin,
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        data: {
+            employee: '{{employee}}',
+            employeeId: '{{employee._id}}',
+            time: '{{time}}',
+            campus: '{{campus}}',
+        },
+        validations: {
+            employeeId: {
+                required: window.validators.required
+            },
+            time: {
+                required: window.validators.required,
+            },
+            campus: {
+                required: window.validators.required,
+            },
+        },
+        mounted: function(){
+        },
+        computed:{
+           
+        },
+        methods: {
+            // vuejs autocomplete
+            onSelect: function(o){
+                this.employeeId = o.value
+                this.$refs.autocomplete.close();
+            },
+            onClear: function(o){
+            },
+            dataSource: function(input) {
+                return '/auto-complete/emp?s=' + input
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

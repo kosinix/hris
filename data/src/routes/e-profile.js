@@ -498,12 +498,33 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
         next(err);
     }
 });
-router.post('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.dataUrlToReqFiles(['photo']), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"] }), async (req, res, next) => {
+router.post('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.dataUrlToReqFiles(['photo']), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"] }), async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
-        let employmentId = res.employmentId
-        let employment = res.employment
+        // Get employee
+        if (!res.employee) {
+            throw new Error('Employee needed.')
+        }
+        let employee = res.employee
+
+        // Get attendance
         let attendanceId = lodash.get(req, 'params.attendanceId')
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
+            _id: attendanceId,
+            employeeId: employee._id,
+        }).lean()
+        if (!attendance) {
+            throw new Error('Attendance not found.')
+        }
+
+        // Employment
+        let employment = await req.app.locals.db.main.Employment.findOne({
+            _id: attendance.employmentId,
+            employeeId: employee._id,
+        }).lean()
+        if (!employment) {
+            throw new Error('Employment not found.')
+        }
+        let employmentId = employment._id
 
         // Get pending
         let attendanceReview = await req.app.locals.db.main.AttendanceReview.findOne({
@@ -513,16 +534,6 @@ router.post('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute(
 
         if (attendanceReview) {
             throw new Error('Attendance correction application for this date is still under review.')
-        }
-
-        // Get attendance
-        let attendance = await req.app.locals.db.main.Attendance.findOne({
-            _id: attendanceId,
-            employmentId: employmentId,
-        }).lean()
-
-        if (!attendance) {
-            throw new Error('Attendance not found.')
         }
 
         let saveList = lodash.get(req, 'saveList')

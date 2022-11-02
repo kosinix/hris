@@ -1,0 +1,561 @@
+{% extends "document-scanner.html" %}
+
+{% block body %}
+<div id="vApp" v-cloak v-bind:data-pending="pending" v-on:click.prevent="focus" class="col-12 scanner-kiosk">
+    <div v-if="!duplicate" class="form-row pt-md-5 pt-3">
+        <div class="col-md-2 col-xlx-4"></div>
+        <div class="col-md-8 col-xlx-4">
+            <div class="form-row">
+                <div class="col-md-12">
+                    <div class="d-flex align-items-center pl-md-3 header mb-md-3">
+                        <img class="mr-3" src="/images/logo-md.png" width="50" height="50" alt="Logo">
+                        <h1 class="h5 mb-0 text-left text-md-center title">Human Resource Information System (HRIS)</h1>
+                    </div>
+                </div>
+            </div>
+            {#  #}
+            <div id="carousel-scan" class="carousel-scan carousel slide pb-5" data-ride="carousel" data-touch="false" data-interval="false">
+                {# <ol class="carousel-indicators">
+                    <li data-target="#carousel-scan" data-slide-to="0" class="active"></li>
+                    <li data-target="#carousel-scan" data-slide-to="1"></li>
+                    <li data-target="#carousel-scan" data-slide-to="2"></li>
+                    <li data-target="#carousel-scan" data-slide-to="3"></li>
+                </ol> #}
+                <div class="carousel-inner p-3">
+                    {# 0 #}
+                    <div class="carousel-item active">
+                        <div class="form-row">
+                            <div class="col-md-7">
+                                <div class="scanner-calendar">
+                                    <div class="time pt-md-5 pb-md-4"><span>${clock}</span></div>
+                                    <div class="date mb-2"><span>${date}</span></div>
+                                    <div class="d-flex align-items-center justify-content-center flex-wrap weekDays">
+                                        <div v-for="day in weekDays" class="weekDay" v-bind:data-today="day.isToday">${day.weekDay} <br>${day.day}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                {#  #}
+                                <div class="wall-clock">
+                                    <div class="arm-second" v-bind:style="'transform: rotate(' + rotate + 'deg)'"></div>
+                                    <div class="arm-minute" v-bind:style="'transform: rotate(' + rotateM + 'deg)'"></div>
+                                    <div class="arm-hour" v-bind:style="'transform: rotate(' + rotateH + 'deg)'"></div>
+                                    <div class="hour hour-12">12</div>
+                                    <div class="hour hour-1">1</div>
+                                    <div class="hour hour-2">2</div>
+                                    <div class="hour hour-3">3</div>
+                                    <div class="hour hour-4">4</div>
+                                    <div class="hour hour-5">5</div>
+                                    <div class="hour hour-6">6</div>
+                                    <div class="hour hour-7">7</div>
+                                    <div class="hour hour-8">8</div>
+                                    <div class="hour hour-9">9</div>
+                                    <div class="hour hour-10">10</div>
+                                    <div class="hour hour-11">11</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {# 1 #}
+                    <div class="carousel-item">
+                        <div class="text-center">
+                            <div class="d-flex text-left justify-content-center">
+                                <div class="step">
+                                    <div class="number">
+                                        <div>Step</div>
+                                        <div>02</div>
+                                    </div>
+                                    <div class="desc">
+                                        <h1 class="h5">TAKE A SELFIE</h1>
+                                        <p class="mb-0">Scan your ID again when you're ready.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <video id="webcam-feed"></video>
+                            <canvas id="webcam-snapshot"></canvas>
+                        </div>
+                        
+                    </div>
+                    {# 2 #}
+                    <div class="carousel-item">
+                        <div class="form-row">
+                            <div class="col-md-9">
+                                <table class="table table-sm text-center table-borderless table-scanner-logs mb-3 mt-md-5 mt-3">
+                                    <tr>
+                                        <th width="25%">In</th>
+                                        <th width="25%">Out</th>
+                                        <th width="25%">In</th>
+                                        <th width="25%">Out</th>
+                                    </tr>
+                                    <tr>
+                                        <td><span v-bind:class="(logIndex===1) ? 'fx-pop current' : '' ">${log0}</span></td>
+                                        <td><span v-bind:class="(logIndex===2) ? 'fx-pop current' : '' ">${log1}</span></td>
+                                        <td><span v-bind:class="(logIndex===3) ? 'fx-pop current' : '' ">${log2}</span></td>
+                                        <td><span v-bind:class="(logIndex===4) ? 'fx-pop current' : '' ">${log3}</span></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div v-if="profilePhoto" class="profile">
+                                    <img class="img-fluid" width="200" height="200" v-bind:src="profilePhoto" alt="Photo">
+                                </div>
+                                <div class="employee-name">${name}</div>
+                                <div class="alert alert-info">Returning to scanner in ${returnCountdown}...</div>
+                            </div>
+                        </div>
+                    </div>
+                    {# 3 #}
+                    <div class="carousel-item">
+                        <div class="text-center">
+                            <h1>Error</h1>
+                            <div class="alert alert-danger">${error}</div>
+                            <div class="alert alert-warning">Returning to scanner in ${returnCountdown} second(s).</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {#  #}
+           
+        </div>
+        <div class="col-md-2 col-xlx-4"></div>
+
+       
+    </div>
+    <form v-if="!duplicate" ref="form" class=" text-center" v-on:submit.prevent="onSubmit" action="/scanner/{{scanner.uid}}/scan" method="POST" novalidate>
+        <div style="position:relative; overflow:hidden">
+            <div style="position:absolute; left:0; right:0; top:0; bottom:0; background: ghostwhite; z-index:1; opacity:1"></div>
+            <input style="outline: none" v-on:blur="focus" v-model="code" name="code" id="code" type="text" autocomplete="off">
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/jquery.min.js"></script>
+<script src="{{app.url}}/js/popper.min.js"></script>
+<script src="{{app.url}}/js/bootstrap.min.js"></script>
+<script src="{{app.url}}/js/moment.min.js"></script>
+<script src="{{app.url}}/js/moment-timezone-with-data-10-year-range.min.js"></script>
+<script src="{{app.url}}/js/axios.min.js"></script>
+<script src="{{app.url}}/js/media-devices.js"></script>
+<script src="{{app.url}}/js/socket.io.min.js"></script>
+<script>
+    var socket = io("{{serverUrl}}", {
+        query: {
+            scanner: '{{scanner._id}}',
+        }
+    });
+    let enumerateDaysBetweenDates = (startDate, endDate) => {
+        let now = startDate.clone(), dates = [];
+        let currentDate = moment();
+
+        while (now.isSameOrBefore(endDate)) {
+            dates.push({
+                isToday: currentDate.isSame(now, 'day'),
+                weekDay: now.format('ddd'),
+                day: now.format('D'),
+            });
+            now.add(1, 'days');
+        }
+        return dates;
+    }
+
+    let returnTimer = null
+    let voices = []
+    let synth = window.speechSynthesis;
+
+    let vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            pending: false,
+            duplicate: false,
+            page: 0,
+            code: '',
+            useWebcam: {{scanner.useCam|default(false, true)}},
+            webcamPhotoSnapper: null,
+            webcamLoaded: false,
+            photo: '',
+            profilePhoto: '',
+            error: '',
+            errorCountdown: '',
+            name: '',
+            returnCountdown: 0,
+            voicesReady: false,
+
+            time: '',
+            clock: '',
+            date: '',
+            rotate: 0,
+            rotateM: 0,
+            rotateH: 0,
+            weekDays: [],
+
+            log0: '',
+            log1: '',
+            log2: '',
+            log3: '',
+            logIndex: 0,
+
+        },
+        mounted: function(){
+            let me = this;
+
+            document.getElementById("code").focus();
+
+            document.getElementById("webcam-feed").addEventListener('loadedmetadata', function(e){
+                me.webcamLoaded = true
+            })
+
+            // Voices
+            let voiceChecker = setInterval(function(){
+                voices = _.invoke(synth, 'getVoices') || [];
+
+                if(voices.length > 0){
+                    clearInterval(voiceChecker)
+                    me.voicesReady = true;
+                }
+            }, 100)
+
+            let tick = function(){
+                let now = moment().tz('Asia/Manila');
+                me.clock = now.format('h:mm A');
+                me.date = now.format('MMMM');
+                let seconds = parseInt(now.format('s'));
+                let minutes = parseInt(now.format('m'));
+                let hours = parseInt(now.format('h'));
+
+                let rotate = seconds * 6 - 90
+                if(rotate < 0) {
+                    rotate = 360 + rotate
+                }
+                me.rotate = rotate
+
+                let rotateM = minutes * 6 - 90
+                if(rotateM < 0) {
+                    rotateM = 360 + rotateM
+                }
+                me.rotateM = rotateM
+
+                let rotateH = hours * 30 - 90
+                if(rotateH < 0) {
+                    rotateH = 360 + rotateH
+                }
+                me.rotateH = rotateH
+            }
+            tick();
+            setInterval(tick, 500);
+
+            let slowTick = function(){
+                let now = moment().tz('Asia/Manila');
+                let startDate = now.clone().startOf('week');
+                let endDate = now.clone().endOf('week');
+                me.weekDays = enumerateDaysBetweenDates(startDate, endDate);
+            }
+            slowTick();
+            setInterval(slowTick, 10000);
+
+            // client-side
+            socket.on("connect", () => {
+                me.status = 'online'
+                //console.log('connected ', socket.id); // x8WIv7-mJelg7on_ALbx
+            });
+
+            socket.on("disconnect", () => {
+                me.status = 'offline'
+                //console.log('disconnected ', socket.id); // undefined
+            });
+            
+            socket.on("connect_error", (err) => {
+                
+                if(err.message == 'Duplicate scanner.'){
+                    me.duplicate = true
+                    alert(err.message)
+                }
+                console.error(err.message);
+            });
+            
+            socket.on("refresh", (args) => {
+                var scanner = args.scanner
+                if('{{scanner._id}}' === scanner){
+                    setTimeout(function(){
+                        window.location.reload(false); 
+                    }, 3000)
+                    console.log('REFRESH', args);
+                }
+            });
+
+            if(me.useWebcam) me.webcamStart();
+
+        },
+        watch: {
+            page: function (newPage, oldPage) {
+                let me = this;
+                jQuery('#carousel-scan').carousel(newPage)
+                
+                if(newPage === 0) {
+                    me.reset();
+
+                } else if(newPage === 1) {
+
+                    
+
+                } else if(newPage === 2) {
+                    if(me.useWebcam) me.webcamSnap();
+
+                    me.log()
+
+                } else if(newPage === 3) {
+                   
+
+                }
+                //me.reloadOnIdle();
+            }
+        },
+        methods: {
+            reset: function(){
+                let me = this;
+
+                me.page = 0;
+                me.code = '';
+                me.photo = '';
+                me.profilePhoto = '';
+                me.time = '';
+                me.name = '';
+                
+                if(returnTimer){
+                    clearInterval(returnTimer);
+                }
+            },
+            hambal: function(words){
+                try {
+                    if(this.voicesReady){
+                        let utterThis = new SpeechSynthesisUtterance(words);
+                        utterThis.voice = _.find(voices, function(v){
+                            return v.name.includes('Microsoft Zira')
+                        });
+                        utterThis.pitch = 1;
+                        utterThis.rate = 1;
+                        synth.cancel();
+                        synth.speak(utterThis);
+                    }
+                } catch (err){
+                    console.error(err)
+                }
+            },
+            reloadOnIdle: function(){
+                {#/*
+                // Move function to browser extensions
+                if(timer){
+                    clearTimeout(timer);
+                }
+                timer = setTimeout(reload, 900000) // 15 mins */#}
+            },
+            returnBalik: function(delay){
+                let me = this;
+                if(returnTimer){
+                    clearInterval(returnTimer);
+                }
+                me.returnCountdown = delay;
+                returnTimer = setInterval(function(){
+                    me.returnCountdown -= 1;
+                    if(me.returnCountdown <= 0){
+                        clearInterval(returnTimer);
+                        me.page = 0;
+                    }
+                }, 1000)
+            },
+            
+            focus: function(){
+                setTimeout(function() {
+                    document.getElementById("code").focus();
+                }, 10);
+            },
+            webcamStart: function(){
+                let me = this
+                if(!me.webcamPhotoSnapper){
+                    me.pending = true
+                    MediaDevicesPresets.createWebcamPhotoSnapper(
+                        document.getElementById("webcam-feed"),
+                        document.getElementById("webcam-snapshot")
+                    ).then(function(webcamPhotoSnapper){
+                        me.pending = false
+                        me.webcamPhotoSnapper = webcamPhotoSnapper
+                    }).catch(function(err){
+                        me.page = 3;
+                        me.error = err.message;
+
+                        if (err.name == "NotFoundError" || err.name == "DevicesNotFoundError") {
+                            //required track is missing 
+                            me.error += '. Please check if you have a webcam.';
+
+                        } else if (err.name == "NotReadableError" || err.name == "TrackStartError") {
+                            //webcam or mic are already in use 
+                            me.error += '. Please close the other app that is using the webcam.';
+                      
+                        } else if (err.name == "NotAllowedError" || err.name == "PermissionDeniedError") {
+                            //permission denied in browser 
+                            me.error += '. Please allow the browser to use the webcam.';
+                            
+                        }
+
+                        me.returnBalik(10);
+                    }).then(function(){
+                        me.pending = false
+                    })
+                }
+            },
+            webcamStop: function(){
+                let me = this
+                if(me.webcamPhotoSnapper){
+                    me.webcamPhotoSnapper.stop()
+                    me.webcamPhotoSnapper = null
+                }
+            },
+            webcamPause: function(){
+                let me = this
+                if(me.webcamPhotoSnapper){
+                    document.getElementById("webcam-feed").pause()
+                }
+            },
+            webcamSnap: function(){
+                let me = this
+                if(me.webcamPhotoSnapper){
+                    me.photo = me.webcamPhotoSnapper.snap()
+                }
+            },
+            onSubmit: function(){
+                let me = this;
+                let code = me.code 
+                if(!_.trim(me.code) || me.pending){
+                    return
+                }
+                
+                document.getElementById("code").focus();
+                document.getElementById("code").select();
+                let before = me.page;
+                let after = me.page + 1;
+                if(after === 1){
+                    //if(!me.useWebcam){
+                        after = 2
+                    //}
+                } else if(after === 2){
+                    if(!me.webcamLoaded && me.useWebcam){
+                        return
+                    }
+                } else if(after === 3){
+                    me.page = 0
+                    return
+                }
+                me.page = after
+            },
+            log: function(){
+                let me = this;
+                let body = {
+                    code: me.code,
+                    photo: me.photo
+                }
+                me.pending = true
+                axios.post('/scanner/{{scanner.uid}}/log', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
+                    let data = _.get(response, 'data')
+                    console.log(data)
+
+                    let log = _.get(data, 'log')
+                    me.log0 = _.get(data, 'logs.log0')
+                    me.log1 = _.get(data, 'logs.log1')
+                    me.log2 = _.get(data, 'logs.log2')
+                    me.log3 = _.get(data, 'logs.log3')
+                    me.logIndex = _.get(data, 'logIndex')
+                    let gender = _.get(data, 'employee.gender')
+                    let firstName = _.get(data, 'employee.firstName')
+                    let lastName = _.trim(_.get(data, 'employee.lastName'))
+                    let birthDate = _.get(data, 'employee.birthDate')
+
+                    let speechSynthesisName = _.get(data, 'employee.speechSynthesisName');
+                    speechSynthesisName = speechSynthesisName ? speechSynthesisName : firstName;
+                    speechSynthesisName = speechSynthesisName.replace(/^Ma\./i, '');
+                    let profilePhoto = _.get(data, 'employee.profilePhoto');
+                    if(log){
+                        let momentLogTime = moment(log.dateTime)
+                        me.time = momentLogTime.clone().format('hh:mm A');
+                        me.name = firstName + ' ' + lastName;
+                        me.profilePhoto = profilePhoto;
+
+                        let morning = momentLogTime.clone().format('A') === 'AM' ? true : false;
+                        let afternoon = momentLogTime.clone().format('A') === 'PM' ? true : false;
+                        let evening = momentLogTime.clone().hours() >= 18 ? true : false;
+
+                        let message = [];
+                        
+                        let mBirthDate = moment(birthDate)
+                        let mToday = moment().startOf('day')
+                        {# let greetB = ''
+                        if(mBirthDate.isValid()){
+                            if(mBirthDate.format('MM-DD') === mToday.format('MM-DD')){
+                                greetB = 'and happy birthday'
+                            }
+                        } #}
+
+                        
+                        if(morning) {
+                            message.push('Good morning');
+                        } else if(evening){
+                            message.push('Good evening');
+                        } else if(afternoon) {
+                            message.push('Good afternoon');
+                        }
+
+                        {# if(lastName === 'Amarilla'){
+                            message.push(greetB)
+                        } #}
+
+                        if(gender === 'M') {
+                            message.push('Sir');
+                        } else if(gender === 'F'){
+                            message.push('Maam');
+                        }
+
+                        message.push(speechSynthesisName + '!')
+                        message.push('Your time is')
+                        message.push(momentLogTime.clone().format('hh:mm A') + '.')
+
+
+                        me.hambal(message.join(' '))
+                    }
+                    me.returnBalik(10)
+                }).catch(function (error) {
+                    if (error.response) {
+                        // Request made, server responded with a status code outside of 2xx
+                        let err = error.response.data;
+                        me.hambal(err)
+                        me.page = 3;
+                        me.error = err;
+                        me.returnBalik(7);
+
+                    } else if (error.request) {
+                        let msg = 'Error: I sent your log but the server did not respond. Please try again or use a different scanner.'
+                        me.hambal(msg)
+
+                        console.error(msg);
+                        me.page = 3;
+                        me.error = msg;
+                        me.returnBalik(8);
+
+                    } else {
+                        let msg = 'Something went wrong. Please try again or use a different scanner.'
+                        me.hambal(msg)
+                        me.page = 3;
+                        me.error = msg;
+                        me.returnBalik(7);
+
+                    }
+                }).then(function () {
+                    // always executed
+                    me.pending = false;
+                })
+            }
+        }
+    });
+</script>
+{% endblock %}

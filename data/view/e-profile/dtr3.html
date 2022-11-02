@@ -1,0 +1,723 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Daily Time Record (DTR)</h1>
+        </div>
+    </div>
+    <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width:900px; margin:0 auto;">
+        {% include 'parts/flash.html' %}
+        <div v-if="timeZone != 8" class="alert alert-warning"><strong>Warning:</strong> Your time zone is currently not set to Philippine time. Your time will be displayed incorrectly. Please set your device's timezone to UTC+8:00. <a href="/help/timezone-correction">See help instructions</a>
+        
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-4 col-xl-3 mb-3">
+                <div class="e-profile-photo ml-auto mr-auto">
+                    {% if employee.profilePhoto %}
+                        <div class="actual-pic">
+                            <a href="/e-profile/photo">   
+                                <img style="min-height: 100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="{{employee.firstName|first}}. {{employee.lastName|first}}.">
+                            </a>
+                        </div>
+                    {% else %}
+                        <a href="/e-profile/photo">  
+                            {% if employee.gender == 'F' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path fill="#4bb29d" d="M13.75 13C13.75 12.31 14.31 11.75 15 11.75S16.25 12.31 16.25 13 15.69 14.25 15 14.25 13.75 13.69 13.75 13M22 12V22H2V12C2 6.5 6.5 2 12 2S22 6.5 22 12M4 12C4 16.41 7.59 20 12 20S20 16.41 20 12C20 11.21 19.88 10.45 19.67 9.74C18.95 9.91 18.2 10 17.42 10C14.05 10 11.07 8.33 9.26 5.77C8.28 8.16 6.41 10.09 4.05 11.14C4 11.42 4 11.71 4 12M9 14.25C9.69 14.25 10.25 13.69 10.25 13S9.69 11.75 9 11.75 7.75 12.31 7.75 13 8.31 14.25 9 14.25Z" />
+                                </svg>
+                            {% else %}
+                                <svg viewBox="0 0 24 24">
+                                    <path fill="#115195" d="M9,11.75A1.25,1.25 0 0,0 7.75,13A1.25,1.25 0 0,0 9,14.25A1.25,1.25 0 0,0 10.25,13A1.25,1.25 0 0,0 9,11.75M15,11.75A1.25,1.25 0 0,0 13.75,13A1.25,1.25 0 0,0 15,14.25A1.25,1.25 0 0,0 16.25,13A1.25,1.25 0 0,0 15,11.75M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,11.71 4,11.42 4.05,11.14C6.41,10.09 8.28,8.16 9.26,5.77C11.07,8.33 14.05,10 17.42,10C18.2,10 18.95,9.91 19.67,9.74C19.88,10.45 20,11.21 20,12C20,16.41 16.41,20 12,20Z" />
+                                </svg>
+                            {% endif %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {#  #}
+            <div v-if="!settingsEditable" class="col-md-8 col-xl-9">
+                <div class="row mb-2">
+                    <div class="col-sm-6 text-center text-sm-left">
+                        <h4 class="h3 privy-name">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
+                    </div>
+                    <div class="col-sm-6 text-center text-sm-right">
+                        <div class="btn-toolbar justify-content-center justify-content-sm-end">
+                            <div class="btn-group">
+                                <button v-on:click="settingsEditable = true" type="button" class="btn btn-sm btn-primary">Settings</button>
+                                <a v-bind:href="printUrl" class="btn btn-sm btn-primary">Print</a>
+                                <a v-bind:href="shareUrl" class="btn btn-sm btn-primary">Share</a>
+                            </div>
+                        </div>
+                        {# <a href="#" class="btn btn-sm btn-outline-primary" title="DTR Settings">Settings</a> #}
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3">Employment:</div>
+                    <div class="col-sm-9"><strong>{{employment.position}}</strong></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3">Period:</div>
+                    <div class="col-sm-9"><strong>${period}</strong></div>
+                </div>
+                {% if employment.employmentType != 'part-time' %}
+                <div class="row mb-2">
+                    <div class="col-sm-3">Schedule:</div>
+                    <div class="col-sm-9"><strong>${workScheduleString}</strong></div>
+                </div>
+                {% endif %}
+                {# <div class="row mb-2">
+                    <div class="col-sm-3">In Charge:</div>
+                    <div class="col-sm-9"><strong>${inCharge}</strong></div>
+                </div> #}
+                {# <div class="row mb-2">
+                    <div class="col-sm-3">Show Total:</div>
+                    <div class="col-sm-9"><strong class="text-capitalize">${showTotalAs}</strong></div>
+                </div> #}
+            </div>
+            <div v-if="settingsEditable" class="col-md-8 col-xl-9">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h4 class="h3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
+                    </div>
+                    <div class="col-sm-6 text-right">
+                        <div class="btn-toolbar justify-content-end">
+                            <div class="btn-group">
+                                <button v-on:click="reloado" type="button" class="btn btn-sm btn-outline-primary">Save</button>
+                            </div>
+                        </div>
+                        {# <a href="#" class="btn btn-sm btn-outline-primary" title="DTR Settings">Settings</a> #}
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3">Employment:</div>
+                    <div class="col-sm-9"><strong>{{employment.position}}</strong></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3">Show:</div>
+                    <div class="col-sm-9">
+                        <div class="d-flex">
+                            <select v-model="periodSlice" name="periodSlice" id="periodSlice" class="form-control form-control-sm mr-1">
+                                <option value="15th">1st-15th</option>
+                                <option value="30th">16th-end</option>
+                                <option value="all">All</option>
+                            </select>
+                            <select v-model="periodMonthYear" name="periodMonthYear" id="periodMonthYear" class="form-control form-control-sm mr-1">
+                                <option v-for="option in periodMonthYearList" v-bind:value="option.value">${option.text}</option>
+                            </select>
+                            <select v-model="periodWeekDays" name="periodWeekDays" id="periodWeekDays" class="form-control form-control-sm">
+                                <option value="Mon-Fri">Mon-Fri Only</option>
+                                <option value="Sat-Sun">Sat-Sun Only</option>
+                                <option value="All">All days</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                {% if employment.employmentType != 'part-time' %}
+                <div class="row mb-2">
+                    <div class="col-sm-3">Work Sched:</div>
+                    <div class="col-sm-9">
+                        <select v-model="workScheduleId" name="workScheduleId" id="workScheduleId" class="form-control form-control-sm">
+                            <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.times}</option>
+                        </select>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="row mb-2">
+                    <div class="col-sm-3">In Charge:</div>
+                    <div class="col-sm-9">
+                        <input v-model="inCharge" name="inCharge" id="inCharge" type="text" class="form-control form-control-sm">
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3">Count:</div>
+                    <div class="col-sm-9">
+                        <div class="d-flex">
+                            <select v-model="showTotalAs" name="showTotalAs" id="showTotalAs" class="form-control form-control-sm mr-1">
+                                <option value="time">Time</option>
+                                <option value="undertime">Undertime</option>
+                            </select>
+                            <select v-model="countTimeBy" name="countTimeBy" id="countTimeBy" class="form-control form-control-sm">
+                                <option value="weekdays">On Weekdays Only</option>
+                                <option value="weekends">On Weekends Only</option>
+                                <option value="all">All Week</option>
+                                <option value="none">Don't Show</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+               
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-dtr bg-white">
+                <tr>
+                    <th class="text-center" rowspan="2" colspan="2">{{periodMonthYear|format_date('MMM')}}</th>
+                    <th class="text-center" colspan="2">AM</th>
+                    <th class="text-center" colspan="2">PM</th>
+                    <th class="text-center text-capitalize" colspan="3">${showTotalAs}</th>
+                </tr>
+                <tr class="text-center">
+                    <th>Arrival</th>
+                    <th>Departure</th>
+                    
+                    <th>Arrival</th>
+                    <th>Departure</th>
+
+                    <th>Days</th>
+                    <th>Hours</th>
+                    <th>Minutes</th>
+                </tr>
+                <tr v-for="day in days" v-bind:class="dayCssClasses(day)">
+                    <td class="text-center">
+                        <template v-if="day.attendance">
+                            <button v-on:click="showModalSelect('edit', '{{employment._id}}', day.attendance._id)">${day.day}</button>
+                        </template>
+                        <template v-else-if="day.isNow">
+                            <button v-on:click="showModalSelect('create', '{{employment._id}}', '')">${day.day}</button>
+                        </template>
+                        <template v-else>
+                            <span class="text-dark">${day.day}</span>
+                        </template>
+                    </td>
+                    <td :class="weekDayCssClasses(day)">${day.weekDay}</td>
+                    
+                    <template v-if="_.get(day, 'attendance.type') === 'normal'">
+                        <td class="text-center">${day.display.inAM}</td>
+                        <td class="text-center">
+                            ${day.display.outAM}
+
+                            <div v-if="isTimeOutShown(day)">
+                                <a v-on:click="onlineLog" href="/e-profile/dtr/{{employment._id}}/online" class="btn btn-sm btn-light">OUT</a>
+                                {# <button v-on:click="logTime(0)" class="btn-sm" style="font-size:10px">OUT</button> #}
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            ${day.display.inPM}
+                            <div v-if="isTimeInShown(day)">
+                                <a v-on:click="onlineLog" href="/e-profile/dtr/{{employment._id}}/online" class="btn btn-sm btn-light">IN</a>
+                                {# <button v-on:click="logTime(1)" class="btn-sm" style="font-size:10px">IN</button> #}
+                            </div>
+                        </td>
+                        <td class="text-center">${day.display.outPM}</td>
+                    </template>
+                    <template v-else-if="_.get(day, 'attendance.type') === 'travel'">
+                        <template v-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[0].type') === 'travel'">
+                            <td class="text-center" colspan="2">
+                                Travel
+                            </td>
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}</td>
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>
+                        </template>
+                        <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[2].type') === 'travel'">
+                            
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[0].dateTime'))}</td>
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}</td>
+                            <td class="text-center" colspan="2">
+                                Travel
+                            </td>
+                        </template>
+                        <template v-else>
+                            <td class="text-center" colspan="4">
+                                Travel
+                            </td>
+                        </template>
+                        
+                    </template>
+                    <template v-else-if="_.get(day, 'attendance.type') === 'wfh'">
+                        <template v-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[0].type') === 'wfh'">
+                            <td class="text-center" colspan="2">
+                                Work from Home
+                            </td>
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}</td>
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>
+                        </template>
+                        <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[2].type') === 'wfh'">
+                            
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[0].dateTime'))}</td>
+                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}</td>
+                            <td class="text-center" colspan="2">
+                                Work from Home
+                            </td>
+                        </template>
+                        <template v-else>
+                            <td class="text-center" colspan="4">
+                                Work from Home
+                            </td>
+                        </template>
+                        
+                    </template>
+                    <template v-else>
+                        <td colspan="4" class="text-center">
+                            ${showLogType(_.get(day, 'attendance.type'))}
+                        </td>
+                    </template>
+                    <td class="text-center">
+                        ${subTotalDays(day)}
+                    </td>
+                    <td class="text-center">
+                        ${subTotalHours(day)}
+                    </td>
+                    <td class="text-center">
+                        ${subTotalMinutes(day)}
+                    </td>
+                </tr>
+                {# end v-for #}
+                <template v-if="countTimeBy == 'none'">
+                    <tr class="text-center">
+                        <td colspan="6"><h5 class="m-0">Total</h5></td>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                </template>
+                <template v-else>
+                    <tr v-if="['weekdays', 'all'].includes(countTimeBy)">
+                        <td colspan="6"><h5 class="m-0">Total Weekdays</h5></td>
+                        <td class="text-center">
+                            ${totalDays(stats.weekdays)}
+                        </td>
+                        <td class="text-center">
+                            ${totalHours(stats.weekdays)}
+                        </td>
+                        <td class="text-center">
+                            ${totalMinutes(stats.weekdays)}
+                        </td>
+                    </tr>
+                    <tr v-if="['weekends', 'all'].includes(countTimeBy)">
+                        <td colspan="6"><h5 class="m-0">Total Weekends</h5></td>
+                        <td class="text-center">
+                            ${totalDays(stats.weekends)}
+                        </td>
+                        <td class="text-center">
+                            ${totalHours(stats.weekends)}
+                        </td>
+                        <td class="text-center">
+                            ${totalMinutes(stats.weekends)}
+                        </td>
+                    </tr>
+                    <tr v-if="countTimeBy=='all'">
+                        <td colspan="6"><h5 class="m-0">Total </h5></td>
+                        <td class="text-center">
+                            ${totalDays(stats.days)}
+                        </td>
+                        <td class="text-center">
+                            ${totalHours(stats.days)}
+                        </td>
+                        <td class="text-center">
+                            ${totalMinutes(stats.days)}
+                        </td>
+                    </tr>
+                </template>
+
+            </table>
+        </div>
+        {% if employment.salaryType === 'daily' %}
+            {% if countTimeBy == 'all' %}
+                {# <div class="col-md-6" style="padding: 10px 15px; border-radius: 5px; border: 1px solid gray; background: white">
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${salary} x ${totalDays(stats.days)} days</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${toFixed(salary * totalDays(stats.days))}</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perHour()} x ${totalHours(stats.days)} hours</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${perHour() * totalHours(stats.days)}</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perMinute()} x ${totalMinutes(stats.days)} minutes</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${perMinute() * totalMinutes(stats.days)}</div>
+                    </div>
+                    <div class="form-row align-items-center">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">Gross Pay</span></div>
+                        <div class="col-6 text-right" style="font-size: 18px;">₱ <span class="text-success">${netPay(stats.days.totalMinutes) | currency}</span></div>
+                    </div>
+                </div> #}
+            {% elif countTimeBy == 'weekdays' %}
+                <div class="col-md-6" style="padding: 10px 15px; border-radius: 5px; border: 1px solid gray; background: white">
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${salary} x ${totalDays(stats.weekdays)} days</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${toFixed(salary * totalDays(stats.weekdays))}</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perHour()} x ${totalHours(stats.weekdays)} hours</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${perHour() * totalHours(stats.weekdays)}</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perMinute()} x ${totalMinutes(stats.weekdays)} minutes</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${perMinute() * totalMinutes(stats.weekdays)}</div>
+                    </div>
+                    <div class="form-row align-items-center">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">Gross Pay</span></div>
+                        <div class="col-6 text-right" style="font-size: 18px;">₱ <span class="text-success">${netPay(stats.weekdays.totalMinutes) | currency}</span></div>
+                    </div>
+                </div>
+            {% elif countTimeBy == 'weekends' %}
+                {# <div class="col-md-6" style="padding: 10px 15px; border-radius: 5px; border: 1px solid gray; background: white">
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${salary} x ${totalDays(stats.weekends)} days</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${toFixed(salary * totalDays(stats.weekends))}</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perHour()} x ${totalHours(stats.weekends)} hours</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${perHour() * totalHours(stats.weekends)}</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perMinute()} x ${totalMinutes(stats.weekends)} minutes</span></div>
+                        <div class="col-6 text-right" style="font-size: 14px;">${perMinute() * totalMinutes(stats.weekends)}</div>
+                    </div>
+                    <div class="form-row align-items-center">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">Gross Pay</span></div>
+                        <div class="col-6 text-right" style="font-size: 18px;">₱ <span class="text-success">${netPay(stats.weekends.totalMinutes) | currency}</span></div>
+                    </div>
+                </div> #}
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% include "parts/modal-consent-eprofile.html" %}
+{% include "e-profile/dtr/modal-select-action.html" %}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
+<script src="{{app.url}}/js/vue-money.js"></script>
+{% include "parts/modal-consent-eprofile-script.html" %}
+{% include "e-profile/dtr/script-select-action.html" %}
+<script>
+    var geo = _.get(window, 'navigator.geolocation');
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            VueMoney.mixin,
+        ],
+        data: {
+            pending: false,
+            settingsEditable: false,
+
+            periodMonthYearList: {{periodMonthYearList|default([], true)|stringify|safe}},
+            workSchedules: {{workSchedules|default([], true)|stringify|safe}},
+            days: {{days|default([], true)|stringify|safe}},
+            stats: {{stats|default({}, true)|stringify|safe}},
+
+            urlPath: '{{urlPath}}',
+            workScheduleIdOrig: '{{employment.workScheduleId}}',
+            workScheduleId: '{{employment.workScheduleId}}',
+
+            periodSlice: '{{periodSlice}}',
+            periodMonthYear: '{{periodMonthYear}}',
+            periodWeekDays: '{{periodWeekDays}}',
+            showTotalAs: '{{showTotalAs}}',
+            inChargeOrig: '{{inCharge}}',
+            inCharge: '{{inCharge}}',
+
+            startDate: '{{startDate}}',
+            endDate: '{{endDate}}',
+            countTimeBy: '{{countTimeBy}}',
+            lat: null,
+            lon: null,
+            timeZone: 0 - (new Date().getTimezoneOffset() / 60),
+            salary: {{employment.salary|default(0, true)}}
+        },
+        validations: {},
+        computed: {
+            period: function(){
+                return this.periodSliceString + ' ' + this.periodMonthYearString + ' (' + this.periodWeekDaysString + ')';
+            },
+            periodMonthYearString: function(){
+                return moment(this.periodMonthYear).format('MMMM YYYY');
+            },
+            periodSliceString: function(){
+                if(this.periodSlice === '15th'){
+                    return '1st-15th of';
+                } else if(this.periodSlice === '30th'){
+                    return '16th-end of';
+                }
+                return 'All of';
+            },
+            periodWeekDaysString: function(){
+                if(this.periodWeekDays === 'All'){
+                    return 'All days';
+                }
+                return this.periodWeekDays;
+            },
+            urlQuery: function(){
+                var queries = [];
+                queries.push('periodMonthYear=' + this.periodMonthYear);
+                queries.push('periodSlice=' + this.periodSlice);
+                queries.push('periodWeekDays=' + this.periodWeekDays);
+                queries.push('showTotalAs=' + this.showTotalAs);
+                queries.push('countTimeBy=' + this.countTimeBy);
+                return queries.join('&');
+            },
+            fullUrl: function(){
+                return this.urlPath + '?' + this.urlQuery;
+            },
+            printUrl: function(){
+                return '/e-profile/dtr/print/{{employment._id}}' + '?' + this.urlQuery
+            },
+            shareUrl: function(){
+                return '/e-profile/dtr/share/{{employment._id}}' + '?' + this.urlQuery
+            },
+            patchUrl: function(){
+                return '/e-profile/dtr/{{employment._id}}' + '?' + this.urlQuery
+            },
+            workScheduleString: function(){
+                var me = this;
+                var f = _.find(me.workSchedules, function(o){
+                    return o._id === me.workScheduleId;
+                })
+                if(f){
+                    return f.times;
+                }
+                return ''
+            }
+        },
+        created: function(){
+            var me = this;
+        },
+        mounted: function(){
+            var me = this;
+        },
+        methods: {
+            showModalSelect: function(mode, employmentId, attendanceId) {
+                vModalSelectAction.mode = mode
+                vModalSelectAction.employmentId = employmentId
+                vModalSelectAction.attendanceId = attendanceId
+                jQuery('#modal-select-action').modal('show')
+            },
+            precisionRound: function(number, precision) {
+                var factor = Math.pow(10, precision);
+                return Math.round(number * factor) / factor;
+            },
+            toFixed: function(n){
+                return n.toFixed(2)
+            },
+            perHour: function(){
+                return this.precisionRound(this.salary / 8, 9)
+            },
+            perMinute: function(){
+                return this.precisionRound(this.salary / 8 / 60, 9)
+            },
+            netPay: function(minutes){
+                return this.precisionRound((this.salary / 8 / 60) * minutes, 9).toFixed(2)
+            },
+            subTotalDays: function(day) {
+                var x = _.get(day, 'dtr.renderedDays', '');
+                if(this.showTotalAs === 'undertime'){
+                    x = _.get(day, 'dtr.underDays', '');
+                }
+                return (x === 0) ? '' : x;
+            },
+            subTotalHours: function(day) {
+                var x = _.get(day, 'dtr.renderedHours', '');
+                if(this.showTotalAs === 'undertime'){
+                    x = _.get(day, 'dtr.underHours', '');
+                }
+                return (x === 0) ? '' : x;
+            },
+            subTotalMinutes: function(day) {
+                var x = _.get(day, 'dtr.renderedMinutes', '');
+                if(this.showTotalAs === 'undertime'){
+                    x = _.get(day, 'dtr.underMinutes', '');
+                }
+                return (x === 0) ? '' : x;
+            },
+            totalDays: function(timeRecordSummary) {
+                var x = _.get(timeRecordSummary, 'renderedDays', '')
+                if(this.showTotalAs === 'undertime'){
+                    x = _.get(timeRecordSummary, 'underDays', '')
+                }
+                return (x === 0) ? '' : x;
+            },
+            totalHours: function(timeRecordSummary) {
+                var x = _.get(timeRecordSummary, 'renderedHours', '')
+                if(this.showTotalAs === 'undertime'){
+                    x = _.get(timeRecordSummary, 'underHours', '')
+                }
+                return (x === 0) ? '' : x;
+            },
+            totalMinutes: function(timeRecordSummary) {
+                var x = _.get(timeRecordSummary, 'renderedMinutes', '')
+                if(this.showTotalAs === 'undertime'){
+                    x = _.get(timeRecordSummary, 'underMinutes', '')
+                }
+                return (x === 0) ? '' : x;
+            },
+            showLogType: function(type) {
+                type = _.capitalize(type);
+                type = _.replace(type, 'Pass', 'Pass Slip');
+                type = _.replace(type, 'Wfh', 'WFH');
+                return type;
+            },
+            showLogTime: function(dateTime) {
+                if(dateTime){
+                    return moment(dateTime).tz('Asia/Manila').format('hh:mm');
+                }
+                return ''
+            },
+            attendanceEditUrl: function(day) {
+                return '/e-profile/attendance/' + _.get(day, 'attendance._id') + '';
+            },
+            weekDayCssClasses: function(day){
+                var classes = ['text-center'];
+                
+                if(day.isWeekend){
+                    {# classes.push('bg-light'); #}
+                } 
+
+                return classes.join(' ');
+            },
+            dayCssClasses: function(day){
+                var classes = [];
+                
+                if(day.isNow){
+                    classes.push('selected');
+                } 
+                if (_.get(day, 'dtr.undertime') === true) {
+                    classes.push('undertime');
+                }
+
+                return classes.join(' ');
+            },
+            reloado: function(){
+                if (this.workScheduleIdOrig != this.workScheduleId || this.inChargeOrig != this.inCharge){
+                    this.xhrPatchDtr()
+                } else {
+                    this.pending = true
+                    window.location.href = this.fullUrl
+                }
+            },
+            xhrPatchDtr: function(){
+                var me = this;
+
+                me.pending = true;
+                var body = {
+                    workScheduleId: me.workScheduleId,
+                    inCharge: me.inCharge,
+                };
+                axios.patch(me.patchUrl, body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
+                    var data = _.get(response, 'data')
+                    console.log(data)
+
+                    window.location.href = me.fullUrl
+                    
+                }).catch(function (error) {
+                    if (error.response) {
+                        // Request made, server responded with a status code outside of 2xx
+                        // console.error(error.response.status)
+                        var err = error.response.data;
+                       console.error(err)
+                       alert(err.msg)
+
+                    } else if (error.request) {
+                        var msg = 'The request was made but no response was received'
+                        console.error(msg);
+
+                    } else {
+                        var msg = 'Something happened in setting up the request that triggered an Error.'
+                        console.error(msg, error.message);
+
+                    }
+                    me.pending = false;
+                    me.settingsEditable = false;
+                })
+            },
+            isTimeOutShown: function(dtrDay) {
+                return _.get(dtrDay, 'attendance.logs[0]') && !_.get(dtrDay, 'attendance.logs[1]')&& this.isCurrentDay(dtrDay);
+            },
+            isTimeInShown: function(dtrDay) {
+                return _.get(dtrDay, 'attendance.logs[1]') && !_.get(dtrDay, 'attendance.logs[2]')&& this.isCurrentDay(dtrDay);
+            },
+            isCurrentDay: function(dtrDay){
+                return _.get(dtrDay, 'date') === moment().format('YYYY-MM-DD');
+            },
+
+            onlineLog: function(){
+                this.pending = true;
+            },
+
+            logTime: function(logType){
+                var me = this;
+
+                var msg = 'Are you sure you want to time-out now?'
+                if(logType==1){
+                    msg = 'Are you sure you want to time-in now?'
+                }
+                if(!confirm(msg)){
+                    return ;
+                }
+
+                if (!geo) {
+                    alert("Your browser does not support the online time-in/time-out. Please go to the scanner to log.");
+                } else { 
+
+                    me.pending = true;
+
+                    geo.getCurrentPosition(
+                        function(location){  
+
+                            var body = {
+                                mode: logType,
+                                lat: _.get(location, 'coords.latitude'),
+                                lon: _.get(location, 'coords.longitude'),
+                            };
+
+                            axios.post('/e-profile/dtr/{{employment._id}}/logs', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
+                                var data = _.get(response, 'data')
+                                window.location.href = me.fullUrl
+                            }).catch(function (error) {
+                                if (error.response) {
+                                    // Request made, server responded with a status code outside of 2xx
+                                    // console.error(error.response.status)
+                                    var err = error.response.data;
+                                    console.error(err)
+                                    alert(err.msg)
+
+                                } else if (error.request) {
+                                    var msg = 'The request was made but no response was received'
+                                    console.error(msg);
+
+                                } else {
+                                    var msg = 'Something happened in setting up the request that triggered an Error.'
+                                    console.error(msg, error.message);
+
+                                }
+                                me.pending = false;
+
+                            }).then(function () {
+                            })
+
+                        }, 
+                        function(positionError) {
+
+                            var code = _.get(positionError, 'code', 0)
+
+                            if (code === 1) { // PERMISSION_DENIED
+                                alert("You must allow this permission \nto use the service: \nPermissions > Location > Allow\nOtherwise, you can go to one of our scanner to log.")
+                            } else if (code === 2) { // POSITION_UNAVAILABLE
+                                alert('Service unavailable. Please go to the scanner to log.')
+                            } else if (code === 3) { // TIMEOUT
+                                alert('Logging failed. Please try again later or go to the scanner to log.')
+                            } else {
+                                alert('Unknown error. Please go to the scanner to log.')
+                            }
+
+                            me.pending = false;
+
+                        },
+                        { 
+                            timeout: 5000,
+                            enableHighAccuracy: true
+                        }
+                    ); 
+                }
+            },
+        }
+    });
+</script>
+{% endblock %}

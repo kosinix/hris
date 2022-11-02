@@ -140,18 +140,29 @@ div[data-pending="true"]:after {
 }
 
 
-.fx-wiggle {
+.fx-pop {
     display: inline-block;
-    animation: wiggle 10s infinite;
-    animation-delay: 5s;
+    animation: pop .5s linear 1;
+    animation-delay: .5s;
+}
+.fx-pop2 {
+    display: inline-block;
+    animation: popsi .5s linear 1;
+    animation-delay: .7s;
+}
+.fx-pop3 {
+    display: inline-block;
+    animation: pop .5s linear 1;
+    animation-delay: .9s;
 }
 
-@keyframes wiggle {
-    0% { transform:translate(0,0) rotate(0deg);}
-    25% { transform:translate(30px,0) rotate(5deg); }
-    50% { transform:translate(30px,0) rotate(5deg); }
-    75% { transform:translate(0,0) rotate(0deg);}
-    100% { transform:translate(0,0) rotate(0deg);}
+@keyframes popsi {
+    10%  {transform: scale(2);}
+    60%  {transform: scale(2);}
+}
+@keyframes pop {
+    10%  {transform: scale(4);}
+    60%  {transform: scale(4);}
 }
 
 .fx-scan {
@@ -1301,6 +1312,9 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
 }
 
 /* Scanner Calendar */
+.scanner-calendar {
+    text-align: center;
+}
 .scanner-calendar .time {
     color: #001968; 
     font-size: 85px; 
@@ -1309,7 +1323,6 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
 .scanner-calendar .date {
     color: #0b51af; 
     font-size: 28px; 
-    text-align: center;
 }
 .scanner-calendar .weekDays .weekDay {
     color: #001968;
@@ -1383,6 +1396,48 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     100% { transform: translate(100%, -1000px); opacity: 0; }
 }
 
+.table-scanner-logs {
+    font-size: 30px;
+}
+.table-scanner-logs th {
+    color: gray;
+}
+.table-scanner-logs td {
+    color: gray;
+}
+.table-scanner-logs th.current {
+    color: #001968;
+}
+.table-scanner-logs .current {
+    color: #001968;
+}
+.scanner-kiosk .profile {
+    overflow: hidden;
+    border-radius: 100%;
+    max-width: 200px;
+    max-height: 200px;
+    margin: 0px auto 15px;
+    border: 8px solid #f8f9fa;
+    box-shadow: 2px 5px 15px #495057;
+}
+
+.scanner-kiosk .employee-name {
+    font-size: 22px;
+    color: #000;
+}
+
+/* .table-scanner-logs {
+    border-left: 1px solid #ccc;
+    border-top: 1px solid #ccc;
+}
+.table-scanner-logs th {
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+}
+.table-scanner-logs td {
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+} */
 
 /* Breakpoints */
 /* ≥1200px Extra large */

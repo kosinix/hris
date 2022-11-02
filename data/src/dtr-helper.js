@@ -8,6 +8,31 @@ const momentExt = momentRange.extendMoment(moment)
 const money = require('money-math')
 
 //// Modules
+const utils = require('./utils')
+
+// Convert from minutes from midnight into HTML time input HH:mm
+let mToTime = (minutes, format, date = null) => {
+    if (!minutes) return 0
+    format = format || 'HH:mm'
+    let mDate = {}
+    if (date) {
+        mDate = moment.utc(date)
+    } else {
+        mDate = moment().startOf('year')
+    }
+    return mDate.startOf('day').add(minutes, 'minutes').format(format)
+}
+
+// Convert from HTML time input HH:mm into minutes from midnight
+let timeToM = (time, format) => {
+    format = format || 'HH:mm'
+    var momentDayStart = moment().startOf('day')
+
+    var timeParser = moment(time, format)
+    var momentTime = momentDayStart.clone().hours(timeParser.hours()).minutes(timeParser.minutes())
+
+    return momentTime.diff(momentDayStart, 'minutes')
+}
 
 /**
  * Stores working shift data
@@ -127,17 +152,59 @@ const getNearestShift = (needle, shifts) => {
 }
 
 /**
- * Find next shift from needle
+ * Find previous shift from needle
  * @param {number} needle - Minutes from midnight
  * @param {array|null} shifts - Array of shift objects created by createShift. Must be sorted low to high. Null on error.
  */
-const getNextShift = (needle, shifts) => {
+const getPrevShift = (needle, shifts) => {
+    let index = null
+    for (let i = shifts.length - 1; i >= 0; i--) {
+        let shift = shifts[i]
+        if (needle > shift.start) {
+            index = i
+            break; // Stop. Dont check other shifts
+        }
+    }
+
+    if (index === null) {
+        return new Error('No more next shifts.')
+    }
+    return shifts[index]
+}
+
+/**
+ * Find next shift from needle
+ * @param {number} needle - Minutes from midnight
+ * @param {array|null} shifts - Array of shift objects created by createShift. Must be sorted low to high. Null on error.
+ * @param {array|null} includeCurrent - Include current shifts (log is inside a segment) or just look for next shifts.
+ */
+const getNextShift = (needle, shifts, includeCurrent = true) => {
     let index = null
     for (let i = 0; i < shifts.length; i++) {
         let shift = shifts[i]
-        if (needle < shift.end) {
+        if (includeCurrent && needle < shift.end) {
             index = i
             break; // Stop. Dont check other shifts
+        } else if (needle < shift.start) {
+            index = i
+            break; // Stop. Dont check other shifts
+        }
+    }
+
+    if (index === null) {
+        return new Error('No more next shifts.')
+    }
+    return shifts[index]
+}
+
+const getLastShift = (needle, shifts, includeCurrent = true) => {
+    let index = null
+    for (let i = 0; i < shifts.length; i++) {
+        let shift = shifts[i]
+        if (includeCurrent && needle < shift.end) {
+            index = i
+        } else if (needle < shift.start) {
+            index = i
         }
     }
 
@@ -664,7 +731,7 @@ const logAttendance = async (db, employee, employment, scannerId, waitTime = 15,
         }
 
         if (attendance.logs.length >= maxScans) {
-            throw new Error('Max scans already.')
+            throw new Error('Max logs already.')
         }
 
         if (attendance.logs.length <= 0) {
@@ -714,9 +781,268 @@ const logAttendance = async (db, employee, employment, scannerId, waitTime = 15,
         }
     }
 
-
-
     return attendance.logs[attendance.logs.length - 1]
+}
+
+/**
+ * 
+ * @param {*} db Instance of mongodb connection
+ * @param {*} date 
+ * @param {*} employee 
+ * @param {*} employment 
+ * @param {*} source 
+ * @param {*} attendanceType 
+ * @returns 
+ */
+const logTravelAndWfh = async (db, date, employee, employment, source, attendanceType = 'travel') => {
+    let momentDate = moment(date)
+    let attendance = await db.main.Attendance.findOne({
+        employeeId: employee._id,
+        employmentId: employment._id,
+        createdAt: {
+            $gte: momentDate.clone().startOf('day').toDate(),
+            $lt: momentDate.clone().endOf('day').toDate(),
+        }
+    }).lean()
+
+    let logSource = utils.safeMerge({}, source, ['id', 'type', 'lat', 'lon', 'photo'])
+
+    let workSchedule = await db.main.WorkSchedule.findById(employment.workScheduleId).lean()
+    let workScheduleTimeSegments = getWorkScheduleTimeSegments(workSchedule, momentDate.format('YYYY-MM-DD[T]HH:mm:ss.SSS[Z]'))
+
+    let firstShift = {
+        start: 420, // 7am
+        end: 720 // 12pm
+    }
+    try {
+        firstShift = getNextShift(firstShift.start, workScheduleTimeSegments, true)
+    } catch (_err) { }
+
+    let lastShift = {
+        start: 780, // 1pm
+        end: 1020 // 5pm
+    }
+    try {
+        lastShift = getLastShift(firstShift.start, workScheduleTimeSegments, true)
+    } catch (_err) { }
+
+    if (!attendance) {
+
+        // We need 2 logs to form a segment
+        let logs = []
+        logs.push({
+            dateTime: momentDate.clone().startOf('day').add(firstShift.start, 'minutes').toDate(),
+            mode: 1, // 1 = in, 0 = out
+            type: attendanceType, // 'normal', 'wfh', 'travel', 'pass'
+            source: logSource,
+            createdAt: moment().toDate(),
+        })
+        logs.push({
+            dateTime: momentDate.clone().startOf('day').add(lastShift.end, 'minutes').toDate(),
+            mode: 0,
+            type: attendanceType,
+            source: logSource,
+            createdAt: moment().toDate(),
+        })
+
+        attendance = await db.main.Attendance.create({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            workScheduleId: employment.workScheduleId,
+            type: attendanceType,
+            logs: logs,
+        })
+
+    } else {
+
+        let maxScans = 4
+        if (attendance.logs.length >= maxScans) {
+            throw new Error('Max logs already.')
+        }
+
+        if (attendance.logs.length <= 0) {
+            throw new Error('Bad attendance data.') // should have at least 1 log
+        }
+
+        if (attendance.logs.length === 1) {
+            let endingLogMinutes = timeToM(moment().format('YYYY-MM-DD[T]HH:mm:ss.SSS[Z]'), 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]')
+            if(endingLogMinutes > lastShift.end){
+                throw new Error(`Could not set attendance. Your previous log is more than the current time.`)
+            }
+            
+            // We need 3 more logs
+            attendance.logs.push({
+                _id: db.mongoose.Types.ObjectId(),
+                dateTime: moment().toDate(),
+                mode: 1, // 1 = in, 0 = out
+                type: attendanceType, // 'normal', 'wfh', 'travel', 'pass'
+                source: logSource,
+                createdAt: moment().toDate(),
+            })
+            attendance.logs.push({
+                _id: db.mongoose.Types.ObjectId(),
+                dateTime: moment().toDate(),
+                mode: 1, // 1 = in, 0 = out
+                type: attendanceType,
+                source: logSource,
+                createdAt: moment().toDate(),
+            })
+            attendance.logs.push({
+                _id: db.mongoose.Types.ObjectId(),
+                dateTime: moment(attendance.createdAt).startOf('day').add(lastShift.end, 'minutes').toDate(),
+                mode: 0,
+                type: attendanceType,
+                source: logSource,
+                createdAt: moment().toDate(),
+            })
+            attendance.type = attendanceType
+
+        } else if (attendance.logs.length === 2) {
+
+            let lastLog = attendance.logs[attendance.logs.length - 1]
+            let lastLogMoment = moment(lastLog.dateTime)
+            let lastLogMinutes = timeToM(lastLog.dateTime, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]')
+            let endingLogMinutes = timeToM(moment().format('YYYY-MM-DD[T]HH:mm:ss.SSS[Z]'), 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]')
+            if(lastLogMinutes > endingLogMinutes){
+                throw new Error(`Could not set attendance. Your previous log (${lastLogMoment.format('hh:mmA')}) is more than the current time (${moment().format('hh:mmA')}).`)
+            }
+            
+            // We need 2 logs to form a segment
+            attendance.logs.push({
+                _id: db.mongoose.Types.ObjectId(),
+                dateTime: lastLogMoment.toDate(),
+                mode: 1, // 1 = in, 0 = out
+                type: attendanceType, // 'normal', 'wfh', 'travel', 'pass'
+                source: logSource,
+                createdAt: moment().toDate(),
+            })
+            attendance.logs.push({
+                _id: db.mongoose.Types.ObjectId(),
+                dateTime: moment().toDate(),
+                mode: 0,
+                type: attendanceType,
+                source: logSource,
+                createdAt: moment().toDate(),
+            })
+            attendance.type = attendanceType
+        }
+
+
+        let dbOpRes = await db.main.Attendance.collection.updateOne({
+            _id: attendance._id
+        }, {
+            $set: {
+                type: attendance.type,
+                logs: attendance.logs
+            }
+        })
+        if (dbOpRes.modifiedCount <= 0) {
+            throw new Error('No changes made.')
+        }
+        if (dbOpRes.matchedCount <= 0) {
+            throw new Error('Could not find attendance.')
+        }
+    }
+
+    return attendance
+}
+
+/**
+ * 
+ * @param {*} db 
+ * @param {*} date 
+ * @param {*} employee 
+ * @param {*} employment 
+ * @param {*} source 
+ * @param {*} waitTime 
+ * @returns 
+ */
+const logNormal = async (db, date, employee, employment, source, waitTime = 15) => {
+    let momentDate = moment(date)
+    let attendance = await db.main.Attendance.findOne({
+        employeeId: employee._id,
+        employmentId: employment._id,
+        createdAt: {
+            $gte: momentDate.clone().startOf('day').toDate(),
+            $lt: momentDate.clone().endOf('day').toDate(),
+        }
+    }).lean()
+
+    let logSource = utils.safeMerge({}, source, ['id', 'type', 'lat', 'lon', 'photo'])
+
+    if (!attendance) {
+        let logs = []
+        logs.push({
+            dateTime: moment().toDate(),
+            mode: 1, // 1 = in, 0 = out
+            type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
+            source: logSource,
+            createdAt: moment().toDate(),
+        })
+
+        attendance = await db.main.Attendance.create({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            workScheduleId: employment.workScheduleId,
+            type: 'normal',
+            logs: logs,
+        })
+    } else {
+
+        let maxScans = 4
+        if (attendance.logs.length >= maxScans) {
+            throw new Error('Max logs already.')
+        }
+
+        if (attendance.logs.length <= 0) {
+            throw new Error('Bad attendance data.') // should have at least 1 log
+        }
+
+        let lastLog = lodash.get(attendance, `logs[${attendance.logs.length - 1}]`)
+
+        if (attendance.logs.length === 2 && lastLog && (lastLog.type === 'travel' || lastLog.type === 'wfh')) {
+            attendance.logs[attendance.logs.length - 1].dateTime = moment().toDate() // Cut full travel/wfh into half
+        } else {
+
+            // Throttle to avoid double scan
+            let diff = moment().diff(moment(lastLog.dateTime), 'minutes')
+            if (diff < waitTime) {
+                let timeUnit = 'minute'
+                if (waitTime - diff > 1) {
+                    timeUnit = 'minutes'
+                }
+                throw new Error(`You have just logged. Please wait ${waitTime - diff} ${timeUnit} and try again later.`)
+            }
+        }
+
+        let mode = lastLog.mode === 1 ? 0 : 1 // Toggle 1 or 0
+
+        let log = {
+            dateTime: moment().toDate(),
+            mode: mode,
+            type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
+            source: logSource,
+            createdAt: moment().toDate(),
+        }
+
+        attendance.logs.push(log)
+
+        let dbOpRes = await db.main.Attendance.collection.updateOne({
+            _id: attendance._id
+        }, {
+            $set: {
+                logs: attendance.logs
+            }
+        })
+        if (dbOpRes.modifiedCount <= 0) {
+            throw new Error('Failed to save.')
+        }
+        if (dbOpRes.matchedCount <= 0) {
+            throw new Error('Could not find attendance.')
+        }
+    }
+
+    return attendance
 }
 
 const editAttendance = async (db, attendanceId, attendancePatch, user) => {
@@ -1032,30 +1358,6 @@ const editAttendance2 = async (db, attendance, attendancePatch, user) => {
         changeLogs: changeLogs,
         attendance: attendance,
     }
-}
-
-// Convert from minutes from midnight into HTML time input HH:mm
-let mToTime = (minutes, format, date = null) => {
-    if (!minutes) return 0
-    format = format || 'HH:mm'
-    let mDate = {}
-    if (date) {
-        mDate = moment.utc(date)
-    } else {
-        mDate = moment().startOf('year')
-    }
-    return mDate.startOf('day').add(minutes, 'minutes').format(format)
-}
-
-// Convert from HTML time input HH:mm into minutes from midnight
-let timeToM = (time, format) => {
-    format = format || 'HH:mm'
-    var momentDayStart = moment().startOf('day')
-
-    var timeParser = moment(time, format)
-    var momentTime = momentDayStart.clone().hours(timeParser.hours()).minutes(timeParser.minutes())
-
-    return momentTime.diff(momentDayStart, 'minutes')
 }
 
 const createWorkScheduleTemplate = () => {
@@ -1618,6 +1920,16 @@ let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
             newLog.source.id = employee.userId
             newLog.source.type = 'userAccount'
         }
+        if ('wfh' === log.type) {
+            newLog.type = 'wfh'
+            newLog.source.id = employee.userId
+            newLog.source.type = 'userAccount'
+        }
+        if ('leave' === log.type) {
+            newLog.type = 'leave'
+            newLog.source.id = employee.userId
+            newLog.source.type = 'userAccount'
+        }
         if (lodash.has(log, 'extra.id')) {
             newLog.source.id = log.extra.id
         }
@@ -1892,6 +2204,30 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
         return day
     })
 
+    let time = (dateTime, format = 'hh:mm A') => {
+        if (!dateTime) return ''
+        return moment(dateTime).format(format)
+    }
+
+    days = days.map((day) => {
+        let times = {
+            inAM: time(lodash.get(day, 'attendance.logs[0].dateTime')),
+            outAM: time(lodash.get(day, 'attendance.logs[1].dateTime')),
+            inPM: time(lodash.get(day, 'attendance.logs[2].dateTime')),
+            outPM: time(lodash.get(day, 'attendance.logs[3].dateTime')),
+        }
+        if (lodash.get(day, 'attendance.logs.length') == 2) {
+            if ('PM' == time(lodash.get(day, 'attendance.logs[0].dateTime'), 'A')) {
+                times.inPM = times.inAM
+                times.outPM = times.outAM
+                times.inAM = ''
+                times.outAM = ''
+            }
+        }
+        day.display = times
+        return day
+    })
+
     let weekdays = days.filter((day) => {
         return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(day.weekDay)
     })
@@ -1953,6 +2289,7 @@ module.exports = {
     getDtrMonthlyView: getDtrMonthlyView,
     getDtrTable: getDtrTable,
     getNearestShift: getNearestShift,
+    getPrevShift: getPrevShift,
     getNextShift: getNextShift,
     getTimeBreakdown: getTimeBreakdown,
     getDtrByDateRange: getDtrByDateRange,
@@ -1973,5 +2310,7 @@ module.exports = {
     getDtrByDateRange2: getDtrByDateRange2,
     editAttendance2: editAttendance2,
     isFlagRaisingDay: isFlagRaisingDay,
+    logTravelAndWfh: logTravelAndWfh,
+    logNormal: logNormal,
 }
 

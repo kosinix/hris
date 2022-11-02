@@ -12,8 +12,6 @@ let schema = mongoose.Schema({
     employmentId: {
         $type: mongoose.Schema.Types.ObjectId
     },
-    onTravel: Boolean, // @deprecated. Use type
-    wfh: Boolean, // @deprecated. Use type
     workScheduleId: {
         $type: mongoose.Schema.Types.ObjectId
     },
@@ -21,11 +19,15 @@ let schema = mongoose.Schema({
         $type: String,
         default: 'normal', // wfh, travel, pass, leave
     },
+    onTravel: Boolean, // @deprecated. Use type
+    wfh: Boolean, // @deprecated. Use type
     // Logs can be null for blank logs (half-day)
     logs: [
         {
             dateTime: Date,
+            minutes: Number, // Minutes from midnight
             mode: Number, // 1 = in, 0 = out
+            createdAt: Date,
 
             // @deprecated: 'online', 'scanner' 
             // Replaced by: 'normal', 'wfh', 'travel', 'pass'

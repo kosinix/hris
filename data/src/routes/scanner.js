@@ -160,7 +160,7 @@ router.post('/scanner/:scannerId/edit', middlewares.guardRoute(['read_scanner', 
         lodash.set(patch, 'campus', lodash.get(body, 'campus'))
         lodash.set(patch, 'device', lodash.get(body, 'device'))
         lodash.set(patch, 'active', lodash.get(body, 'active'))
-        lodash.set(patch, 'refresh', refresh === 'true' ? true : false)
+        // lodash.set(patch, 'refresh', refresh === 'true' ? true : false)
         lodash.set(patch, 'useCam', useCam === 'true' ? true : false)
 
         // socket io refresh whoa
@@ -223,7 +223,7 @@ router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner',
                 $in: forDeletion
             }
         })
-        
+
         // return res.send(downTimes)
 
         res.render('scanner/status.html', {
@@ -250,7 +250,7 @@ router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']),
 
         let template = 'scanner/scan.html'
         if (scanner.device === 'qrCodeDevice' || scanner.device === 'rfid') {
-            template = 'scanner/scan-device2.html'
+            template = 'scanner/scan-device3.html'
         }
         res.render(template, {
             qrData: qrData,
@@ -331,7 +331,12 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
             res.send({
                 scanner: scanner,
                 log: log,
-                employee: scanData.employee,
+                employee: {
+                    firstName: scanData.employee.firstName,
+                    middleName: scanData.employee.middleName,
+                    lastName: scanData.employee.lastName,
+                    profilePhoto: scanData.employee.profilePhoto,
+                },
                 employment: scanData.employment,
                 code: scanData.code
             })
@@ -362,6 +367,142 @@ router.post('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner'])
         }
 
 
+    } catch (err) {
+        next(err)
+    }
+});
+
+// Uses hrsprint (v3) scanner
+router.post('/scanner/:scannerUid/log', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, async (req, res, next) => {
+    try {
+        // Get post body
+        let code = lodash.get(req, 'body.code')
+        let photo = lodash.get(req, 'body.photo', '')
+
+        if (!code) {
+            throw new AppError('Sorry, invalid scan.')
+        }
+        code = String(code) // Convert to string
+        if (code.length !== 10) { // RFID numbers are 10 characters
+            throw new AppError('Sorry, invalid ID number.')
+        }
+
+        // Get scanner
+        let scanner = res.scanner.toObject()
+
+        // Get employee assoc with code
+        let employee = await req.app.locals.db.main.Employee.findOne({
+            uid: code
+        }).lean()
+        if (!employee) {
+            throw new AppError('Sorry, ID card is not registered.', {
+                scanner: res.scanner,
+                timeOut: 10
+            })
+        }
+
+        // Get all active employments
+        let employments = await req.app.locals.db.main.Employment.find({
+            employeeId: employee._id,
+            active: true,
+        }).lean()
+        if (employments.length <= 0) {
+            throw new AppError('Sorry, you have no active employments.', {
+                scanner: res.scanner,
+                timeOut: 10
+            })
+        }
+
+        let payload = {
+            attendances: [],
+            employee: {
+                firstName: employee.firstName,
+                middleName: employee.middleName,
+                lastName: employee.lastName,
+                gender: employee.gender,
+                birthDate: employee.birthDate,
+                profilePhoto: employee.profilePhoto,
+            },
+            log: null,
+            logs: {}
+        }
+
+        // Cam photo
+        let saveList = null
+        if (photo) {
+            let file = uploader.toReqFile(photo)
+            let files = {
+                photos: [file]
+            }
+            let localFiles = await uploader.handleExpressUploadLocalAsync(files, CONFIG.app.dirs.upload)
+            let imageVariants = await uploader.resizeImagesAsync(localFiles, null, CONFIG.app.dirs.upload); // Resize uploaded images
+
+            let uploadList = uploader.generateUploadList(imageVariants, localFiles)
+            saveList = uploader.generateSaveList(imageVariants, localFiles)
+            await uploader.uploadToS3Async(uploadList)
+            await uploader.deleteUploadsAsync(localFiles, imageVariants)
+        }
+
+
+        // Order by priority
+        let sortPriority = CONFIG.employmentTypes.map(e => e.value)
+        // Do not include not found in sort
+        employments = employments.filter(e => {
+            return sortPriority.includes(e.employmentType)
+        })
+        employments.sort(function (a, b) {
+            return sortPriority.indexOf(a.employmentType) - sortPriority.indexOf(b.employmentType);
+        });
+
+        // Log for every active employment
+        for (let c = 0; c < employments.length; c++) {
+            let source = {
+                id: scanner._id,
+                type: 'scanner',
+                photo: lodash.get(saveList, 'photos[0]', '')
+            }
+            let attendanceChanged = await dtrHelper.logNormal(req.app.locals.db, moment(), employee, employments[c], source)
+            payload.attendances.push(attendanceChanged)
+        }
+
+        // Convert to full url
+        if (employee.profilePhoto) {
+            payload.employee.profilePhoto = `/file-getter/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/small-${employee.profilePhoto}`
+        }
+
+        // Display logs on scanner
+        let mainAttendance = payload.attendances[0]
+        let mainEmployment = employments[0]
+
+        // Normalize Attendance
+        let workSchedule = {}
+        if (mainAttendance.workScheduleId) {
+            workSchedule = await req.app.locals.db.main.WorkSchedule.findById(mainAttendance.workScheduleId).lean()
+        } else {
+            workSchedule = await req.app.locals.db.main.WorkSchedule.findById(mainEmployment.workScheduleId).lean()
+        }
+        let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, mainAttendance.createdAt)
+        mainAttendance = dtrHelper.normalizeAttendance(mainAttendance, employee, workScheduleTimeSegments)
+
+        payload.logs = {
+            log0: lodash.get(mainAttendance, 'logs[0]'),
+            log1: lodash.get(mainAttendance, 'logs[1]'),
+            log2: lodash.get(mainAttendance, 'logs[2]'),
+            log3: lodash.get(mainAttendance, 'logs[3]')
+        }
+        payload.log = mainAttendance.logs.pop()
+        payload.logIndex = 0
+        payload.logs = lodash.mapValues(payload.logs, (log) => {
+            if (lodash.get(log, 'type') === 'travel') {
+                payload.logIndex++;
+                return 'Travel'
+            } else if (lodash.get(log, 'dateTime')) {
+                payload.logIndex++;
+                return moment(log.dateTime).format('h:mmA')
+            }
+            return log
+        })
+        res.send(payload)
     } catch (err) {
         next(err)
     }

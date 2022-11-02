@@ -207,13 +207,13 @@
                             <td class="text-center" colspan="2">
                                 Travel
                             </td>
-                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}</td>
-                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>
+                            <td class="text-center">${day.display.inPM}</td>
+                            <td class="text-center">${day.display.outPM}</td>
                         </template>
                         <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[2].type') === 'travel'">
                             
-                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[0].dateTime'))}</td>
-                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}</td>
+                            <td class="text-center">${day.display.inAM}</td>
+                            <td class="text-center">${day.display.outAM}</td>
                             <td class="text-center" colspan="2">
                                 Travel
                             </td>
@@ -230,13 +230,13 @@
                             <td class="text-center" colspan="2">
                                 Work from Home
                             </td>
-                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[2].dateTime'))}</td>
-                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[3].dateTime'))}</td>
+                            <td class="text-center">${day.display.inPM}</td>
+                            <td class="text-center">${day.display.outPM}</td>
                         </template>
                         <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[2].type') === 'wfh'">
                             
-                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[0].dateTime'))}</td>
-                            <td class="text-center">${showLogTime(_.get(day, 'attendance.logs[1].dateTime'))}</td>
+                            <td class="text-center">${day.display.inAM}</td>
+                            <td class="text-center">${day.display.outAM}</td>
                             <td class="text-center" colspan="2">
                                 Work from Home
                             </td>

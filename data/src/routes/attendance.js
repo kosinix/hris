@@ -13,6 +13,7 @@ const momentExt = momentRange.extendMoment(moment)
 const dtrHelper = require('../dtr-helper')
 const excelGen = require('../excel-gen')
 const middlewares = require('../middlewares')
+const s3 = require('../aws-s3');
 const workScheduler = require('../work-scheduler')
 
 
@@ -498,7 +499,9 @@ router.post('/attendance/flag/create', middlewares.guardRoute(['create_attendanc
         attendance = attendances.pop()
         let user = await req.app.locals.db.main.User.findById(attendance.employee.userId)
         attendance.userId = user._id
-        req.ioFlagRaising.emit('added', attendance)
+
+        let room = momentDate.format('YYYY-MM-DD')
+        req.ioFlagRaising.to(room).emit('added', attendance)
 
         flash.ok(req, 'attendance', 'Flag raising attendance saved.')
         res.redirect('/attendance/flag/all')
@@ -522,9 +525,30 @@ router.get('/attendance/flag/:attendanceFlagId/delete', middlewares.guardRoute([
             throw new Error('User not found.')
         }
 
+        // Delete files on AWS S3
+        const bucketName = CONFIG.aws.bucket1.name
+        const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
+        let photo = lodash.get(attendance, 'extra.photo', lodash.get(attendance, 'source.photo'))
+        if (photo) {
+            await s3.deleteObjects({
+                Bucket: bucketName,
+                Delete: {
+                    Objects: [
+                        { Key: `${bucketKeyPrefix}${photo}` },
+                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                        { Key: `${bucketKeyPrefix}small-${photo}` },
+                        { Key: `${bucketKeyPrefix}medium-${photo}` },
+                        { Key: `${bucketKeyPrefix}large-${photo}` },
+                    ]
+                }
+            }).promise()
+        }
+
+
         let deleted = await attendance.remove()
 
-        req.ioFlagRaising.emit('deleted', {
+        let room = moment(deleted.createdAt).format('YYYY-MM-DD')
+        req.ioFlagRaising.to(room).emit('deleted', {
             _id: deleted._id,
             employeeId: employee._id,
             userId: user._id,

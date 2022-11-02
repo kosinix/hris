@@ -153,8 +153,8 @@
     });
 
     io.on('connection', function (socket) {
-        let scannerId = lodash.get(socket, 'handshake.query.scanner')
-        let scanner = lodash.get(socket, 'request.scanner')
+        let scannerId = lodash.get(socket, 'handshake.query.scanner') // From client
+        let scanner = lodash.get(socket, 'request.scanner') // From middleware
         // console.log(socket.request)
         // console.log(`A scanner connected`, scanner, 'with socket ID', socket.id);
         scanners.push(scannerId)
@@ -199,7 +199,12 @@
 
     // Flag raising namespaced websocket connection
     ioFlagRaising.on('connection', function (socket) {
+        let room = lodash.get(socket, 'handshake.query.room')
         // console.log(socket.id)
+        if (room) {
+            socket.join(room)
+            // console.log('room', room)
+        }
     })
     ioFlagRaising.on('disconnect', function (socket) {
         // console.log(socket.id)

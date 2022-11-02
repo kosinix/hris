@@ -10,7 +10,7 @@
             </div>
             <div class="col-md-10 text-center text-md-left mb-3">
                 <h1 class="h5 mb-2">Flag Raising Attendance</h1>
-                <p class="h6">{{mCalendar|format_date('dddd - MMM DD, YYYY')}}</p>
+                <p class="h6">{{momentDate|format_date('dddd - MMM DD, YYYY')}}</p>
             </div>
         </div>
         <div class="btn-toolbar justify-content-center">
@@ -86,6 +86,7 @@
 <script>
     let socket = io("{{serverUrl}}/flag-raising", {
         query: {
+            room: '{{momentDate|format_date("YYYY-MM-DD")}}'
         }
     });
     let vApp = new Vue({

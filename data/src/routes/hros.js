@@ -437,13 +437,13 @@ router.get('/hros/flag/all', middlewares.guardRoute(['use_employee_profile']), m
         let employee = res.employee.toObject()
 
         // let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
-        let mCalendar = moment()
+        let momentDate = moment()
 
 
         let query = {
             createdAt: {
-                $gte: mCalendar.clone().startOf('day').toDate(),
-                $lte: mCalendar.clone().endOf('day').toDate(),
+                $gte: momentDate.clone().startOf('day').toDate(),
+                $lte: momentDate.clone().endOf('day').toDate(),
             }
         }
 
@@ -524,7 +524,7 @@ router.get('/hros/flag/all', middlewares.guardRoute(['use_employee_profile']), m
 
         res.render('hros/flag-raising/all.html', {
             flash: flash.get(req, 'attendance'),
-            mCalendar: mCalendar,
+            momentDate: momentDate,
             attendances: attendances,
             alreadyLogged: alreadyLogged,
             s3Prefix: `/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}`,
@@ -706,7 +706,8 @@ router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), 
         })
         //return res.send(attendances)
 
-        req.ioFlagRaising.emit('added', attendances.pop())
+        let room = momentDate.format('YYYY-MM-DD')
+        req.ioFlagRaising.to(room).emit('added', attendances.pop())
 
         flash.ok(req, 'attendance', 'Flag raising attendance saved.')
         res.send(attendance)

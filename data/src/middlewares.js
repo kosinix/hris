@@ -860,11 +860,10 @@ module.exports = {
                 throw new Error('You have already logged this week.')
             }
 
-            let flag = await dtrHelper.isFlagRaisingDay(req, momentDate)
-            if (!flag) {
-                throw new Error(`There is no flag raising ceremony today (${momentDate.format('dddd, MMMM D')}).`)
-            }
-
+            // let flag = await dtrHelper.isFlagRaisingDay(req, momentDate)
+            // if (!flag) {
+            //     throw new Error(`There is no flag raising ceremony today (${momentDate.format('dddd, MMMM D')}).`)
+            // }
             
             let { hour, minute } = CONFIG.hros.flagRaising.end
             let momentFlagEnd = momentDate.clone().startOf('day').hours(hour).minutes(minute)

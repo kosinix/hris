@@ -865,15 +865,15 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
         }
 
         if (attendance.logs.length === 1) {
-            let endingLogMinutes = timeToM(moment().format('YYYY-MM-DD[T]HH:mm:ss.SSS[Z]'), 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]')
+            let endingLogMinutes = timeToM(momentDate.clone().format('YYYY-MM-DD[T]HH:mm:ss.SSS[Z]'), 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]')
             if(endingLogMinutes > lastShift.end){
-                throw new Error(`Could not set attendance. Your previous log is more than the current time.`)
+                throw new Error(`Could not set attendance. Your previous log is more than the current time. You might have tried to log  after your work schedule has ended.`)
             }
             
             // We need 3 more logs
             attendance.logs.push({
                 _id: db.mongoose.Types.ObjectId(),
-                dateTime: moment().toDate(),
+                dateTime: momentDate.clone().toDate(),
                 mode: 1, // 1 = in, 0 = out
                 type: attendanceType, // 'normal', 'wfh', 'travel', 'pass'
                 source: logSource,
@@ -881,7 +881,7 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
             })
             attendance.logs.push({
                 _id: db.mongoose.Types.ObjectId(),
-                dateTime: moment().toDate(),
+                dateTime: momentDate.clone().toDate(),
                 mode: 1, // 1 = in, 0 = out
                 type: attendanceType,
                 source: logSource,
@@ -889,7 +889,7 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
             })
             attendance.logs.push({
                 _id: db.mongoose.Types.ObjectId(),
-                dateTime: moment(attendance.createdAt).startOf('day').add(lastShift.end, 'minutes').toDate(),
+                dateTime: momentDate.clone().startOf('day').add(lastShift.end, 'minutes').toDate(),
                 mode: 0,
                 type: attendanceType,
                 source: logSource,

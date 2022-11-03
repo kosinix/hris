@@ -66,7 +66,11 @@
         <td class="text-center weekday" width="10%">{{day.weekDay}}</td>
         {% if attendanceTypesList.includes(attendance.type) %}
             {% if attendance.type === 'travel'  %}
-                {% if attendance.logs.length <= 4 and attendance.logs[0].type === 'travel' %}
+                {% if attendance.logs.length == 2 and attendance.logs[0].type === 'travel' %}
+                    <td class="text-center" colspan="4">
+                        Travel
+                    </td>
+                {% elif attendance.logs.length <= 4 and attendance.logs[0].type === 'travel' %}
                     <td class="text-center" colspan="2">
                         Travel
                     </td>
@@ -84,7 +88,11 @@
                     </td>
                 {% endif %}
             {% elif attendance.type === 'wfh'  %}
-                {% if attendance.logs.length <= 4 and attendance.logs[0].type === 'wfh' %}
+                {% if attendance.logs.length == 2 and attendance.logs[0].type === 'wfh' %}
+                    <td class="text-center" colspan="4">
+                        Work From Home
+                    </td>
+                {% elif attendance.logs.length <= 4 and attendance.logs[0].type === 'wfh' %}
                     <td class="text-center" colspan="2">
                         Work From Home
                     </td>

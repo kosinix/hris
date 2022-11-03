@@ -4,7 +4,7 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h3">Daily Time Record (DTR)</h1>
+            <h1 class="h5">Daily Time Record (DTR)</h1>
         </div>
     </div>
     <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width:900px; margin:0 auto;">
@@ -13,7 +13,7 @@
         
         </div>
         <div class="row mb-4">
-            <div class="col-md-4 col-xl-3 mb-3">
+            <div class="col-md-4 col-xl-3 mb-1">
                 <div class="e-profile-photo ml-auto mr-auto">
                     {% if employee.profilePhoto %}
                         <div class="actual-pic">
@@ -40,7 +40,7 @@
             <div v-if="!settingsEditable" class="col-md-8 col-xl-9">
                 <div class="row mb-2">
                     <div class="col-sm-6 text-center text-sm-left">
-                        <h4 class="h3 privy-name">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
+                        <h4 class="h5 mb-3 privy-name">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
                     </div>
                     <div class="col-sm-6 text-center text-sm-right">
                         <div class="btn-toolbar justify-content-center justify-content-sm-end">
@@ -226,7 +226,12 @@
                         
                     </template>
                     <template v-else-if="_.get(day, 'attendance.type') === 'wfh'">
-                        <template v-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[0].type') === 'wfh'">
+                        <template v-if="_.get(day, 'attendance.logs.length') == 2 && _.get(day, 'attendance.logs[0].type') === 'wfh'">
+                            <td class="text-center" colspan="4">
+                                Work from Home
+                            </td>
+                        </template>
+                        <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[0].type') === 'wfh'">
                             <td class="text-center" colspan="2">
                                 Work from Home
                             </td>

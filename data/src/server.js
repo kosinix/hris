@@ -200,14 +200,9 @@
     // Flag raising namespaced websocket connection
     ioFlagRaising.on('connection', function (socket) {
         let room = lodash.get(socket, 'handshake.query.room')
-        // console.log(socket.id)
         if (room) {
             socket.join(room)
-            // console.log('room', room)
         }
-    })
-    ioFlagRaising.on('disconnect', function (socket) {
-        // console.log(socket.id)
     })
 
     //// Routes

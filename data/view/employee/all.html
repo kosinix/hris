@@ -1,7 +1,7 @@
 {% extends "document.html" %}
 
 {% block body %}
-<div class="col-md-12">
+<div id="vApp" v-cloak v-bind:data-pending="pending" class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
             <h1 class="h2">
@@ -26,13 +26,20 @@
     {% else %}
         {% include 'employee/employee-tabs.html' %}
         <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
-            <div class="d-flex justify-content-end">
-                <div class=" pb-3 align-self-center pr-3">
-                    Per page:
+            <div class="d-flex justify-content-between">
+                <div class="d-flex pb-3 align-self-center pr-3">
+                    <form @submit.prevent="search(s)" action="">
+                        <input v-model="s" type="search" placeholder="Search..." class="form-control">
+                    </form>
                 </div>
-                <div class=" pb-3">
-                    {% set url = '/employee/all' %}
-                    {% include 'parts/form-per-page.html' %}
+                <div class="d-flex justify-content-between">
+                    <div class="pb-3 align-self-center pr-3 text-right">
+                        Per page:
+                    </div>
+                    <div class=" pb-3">
+                        {% set url = '/employee/all' %}
+                        {% include 'parts/form-per-page.html' %}
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
@@ -77,32 +84,25 @@
                         </tr>
                     </thead>
                     <tbody>
-                    {% for employee in employees %}
-                        <tr>
-                            <td><a href="/employee/{{employee._id}}/personal">{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</a></td>
+                        <tr v-for="employee, i in employees">
+                            <td><a :href="'/employee/' + employee._id + '/personal'">${(i+1) + (pagination.page - 1) * (pagination.perPage)}</a></td>
                             <td>
-                                {% if employee.profilePhoto %}
-                                    <a href="/employee/{{employee._id}}/personal"><img width="30" height="30" class="privy-photo" src="{{employee.profilePhoto|s3_url('tiny')}}" alt=""></a>
-                                {% endif %}
+                                <a v-if="employee.profilePhoto" :href="'/employee/' + employee._id + '/personal'"><img width="30" height="30" class="privy-photo" :src="employee.profilePhoto|s3_url('tiny')" alt="pp"></a>
                             </td>
                             <td>
-                                <a class="privy-name privy-last-name" href="/employee/{{employee._id}}/personal">{{employee.lastName}}</a>
+                                <a class="privy-name privy-last-name" :href="'/employee/' + employee._id + '/personal'">${employee.lastName}</a>
                             </td>
-                            <td><a class="privy-name privy-last-name" href="/employee/{{employee._id}}/personal">{{employee.firstName}}</a></td>
+                            <td><a class="privy-name privy-last-name" :href="'/employee/' + employee._id + '/personal'">${employee.firstName}</a></td>
                             <td>
-                                {% for employment in employee.employments %}
-                                    {% if employment.active %}
-                                        
-                                        <div><a class="{% if employee.employments.length > 1 %}text-success{% endif %}" href="/employee/{{employee._id}}/employment">{{employment.position}}</a></div>
-                                    {% endif %}
-                                {% endfor %}
+                                <template v-for="employment in employee.employments">
+                                    <div v-if="employment.active"><a :class="(employee.employments.length > 1) ? 'text-success' : ''" :href="'/employee/' + employee._id + '/employment'">${employment.position}</a></div>
+                                </template>
                             </td>
-                            <td><a href="/employee/{{employee._id}}/employment">{{employee.employments[0].department}}</a></td>
-                            <td><a href="/employee/{{employee._id}}/employment">{{employee.employments[0].employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</a></td>
-                            <td><a href="/employee/{{employee._id}}/employment">{{employee.employments[0].group|capitalize}}</a></td>
-                            <td><a href="/employee/all?customFilter=campus&customFilterValue={{employee.employments[0].campus}}">{{employee.employments[0].campus|capitalize}}</a></td>
+                            <td><a :href="'/employee/' + employee._id + '/employment'">${_.get(employee, 'employments[0].department')}</a></td>
+                            <td><a :href="'/employee/' + employee._id + '/employment'">${_.get(employee, 'employments[0].employmentType')|capitalize|replace(/^jo$/i,'Job Order')|replace(/^cos$/i,'COS')}</a></td>
+                            <td><a :href="'/employee/' + employee._id + '/employment'">${_.get(employee, 'employments[0].group')|capitalize}</a></td>
+                            <td><a :href="'/employee/all?customFilter=campus&customFilterValue=' + _.get(employee, 'employments[0].campus')">${_.get(employee, 'employments[0].campus')|capitalize}</a></td>
                         </tr>
-                    {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -119,4 +119,67 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
+{# <script src="{{app.url}}/js/socket.io.min.js"></script> #}
+<script>
+    {# let socket = io("{{serverUrl}}/admin-page", {
+        query: {
+            room: 'employee-all'
+        }
+    }); #}
+    let vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            pending: false,
+            s: '',
+            employees: {{employees|default([], true)|stringify|safe}},
+            pagination: {{pagination|default({}, true)|stringify|safe}},
+        },
+        filters: {
+            s3_url: function (value, sizePrefix = "") {
+                if (!value) {
+                    return ''
+                }
+                if (sizePrefix) {
+                    sizePrefix += "-";
+                }
+                return `/file-getter/{{CONFIG.aws.bucket1.name}}/{{CONFIG.aws.bucket1.prefix}}/${sizePrefix}${value}`
+            },
+            capitalize: (value) => {
+                return _.capitalize(value);
+            },
+            replace: (value,a,b) => {
+                return value.replace(a,b)
+            },
+        },
+        methods: {
+            search: function(s){
+                let me = this
+                me.pending = true
+                let r = axios.get(`/employee/all.json?s=${s}`).then(r => {
+                    me.employees = r.data
+                    me.pending = false
+                }).catch(err => {
+                    console.error(err)
+                })
+            }
+        },
+        mounted: function(){
+            {# socket.on("connect_error", (err) => {
+                console.error(err.message);
+            });
+            socket.on("added", (a) => {
+               alert(a)
+            });
+            socket.on("deleted", () => {
+                
+            }); #}
+        }
+    })
+</script>
 {% endblock %}

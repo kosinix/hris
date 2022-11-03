@@ -26,7 +26,7 @@ let router = express.Router()
 
 router.use('/employee', middlewares.requireAuthUser)
 
-router.get(['/employee/all', '/employee/all.csv'], middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+router.get(['/employee/all', '/employee/all.csv', '/employee/all.json'], middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
     try {
         let page = parseInt(lodash.get(req, 'query.page', 1))
         let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
@@ -36,6 +36,8 @@ router.get(['/employee/all', '/employee/all.csv'], middlewares.guardRoute(['read
         let customFilter = lodash.get(req, 'query.customFilter')
         let customFilterValue = lodash.get(req, 'query.customFilterValue')
         lodash.set(req, 'session.pagination.perPage', perPage)
+
+        let search = lodash.get(req, 'query.s', '')
 
         let query = {}
         let projection = {}
@@ -67,6 +69,47 @@ router.get(['/employee/all', '/employee/all.csv'], middlewares.guardRoute(['read
         if (['casual'].includes(customFilter)) {
             query[`employments.0.employmentType`] = 'casual'
             query[`employments.0.group`] = 'staff'
+        }
+
+        if (search) {
+            let words = search.split(' ')
+            words = lodash.map(words, (o) => {
+                o = lodash.trim(o)
+                return new RegExp(o, "i")
+            })
+
+            query['$and'] = []
+            
+            // 1 word
+            if (words.length === 1) {
+                query['$and'].push({
+                    $or: [
+                        {
+                            'firstName': words[0]
+                        },
+                        {
+                            'lastName': words[0]
+                        },
+                    ],
+                })
+            } else if (words.length > 1) { // 2 or more words
+                query['$and'].push({
+                    $or: [
+                        {
+                            'firstName': words[0]
+                        },
+                        {
+                            'lastName': words[1]
+                        },
+                        {
+                            'firstName': words[1]
+                        },
+                        {
+                            'lastName': words[0]
+                        },
+                    ],
+                })
+            }
         }
 
         let options = { skip: (page - 1) * perPage, limit: perPage };
@@ -129,8 +172,10 @@ router.get(['/employee/all', '/employee/all.csv'], middlewares.guardRoute(['read
         let employees = await req.app.locals.db.main.Employee.aggregate(aggr)
 
         // console.log(util.inspect(aggr, false, null, true))
-
         // return res.send(employees)
+        if (req.originalUrl.includes('.json')) {
+            return res.json(employees)
+        }
         if (req.originalUrl.includes('.csv')) {
 
             let csv = employees.map((i) => {

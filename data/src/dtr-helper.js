@@ -862,11 +862,11 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
             throw new Error(`Attendance already set to ${attendanceType}.`)
         }
 
-        if (attendance.type === 'travel' && attendanceType === 'wfh') {
+        if (attendance.type === 'travel' && (attendanceType === 'wfh' || attendanceType === 'leave')) {
             throw new Error(`Could not set travel to ${attendanceType}.`)
         }
 
-        if (attendance.type === 'wfh' && attendanceType === 'travel') {
+        if (attendance.type === 'wfh' && (attendanceType === 'travel' || attendanceType === 'leave')) {
             throw new Error(`Could not set WFH to ${attendanceType}.`)
         }
 
@@ -876,7 +876,7 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
         }
 
         if (attendance.logs.length <= 0) {
-            throw new Error('Bad attendance data.') // should have at least 1 log
+            throw new Error('Not allowed.') // should have at least 1 log
         }
 
         if (attendance.logs.length === 1) {
@@ -957,7 +957,7 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
                 createdAt: moment().toDate(),
             })
             attendance.logs = logs
-            attendance.type = 'leave'
+            attendance.type = attendanceType
         }
 
         let dbOpRes = await db.main.Attendance.collection.updateOne({

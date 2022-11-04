@@ -1,5 +1,5 @@
 <select onchange="window.location.href = this.value" name="perPage" id="perPage" class="form-control">
-    <option value="{{pagination.urlBase}}?{{pagination.query|query_string({perPage: null})}}">All</option>
+    {# <option value="{{pagination.urlBase}}?{{pagination.query|query_string({perPage: null})}}">All</option> #}
     {% for p in [1,5,10,20,50,100]%}
     <option {% if pagination.perPage == p %}selected{% endif %} value="{{pagination.urlBase}}?{{pagination.query|query_string({perPage: p})}}">{{p}}</option>
     {% endfor %}

@@ -1,0 +1,7 @@
+<div class="d-flex justify-content-between">
+    <div>{{thLabel|default(thId|start_case, true)}}</div>
+    {% set urlBase = pagination.urlBase %}
+    {% set queryDesc = pagination.query|query_string({page: pagination.page, sortBy: thId, sortOrder: -1}) %}
+    {% set queryAsc = pagination.query|query_string({page: pagination.page, sortBy: thId, sortOrder: 1}) %}
+    {% include 'parts/sorters-any.html' %}
+</div>

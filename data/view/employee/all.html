@@ -5,11 +5,12 @@
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
             <h1 class="h2">
-                {% if query.customFilter %}
-                    Employees - {{query.customFilterValue}} <em>({{pagination.totalDocs}})</em>
-                {% else %}
-                    All Employees <em>({{pagination.totalDocs}})</em>
-                {% endif %}
+                <template v-if="query.customFilter">
+                    Employees - ${query.customFilterValue} <em>(${pagination.totalDocs})</em>
+                </template>
+                <template v-else>
+                    All Employees <em>(${pagination.totalDocs})</em>
+                </template>
             </h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
@@ -19,7 +20,6 @@
         </div>
     </div>
     {% include 'parts/flash.html' %}
-
     
     {% if employees.length <= 0 %}
         <p>None found.</p>
@@ -29,7 +29,7 @@
             <div class="d-flex justify-content-between">
                 <div class="d-flex pb-3 align-self-center pr-3">
                     <form @submit.prevent="search(s)" action="">
-                        <input v-model="s" type="search" placeholder="Search..." class="form-control">
+                        <input @search="search(s)" v-model="s" type="search" placeholder="Search by name..." class="form-control">
                     </form>
                 </div>
                 <div class="d-flex justify-content-between">
@@ -50,7 +50,7 @@
                             <th width="1%">
                                 {% set thId = 'profilePhoto' %}
                                 {% set thLabel = ' ' %}
-                                {% include 'parts/sorted-th.html' %}
+                                {% include 'parts/sorted-th-any.html' %}
                                 {% set thLabel = '' %}
                             </th>
                             <th>
@@ -108,12 +108,14 @@
             </div>
             <div class="row">
                 <div class="col-md-12 text-center text-md-left pt-3 pb-5">
-                    <a href="/employee/all.csv?{{pagination.query}}" class="btn btn-primary btn-sm">Download CSV</a>
+                    <a :href="'/employee/all.csv?' + query_string(pagination.query,{})" class="btn btn-primary btn-sm">Download CSV</a>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-12 text-center text-md-left pt-3 pb-5">
-                    {% include "parts/pagination.html" %}
+                    <div class="pages">
+                        <a v-on:click.prevent="goto($event)" v-for="p in pagination.pages" :href="paginationUrl({page:p})" :class="'btn btn-sm ' + ((pagination.page == p) ? 'btn-primary' : 'btn-light')">${p}</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -139,6 +141,7 @@
             s: '',
             employees: {{employees|default([], true)|stringify|safe}},
             pagination: {{pagination|default({}, true)|stringify|safe}},
+            query: {{query|default({}, true)|stringify|safe}},
         },
         filters: {
             s3_url: function (value, sizePrefix = "") {
@@ -156,14 +159,41 @@
             replace: (value,a,b) => {
                 return value.replace(a,b)
             },
+            query_string: function(defs, params){
+                return this.query_string(defs, params)
+            }
         },
         methods: {
-            search: function(s){
+            query_string: function(defs, params){
+                let merged = { ...defs, ...params }
+                let qs = new URLSearchParams(merged);
+                return qs.toString()
+            },
+            paginationUrl: function(params){
+                return `${this.pagination.urlBase}?${this.query_string(this.pagination.query, params)}`
+            },
+            goto: function(e){
                 let me = this
                 me.pending = true
-                let r = axios.get(`/employee/all.json?s=${s}`).then(r => {
-                    me.employees = r.data
-                    me.pending = false
+                let r = axios.get(`${e.target.href}`, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(r => {
+                    me.employees = _.get(r, 'data.employees', []);
+                    me.pagination = _.get(r, 'data.pagination', {});
+                    me.pending = false;
+                }).catch(err => {
+                    console.error(err)
+                })
+            },
+            search: function(s){
+                let me = this;
+                me.pending = true;
+                let r = axios.get(`/employee/all.json?s=${s}`, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(r => {
+                    me.employees = _.get(r, 'data.employees', []);
+                    me.pagination = _.get(r, 'data.pagination', {});
+                    me.pending = false;
+
+                    const url = new URL(window.location);
+                    url.searchParams.set('s', s);
+                    window.history.pushState({}, '', url);
                 }).catch(err => {
                     console.error(err)
                 })

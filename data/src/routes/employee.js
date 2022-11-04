@@ -39,6 +39,10 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json'], middlew
 
         let search = lodash.get(req, 'query.s', '')
 
+        // console.log(customFilter)
+        // let u = new URLSearchParams(customFilter.map(s=>['customFilter',s]))
+        // console.log(u.toString())
+        
         let query = {}
         let projection = {}
 
@@ -173,8 +177,13 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json'], middlew
 
         // console.log(util.inspect(aggr, false, null, true))
         // return res.send(employees)
-        if (req.originalUrl.includes('.json')) {
-            return res.json(employees)
+        if (req.originalUrl.includes('.json') || req.xhr) {
+            return res.json({
+                flash: flash.get(req, 'employee'),
+                employees: employees,
+                pagination: pagination,
+                query: req.query,
+            })
         }
         if (req.originalUrl.includes('.csv')) {
 

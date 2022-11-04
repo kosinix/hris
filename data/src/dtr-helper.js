@@ -917,7 +917,7 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
 
             let lastLog = attendance.logs[attendance.logs.length - 1]
             let lastLogMoment = moment(lastLog.dateTime)
-            
+
             // We need 2 logs to form a segment
             attendance.logs.push({
                 _id: db.mongoose.Types.ObjectId(),
@@ -938,8 +938,25 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
             attendance.type = attendanceType
         }
 
-        if(attendanceType === 'leave'){
-            attendance.logs = []
+        // TODO: Perf improvement. Move conditional statement to allow exclusive execution.
+        if (attendanceType === 'leave') {
+            // We need 2 logs to form a segment
+            let logs = []
+            logs.push({
+                dateTime: momentDate.clone().startOf('day').add(firstShift.start, 'minutes').toDate(),
+                mode: 1, // 1 = in, 0 = out
+                type: attendanceType, // 'normal', 'wfh', 'travel', 'pass'
+                source: logSource,
+                createdAt: moment().toDate(),
+            })
+            logs.push({
+                dateTime: momentDate.clone().startOf('day').add(lastShift.end, 'minutes').toDate(),
+                mode: 0,
+                type: attendanceType,
+                source: logSource,
+                createdAt: moment().toDate(),
+            })
+            attendance.logs = logs
             attendance.type = 'leave'
         }
 

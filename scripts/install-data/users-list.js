@@ -68,7 +68,7 @@ module.exports = [
         ],
         "firstName" : "Cashier",
         "middleName" : "",
-        "lastName" : "GSC",
+        "lastName" : "GSU",
         "email" : "hazel.jarangue@gsc.edu.ph ",
         "username" : "gsc.cashier",
         "active" : true,

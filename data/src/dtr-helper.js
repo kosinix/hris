@@ -795,6 +795,10 @@ const logAttendance = async (db, employee, employment, scannerId, waitTime = 15,
  * @returns 
  */
 const logTravelAndWfh = async (db, date, employee, employment, source, attendanceType = 'travel') => {
+    if (!['travel', 'wfh', 'leave'].includes(attendanceType)) {
+        throw new Error(`Attendance type invalid.`)
+    }
+
     let momentDate = moment(date)
     let attendance = await db.main.Attendance.findOne({
         employeeId: employee._id,
@@ -854,6 +858,9 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
         })
 
     } else {
+        if (attendance.type === attendanceType) {
+            throw new Error(`Attendance already set to ${attendanceType}.`)
+        }
 
         let maxScans = 4
         if (attendance.logs.length >= maxScans) {
@@ -867,10 +874,10 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
         if (attendance.logs.length === 1) {
             // TEST: // momentDate.hour(10).minutes(0)
             let endingLogMinutes = timeToM(momentDate.clone().format('YYYY-MM-DD[T]HH:mm:ss.SSS[Z]'), 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]')
-            if(endingLogMinutes > lastShift.end){
+            if (endingLogMinutes > lastShift.end) {
                 throw new Error(`Could not set attendance. Your previous log is more than the current time. You might have tried to log  after your work schedule has ended.`)
             }
-            
+
             // We need 3 more logs
             attendance.logs.push({
                 _id: db.mongoose.Types.ObjectId(),
@@ -902,11 +909,6 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
 
             let lastLog = attendance.logs[attendance.logs.length - 1]
             let lastLogMoment = moment(lastLog.dateTime)
-            let lastLogMinutes = timeToM(lastLog.dateTime, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]')
-            let endingLogMinutes = timeToM(moment().format('YYYY-MM-DD[T]HH:mm:ss.SSS[Z]'), 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]')
-            if(lastLogMinutes > endingLogMinutes){
-                throw new Error(`Could not set attendance. Your previous log (${lastLogMoment.format('hh:mmA')}) is more than the current time (${moment().format('hh:mmA')}).`)
-            }
             
             // We need 2 logs to form a segment
             attendance.logs.push({

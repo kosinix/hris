@@ -87,7 +87,7 @@
                         <tr v-for="employee, i in employees">
                             <td><a :href="'/employee/' + employee._id + '/personal'">${(i+1) + (pagination.page - 1) * (pagination.perPage)}</a></td>
                             <td>
-                                <a v-if="employee.profilePhoto" :href="'/employee/' + employee._id + '/personal'"><img width="30" height="30" class="privy-photo" :src="employee.profilePhoto|s3_url('tiny')" alt="pp"></a>
+                                <a v-if="employee.profilePhoto" :href="'/employee/' + employee._id + '/personal'"><img width="30" height="30" class="privy-photo" :src="employee.profilePhoto|s3_url('tiny')" alt="..."></a>
                             </td>
                             <td>
                                 <a class="privy-name privy-last-name" :href="'/employee/' + employee._id + '/personal'">${employee.lastName}</a>

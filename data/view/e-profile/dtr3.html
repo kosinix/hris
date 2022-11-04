@@ -3,8 +3,11 @@
 {% block body %}
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <div class="d-flex align-items-start">
-            <h1 class="h5">Daily Time Record (DTR)</h1>
+        <div class="d-flex align-items-center">
+            <svg class="mr-1" style="width:26px;height:26px" viewBox="0 0 24 24">
+                <path fill="#0e4682" d="M14,12H15.5V14.82L17.94,16.23L17.19,17.53L14,15.69V12M4,2H18A2,2 0 0,1 20,4V10.1C21.24,11.36 22,13.09 22,15A7,7 0 0,1 15,22C13.09,22 11.36,21.24 10.1,20H4A2,2 0 0,1 2,18V4A2,2 0 0,1 4,2M4,15V18H8.67C8.24,17.09 8,16.07 8,15H4M4,8H10V5H4V8M18,8V5H12V8H18M4,13H8.29C8.63,11.85 9.26,10.82 10.1,10H4V13M15,10.15A4.85,4.85 0 0,0 10.15,15C10.15,17.68 12.32,19.85 15,19.85A4.85,4.85 0 0,0 19.85,15C19.85,12.32 17.68,10.15 15,10.15Z" />
+            </svg>
+            <h1 class="h5 mb-0">Daily Time Record</h1>
         </div>
     </div>
     <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width:900px; margin:0 auto;">
@@ -203,7 +206,12 @@
                         <td class="text-center">${day.display.outPM}</td>
                     </template>
                     <template v-else-if="_.get(day, 'attendance.type') === 'travel'">
-                        <template v-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[0].type') === 'travel'">
+                        <template v-if="_.get(day, 'attendance.logs.length') == 2 && _.get(day, 'attendance.logs[0].type') === 'travel'">
+                            <td class="text-center" colspan="4">
+                                Travel
+                            </td>
+                        </template>
+                        <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[0].type') === 'travel'">
                             <td class="text-center" colspan="2">
                                 Travel
                             </td>

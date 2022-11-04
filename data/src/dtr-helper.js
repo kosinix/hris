@@ -862,6 +862,14 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
             throw new Error(`Attendance already set to ${attendanceType}.`)
         }
 
+        if (attendance.type === 'travel' && attendanceType === 'wfh') {
+            throw new Error(`Could not set travel to ${attendanceType}.`)
+        }
+
+        if (attendance.type === 'wfh' && attendanceType === 'travel') {
+            throw new Error(`Could not set WFH to ${attendanceType}.`)
+        }
+
         let maxScans = 4
         if (attendance.logs.length >= maxScans) {
             throw new Error('Max logs already.')
@@ -930,6 +938,10 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
             attendance.type = attendanceType
         }
 
+        if(attendanceType === 'leave'){
+            attendance.logs = []
+            attendance.type = 'leave'
+        }
 
         let dbOpRes = await db.main.Attendance.collection.updateOne({
             _id: attendance._id

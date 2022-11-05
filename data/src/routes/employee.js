@@ -26,7 +26,7 @@ let router = express.Router()
 
 router.use('/employee', middlewares.requireAuthUser)
 
-router.get(['/employee/all', '/employee/all.csv', '/employee/all.json'], middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+router.get(['/employee/all', '/employee/all.csv', '/employee/all.json', '/employee/active'], middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
     try {
         let page = parseInt(lodash.get(req, 'query.page', 1))
         let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
@@ -42,38 +42,173 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json'], middlew
         // console.log(customFilter)
         // let u = new URLSearchParams(customFilter.map(s=>['customFilter',s]))
         // console.log(u.toString())
-        
+
         let query = {}
         let projection = {}
 
-        if (['department', 'employmentType', 'group', 'position', 'campus'].includes(customFilter)) {
-            query[`employments.0.${customFilter}`] = customFilterValue
+        query[`employments`] = {
+            $elemMatch: {
+                'active': true
+            }
         }
 
-        if (['permanent-faculty'].includes(customFilter)) {
-            query[`employments.0.employmentType`] = 'permanent'
-            query[`employments.0.group`] = 'faculty'
+        if (['inactive'].includes(customFilter)) {
+            query[`employments`] = {
+                $elemMatch: {
+                    'active': false
+                }
+            }
+        } else if (['permanent-faculty'].includes(customFilter)) {
+            query[`employments`] = {
+                $elemMatch: {
+                    $and: [
+                        {
+                            'employmentType': 'permanent'
+                        },
+                        {
+                            'group': 'faculty'
+                        },
+                        {
+                            'active': true
+                        }
+                    ]
+                }
+            }
+        } else if (['permanent-staff'].includes(customFilter)) {
+            query[`employments`] = {
+                $elemMatch: {
+                    $and: [
+                        {
+                            'employmentType': 'permanent'
+                        },
+                        {
+                            'group': 'staff'
+                        },
+                        {
+                            'active': true
+                        }
+                    ]
+                }
+            }
+        } else if (['cos-teaching'].includes(customFilter)) {
+            query[`employments`] = {
+                $elemMatch: {
+                    $and: [
+                        {
+                            'employmentType': 'cos'
+                        },
+                        {
+                            'group': 'faculty'
+                        },
+                        {
+                            'active': true
+                        }
+                    ]
+                }
+            }
+        } else if (['cos-staff'].includes(customFilter)) {
+            query[`employments`] = {
+                $elemMatch: {
+                    $and: [
+                        {
+                            'employmentType': 'cos'
+                        },
+                        {
+                            'group': 'staff'
+                        },
+                        {
+                            'active': true
+                        }
+                    ]
+                }
+            }
+        } else if (['part-time'].includes(customFilter)) {
+            query[`employments`] = {
+                $elemMatch: {
+                    $and: [
+                        {
+                            'employmentType': 'part-time'
+                        },
+                        {
+                            'group': 'faculty'
+                        },
+                        {
+                            'active': true
+                        }
+                    ]
+                }
+            }
+        } else if (['casual'].includes(customFilter)) {
+            query[`employments`] = {
+                $elemMatch: {
+                    $and: [
+                        {
+                            'employmentType': 'casual'
+                        },
+                        {
+                            'group': 'staff'
+                        },
+                        {
+                            'active': true
+                        }
+                    ]
+                }
+            }
+        } else if (['pwd'].includes(customFilter)) {
+            query[`personal.pwd`] = 'Yes'
         }
-        if (['permanent-staff'].includes(customFilter)) {
-            query[`employments.0.employmentType`] = 'permanent'
-            query[`employments.0.group`] = 'staff'
-        }
-        if (['cos-teaching'].includes(customFilter)) {
-            query[`employments.0.employmentType`] = 'cos'
-            query[`employments.0.group`] = 'faculty'
-        }
-        if (['cos-staff'].includes(customFilter)) {
-            query[`employments.0.employmentType`] = 'cos'
-            query[`employments.0.group`] = 'staff'
-        }
-        if (['part-time'].includes(customFilter)) {
-            query[`employments.0.employmentType`] = 'part-time'
-            query[`employments.0.group`] = 'faculty'
-        }
-        if (['casual'].includes(customFilter)) {
-            query[`employments.0.employmentType`] = 'casual'
-            query[`employments.0.group`] = 'staff'
-        }
+
+        // Filters
+        // let employmentTypes = CONFIG.employmentTypes.map(o => o.value)
+        // let filterEmploymentType = lodash.get(req, 'query.filterEmploymentType')
+        // filterEmploymentType = (filterEmploymentType) ? filterEmploymentType.split(',').map(f => new String(f).trim()).filter(f => employmentTypes.includes(f)) : []
+        // if (filterEmploymentType.length > 0) {
+        //     query[`employments`] = {
+        //         $elemMatch: {
+        //             'employmentType': {
+        //                 $in: filterEmploymentType
+        //             }
+        //         }
+        //     }
+        // }
+        // console.log('filterEmploymentType', filterEmploymentType)
+        // let query2 = {}
+        // let filterEmploymentStatus = lodash.get(req, 'query.filterEmploymentStatus')
+        // filterEmploymentStatus = (filterEmploymentStatus) ? filterEmploymentStatus.split(',').map(f => parseInt(f)).filter(f => [0, 1].includes(f)).map(f => (f === 0) ? false : true) : []
+        // if (filterEmploymentStatus.length > 0) {
+        //     query2[`employments`] = {
+        //         $elemMatch: {
+        //             'active': {
+        //                 $in: filterEmploymentStatus
+        //             }
+        //         }
+        //     }
+        // }
+        // console.log('filterEmploymentStatus', filterEmploymentStatus)
+
+        // let filterEmploymentGroup = lodash.get(req, 'query.filterEmploymentGroup')
+        // filterEmploymentGroup = (filterEmploymentGroup) ? filterEmploymentGroup.split(',').filter(f => ['staff', 'faculty'].includes(f)) : []
+        // if (filterEmploymentGroup.length > 0) {
+        //     query[`employments`] = {
+        //         $elemMatch: {
+        //             'group': {
+        //                 $in: filterEmploymentGroup
+        //             }
+        //         }
+        //     }
+        // }
+        // console.log('filterEmploymentGroup', filterEmploymentGroup)
+
+        // let filterGender = lodash.get(req, 'query.filterGender')
+        // filterGender = (filterGender) ? filterGender.split(',').filter(f => ['F', 'M'].includes(f)) : []
+        // if (filterGender.length > 0) {
+        //     query[`gender`] = {
+        //         $in: filterGender
+        //     }
+        // }
+        // console.log('filterGender', filterGender)
+
+
 
         if (search) {
             let words = search.split(' ')
@@ -83,7 +218,7 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json'], middlew
             })
 
             query['$and'] = []
-            
+
             // 1 word
             if (words.length === 1) {
                 query['$and'].push({
@@ -143,18 +278,33 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json'], middlew
                 lastName: 1,
                 firstName: 1,
                 middleName: 1,
+                gender: 1,
                 profilePhoto: 1,
-                employments:
-                {
-                    $filter:
-                    {
-                        input: "$employments",
-                        as: "employment",
-                        cond: { $eq: ["$$employment.active", true] }
-                    }
-                }
+                email: 1,
+                mobileNumber: 1,
+                personal: {
+                    pwd: 1,
+                    pwdDetails: 1
+                },
+                employments: 1,
+                // Remove employees with 1 or more inactive employments
+                // employments: {
+                //     $filter:
+                //     {
+                //         input: "$employments",
+                //         as: "employment",
+                //         cond: { $eq: ["$$employment.active", true] }
+                //     }
+                // }
             }
         })
+        // aggr.push({
+        //     $match: {
+        //         'employments.0': {
+        //             $exists: true
+        //         }
+        //     }
+        // })
         aggr.push({ $match: query })
         aggr.push({ $sort: sort })
 
@@ -169,7 +319,7 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json'], middlew
             req.query
         )
 
-        if (!isNaN(perPage)) {
+        if (!isNaN(perPage) && !req.originalUrl.includes('.csv')) { // No limit if perPage is invalid or when downloading CSV
             aggr.push({ $skip: options.skip })
             aggr.push({ $limit: options.limit })
         }
@@ -177,27 +327,34 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json'], middlew
 
         // console.log(util.inspect(aggr, false, null, true))
         // return res.send(employees)
+        let data = {
+            flash: flash.get(req, 'employee'),
+            employees: employees,
+            pagination: pagination,
+            query: req.query,
+            s: search,
+        }
         if (req.originalUrl.includes('.json') || req.xhr) {
-            return res.json({
-                flash: flash.get(req, 'employee'),
-                employees: employees,
-                pagination: pagination,
-                query: req.query,
-            })
+            return res.json(data)
         }
         if (req.originalUrl.includes('.csv')) {
 
-            let csv = employees.map((i) => {
+            let csv = employees.map((i, index) => {
                 let lastName = i.lastName || ''
                 let firstName = i.firstName || ''
                 let middleName = i.middleName || ''
+                let gender = i.gender || ''
+                let email = i.email || ''
+                let mobileNumber = i.mobileNumber || ''
+                let pwdDetails = lodash.get(i, 'personal.pwdDetails', '')
                 let position = lodash.get(i, 'employments[0].position', '')
                 let department = lodash.get(i, 'employments[0].department', '')
                 let employmentType = lodash.capitalize(lodash.get(i, 'employments[0].employmentType', '')).replace(/^jo$/i, 'Job Order').replace(/^cos$/i, 'COS')
                 let group = lodash.capitalize(lodash.get(i, 'employments[0].group', ''))
 
-                return `${lastName}, ${firstName}, ${middleName}, ${position}, ${department}, ${employmentType}, ${group}`
+                return `${index + 1}, ${lastName}, ${firstName}, ${middleName}, ${gender}, ${position}, ${department}, ${employmentType}, ${group}, ${email}, ${mobileNumber}, ${pwdDetails}`
             })
+            csv.unshift(`#, Last Name, First Name, Middle, Gender, Position, Department, Employment Type, Group, Email, Mobile Number, PWD ID`)
             res.set('Content-Type', 'text/csv')
             return res.send(csv.join("\n"))
         } else if (req.query.qr == 1) {
@@ -222,19 +379,9 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json'], middlew
                     }
                 })
             })
-            return res.render('employee/qr-codes.html', {
-                flash: flash.get(req, 'employee'),
-                employees: employees,
-                pagination: pagination,
-                query: req.query,
-            });
+            return res.render('employee/qr-codes.html', data);
         }
-        res.render('employee/all.html', {
-            flash: flash.get(req, 'employee'),
-            employees: employees,
-            pagination: pagination,
-            query: req.query,
-        });
+        res.render('employee/all.html', data);
     } catch (err) {
         next(err);
     }

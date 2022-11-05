@@ -77,6 +77,12 @@
                                 {% set thId = 'campus' %}
                                 {% include 'parts/sorted-th.html' %}
                             </th>
+                            <th v-if="query.customFilter=='pwd'">
+                                {% set thId = 'pwd' %}
+                                {% set thLabel = 'PWD ID' %}
+                                {% include 'parts/sorted-th.html' %}
+                                {% set thLabel = '' %}
+                            </th>
                             <th>
                                 {% set thId = 'email' %}
                                 {% include 'parts/sorted-th.html' %}
@@ -89,12 +95,7 @@
                                 {% set thId = 'gender' %}
                                 {% include 'parts/sorted-th-any.html' %}
                             </th>
-                            <th v-if="query.customFilter=='pwd'">
-                                {% set thId = 'pwd' %}
-                                {% set thLabel = 'PWD ID' %}
-                                {% include 'parts/sorted-th.html' %}
-                                {% set thLabel = '' %}
-                            </th>
+                            
                         </tr>
                     </thead>
                     <tbody>
@@ -133,6 +134,9 @@
                                     <a :href="'/employee/all?customFilter=campus&customFilterValue=' + _.get(employment, 'campus')">${_.get(employment, 'campus')|capitalize}</a>
                                 </div>
                             </td>
+                            <td v-if="query.customFilter=='pwd'">
+                                ${_.get(employee, 'personal.pwdDetails')}
+                            </td>
                             <td>
                                 <small>${_.get(employee, 'email')}</small>
                             </td>
@@ -143,9 +147,7 @@
                             <td>
                                 ${_.get(employee, 'gender')}
                             </td>
-                            <td v-if="query.customFilter=='pwd'">
-                                ${_.get(employee, 'personal.pwdDetails')}
-                            </td>
+                            
                         </tr>
                     </tbody>
                 </table>

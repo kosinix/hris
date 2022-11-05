@@ -150,16 +150,14 @@
                     </tbody>
                 </table>
             </div>
-            <div v-if="pagination.pages > 0" class="row">
-                <div class="col-md-12 text-center text-md-left pt-3 pb-5 d-flex align-items-center">
-                    <div>Page</div>
-                    <div class="pages ml-1">
+            <div v-if="pagination.pages.length > 0" class="row">
+                <div class="col-md-6 text-center text-md-left pt-3 pb-3">
+                    <div class="pages">
+                        <span>Pages</span>
                         <a v-on:click.prevent="goto($event)" v-for="p in pagination.pages" :href="paginationUrl({page:p})" :class="'btn btn-sm ' + ((pagination.page == p) ? 'btn-primary' : 'btn-light')">${p}</a>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12 text-center text-md-left pt-3 pb-5">
+                <div class="col-md-6 text-center text-md-right pt-3 pb-5">
                     <a :href="'/employee/all.csv?' + query_string(pagination.query,{})" class="btn btn-primary btn-sm">Download CSV</a>
                 </div>
             </div>

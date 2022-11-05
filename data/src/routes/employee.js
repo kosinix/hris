@@ -326,6 +326,16 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json', '/employ
         let employees = await req.app.locals.db.main.Employee.aggregate(aggr)
 
         // console.log(util.inspect(aggr, false, null, true))
+
+        if (customFilter === 'inactive') {
+            employees = employees.filter((e, i) => {
+                let active = e.employments.map(e => e.active).reduce((prev, current) => {
+                    console.log(i, prev, current, (prev || current))
+                    return prev || current
+                }, false)
+                return !active
+            })
+        }
         // return res.send(employees)
         let data = {
             flash: flash.get(req, 'employee'),

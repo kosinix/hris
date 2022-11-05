@@ -4,18 +4,14 @@
 <div id="vApp" v-cloak v-bind:data-pending="pending" class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h2">
-                <template v-if="query.customFilter">
-                    Employees - ${query.customFilterValue} <em>(${pagination.totalDocs})</em>
-                </template>
-                <template v-else>
-                    All Employees <em>(${pagination.totalDocs})</em>
-                </template>
+            <h1 class="h5">
+                Employees <em>(${pagination.totalDocs})</em>
             </h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
                 <a href="/employee/create" class="btn btn-sm btn-outline-primary">Add Employee</a>
+                <a :href="'/employee/all.csv?' + query_string(pagination.query, {})" class="btn btn-outline-primary btn-sm">Download CSV</a>
             </div>
         </div>
     </div>
@@ -81,6 +77,24 @@
                                 {% set thId = 'campus' %}
                                 {% include 'parts/sorted-th.html' %}
                             </th>
+                            <th>
+                                {% set thId = 'email' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                {% set thId = 'mobileNumber' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                {% set thId = 'gender' %}
+                                {% include 'parts/sorted-th-any.html' %}
+                            </th>
+                            <th v-if="query.customFilter=='pwd'">
+                                {% set thId = 'pwd' %}
+                                {% set thLabel = 'PWD ID' %}
+                                {% include 'parts/sorted-th.html' %}
+                                {% set thLabel = '' %}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -96,26 +110,57 @@
                             <td>
                                 <template v-for="employment in employee.employments">
                                     <div v-if="employment.active"><a :class="(employee.employments.length > 1) ? 'text-success' : ''" :href="'/employee/' + employee._id + '/employment'">${employment.position}</a></div>
+                                    <div v-else><a class="text-warning" :href="'/employee/' + employee._id + '/employment'">${employment.position}</a></div>
                                 </template>
                             </td>
-                            <td><a :href="'/employee/' + employee._id + '/employment'">${_.get(employee, 'employments[0].department')}</a></td>
-                            <td><a :href="'/employee/' + employee._id + '/employment'">${_.get(employee, 'employments[0].employmentType')|capitalize|replace(/^jo$/i,'Job Order')|replace(/^cos$/i,'COS')}</a></td>
-                            <td><a :href="'/employee/' + employee._id + '/employment'">${_.get(employee, 'employments[0].group')|capitalize}</a></td>
-                            <td><a :href="'/employee/all?customFilter=campus&customFilterValue=' + _.get(employee, 'employments[0].campus')">${_.get(employee, 'employments[0].campus')|capitalize}</a></td>
+                            <td>
+                                <div v-for="employment in employee.employments">
+                                    <a :href="'/employee/' + employee._id + '/employment'">${_.get(employment, 'department')}</a>
+                                </div>
+                            </td>
+                            <td>
+                                <div v-for="employment in employee.employments">
+                                    <a :href="'/employee/' + employee._id + '/employment'">${_.get(employment, 'employmentType')|capitalize|replace(/^jo$/i,'Job Order')|replace(/^cos$/i,'COS')}</a>
+                                </div>
+                            </td>
+                            <td>
+                                <div v-for="employment in employee.employments">
+                                    <a :href="'/employee/' + employee._id + '/employment'">${_.get(employment, 'group')|capitalize}</a>
+                                </div>
+                            </td>
+                            <td>
+                                <div v-for="employment in employee.employments">
+                                    <a :href="'/employee/all?customFilter=campus&customFilterValue=' + _.get(employment, 'campus')">${_.get(employment, 'campus')|capitalize}</a>
+                                </div>
+                            </td>
+                            <td>
+                                <small>${_.get(employee, 'email')}</small>
+                            </td>
+                            
+                            <td>
+                               <small>${_.get(employee, 'mobileNumber')}</small>
+                            </td>
+                            <td>
+                                ${_.get(employee, 'gender')}
+                            </td>
+                            <td v-if="query.customFilter=='pwd'">
+                                ${_.get(employee, 'personal.pwdDetails')}
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="row">
-                <div class="col-md-12 text-center text-md-left pt-3 pb-5">
-                    <a :href="'/employee/all.csv?' + query_string(pagination.query,{})" class="btn btn-primary btn-sm">Download CSV</a>
+            <div v-if="pagination.pages > 0" class="row">
+                <div class="col-md-12 text-center text-md-left pt-3 pb-5 d-flex align-items-center">
+                    <div>Page</div>
+                    <div class="pages ml-1">
+                        <a v-on:click.prevent="goto($event)" v-for="p in pagination.pages" :href="paginationUrl({page:p})" :class="'btn btn-sm ' + ((pagination.page == p) ? 'btn-primary' : 'btn-light')">${p}</a>
+                    </div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-12 text-center text-md-left pt-3 pb-5">
-                    <div class="pages">
-                        <a v-on:click.prevent="goto($event)" v-for="p in pagination.pages" :href="paginationUrl({page:p})" :class="'btn btn-sm ' + ((pagination.page == p) ? 'btn-primary' : 'btn-light')">${p}</a>
-                    </div>
+                    <a :href="'/employee/all.csv?' + query_string(pagination.query,{})" class="btn btn-primary btn-sm">Download CSV</a>
                 </div>
             </div>
         </div>
@@ -138,7 +183,7 @@
         mixins: [],
         data: {
             pending: false,
-            s: '',
+            s: '{{s}}',
             employees: {{employees|default([], true)|stringify|safe}},
             pagination: {{pagination|default({}, true)|stringify|safe}},
             query: {{query|default({}, true)|stringify|safe}},

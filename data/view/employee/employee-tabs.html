@@ -1,7 +1,7 @@
 <div>
     <ul class="nav nav-tabs">
         <li class="nav-item">
-            <a class="nav-link {{url|active_class([r/^(\/employee\/all)$|^(\/employee\/all)(.)((?!customFilter).)*$/])}}" href="/employee/all">All</a>
+            <a class="nav-link {{url|active_class([r/^(\/employee\/all)$|^(\/employee\/all)(.)((?!customFilter).)*$/])}}" href="/employee/all">Active</a>
         </li>
         <li class="nav-item">
             <a class="nav-link {{url|active_class([r/^(\/employee\/all)(.)(customFilter=permanent-faculty)/])}}" href="/employee/all?customFilter=permanent-faculty">Permanent Faculty</a>
@@ -20,6 +20,12 @@
         </li>
         <li class="nav-item">
             <a class="nav-link {{url|active_class([r/^(\/employee\/all)(.)(customFilter=casual)/])}}" href="/employee/all?customFilter=casual">Casual</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{url|active_class([r/^(\/employee\/all)(.)(customFilter=pwd)/])}}" href="/employee/all?customFilter=pwd">PWD</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{url|active_class([r/^(\/employee\/all)(.)(customFilter=inactive)/])}}" href="/employee/all?customFilter=inactive">Inactive</a>
         </li>
     </ul>
 </div>

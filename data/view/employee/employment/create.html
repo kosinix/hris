@@ -12,7 +12,7 @@
             
             {% set name = 'campus' %}
             {% set label = 'Campus *' %}
-            {% set options = [{value:'', text:''}, {value:'main', text:'Salvador'}, {value:'baterna', text:'Baterna'}, {value:'mosqueda', text:'Mosqueda'}] %}
+            {% set options = CONFIG.campuses %}
             {% include 'parts/form-group-select.html' %}
             {% set label = '' %}
 

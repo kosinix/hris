@@ -238,8 +238,10 @@ router.get('/reports/rsp/gender', middlewares.guardRoute(['read_all_report']), a
             },
             {
                 $match: {
-                    'employments.0': {
-                        $exists: true // employed!
+                    'employments': {
+                        $elemMatch: {
+                            'active': true
+                        }
                     }
                 }
             },
@@ -282,7 +284,12 @@ router.get('/reports/rsp/gender', middlewares.guardRoute(['read_all_report']), a
             },
             {
                 $match: {
-                    'employments.0.group': 'staff'
+                    'employments': {
+                        $elemMatch: {
+                            'group': 'staff',
+                            'active': true
+                        }
+                    }
                 }
             },
         ])
@@ -316,8 +323,10 @@ router.get(['/reports/rsp/gender/table', `/reports/rsp/gender/table.xlsx`], midd
         lodash.set(req, 'session.pagination.perPage', perPage)
 
         let query = {
-            'employments.0': {
-                $exists: true // employed!
+            'employments': {
+                $elemMatch: {
+                    'active': true
+                }
             }
         }
 

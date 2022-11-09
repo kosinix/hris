@@ -716,6 +716,10 @@
             onSubmit: function(){
                 var me = this;
                 me.$v.$touch()
+                if(/^([a-zA-Z]\.?)$/.test(me.middleName)){
+                    alert('Please type your full middle name, not your middle initial.')
+                    throw new Error('Please type your full middle name, not your middle initial.')
+                }
                 if (me.$v.$error) {
                     alert('Please correct the errors to continue.')
                 } else {

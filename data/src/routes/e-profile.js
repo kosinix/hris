@@ -1370,7 +1370,7 @@ router.get('/e-profile/pds.xlsx', middlewares.guardRoute(['use_employee_profile'
     }
 });
 
-router.get('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.get('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
 
@@ -1388,7 +1388,7 @@ router.get('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']), 
         next(err);
     }
 });
-router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let patch = res.employee.toObject()
@@ -1515,7 +1515,7 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
     }
 });
 
-router.get('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.get('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
 
@@ -1531,7 +1531,7 @@ router.get('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']), 
         next(err);
     }
 });
-router.post('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.post('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let patch = res.employee.toObject()
@@ -1554,7 +1554,7 @@ router.post('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']),
     }
 });
 
-router.get('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.get('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
 
@@ -1570,7 +1570,7 @@ router.get('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']), 
         next(err);
     }
 });
-router.post('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.post('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let patch = res.employee.toObject()
@@ -1594,7 +1594,7 @@ router.post('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']),
     }
 });
 
-router.get('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.get('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
 
@@ -1610,7 +1610,7 @@ router.get('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']), 
         next(err);
     }
 });
-router.post('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.post('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
         let patch = res.employee.toObject()

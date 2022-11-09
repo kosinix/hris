@@ -558,6 +558,17 @@ module.exports = {
             next(err)
         }
     },
+    lockPds: async (req, res, next) => {
+        try {
+            if(!lodash.get(res, 'user.settings.editPds')){
+                // throw new Error('PDS editing is closed.')
+            }
+
+            next();
+        } catch (err) {
+            next(err)
+        }
+    },
     getEmployeeEmployment: async (req, res, next) => {
         try {
             if (!res.employee) {

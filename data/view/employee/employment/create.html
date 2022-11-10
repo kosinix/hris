@@ -10,39 +10,94 @@
     <div class="tab-content p-3 pt-4 min-height-500">
         <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/employment/create" method="POST" class="form-default">
             
-            {% set name = 'campus' %}
-            {% set label = 'Campus *' %}
-            {% set options = CONFIG.campuses %}
-            {% include 'parts/form-group-select.html' %}
-            {% set label = '' %}
+            <div class="form-group">
+                <label for="campus">Campus <span class="text-danger">*</span></label>
+                <div>
+                    <select name="campus" id="campus" v-model="campus" class="form-control">
+                        {% set options = CONFIG.campuses %}
+                        {% for option in options %}
+                            <option value="{{option.value}}">{{option.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('campus')}</small>
+                </div>
+            </div>
 
-            {% set name = 'group' %}
-            {% set label = 'Group *' %}
-            {% set options = [{value:'', text:''}, {value:'staff', text:'Staff'}, {value:'faculty', text:'Faculty'}, {value:'other', text:'Others'}] %}
-            {% include 'parts/form-group-select.html' %}
-            {% set label = '' %}
+            <div class="form-group">
+                <label for="group">Group <span class="text-danger">*</span></label>
+                <div>
+                    <select name="group" id="group" v-model="group" class="form-control">
+                        {% set options = [{value:'', text:''}, {value:'staff', text:'Staff'}, {value:'faculty', text:'Faculty'}, {value:'other', text:'Others'}] %}
+                        {% for option in options %}
+                            <option value="{{option.value}}">{{option.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('group')}</small>
+                </div>
+            </div>
 
-            {% set name = 'position' %}
-            {% set label = 'Position *' %}
-            {% include 'parts/form-group-text.html' %}
-            {% set label = '' %}
+            <div class="form-group">
+                <label for="employmentType">Employment Type <span class="text-danger">*</span></label>
+                <div>
+                    <select @blur="guessPosition" name="employmentType" id="employmentType" v-model="employmentType" class="form-control">
+                        {% set options = [{value:'', text:''}, {value:'permanent', text:'Permanent'}, {value:'cos', text:'Contract of Service'}, {value:'jo', text:'Job Order'}, {value:'part-time', text:'Part-Time'}, {value:'casual', text:'Casual'}] %}
+                        {% for option in options %}
+                            <option value="{{option.value}}">{{option.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('employmentType')}</small>
+                </div>
+            </div>
 
-            {% set name = 'employmentType' %}
-            {% set label = 'Employment Type *' %}
-            {% set options = [{value:'', text:''}, {value:'permanent', text:'Permanent'}, {value:'cos', text:'Contract of Service'}, {value:'jo', text:'Job Order'}, {value:'part-time', text:'Part-Time'}, {value:'casual', text:'Casual'}] %}
-            {% include 'parts/form-group-select.html' %}
-            {% set label = '' %}
+            <div class="form-group">
+                <label for="position">Position <span class="text-danger">*</span></label>
+                <div>
+                    <input name="position" id="position" v-model="position" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('position')}</small>
+                </div>
+            </div>
 
-            {% set name = 'salary' %}
-            {% set label = 'Salary *' %}
-            {% include 'parts/form-group-text.html' %}
-            {% set label = '' %}
+            <div class="form-group">
+                <label for="salary">Salary <span class="text-danger">*</span></label>
+                <div>
+                    <input name="salary" id="salary" v-model="salary" type="number" class="form-control">
+                    <small class="invalid-feedback">${getError('salary')}</small>
+                </div>
+            </div>
 
-            {% set name = 'salaryType' %}
-            {% set label = 'Salary Rate *' %}
-            {% set options = [{value:'', text:''}, {value:'monthly', text:'Monthly'}, {value:'daily', text:'Daily'}, {value:'hourly', text:'Hourly'}] %}
-            {% include 'parts/form-group-select.html' %}
-            {% set label = '' %}
+            <div class="form-group">
+                <label for="salaryType">Salary Rate <span class="text-danger">*</span></label>
+                <div>
+                    <select name="salaryType" id="salaryType" v-model="salaryType" class="form-control">
+                        {% set options = [{value:'', text:''}, {value:'monthly', text:'Monthly'}, {value:'daily', text:'Daily'}, {value:'hourly', text:'Hourly'}] %}
+                        {% for option in options %}
+                            <option value="{{option.value}}">{{option.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('salaryType')}</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="workScheduleId">Work Schedule <span target="_blank" class="text-danger">*</span> <a href="/schedule/create" class="btn btn-sm btn-outline-secondary">Create Schedule</a></label>
+                <div>
+                    <select name="workScheduleId" id="workScheduleId" v-model="workScheduleId" class="form-control">
+                        {% set options = workSchedules %}
+                        {% for option in options %}
+                            <option value="{{option.value}}">{{option.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('workScheduleId')}</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="employmentStart">Employment Start</label>
+                <div>
+                    <input name="employmentStart" id="employmentStart" v-model="employmentStart" type="date" class="form-control">
+                    <small class="invalid-feedback">${getError('employmentStart')}</small>
+                </div>
+            </div>
 
             {% set name = 'department' %}
             {% set label = 'Department' %}
@@ -54,16 +109,10 @@
             {% include 'parts/form-group-text.html' %}
             {% set label = '' %}
 
-            {% set name = 'sssDeduction' %}
+            {# {% set name = 'sssDeduction' %}
             {% set label = 'SSS Amount' %}
             {% include 'parts/form-group-text.html' %}
-            {% set label = '' %}
-
-            {% set name = 'workScheduleId' %}
-            {% set label = 'Work Schedule *' %}
-            {% set options = workSchedules %}
-            {% include 'parts/form-group-select.html' %}
-            {% set label = '' %}
+            {% set label = '' %} #}
 
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
@@ -96,6 +145,7 @@
             group: '',
             position: '',
             employmentType: '',
+            employmentStart: '',
             salary: '',
             salaryType: '',
             department: '',
@@ -135,6 +185,19 @@
             this.workScheduleId = _.get(this.workSchedules, '0.value')
         },
         methods: {
+            guessPosition: function(){
+                let position = ''
+                if(this.employmentType === 'cos'){
+                    position += 'COS'
+                } else if(this.employmentType === 'part-time'){
+                    position += 'Part-Time'
+                }
+                if(this.group === 'faculty'){
+                    if(!this.position){
+                        this.position = position + ' Faculty'
+                    }
+                }
+            },
             onSubmit: function(){
                 var me = this;
                 me.$v.$touch()

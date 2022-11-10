@@ -38,6 +38,9 @@ const schema = new Schema({
         $type: String,
         trim: true,
     },
+    employmentStart: {
+        $type: Date
+    },
     salary: {
         $type: Number,
     },

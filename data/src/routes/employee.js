@@ -628,7 +628,7 @@ router.post('/employee/:employeeId/employment/:employmentId/update', middlewares
 
         await req.app.locals.db.main.Employment.updateOne({ _id: employment._id }, patch)
 
-        flash.ok(req, 'employee', `Updated "${employee.firstName} ${employee.lastName}'s" employment.`)
+        flash.ok(req, 'employee', `Updated employment "${employment.position}".`)
         res.redirect(`/employee/${employee._id}/employment`)
 
     } catch (err) {

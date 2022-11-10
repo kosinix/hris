@@ -362,7 +362,7 @@ module.exports = {
     getEmployee: async (req, res, next) => {
         try {
             let employeeId = req.params.employeeId || ''
-            let employee = await req.app.locals.db.main.Employee.findById(employeeId)
+            let employee = await req.app.locals.db.main.Employee.findById(employeeId).lean()
             if (!employee) {
                 return res.render('error.html', { error: "Sorry, employee not found." })
             }

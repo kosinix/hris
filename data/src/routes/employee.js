@@ -211,6 +211,8 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json', '/employ
 
 
         if (search) {
+            query = {}
+
             let words = search.split(' ')
             words = lodash.map(words, (o) => {
                 o = lodash.trim(o)
@@ -399,9 +401,7 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json', '/employ
 
 router.get('/employee/create', middlewares.guardRoute(['create_employee']), async (req, res, next) => {
     try {
-
-        res.render('employee/create.html', {
-        });
+        res.render('employee/create.html');
     } catch (err) {
         next(err);
     }
@@ -438,7 +438,7 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
 
 router.get('/employee/:employeeId/delete', middlewares.guardRoute(['delete_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject();
+        let employee = res.employee
 
         let data = {
             employee: employee,
@@ -452,7 +452,7 @@ router.post('/employee/:employeeId/delete', middlewares.guardRoute(['delete_empl
     try {
         let employee = res.employee
 
-        let r = await employee.remove()
+        let r = await req.app.locals.db.main.Employee.findByIdAndDelete(employee._id)
 
         flash.ok(req, 'employee', `Deleted "${r.firstName} ${r.lastName}".`)
 
@@ -526,7 +526,7 @@ router.get('/employee/:employeeId/employment', middlewares.guardRoute(['read_emp
 // C
 router.get('/employee/:employeeId/employment/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
 
         let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
         workSchedules = workSchedules.map((w) => {
@@ -577,7 +577,7 @@ router.post('/employee/:employeeId/employment/create', middlewares.guardRoute(['
 // RU
 router.get('/employee/:employeeId/employment/:employmentId/update', middlewares.guardRoute(['read_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
         let employment = res.employment
 
         let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
@@ -631,7 +631,7 @@ router.post('/employee/:employeeId/employment/:employmentId/update', middlewares
 // D
 router.get('/employee/:employeeId/employment/:employmentId/delete', middlewares.guardRoute(['delete_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
         let employment = res.employment.toObject()
 
         res.render('employee/employment/delete.html', {
@@ -657,385 +657,6 @@ router.post('/employee/:employeeId/employment/:employmentId/delete', middlewares
     }
 });
 
-// Schedule
-router.get('/employee/:employeeId/employment/:employmentId/schedule', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let employment = res.employment.toObject()
-
-        // Convert from minutes from midnight into HTML time input HH:mm
-        let mToTime = (minutes, format) => {
-            if (!minutes) return 0
-            format = format || 'HH:mm'
-            return moment().startOf('year').startOf('day').add(minutes, 'minutes').format(format)
-        }
-
-        // Convert from HTML time input HH:mm into minutes from midnight
-        let timeToM = (time, format) => {
-            format = format || 'HH:mm'
-            var momentDayStart = moment().startOf('day')
-
-            var timeParser = moment(time, format)
-            var momentTime = momentDayStart.clone().hours(timeParser.hours()).minutes(timeParser.minutes())
-
-            return momentTime.diff(momentDayStart, 'minutes')
-        }
-
-        let timeSegmentsTemplate = [
-            {
-                start: 0,
-                end: 0,
-                grace: 0,
-                maxHours: 0,
-                flexible: false,
-                breaks: []
-            },
-            {
-                start: null,
-                end: null,
-                grace: null,
-                maxHours: 0,
-                flexible: false,
-                breaks: []
-            },
-        ]
-        let workScheduleTemplate = {
-            weekDays: {
-                mon: {
-                    id: 'mon',
-                    name: 'Mon',
-                    type: 1, // 1 - normal, 2 - rest
-                    timeSegments: timeSegmentsTemplate,
-                },
-                tue: {
-                    id: 'tue',
-                    name: 'Tue',
-                    type: 1, // 1 - normal, 2 - rest
-                    timeSegments: timeSegmentsTemplate,
-                },
-                wed: {
-                    id: 'wed',
-                    name: 'Wed',
-                    type: 1, // 1 - normal, 2 - rest
-                    timeSegments: timeSegmentsTemplate,
-                },
-                thu: {
-                    id: 'thu',
-                    name: 'Thu',
-                    type: 1, // 1 - normal, 2 - rest
-                    timeSegments: timeSegmentsTemplate,
-                },
-                fri: {
-                    id: 'fri',
-                    name: 'Fri',
-                    type: 1, // 1 - normal, 2 - rest
-                    timeSegments: timeSegmentsTemplate,
-                },
-                sat: {
-                    id: 'sat',
-                    name: 'Sat',
-                    type: 2, // 1 - normal, 2 - rest
-                    timeSegments: timeSegmentsTemplate,
-                },
-                sun: {
-                    id: 'sun',
-                    name: 'Sun',
-                    type: 2, // 1 - normal, 2 - rest
-                    timeSegments: timeSegmentsTemplate,
-                },
-            }
-        };
-
-        workScheduleTemplate.weekDays = lodash.mapValues(workScheduleTemplate.weekDays, (weekDay) => {
-            weekDay.timeSegments = lodash.map(weekDay.timeSegments, (timeSegment) => {
-                timeSegment.maxHours = timeSegment.end - timeSegment.start
-                timeSegment.start = mToTime(timeSegment.start)
-                timeSegment.end = mToTime(timeSegment.end)
-                timeSegment.breaks = lodash.map(timeSegment.breaks, (br) => {
-                    br.start = mToTime(br.start)
-                    br.end = mToTime(br.end)
-                    return br
-                })
-                return timeSegment
-            })
-            return weekDay
-        })
-        // return res.send(workSchedule.weekDays.mon)
-        res.render('employee/schedule.html', {
-            flash: flash.get(req, 'employee'),
-            title: `Employee - ${employee.lastName} - Schedule`,
-            employee: employee,
-            employment: employment,
-            workSchedule: workScheduleTemplate,
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-router.post('/employee/:employeeId/employment/:employmentId/schedule', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, middlewares.getEmployment, fileUpload(), async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let employment = res.employment.toObject()
-        let files = lodash.get(req, 'files', [])
-
-        // return res.send(files)
-        let localFiles = await uploader.handleExpressUploadLocalAsync(files, CONFIG.app.dirs.upload, ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"])
-        // Excel containing graduate list
-        let workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.readFile(lodash.get(localFiles, 'excel.0.filePath'));
-        // Select worksheet to use
-        let sheet = await workbook.getWorksheet('Sheet1')
-
-        // UTC date to time
-        let toTime = (utcDate, strict = true) => {
-            return moment(utcDate, strict).format('h:mmA')
-        }
-        let timeToM = (time, format, strict = true) => {
-            format = format || 'h:mmA'
-            var momentDayStart = moment().startOf('day')
-
-            var timeParser = moment(time, format, strict)
-            if (!timeParser.isValid()) {
-                // throw new Error(`Invalid time "${time}". Format must be in "${format}"`)
-                return 0
-            }
-            var momentTime = momentDayStart.clone().hours(timeParser.hours()).minutes(timeParser.minutes())
-
-            return momentTime.diff(momentDayStart, 'minutes')
-        }
-
-        let parseBreaks = (workBreaks) => {
-            let workBreaksArray = []
-            if ((typeof workBreaks) === 'string') {
-                workBreaks = workBreaks.replace(/\s\s+/g, '') // Remove spaces
-                workBreaksArray = workBreaks.split(',')
-                workBreaksArray = workBreaksArray.map((workBreak) => {
-                    let splits = workBreak.split('-')
-                    return {
-                        start: timeToM(splits[0]),
-                        end: timeToM(splits[1]),
-                        type: 'vacant'
-                    }
-                })
-            }
-            return workBreaksArray
-        }
-
-        let workSchedule = {
-            weekDays: {
-                mon: {
-                    type: ((sheet.getCell('J2').value + '').trim() === 'Work') ? 1 : 2,
-                    timeSegments: [
-                        {
-                            start: timeToM(sheet.getCell('B2').value),
-                            end: timeToM(sheet.getCell('C2').value),
-                            grace: parseInt(sheet.getCell('D2').value) || 0,
-                            max: timeToM(sheet.getCell('C2').value) - timeToM(sheet.getCell('B2').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('E2').value),
-                        },
-                        {
-                            start: timeToM(sheet.getCell('F2').value),
-                            end: timeToM(sheet.getCell('G2').value),
-                            grace: parseInt(sheet.getCell('H2').value) || 0,
-                            max: timeToM(sheet.getCell('G2').value) - timeToM(sheet.getCell('F2').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('I2').value),
-                        }
-                    ]
-                },
-                tue: {
-                    type: ((sheet.getCell('J3').value + '').trim() === 'Work') ? 1 : 2,
-                    timeSegments: [
-                        {
-                            start: timeToM(sheet.getCell('B3').value),
-                            end: timeToM(sheet.getCell('C3').value),
-                            grace: parseInt(sheet.getCell('D3').value) || 0,
-                            max: timeToM(sheet.getCell('C3').value) - timeToM(sheet.getCell('B3').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('E3').value),
-                        },
-                        {
-                            start: timeToM(sheet.getCell('F3').value),
-                            end: timeToM(sheet.getCell('G3').value),
-                            grace: parseInt(sheet.getCell('H3').value) || 0,
-                            max: timeToM(sheet.getCell('G3').value) - timeToM(sheet.getCell('F3').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('I3').value),
-                        }
-                    ]
-                },
-                wed: {
-                    type: ((sheet.getCell('J4').value + '').trim() === 'Work') ? 1 : 2,
-                    timeSegments: [
-                        {
-                            start: timeToM(sheet.getCell('B4').value),
-                            end: timeToM(sheet.getCell('C4').value),
-                            grace: parseInt(sheet.getCell('D4').value) || 0,
-                            max: timeToM(sheet.getCell('C4').value) - timeToM(sheet.getCell('B4').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('E4').value),
-                        },
-                        {
-                            start: timeToM(sheet.getCell('F4').value),
-                            end: timeToM(sheet.getCell('G4').value),
-                            grace: parseInt(sheet.getCell('H4').value) || 0,
-                            max: timeToM(sheet.getCell('G4').value) - timeToM(sheet.getCell('F4').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('I4').value),
-                        }
-                    ]
-                },
-                thu: {
-                    type: ((sheet.getCell('J5').value + '').trim() === 'Work') ? 1 : 2,
-                    timeSegments: [
-                        {
-                            start: timeToM(sheet.getCell('B5').value),
-                            end: timeToM(sheet.getCell('C5').value),
-                            grace: parseInt(sheet.getCell('D5').value) || 0,
-                            max: timeToM(sheet.getCell('C5').value) - timeToM(sheet.getCell('B5').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('E5').value),
-                        },
-                        {
-                            start: timeToM(sheet.getCell('F5').value),
-                            end: timeToM(sheet.getCell('G5').value),
-                            grace: parseInt(sheet.getCell('H5').value) || 0,
-                            max: timeToM(sheet.getCell('G5').value) - timeToM(sheet.getCell('F5').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('I5').value),
-                        }
-                    ]
-                },
-                fri: {
-                    type: ((sheet.getCell('J6').value + '').trim() === 'Work') ? 1 : 2,
-                    timeSegments: [
-                        {
-                            start: timeToM(sheet.getCell('B6').value),
-                            end: timeToM(sheet.getCell('C6').value),
-                            grace: parseInt(sheet.getCell('D6').value) || 0,
-                            max: timeToM(sheet.getCell('C6').value) - timeToM(sheet.getCell('B6').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('E6').value),
-                        },
-                        {
-                            start: timeToM(sheet.getCell('F6').value),
-                            end: timeToM(sheet.getCell('G6').value),
-                            grace: parseInt(sheet.getCell('H6').value) || 0,
-                            max: timeToM(sheet.getCell('G6').value) - timeToM(sheet.getCell('F6').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('I6').value),
-                        }
-                    ]
-                },
-                sat: {
-                    type: ((sheet.getCell('J7').value + '').trim() === 'Work') ? 1 : 2,
-                    timeSegments: [
-                        {
-                            start: timeToM(sheet.getCell('B7').value),
-                            end: timeToM(sheet.getCell('C7').value),
-                            grace: parseInt(sheet.getCell('D7').value) || 0,
-                            max: timeToM(sheet.getCell('C7').value) - timeToM(sheet.getCell('B7').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('E7').value),
-                        },
-                        {
-                            start: timeToM(sheet.getCell('F7').value),
-                            end: timeToM(sheet.getCell('G7').value),
-                            grace: parseInt(sheet.getCell('H7').value) || 0,
-                            max: timeToM(sheet.getCell('G7').value) - timeToM(sheet.getCell('F7').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('I7').value),
-                        }
-                    ]
-                },
-                sun: {
-                    type: ((sheet.getCell('J8').value + '').trim() === 'Work') ? 1 : 2,
-                    timeSegments: [
-                        {
-                            start: timeToM(sheet.getCell('B8').value),
-                            end: timeToM(sheet.getCell('C8').value),
-                            grace: parseInt(sheet.getCell('D8').value) || 0,
-                            max: timeToM(sheet.getCell('C8').value) - timeToM(sheet.getCell('B8').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('E8').value),
-                        },
-                        {
-                            start: timeToM(sheet.getCell('F8').value),
-                            end: timeToM(sheet.getCell('G8').value),
-                            grace: parseInt(sheet.getCell('H8').value) || 0,
-                            max: timeToM(sheet.getCell('G8').value) - timeToM(sheet.getCell('F8').value),
-                            flexible: false,
-                            breaks: parseBreaks(sheet.getCell('I8').value),
-                        }
-                    ]
-                }
-            }
-        }
-
-
-        await uploader.deleteUploadsAsync(localFiles, [])
-
-
-        workSchedule.name = `${employee.firstName} ${employee.lastName} - ${employment.position}`
-        workSchedule.visibility = 'members'
-        workSchedule.members = [
-            {
-                "objectId": employment._id,
-                "name": `${employee.firstName} ${employee.lastName} - ${employment.group}`,
-                "type": "employment"
-            }
-        ]
-
-        workSchedule = await req.app.locals.db.main.WorkSchedule.create(workSchedule)
-
-        // Update assignment
-        await req.app.locals.db.main.Employment.updateOne({
-            _id: employment._id
-        }, {
-            workScheduleId: workSchedule._id
-        })
-
-        // res.send(workSchedule)
-        res.redirect(`/employee/${employee._id}/employment/${employment._id}/schedule/${workSchedule._id}`)
-    } catch (err) {
-        next(err);
-    }
-});
-router.get('/employee/:employeeId/employment/:employmentId/schedule/:scheduleId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getSchedule, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let employment = res.employment.toObject()
-        let workSchedule = res.schedule.toObject()
-
-        workSchedule.weekDays = lodash.mapValues(workSchedule.weekDays, (weekDay) => {
-            weekDay.timeSegments = lodash.map(weekDay.timeSegments, (timeSegment) => {
-                timeSegment.start = dtrHelper.mToTime(timeSegment.start, 'h:mmA')
-                timeSegment.end = dtrHelper.mToTime(timeSegment.end, 'h:mmA')
-                // timeSegment.maxHours = timeSegment.end - timeSegment.start
-                timeSegment.breaks = lodash.map(timeSegment.breaks, (br) => {
-                    br.start = dtrHelper.mToTime(br.start, 'h:mmA')
-                    br.end = dtrHelper.mToTime(br.end, 'h:mmA')
-                    return br
-                })
-                return timeSegment
-            })
-            return weekDay
-        })
-
-        // return res.send(workSchedule.weekDays.mon)
-        res.render('employee/schedule/read.html', {
-            flash: flash.get(req, 'employee'),
-            title: `Employee - ${employee.lastName} - Schedule`,
-            employee: employee,
-            employment: employment,
-            workSchedule: workSchedule,
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-
 // Address
 router.get('/employee/:employeeId/address', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
@@ -1053,7 +674,7 @@ router.get('/employee/:employeeId/address', middlewares.guardRoute(['read_employ
 });
 router.post('/employee/:employeeId/address', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee
+        let employee = await req.app.locals.db.main.Employee.findById(res.employee._id)
         let body = req.body
         let patch = {}
 
@@ -1156,8 +777,10 @@ router.post('/employee/:employeeId/photo', middlewares.guardRoute(['create_emplo
             }).promise()
         }
 
-        employee.profilePhoto = lodash.get(req, 'saveList.photo[0]')
-        await employee.save()
+        let patch = {
+            profilePhoto: lodash.get(req, 'saveList.photo[0]')
+        }
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} photo.`)
         res.redirect(`/employee/${employee._id}/personal`);
     } catch (err) {
@@ -1166,7 +789,7 @@ router.post('/employee/:employeeId/photo', middlewares.guardRoute(['create_emplo
 });
 router.get('/employee/:employeeId/photo/delete', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
 
 
         // Delete files on AWS S3
@@ -1224,7 +847,7 @@ router.get('/employee/find', middlewares.guardRoute(['create_employee', 'update_
 // User
 router.get('/employee/:employeeId/user', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
         let onlineAccount = await req.app.locals.db.main.User.findById(employee.userId)
 
         let username = passwordMan.genUsername(employee.firstName, employee.lastName)
@@ -1243,7 +866,7 @@ router.get('/employee/:employeeId/user', middlewares.guardRoute(['read_employee'
 });
 router.get('/employee/:employeeId/user/create', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
         let onlineAccount = await req.app.locals.db.main.User.findById(employee.userId)
         if (onlineAccount) {
             flash.error(req, 'employee', 'Already have an account.')
@@ -1341,7 +964,10 @@ router.post('/employee/:employeeId/user/create', middlewares.guardRoute(['update
             });
             await employeeUser.save()
             employee.userId = employeeUser._id
-            await employee.save()
+            let patch = {
+                userId: employeeUser._id
+            }
+            await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
         }
         let data = {
             to: employeeUser.email,
@@ -1352,8 +978,6 @@ router.post('/employee/:employeeId/user/create', middlewares.guardRoute(['update
         }
 
         let info = await mailer.send('verified.html', data)
-        console.log(info)
-
 
         flash.ok(req, 'employee', `Account created with username "${body.username}" and password "${body.password}".`)
         res.redirect(`/employee/${employee._id}/user`)
@@ -1364,7 +988,7 @@ router.post('/employee/:employeeId/user/create', middlewares.guardRoute(['update
 });
 router.post('/employee/:employeeId/user/password', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
         let employeeUser = await req.app.locals.db.main.User.findById(employee.userId)
 
         if (employeeUser) { // Assoc user
@@ -1390,7 +1014,7 @@ router.post('/employee/:employeeId/user/password', middlewares.guardRoute(['upda
 });
 router.get('/employee/:employeeId/user/delete', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
         employee.user = await req.app.locals.db.main.User.findById(employee.userId)
 
         res.render('employee/online-account/delete.html', {
@@ -1403,10 +1027,8 @@ router.get('/employee/:employeeId/user/delete', middlewares.guardRoute(['read_em
 });
 router.post('/employee/:employeeId/user/delete', middlewares.guardRoute(['update_employee']), middlewares.antiCsrfCheck, middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
-        let user = await req.app.locals.db.main.User.findById(employee.userId)
-
-        let deleted = await user.remove()
+        let employee = res.employee
+        let deleted = await req.app.locals.db.main.User.findByIdAndDelete(employee.userId)
 
         flash.ok(req, 'employee', `Account "${deleted.username}" deleted.`)
         res.redirect(`/employee/${employee._id}/user`)
@@ -1418,7 +1040,7 @@ router.post('/employee/:employeeId/user/delete', middlewares.guardRoute(['update
 
 router.get('/employee/:employeeId/user/:userId/update', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
         let onlineAccount = await req.app.locals.db.main.User.findById(employee.userId)
         if (!onlineAccount) {
             flash.error(req, 'employee', 'Account do not exist.')
@@ -1438,7 +1060,7 @@ router.get('/employee/:employeeId/user/:userId/update', middlewares.guardRoute([
 });
 router.post('/employee/:employeeId/user/:userId/update', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
         let employeeUser = await req.app.locals.db.main.User.findById(employee.userId)
         if (!employeeUser) {
             flash.error(req, 'employee', 'Account do not exist.')
@@ -1509,7 +1131,7 @@ router.post('/employee/:employeeId/user/:userId/update', middlewares.guardRoute(
 // Documents
 router.get('/employee/:employeeId/document/all', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
 
         res.render('employee/document/all.html', {
             flash: flash.get(req, 'employee'),
@@ -1522,7 +1144,7 @@ router.get('/employee/:employeeId/document/all', middlewares.guardRoute(['read_e
 // DL
 router.get('/employee/:employeeId/document/pds', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
 
         let workbook = await excelGen.templatePds(employee)
         let buffer = await workbook.xlsx.writeBuffer();
@@ -1536,7 +1158,7 @@ router.get('/employee/:employeeId/document/pds', middlewares.guardRoute(['read_e
 // C
 router.get('/employee/:employeeId/document/create', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
 
 
         res.render('employee/document/create.html', {
@@ -1551,13 +1173,17 @@ router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['cr
     try {
         let employee = res.employee
 
-        employee.documents.push({
-            name: lodash.get(req, 'body.name'),
-            key: lodash.get(req, 'saveList.document[0]'),
-            mimeType: '',
-        })
+        let patch = {
+            documents: [
+                {
+                    name: lodash.get(req, 'body.name'),
+                    key: lodash.get(req, 'saveList.document[0]'),
+                    mimeType: '',
+                }
+            ]
+        }
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
-        await employee.save()
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} documents.`)
         res.redirect(`/employee/${employee._id}/document/all`);
     } catch (err) {
@@ -1616,8 +1242,6 @@ router.get('/employee/:employeeId/document/:documentId/delete', middlewares.guar
 router.get('/employee/delete/:employeeId', middlewares.guardRoute(['delete_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
-        let employeePlain = employee.toObject()
-
 
         // Delete files on AWS S3
         const bucketName = CONFIG.aws.bucket1.name
@@ -1625,7 +1249,7 @@ router.get('/employee/delete/:employeeId', middlewares.guardRoute(['delete_emplo
 
         let promises = []
 
-        let photo = employeePlain.profilePhoto
+        let photo = employee.profilePhoto
         if (photo) {
             let promise = s3.deleteObjects({
                 Bucket: bucketName,
@@ -1646,7 +1270,7 @@ router.get('/employee/delete/:employeeId', middlewares.guardRoute(['delete_emplo
         }
 
         // Requirements
-        lodash.each(employeePlain.documents, (document) => {
+        lodash.each(employee.documents, (document) => {
             lodash.each(document.files, (deadFile) => {
                 let bucketKey = deadFile
                 let promise = s3.deleteObjects({
@@ -1670,9 +1294,9 @@ router.get('/employee/delete/:employeeId', middlewares.guardRoute(['delete_emplo
 
         await Promise.all(promises)
 
-        await employee.remove()
+        let deleted = await req.app.locals.db.main.Employee.findByIdAndDelete(employee._id)
 
-        flash.ok(req, 'employee', `"${employeePlain.firstName} ${employeePlain.lastName}" deleted.`)
+        flash.ok(req, 'employee', `"${deleted.firstName} ${deleted.lastName}" deleted.`)
         res.redirect(`/employee/all`);
     } catch (err) {
         next(err);

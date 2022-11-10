@@ -362,13 +362,39 @@ module.exports = {
     getEmployee: async (req, res, next) => {
         try {
             let employeeId = req.params.employeeId || ''
-            let employee = await req.app.locals.db.main.Employee.findById(employeeId);
+            let employee = await req.app.locals.db.main.Employee.findById(employeeId)
             if (!employee) {
                 return res.render('error.html', { error: "Sorry, employee not found." })
             }
-            employee.employments = await req.app.locals.db.main.Employment.find({
-                employeeId: employeeId
-            });
+            // Employments
+            let aggr = [
+                {
+                    $lookup: {
+                        localField: "workScheduleId",
+                        foreignField: "_id",
+                        from: "workschedules", // Notice the small caps 
+                        as: 'workSchedules' // Capitalized
+                    }
+                },
+                {
+                    $match: {
+                        employeeId: employee._id
+                    }
+                },
+                {
+                    $addFields: {
+                        workSchedule: {
+                            $arrayElemAt: ["$workSchedules", 0]
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        workSchedules: 0
+                    }
+                }
+            ]
+            employee.employments = await req.app.locals.db.main.Employment.aggregate(aggr)
 
             res.employee = employee
             next();
@@ -560,7 +586,7 @@ module.exports = {
     },
     lockPds: async (req, res, next) => {
         try {
-            if(!lodash.get(res, 'user.settings.editPds')){
+            if (!lodash.get(res, 'user.settings.editPds')) {
                 // throw new Error('PDS editing is closed.')
             }
 
@@ -855,7 +881,7 @@ module.exports = {
     isFlagRaisingDay: async (req, res, next) => {
         try {
             let employee = res.employee
-            if(!employee){
+            if (!employee) {
                 throw new Error('Employee ID needed.')
             }
             let momentDate = moment()
@@ -875,7 +901,7 @@ module.exports = {
             // if (!flag) {
             //     throw new Error(`There is no flag raising ceremony today (${momentDate.format('dddd, MMMM D')}).`)
             // }
-            
+
             let { hour, minute } = CONFIG.hros.flagRaising.end
             let momentFlagEnd = momentDate.clone().startOf('day').hours(hour).minutes(minute)
             // console.log(momentDate.format('MMMM-DD hh:mm A'), momentFlagEnd.format('MMMM-DD hh:mm A'))

@@ -6,13 +6,12 @@
     {% include 'employee/employee-header.html' %}
     {% include 'employee/employee-profile-photo.html' %}
     {% include 'employee/employee-view-tabs.html' %}
-
     <div class="tab-content p-3 pt-4 min-height-500">
         <div class="d-flex align-items-center mb-4">
             <h1 class="h4 mr-3 mb-0">Employments</h1>
             <a href="/employee/{{employee._id}}/employment/create" class="btn btn-sm btn-light">Add Employment</a>
         </div>
-        {% if employee.employments.length > 0 %}
+        {% if employments.length > 0 %}
         <div class="table-responsive mb-4">
             <table class="table table-sm table-striped">
                 <thead>
@@ -23,12 +22,12 @@
                         <th>Salary Rate</th>
                         <th>Employment Type</th>
                         <th>Campus</th>
-                        <th></th>
+                        <th>Schedule</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for employment in employee.employments %}
+                    {% for employment in employments %}
                     <tr>
                         <td>
                             {% if employment.active %}
@@ -45,12 +44,16 @@
                         <td>{{employment.employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</td>
                         <td>{{employment.campus|capitalize}}</td>
                         <td>
-                            <a href="/employee/{{employee._id}}/employment/{{employment._id}}/update">Edit</a>
-                            {# | <a href="/employee/{{employee._id}}/employment/{{employment._id}}/schedule/{{employment.workScheduleId}}">Sched</a> #}
+                            {% if not(employment.workSchedule) %}
+                                <a href="/schedule/create">No Schedule</a>
+                            {% else %}
+                                <a href="/schedule/{{employment.workSchedule._id}}">Work Schedule</a>
+                            {% endif %}
                         </td>
                         <td>
+                            <a href="/employee/{{employee._id}}/employment/{{employment._id}}/update">Edit</a> |
                             <a href="/attendance/employment/{{employment._id}}">Att.</a> | 
-                            <a href="/reports/pm/tardiness/{{employment._id}}/report">Tard.</a>
+                            <a href="/reports/pm/tardiness/{{employment._id}}/report">Tardi.</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -60,15 +63,11 @@
         {% else %}
             <p>No employment found. <em><a href="/employee/{{employee._id}}/employment/create" class="">Add Employment</a></em></p>
         {% endif %}
-
     </div>
-
 </div>
-{# {% include "parts/modal-employment.html" %} #}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-{# {% include "parts/script-employment.html" %} #}
 <script>
     var vApp = new Vue({
         el: '#vApp',
@@ -78,52 +77,13 @@
             window.vuelidateExtendMixin,
         ],
         data: {
-            campus: '{{employee.employments[0].campus}}',
-            group: '{{employee.employments[0].group}}',
-            position: '{{employee.employments[0].position}}',
-            employmentType: '{{employee.employments[0].employmentType}}',
-            salary: '{{employee.employments[0].salary}}',
-            salaryType: '{{employee.employments[0].salaryType}}',
-            department: '{{employee.employments[0].department}}',
-            fundSource: '{{employee.employments[0].fundSource}}',
-            sssDeduction: '{{employee.employments[0].sssDeduction}}',
+            
         },
         validations: {
-            campus: {
-                required: window.validators.required
-            },
-            group: {
-                required: window.validators.required
-            },
-            position: {
-                required: window.validators.required
-            },
-            employmentType: {
-                required: window.validators.required
-            },
-            salary: {
-                required: window.validators.required,
-                isMoneyFormat: window.customValidators.isMoneyFormat('Not a valid money format.')
-            },
-            salaryType: {
-                required: window.validators.required,
-            },
-            sssDeduction: {
-                isMoneyFormat: window.customValidators.isMoneyFormat('Not a valid money format.')
-            },
+           
         },
         methods: {
-            onSubmit: function(){
-                var me = this;
-                me.$v.$touch()
-                if (me.$v.$error) {
-                    alert('Please correct the errors to continue.')
-                } else {
-                    me.$nextTick(function() {
-                        me.$refs.form.submit();
-                    });
-                }
-            }
+            
         }
     });
 </script>

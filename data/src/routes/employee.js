@@ -519,14 +519,12 @@ router.post('/employee/:employeeId/personal', middlewares.guardRoute(['update_em
 // Employment
 router.get('/employee/:employeeId/employment', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
-        let employmentIndex = employee.employments.length
-
+        let employee = res.employee
+        
         res.render('employee/employment/all.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
-            employment: employee.employments[employmentIndex],
-            employmentIndex: employmentIndex
+            employments: employee.employments,
         });
     } catch (err) {
         next(err);

@@ -16,31 +16,27 @@
             <table class="table table-sm table-striped">
                 <thead>
                     <tr>
-                        <th>Status</th>
-                        <th>Position</th>
-                        <th>Salary</th>
-                        <th>Salary Rate</th>
-                        <th>Employment Type</th>
-                        <th>Campus</th>
-                        <th>Schedule</th>
+                        <th width="16%">Position</th>
+                        <th width="16%">Salary</th>
+                        <th width="16%">Employment Type</th>
+                        <th width="16%">Campus</th>
+                        <th width="16%">Schedule</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for employment in employments %}
                     <tr>
+                        
                         <td>
                             {% if employment.active %}
-                                <span class="text-success">Active</span>
+                                {% set linkClass = 'text-success' %}
                             {% else %}
-                                <span class="text-dark">Inactive</span>
+                                {% set linkClass = 'text-secondary' %}
                             {% endif %}
+                            <a class="{{linkClass}}" href="/employee/{{employee._id}}/employment/{{employment._id}}/update">{{employment.position}}</a>
                         </td>
-                        <td>
-                            <a href="/employee/{{employee._id}}/employment/{{employment._id}}/update">{{employment.position}}</a>
-                        </td>
-                        <td>{{employment.salary|currency}}</td>
-                        <td>{{employment.salaryType}}</td>
+                        <td>{{employment.salary|currency}} <em>{{employment.salaryType}}</em></td>
                         <td>{{employment.employmentType|capitalize|replace(r/^jo$/i,'Job Order')|replace(r/^cos$/i,'COS')}}</td>
                         <td>{{employment.campus|capitalize}}</td>
                         <td>

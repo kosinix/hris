@@ -417,6 +417,7 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
         lodash.set(patch, 'birthDate', lodash.get(body, 'birthDate'))
         lodash.set(patch, 'gender', lodash.get(body, 'gender'))
         lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
+        lodash.set(patch, 'personal.agencyEmployeeNumber', lodash.get(body, 'agencyEmployeeNumber'))
 
         let matches = await req.app.locals.db.main.Employee.find({
             firstName: new RegExp(`^${lodash.trim(patch.firstName)}$`, "i"),
@@ -438,18 +439,9 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
 router.get('/employee/:employeeId/delete', middlewares.guardRoute(['delete_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject();
-        let employment = await req.app.locals.db.main.Employment.findOne({
-            employeeId: employee._id
-        }).lean()
-
-        let webAccess = await req.app.locals.db.main.User.findById({
-            _id: employee.userId
-        }).lean()
 
         let data = {
             employee: employee,
-            employment: employment,
-            webAccess: webAccess,
         }
         res.render('employee/delete.html', data);
     } catch (err) {
@@ -506,10 +498,11 @@ router.post('/employee/:employeeId/personal', middlewares.guardRoute(['update_em
         lodash.set(patch, 'gender', lodash.get(body, 'gender'))
         lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
         lodash.set(patch, 'speechSynthesisName', lodash.get(body, 'speechSynthesisName'))
+        lodash.set(patch, 'personal.agencyEmployeeNumber', lodash.get(body, 'agencyEmployeeNumber'))
 
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
-        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName}'s personal info.`)
+        flash.ok(req, 'employee', `Updated employee's info.`)
         res.redirect(`/employee/${employee._id}/personal`)
     } catch (err) {
         next(err);

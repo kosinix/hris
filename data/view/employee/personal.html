@@ -9,51 +9,18 @@
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
         <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/personal" method="POST" class="form-default">
-            <h3>Personal Information</h3>
-            {% set name = 'firstName' %}
-            {% include 'parts/form-group-text.html' %}
 
-            {% set name = 'middleName' %}
-            {% include 'parts/form-group-text.html' %}
-
-            {% set name = 'lastName' %}
-            {% include 'parts/form-group-text.html' %}
-
-            {% set name = 'suffix' %}
-            {% set options = [{value:'', text:''}, {value:'II', text:'II'}, {value:'III', text:'III'}, {value:'IV', text:'IV'}, {value:'Jr.', text:'Jr.'}, {value:'Sr.', text:'Sr.'}] %}
-            {% include 'parts/form-group-select.html' %}
-
-            {% set name = 'birthDate' %}
-            {% include 'parts/form-group-date.html' %}
-
-            {% set name = 'gender' %}
-            {% set options = [{value:'', text:''}, {value:'M', text:'Male'}, {value:'F', text:'Female'}, {value:'O', text:'Other'}] %}
-            {% include 'parts/form-group-select.html' %}
-
-            {% set name = 'civilStatus' %}
-            {% set options = [{value:'', text:''}, {value:'Single', text:'Single'}, {value:'Married', text:'Married'}, {value:'Separated', text:'Separated'}, {value:'Widowed', text:'Widowed'}] %}
-            {% include 'parts/form-group-select.html' %}
-
-            <div class="form-group">
-                <label for="speechSynthesisName">Speech Synthesis Name</label>
-                <div class>
-                    <div class="d-flex">
-                        <input v-on:blur="clean" maxlength="15" name="speechSynthesisName" id="speechSynthesisName" v-model="speechSynthesisName" type="text" class="form-control">
-                        <button v-on:click="hambal(speechSynthesisName)" class="btn btn-light" type="button" :disabled="btnSpeechDisabled">
-                            <svg style="width:18px;height:18px" viewBox="0 0 24 24">
-                                <path fill="currentColor" d="M9,5A4,4 0 0,1 13,9A4,4 0 0,1 9,13A4,4 0 0,1 5,9A4,4 0 0,1 9,5M9,15C11.67,15 17,16.34 17,19V21H1V19C1,16.34 6.33,15 9,15M16.76,5.36C18.78,7.56 18.78,10.61 16.76,12.63L15.08,10.94C15.92,9.76 15.92,8.23 15.08,7.05L16.76,5.36M20.07,2C24,6.05 23.97,12.11 20.07,16L18.44,14.37C21.21,11.19 21.21,6.65 18.44,3.63L20.07,2Z" />
-                            </svg>
-                        </button>
-                    </div>
-                    <small class="invalid-feedback">${getError('speechSynthesisName')}</small>
-                </div>
-            </div>
+            {% include 'employee/form-employee-info.html' %}
 
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
-                    <button class="btn btn-primary">Save Info</button>
+                    <div class="d-flex justify-content-between">
+                        <a href="/employee/all" class="btn btn-light">Cancel</a>
+                        <button class="btn btn-primary">Save</button>
+                    </div>
                 </div>
             </div>
+
         </form>
     </div>
 
@@ -81,6 +48,7 @@
             birthDate: '{{employee.birthDate|format_date("YYYY-MM-DD")}}',
             civilStatus: '{{employee.civilStatus|default(true, "S")}}',
             speechSynthesisName: '{{employee.speechSynthesisName}}',
+            agencyEmployeeNumber: '{{employee.personal.agencyEmployeeNumber}}',
         },
         validations: {
             firstName: {

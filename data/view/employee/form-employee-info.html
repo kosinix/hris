@@ -1,0 +1,93 @@
+<div class="form-group">
+    <label for="firstName">First Name <span class="text-danger">*</span></label>
+    <div>
+        <input name="firstName" id="firstName" v-model="firstName" type="text" class="form-control">
+        <small class="invalid-feedback">${getError('firstName')}</small>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="middleName">Middle Name</label>
+    <div>
+        <input name="middleName" id="middleName" v-model="middleName" type="text" class="form-control">
+        <small class="invalid-feedback">${getError('middleName')}</small>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="lastName">Last Name <span class="text-danger">*</span></label>
+    <div>
+        <input name="lastName" id="lastName" v-model="lastName" type="text" class="form-control">
+        <small class="invalid-feedback">${getError('lastName')}</small>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="suffix">Suffix</label>
+    <div>
+        <select name="suffix" id="suffix" v-model="suffix" class="form-control">
+            {% set options = [{value:'', text:''}, {value:'II', text:'II'}, {value:'III', text:'III'}, {value:'IV', text:'IV'}, {value:'Jr.', text:'Jr.'}, {value:'Sr.', text:'Sr.'}] %}
+            {% for option in options %}
+                <option value="{{option.value}}">{{option.text}}</option>
+            {% endfor %}
+        </select>
+        <small class="invalid-feedback">${getError('suffix')}</small>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="birthDate">Birth Date <span class="text-danger">*</span></label>
+    <div>
+        <input name="birthDate" id="birthDate" v-model="birthDate" type="date" class="form-control">
+        <small class="invalid-feedback">${getError('birthDate')}</small>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="gender">Gender <span class="text-danger">*</span></label>
+    <div>
+        <select name="gender" id="gender" v-model="gender" class="form-control">
+            {% set options = [{value:'', text:''}, {value:'M', text:'Male'}, {value:'F', text:'Female'}, {value:'O', text:'Other'}] %}
+            {% for option in options %}
+                <option value="{{option.value}}">{{option.text}}</option>
+            {% endfor %}
+        </select>
+        <small class="invalid-feedback">${getError('gender')}</small>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="civilStatus">Civil Status <span class="text-danger">*</span></label>
+    <div>
+        <select name="civilStatus" id="civilStatus" v-model="civilStatus" class="form-control">
+            {% set options = [{value:'', text:''}, {value:'Single', text:'Single'}, {value:'Married', text:'Married'}, {value:'Separated', text:'Separated'}, {value:'Widowed', text:'Widowed'}] %}
+            {% for option in options %}
+                <option value="{{option.value}}">{{option.text}}</option>
+            {% endfor %}
+        </select>
+        <small class="invalid-feedback">${getError('civilStatus')}</small>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="speechSynthesisName">Speech Synthesis Name</label>
+    <div class>
+        <div class="d-flex">
+            <input v-on:blur="clean" maxlength="15" name="speechSynthesisName" id="speechSynthesisName" v-model="speechSynthesisName" type="text" class="form-control">
+            <button v-on:click="hambal(speechSynthesisName)" class="btn btn-light" type="button" :disabled="btnSpeechDisabled">
+                <svg style="width:18px;height:18px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M9,5A4,4 0 0,1 13,9A4,4 0 0,1 9,13A4,4 0 0,1 5,9A4,4 0 0,1 9,5M9,15C11.67,15 17,16.34 17,19V21H1V19C1,16.34 6.33,15 9,15M16.76,5.36C18.78,7.56 18.78,10.61 16.76,12.63L15.08,10.94C15.92,9.76 15.92,8.23 15.08,7.05L16.76,5.36M20.07,2C24,6.05 23.97,12.11 20.07,16L18.44,14.37C21.21,11.19 21.21,6.65 18.44,3.63L20.07,2Z" />
+                </svg>
+            </button>
+        </div>
+        <small class="invalid-feedback">${getError('speechSynthesisName')}</small>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="agencyEmployeeNumber">ID Number</label>
+    <div>
+        <input name="agencyEmployeeNumber" id="agencyEmployeeNumber" v-model="agencyEmployeeNumber" type="text" class="form-control">
+        <small class="invalid-feedback">${getError('agencyEmployeeNumber')}</small>
+    </div>
+</div>

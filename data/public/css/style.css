@@ -789,6 +789,20 @@ div.focusable:focus-within  {
     padding: 2px 5px;
 }
 
+.dtr-estimate {
+    padding: 10px 15px; 
+    border-radius: 5px; 
+    border: 1px solid gray; 
+    background: white;
+    font-size: 12px; 
+    color: gray;
+}
+.dtr-estimate .expand-details{
+    cursor:pointer; 
+    text-decoration: underline; 
+    color: rgb(87, 85, 85);
+}
+
 .register {
     font-family: 'Poppins', sans-serif;
 }

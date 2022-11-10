@@ -4,9 +4,9 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-center">
-            <svg class="mr-1" style="width:26px;height:26px" viewBox="0 0 24 24">
+            {# <svg class="mr-1" style="width:26px;height:26px" viewBox="0 0 24 24">
                 <path fill="#0e4682" d="M14,12H15.5V14.82L17.94,16.23L17.19,17.53L14,15.69V12M4,2H18A2,2 0 0,1 20,4V10.1C21.24,11.36 22,13.09 22,15A7,7 0 0,1 15,22C13.09,22 11.36,21.24 10.1,20H4A2,2 0 0,1 2,18V4A2,2 0 0,1 4,2M4,15V18H8.67C8.24,17.09 8,16.07 8,15H4M4,8H10V5H4V8M18,8V5H12V8H18M4,13H8.29C8.63,11.85 9.26,10.82 10.1,10H4V13M15,10.15A4.85,4.85 0 0,0 10.15,15C10.15,17.68 12.32,19.85 15,19.85A4.85,4.85 0 0,0 19.85,15C19.85,12.32 17.68,10.15 15,10.15Z" />
-            </svg>
+            </svg> #}
             <h1 class="h5 mb-0">Daily Time Record</h1>
         </div>
     </div>
@@ -70,10 +70,16 @@
                     <div class="col-sm-9"><strong>${workScheduleString}</strong></div>
                 </div>
                 {% endif %}
-                {# <div class="row mb-2">
+                <div class="row mb-2">
                     <div class="col-sm-3">In Charge:</div>
                     <div class="col-sm-9"><strong>${inCharge}</strong></div>
-                </div> #}
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3">Schedule:</div>
+                    <div class="col-sm-9">
+                        <div class="font-weight-bold" style="white-space: pre; font-size:11px; font-family:Consolas, 'Courier New', mono">{{workScheduleWeek}}</div>
+                    </div>
+                </div>
                 {# <div class="row mb-2">
                     <div class="col-sm-3">Show Total:</div>
                     <div class="col-sm-9"><strong class="text-capitalize">${showTotalAs}</strong></div>
@@ -301,16 +307,16 @@
                             ${totalMinutes(stats.weekdays)}
                         </td>
                     </tr>
-                    <tr v-if="['weekends', 'all'].includes(countTimeBy)">
-                        <td colspan="6"><h5 class="m-0">Total Weekends</h5></td>
+                    <tr v-if="['restDays', 'weekends', 'all'].includes(countTimeBy)">
+                        <td colspan="6"><h5 class="m-0">Total Weekends/Holidays</h5></td>
                         <td class="text-center">
-                            ${totalDays(stats.weekends)}
+                            ${totalDays(stats.restDays)}
                         </td>
                         <td class="text-center">
-                            ${totalHours(stats.weekends)}
+                            ${totalHours(stats.restDays)}
                         </td>
                         <td class="text-center">
-                            ${totalMinutes(stats.weekends)}
+                            ${totalMinutes(stats.restDays)}
                         </td>
                     </tr>
                     <tr v-if="countTimeBy=='all'">
@@ -326,46 +332,40 @@
                         </td>
                     </tr>
                 </template>
-
             </table>
         </div>
         {% if employment.salaryType === 'daily' %}
             {% if countTimeBy == 'all' %}
-                {# <div class="col-md-6" style="padding: 10px 15px; border-radius: 5px; border: 1px solid gray; background: white">
+                <div class="col-md-6 dtr-estimate" style="">
                     <div class="form-row">
-                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${salary} x ${totalDays(stats.days)} days</span></div>
-                        <div class="col-6 text-right" style="font-size: 14px;">${toFixed(salary * totalDays(stats.days))}</div>
-                    </div>
-                    <div class="form-row">
-                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perHour()} x ${totalHours(stats.days)} hours</span></div>
-                        <div class="col-6 text-right" style="font-size: 14px;">${perHour() * totalHours(stats.days)}</div>
+                        <div class="col-12 text-center">Gross Pay Computation</div>
                     </div>
                     <div class="form-row">
-                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perMinute()} x ${totalMinutes(stats.days)} minutes</span></div>
-                        <div class="col-6 text-right" style="font-size: 14px;">${perMinute() * totalMinutes(stats.days)}</div>
+                        <div class="col-6">Weekdays</div>
                     </div>
-                    <div class="form-row align-items-center">
-                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">Gross Pay</span></div>
-                        <div class="col-6 text-right" style="font-size: 18px;">₱ <span class="text-success">${netPay(stats.days.totalMinutes) | currency}</span></div>
+                    <div class="form-row">
+                        <div class="col-6 text-right">₱ ${salary} x <span v-on:click="alert(stats.weekdays.renderedDays + ' days '+stats.weekdays.renderedHours + ' hours ' + stats.weekdays.renderedMinutes + ' minutes')" class="expand-details">${roundOff(stats.weekdays.totalInDays, 9)} days</span></div>
+                        <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(salary * roundOff(stats.weekdays.totalInDays, 9), 2) | currency}</span></div>
                     </div>
-                </div> #}
+                    <div class="form-row">
+                        <div class="col-6" style="font-size: 12px; color: gray;">Weekends/Holidays</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">₱ ${salary} x 1.5 x ${roundOff(stats.restDays.totalInDays, 9)} days</span></div>
+                        <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(salary * 1.5 * roundOff(stats.restDays.totalInDays, 9), 2) | currency}</span></div>
+                    </div>
+                </div>
             {% elif countTimeBy == 'weekdays' %}
-                <div class="col-md-6" style="padding: 10px 15px; border-radius: 5px; border: 1px solid gray; background: white">
+                <div class="col-md-6 dtr-estimate" style="">
                     <div class="form-row">
-                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${salary} x ${totalDays(stats.weekdays)} days</span></div>
-                        <div class="col-6 text-right" style="font-size: 14px;">${toFixed(salary * totalDays(stats.weekdays))}</div>
+                        <div class="col-12 text-center">Gross Pay Computation</div>
                     </div>
                     <div class="form-row">
-                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perHour()} x ${totalHours(stats.weekdays)} hours</span></div>
-                        <div class="col-6 text-right" style="font-size: 14px;">${perHour() * totalHours(stats.weekdays)}</div>
+                        <div class="col-6">Weekdays</div>
                     </div>
                     <div class="form-row">
-                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perMinute()} x ${totalMinutes(stats.weekdays)} minutes</span></div>
-                        <div class="col-6 text-right" style="font-size: 14px;">${perMinute() * totalMinutes(stats.weekdays)}</div>
-                    </div>
-                    <div class="form-row align-items-center">
-                        <div class="col-6 text-right" style="font-size: 12px; color: gray;">Gross Pay</span></div>
-                        <div class="col-6 text-right" style="font-size: 18px;">₱ <span class="text-success">${netPay(stats.weekdays.totalMinutes) | currency}</span></div>
+                        <div class="col-6 text-right">₱ ${salary} x <span v-on:click="alert(stats.weekdays.renderedDays + ' days '+stats.weekdays.renderedHours + ' hours ' + stats.weekdays.renderedMinutes + ' minutes')" class="expand-details">${roundOff(stats.weekdays.totalInDays, 9)} days</span></div>
+                        <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(salary * roundOff(stats.weekdays.totalInDays, 9), 2) | currency}</span></div>
                     </div>
                 </div>
             {% elif countTimeBy == 'weekends' %}
@@ -497,6 +497,16 @@
             var me = this;
         },
         methods: {
+            alert: function(s){
+                alert(s)
+            },
+            roundOff: function(number, precision) {
+                number = parseFloat(number)
+                precision = parseInt(precision)
+                let factor = Math.pow(10, precision)
+                let n = precision < 0 ? number : 0.01 / factor + number
+                return Math.round( n * factor) / factor
+            },
             showModalSelect: function(mode, employmentId, attendanceId) {
                 vModalSelectAction.mode = mode
                 vModalSelectAction.employmentId = employmentId

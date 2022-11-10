@@ -6,6 +6,7 @@ const moment = require('moment')
 const momentRange = require('moment-range')
 const momentExt = momentRange.extendMoment(moment)
 const money = require('money-math')
+const Decimal = require('decimal.js')
 
 //// Modules
 const utils = require('./utils')
@@ -278,6 +279,7 @@ const getTimeBreakdown = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
     }
 
     return {
+        totalInDays: parseFloat(new Decimal(minutes).div(8).div(60)),
         totalMinutes: minutes,
         totalInHours: minutes / 60,
         renderedDays: Math.floor(renderedDays),
@@ -2038,7 +2040,7 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
     }
 
     options = lodash.merge(defaults, options)
-    let { showTotalAs, showWeekDays, padded, excludeWeekend } = options;
+    let { showTotalAs, showWeekDays, padded, excludeWeekend, periodWeekDays } = options;
 
     if (!showWeekDays) {
         showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
@@ -2261,7 +2263,7 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
     })
 
     let weekdays = days.filter((day) => {
-        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(day.weekDay)
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(day.weekDay) && !day.holiday
     })
     let weekdaysTotalMinutes = weekdays.map(day => lodash.get(day, 'dtr.totalMinutes', 0)).reduce((a, b) => a + b, 0)
     let weekdaysTotalMinutesUnderTime = weekdays.map(day => lodash.get(day, 'dtr.underTimeTotalMinutes', 0)).reduce((a, b) => a + b, 0)
@@ -2272,8 +2274,11 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
     let weekendsTotalMinutes = weekends.map(day => lodash.get(day, 'dtr.totalMinutes', 0)).reduce((a, b) => a + b, 0)
     let weekendsTotalMinutesUnderTime = weekends.map(day => lodash.get(day, 'dtr.underTimeTotalMinutes', 0)).reduce((a, b) => a + b, 0)
 
-
-
+    let restDays = days.filter((day) => {
+        return ['Sat', 'Sun'].includes(day.weekDay) || day.holiday
+    })
+    let restDaysTotalMinutes = restDays.map(day => lodash.get(day, 'dtr.totalMinutes', 0)).reduce((a, b) => a + b, 0)
+    let restDaysTotalMinutesUnderTime = restDays.map(day => lodash.get(day, 'dtr.underTimeTotalMinutes', 0)).reduce((a, b) => a + b, 0)
 
     let daysTotalMinutes = days.map(day => lodash.get(day, 'dtr.totalMinutes', 0)).reduce((a, b) => a + b, 0)
     let daysTotalMinutesUnderTime = days.map(day => lodash.get(day, 'dtr.underTimeTotalMinutes', 0)).reduce((a, b) => a + b, 0)
@@ -2283,6 +2288,7 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
         days: getTimeBreakdown(daysTotalMinutes, daysTotalMinutesUnderTime, hoursPerDay),
         weekdays: getTimeBreakdown(weekdaysTotalMinutes, weekdaysTotalMinutesUnderTime, hoursPerDay),
         weekends: getTimeBreakdown(weekendsTotalMinutes, weekendsTotalMinutesUnderTime, hoursPerDay),
+        restDays: getTimeBreakdown(restDaysTotalMinutes, restDaysTotalMinutesUnderTime, hoursPerDay),
     }
 
     return {

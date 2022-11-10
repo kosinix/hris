@@ -366,6 +366,12 @@ module.exports = {
             if (!employee) {
                 return res.render('error.html', { error: "Sorry, employee not found." })
             }
+
+            employee.userAccount = null
+            if (employee.userId) {
+                employee.userAccount = await req.app.locals.db.main.User.findById(employee.userId).lean()
+            }
+
             // Employments
             let aggr = [
                 {

@@ -550,6 +550,7 @@ div.focusable:focus-within  {
 .profile-photo a {
     display: inline-block;
 }
+.profile-photo svg,
 .profile-photo img {
     max-width: 100%;
     position: absolute;

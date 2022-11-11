@@ -20,6 +20,10 @@ body, pre {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
+.text-mono {
+    font-family: "Consolas", "Courier New", mono;
+}
+
 /* Vue */
 [v-cloak] {
     position: relative;

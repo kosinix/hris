@@ -110,5 +110,15 @@ env.addFilter('to12Hour', function (hour, compact = false) {
 
 })
 
+env.addFilter('mobile_num', (mobileNo) => {
+    mobileNo = lodash.toString(mobileNo);
+    mobileNo = mobileNo.replace(/[^0-9.]/g, ''); // Remove non-numeric chars
+    
+    mobileNo = lodash.toArray(mobileNo);
+    mobileNo.splice(4, 0, ' ');
+    mobileNo.splice(8, 0, ' ');
+    return lodash.join(mobileNo, '');
+});
+
 //// Export
 module.exports = env;

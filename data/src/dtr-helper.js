@@ -2335,7 +2335,6 @@ const workScheduleDisplay = (workSchedule, weekDays) => {
             // a must be equal to b
             return 0;
         })
-        console.log(workScheduleTimeSegments)
         workScheduleTimeSegments = workScheduleTimeSegments.map(t => {
             return `${mToTime(t.start, 'hh:mma')}-${mToTime(t.end, 'hh:mma')}`
         })
@@ -2346,7 +2345,6 @@ const workScheduleDisplay = (workSchedule, weekDays) => {
     const bucketeer = (workScheduleWeekDays) => {
         let buckets = {}
         workScheduleWeekDays.filter(w => w).forEach((w, i) => {
-            console.log(w)
             if (!buckets[w[1]]) {
                 buckets[w[1]] = [w[0]]
             } else {

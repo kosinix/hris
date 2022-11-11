@@ -271,10 +271,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
 
         let workSchedules = await workScheduler.getEmploymentWorkSchedule(req.app.locals.db, employmentId)
 
-        let workSchedule = workSchedules.find(o => {
-            return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
-        })
-
+        let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(employment.workScheduleId)
 
         let tsFormatter = (workSchedule, weekDay = 'mon') => {
             // Get if v1 or v2 schedule

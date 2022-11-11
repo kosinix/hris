@@ -966,9 +966,30 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
 
         let workSchedules = await workScheduler.getEmploymentWorkSchedule(req.app.locals.db, employmentId)
 
-        let workSchedule = workSchedules.find(o => {
-            return lodash.invoke(o, '_id.toString') === lodash.invoke(employment, 'workScheduleId.toString')
-        })
+        let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(employment.workScheduleId)
+
+        let workScheduleWeekDays = dtrHelper.workScheduleDisplay(workSchedule, [
+            'mon',
+            'tue',
+            'wed',
+            'thu',
+            'fri',
+        ])
+
+        let workScheduleWeekEnd = dtrHelper.workScheduleDisplay(workSchedule, [
+            'sat',
+            'sun',
+        ])
+
+        let workScheduleWeek = dtrHelper.workScheduleDisplay(workSchedule, [
+            'mon',
+            'tue',
+            'wed',
+            'thu',
+            'fri',
+            'sat',
+            'sun',
+        ])
 
         let data = {
             title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
@@ -998,7 +1019,9 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
             shared: true,
 
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
-
+            workScheduleWeekDays: workScheduleWeekDays,
+            workScheduleWeekEnd: workScheduleWeekEnd,
+            workScheduleWeek: workScheduleWeek,
         }
 
         // return res.send(days)

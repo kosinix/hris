@@ -273,63 +273,28 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
 
         let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(employment.workScheduleId)
 
-        let tsFormatter = (workSchedule, weekDay = 'mon') => {
-            // Get if v1 or v2 schedule
-
-            let workScheduleTimeSegments = lodash.get(workSchedule, `weekDays.${weekDay}.timeSegments`) // V2 work schedule schema
-            if (!workScheduleTimeSegments) { // V1 work schedule schema
-                workScheduleTimeSegments = lodash.get(workSchedule, 'timeSegments', [])
-            }
-            workScheduleTimeSegments = dtrHelper.normalizeTimeSegments(workScheduleTimeSegments)
-            // Include breaks, comment out
-            // workScheduleTimeSegments = dtrHelper.buildTimeSegments(workScheduleTimeSegments)
-
-            workScheduleTimeSegments = workScheduleTimeSegments.map(t => {
-                return `${dtrHelper.mToTime(t.start, 'hh:mma')}-${dtrHelper.mToTime(t.end, 'hh:mma')}`
-            })
-            if (workScheduleTimeSegments.length <= 0) return ''
-            return [`${lodash.capitalize(weekDay)}`, workScheduleTimeSegments.join(', ')]
-        }
-
-        let bucketeer = (workScheduleWeekDays) => {
-
-            let buckets = {}
-            workScheduleWeekDays.filter(w => w).forEach((w, i) => {
-                if (!buckets[w[1]]) {
-                    buckets[w[1]] = [w[0]]
-                } else {
-                    buckets[w[1]].push(w[0])
-                }
-            })
-            let ff = []
-            lodash.forEach(buckets, (b, a) => {
-                ff.push(`${b.join(',')}: ${a}`)
-            })
-            return ff.filter(w => w).join("\n")
-        }
-        let workScheduleWeekDays = bucketeer([
-            tsFormatter(workSchedule, 'mon'),
-            tsFormatter(workSchedule, 'tue'),
-            tsFormatter(workSchedule, 'wed'),
-            tsFormatter(workSchedule, 'thu'),
-            tsFormatter(workSchedule, 'fri'),
+        let workScheduleWeekDays = dtrHelper.workScheduleDisplay(workSchedule, [
+            'mon',
+            'tue',
+            'wed',
+            'thu',
+            'fri',
         ])
 
-        let workScheduleWeekEnd = bucketeer([
-            tsFormatter(workSchedule, 'sat'),
-            tsFormatter(workSchedule, 'sun'),
+        let workScheduleWeekEnd = dtrHelper.workScheduleDisplay(workSchedule, [
+            'sat',
+            'sun',
         ])
 
-        let workScheduleWeek = bucketeer([
-            tsFormatter(workSchedule, 'mon'),
-            tsFormatter(workSchedule, 'tue'),
-            tsFormatter(workSchedule, 'wed'),
-            tsFormatter(workSchedule, 'thu'),
-            tsFormatter(workSchedule, 'fri'),
-            tsFormatter(workSchedule, 'sat'),
-            tsFormatter(workSchedule, 'sun'),
+        let workScheduleWeek = dtrHelper.workScheduleDisplay(workSchedule, [
+            'mon',
+            'tue',
+            'wed',
+            'thu',
+            'fri',
+            'sat',
+            'sun',
         ])
-
 
         let data = {
             title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,

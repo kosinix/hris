@@ -2314,6 +2314,58 @@ const isFlagRaisingDay = async (req, date, threshold = 10) => {
     return true // Yes its manic Monday!
 }
 
+const workScheduleDisplay = (workSchedule, weekDays) => {
+    const tsFormatter = (workSchedule, weekDay = 'mon') => {
+        // Get if v1 or v2 schedule
+        let workScheduleTimeSegments = lodash.get(workSchedule, `weekDays.${weekDay}.timeSegments`) // V2 work schedule schema
+        if (!workScheduleTimeSegments) { // V1 work schedule schema
+            workScheduleTimeSegments = lodash.get(workSchedule, 'timeSegments', [])
+        }
+        workScheduleTimeSegments = normalizeTimeSegments(workScheduleTimeSegments)
+        // Include breaks, comment out
+        // workScheduleTimeSegments = buildTimeSegments(workScheduleTimeSegments)
+
+        workScheduleTimeSegments.sort((a, b) => {
+            if (a.start < b.start) {
+                return -1;
+            }
+            if (a.start > b.start) {
+                return 1;
+            }
+            // a must be equal to b
+            return 0;
+        })
+        console.log(workScheduleTimeSegments)
+        workScheduleTimeSegments = workScheduleTimeSegments.map(t => {
+            return `${mToTime(t.start, 'hh:mma')}-${mToTime(t.end, 'hh:mma')}`
+        })
+        if (workScheduleTimeSegments.length <= 0) return ''
+        return [`${lodash.capitalize(weekDay)}`, workScheduleTimeSegments.join(', ')]
+    }
+
+    const bucketeer = (workScheduleWeekDays) => {
+        let buckets = {}
+        workScheduleWeekDays.filter(w => w).forEach((w, i) => {
+            console.log(w)
+            if (!buckets[w[1]]) {
+                buckets[w[1]] = [w[0]]
+            } else {
+                buckets[w[1]].push(w[0])
+            }
+        })
+        let ff = []
+        lodash.forEach(buckets, (b, a) => {
+            ff.push(`${b.join(',')}: ${a}`)
+        })
+        return ff.filter(w => w).join("\n")
+    }
+
+    return bucketeer(weekDays.map(weekDay => {
+        return tsFormatter(workSchedule, weekDay)
+    }))
+}
+
+
 module.exports = {
     logAttendance: logAttendance,
     editAttendance: editAttendance,
@@ -2350,5 +2402,6 @@ module.exports = {
     isFlagRaisingDay: isFlagRaisingDay,
     logTravelAndWfh: logTravelAndWfh,
     logNormal: logNormal,
+    workScheduleDisplay: workScheduleDisplay,
 }
 

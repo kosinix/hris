@@ -564,7 +564,7 @@ router.get('/attendance/flag/:attendanceFlagId/delete', middlewares.guardRoute([
 // V1
 router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewares.guardRoute(['read_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
         let employment = res.employment
 
         let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
@@ -669,7 +669,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId', middlewa
 // V1 Print
 router.get('/attendance/employee/:employeeId/employment/:employmentId/print', middlewares.guardRoute(['read_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
         let employment = res.employment
         let employmentId = employment._id
 
@@ -754,7 +754,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId/print', mi
 
 router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
         let employment = res.employment.toObject()
         let attendance = res.attendance.toObject()
         let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
@@ -783,7 +783,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance
 });
 router.post('/attendance/employee/:employeeId/employment/:employmentId/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getEmployee, middlewares.getEmployment, middlewares.getAttendance, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
         let employment = res.employment.toObject()
         let attendance = res.attendance.toObject()
 
@@ -1201,7 +1201,7 @@ router.post('/attendance/:attendanceId/delete', middlewares.guardRoute(['delete_
 
 router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance/create', middlewares.guardRoute(['create_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
-        let employee = res.employee.toObject()
+        let employee = res.employee
         let employment = res.employment.toObject()
         let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
 
@@ -1220,7 +1220,7 @@ router.get('/attendance/employee/:employeeId/employment/:employmentId/attendance
 router.post('/attendance/employee/:employeeId/employment/:employmentId/attendance/create', middlewares.guardRoute(['create_attendance']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
     try {
         let user = res.user.toObject()
-        let employee = res.employee.toObject()
+        let employee = res.employee
         let employment = res.employment.toObject()
 
         let body = req.body

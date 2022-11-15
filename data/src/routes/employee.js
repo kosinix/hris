@@ -661,9 +661,9 @@ router.post('/employee/:employeeId/employment/:employmentId/delete', middlewares
 router.get('/employee/:employeeId/address', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
-        employee.address = await req.app.locals.db.main.Address.findOneFullAddress({
-            code: employee.addressPsgc
-        })
+        // employee.address = await req.app.locals.db.main.Address.findOneFullAddress({
+        //     code: employee.addressPsgc
+        // })
         res.render('employee/address.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,

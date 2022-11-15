@@ -143,10 +143,10 @@
                 {{res}}
             </td>
         {% else %}
-            <td>{{day.display.inAM}}</td>
-            <td>{{day.display.outAM}}</td>
-            <td>{{day.display.inPM}}</td>
-            <td>{{day.display.outPM}}</td>
+            <td>{% if attendance.logs[0].dateTime and day.dtr.totalMinutes > 0 %} {{day.display.inAM}} {% endif %}</td>
+            <td>{% if attendance.logs[1].dateTime and day.dtr.totalMinutes > 0 %} {{day.display.outAM}} {% endif %}</td>
+            <td>{% if attendance.logs[2].dateTime and day.dtr.totalMinutes > 0 %} {{day.display.inPM}} {% endif %}</td>
+            <td>{% if attendance.logs[3].dateTime and day.dtr.totalMinutes > 0 %} {{day.display.outPM}} {% endif %}</td>
             <td>
                 {% set res = 0 %}
                 {% if (attendance.logs.length > 1 or attendanceTypesList.includes(attendance.type)) %}

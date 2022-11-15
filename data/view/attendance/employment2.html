@@ -89,22 +89,20 @@
                     </td>
                     <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
                     {% if attendance.type == 'normal' %}
-                        <td>{% if attendance.logs[0].dateTime and day.dtr.totalMinutes > 0 %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                        <td>{% if attendance.logs[1].dateTime and day.dtr.totalMinutes > 0 %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                        <td>{% if attendance.logs[2].dateTime and day.dtr.totalMinutes > 0 %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                        <td>{% if attendance.logs[3].dateTime and day.dtr.totalMinutes > 0 %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                        <td>{% if day.dtr.totalMinutes > 0 %} {{day.display.inAM}} {% endif %}</td>
+                        <td>{% if day.dtr.totalMinutes > 0 %} {{day.display.outAM}} {% endif %}</td>
+                        <td>{% if day.dtr.totalMinutes > 0 %} {{day.display.inPM}} {% endif %}</td>
+                        <td>{% if day.dtr.totalMinutes > 0 %} {{day.display.outPM}} {% endif %}</td>
                     {% elif  attendance.type == 'travel' %}
-                        
-                        {#  #}
                         {% if attendance.logs.length === 4 and attendance.logs[0].type === 'travel' %}
                             <td class="text-center" colspan="2">
                                 Travel
                             </td>
-                            <td class="text-center">{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                            <td class="text-center">{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                            <td class="text-center">{{day.display.inPM}}</td>
+                            <td class="text-center">{{day.display.outPM}}</td>
                         {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'travel' %}
-                            <td class="text-center">{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                            <td class="text-center">{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                            <td class="text-center">{{day.display.inAM}}</td>
+                            <td class="text-center">{{day.display.outAM}}</td>
                             <td class="text-center" colspan="2">
                                 Travel
                             </td>
@@ -113,8 +111,26 @@
                                 Travel
                             </td>
                         {% endif %}
+                    {% elif  attendance.type == 'wfh' %}
+                        {% if attendance.logs.length === 4 and attendance.logs[0].type === 'wfh' %}
+                            <td class="text-center" colspan="2">
+                                Work From Home
+                            </td>
+                            <td class="text-center">{{day.display.inPM}}</td>
+                            <td class="text-center">{{day.display.outPM}}</td>
+                        {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'wfh' %}
+                            <td class="text-center">{{day.display.inAM}}</td>
+                            <td class="text-center">{{day.display.outAM}}</td>
+                            <td class="text-center" colspan="2">
+                                Work From Home
+                            </td>
+                        {% else %}
+                            <td class="text-center" colspan="4">
+                                Work From Home
+                            </td>
+                        {% endif %}
                     {% else %}
-                        <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')|replace('Wfh', 'WFH')}}</td>
+                        <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')}}</td>
                     {% endif %}
                     <td>
                         {% if showTotalAs == 'undertime' %}

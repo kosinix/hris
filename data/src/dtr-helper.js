@@ -1357,6 +1357,9 @@ const editAttendance2 = async (db, attendance, attendancePatch, user) => {
     if (lodash.get(attendancePatch, 'log0Type') === 'travel' || lodash.get(attendancePatch, 'log2Type') === 'travel') {
         attendancePatch.type = 'travel'
     }
+    if (lodash.get(attendancePatch, 'log0Type') === 'wfh' || lodash.get(attendancePatch, 'log2Type') === 'wfh') {
+        attendancePatch.type = 'wfh'
+    }
     if (lodash.get(attendancePatch, 'log0Type') === 'normal' && lodash.get(attendancePatch, 'log2Type') === 'normal') {
         attendancePatch.type = 'normal'
     }
@@ -2256,6 +2259,11 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
                 times.outPM = times.outAM
                 times.inAM = ''
                 times.outAM = ''
+            } else if ('AM' == time(lodash.get(day, 'attendance.logs[0].dateTime'), 'A') && 'PM' == time(lodash.get(day, 'attendance.logs[1].dateTime'), 'A')) {
+                times.inAM = times.inAM
+                times.outPM = times.outAM
+                times.outAM = ''
+                times.inPM = ''
             }
         }
         day.display = times

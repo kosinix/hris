@@ -71,11 +71,11 @@
                     <td class="text-center" colspan="2">
                         Travel
                     </td>
-                    <td class="text-center">{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                    <td class="text-center">{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                    <td class="text-center">{{day.display.inPM}}</td>
+                    <td class="text-center">{{day.display.outPM}}</td>
                 {% elif attendance.logs.length <= 4 and attendance.logs[2].type === 'travel' %}
-                    <td class="text-center">{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                    <td class="text-center">{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                    <td class="text-center">{{day.display.inAM}}</td>
+                    <td class="text-center">{{day.display.outAM}}</td>
                     <td class="text-center" colspan="2">
                         Travel
                     </td>
@@ -93,11 +93,11 @@
                     <td class="text-center" colspan="2">
                         Work From Home
                     </td>
-                    <td class="text-center">{% if attendance.logs[2].dateTime %} {{attendance.logs[2].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                    <td class="text-center">{% if attendance.logs[3].dateTime %} {{attendance.logs[3].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                    <td class="text-center">{{day.display.inPM}}</td>
+                    <td class="text-center">{{day.display.outPM}}</td>
                 {% elif attendance.logs.length <= 4 and attendance.logs[2].type === 'wfh' %}
-                    <td class="text-center">{% if attendance.logs[0].dateTime %} {{attendance.logs[0].dateTime|format_date('hh:mm A')}} {% endif %}</td>
-                    <td class="text-center">{% if attendance.logs[1].dateTime %} {{attendance.logs[1].dateTime|format_date('hh:mm A')}} {% endif %}</td>
+                    <td class="text-center">{{day.display.inAM}}</td>
+                    <td class="text-center">{{day.display.outAM}}</td>
                     <td class="text-center" colspan="2">
                         Work From Home
                     </td>
@@ -143,10 +143,10 @@
                 {{res}}
             </td>
         {% else %}
-            <td>{% if attendance.logs[0].dateTime and day.dtr.totalMinutes > 0 %} {{day.display.inAM}} {% endif %}</td>
-            <td>{% if attendance.logs[1].dateTime and day.dtr.totalMinutes > 0 %} {{day.display.outAM}} {% endif %}</td>
-            <td>{% if attendance.logs[2].dateTime and day.dtr.totalMinutes > 0 %} {{day.display.inPM}} {% endif %}</td>
-            <td>{% if attendance.logs[3].dateTime and day.dtr.totalMinutes > 0 %} {{day.display.outPM}} {% endif %}</td>
+            <td>{% if day.dtr.totalMinutes > 0 %} {{day.display.inAM}} {% endif %}</td>
+            <td>{% if day.dtr.totalMinutes > 0 %} {{day.display.outAM}} {% endif %}</td>
+            <td>{% if day.dtr.totalMinutes > 0 %} {{day.display.inPM}} {% endif %}</td>
+            <td>{% if day.dtr.totalMinutes > 0 %} {{day.display.outPM}} {% endif %}</td>
             <td>
                 {% set res = 0 %}
                 {% if (attendance.logs.length > 1 or attendanceTypesList.includes(attendance.type)) %}

@@ -383,6 +383,47 @@
                     </div>
                 </div> #}
             {% endif %}
+        {% elif employment.salaryType === 'hourly' %}
+            {% if countTimeBy == 'all' %}
+                <div class="col-md-6 dtr-estimate" style="">
+                    <div class="form-row">
+                        <div class="col-12 text-center">Gross Pay Computation</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6">Weekdays</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right">₱ ${salary} x <span v-on:click="alert(stats.days.renderedDays + ' days '+stats.days.renderedHours + ' hours ' + stats.days.renderedMinutes + ' minutes')" class="expand-details">${roundOff(stats.days.totalInHours, 9)} hours</span></div>
+                        <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(salary * roundOff(stats.days.totalInHours, 9), 2) | currency}</span></div>
+                    </div>
+                </div>
+            {% elif countTimeBy == 'weekdays' %}
+                <div class="col-md-6 dtr-estimate" style="">
+                    <div class="form-row">
+                        <div class="col-12 text-center">Gross Pay Computation</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6">Weekdays</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right">₱ ${salary} x <span v-on:click="alert(stats.weekdays.renderedDays + ' days '+stats.weekdays.renderedHours + ' hours ' + stats.weekdays.renderedMinutes + ' minutes')" class="expand-details">${roundOff(stats.weekdays.totalInHours, 9)} hours</span></div>
+                        <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(salary * roundOff(stats.weekdays.totalInHours, 9), 2) | currency}</span></div>
+                    </div>
+                </div>
+            {% elif countTimeBy == 'weekends' %}
+                <div class="col-md-6 dtr-estimate" style="">
+                    <div class="form-row">
+                        <div class="col-12 text-center">Gross Pay Computation</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6">Weekends</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 text-right">₱ ${salary} x <span v-on:click="alert(stats.weekends.renderedDays + ' days '+stats.weekends.renderedHours + ' hours ' + stats.weekends.renderedMinutes + ' minutes')" class="expand-details">${roundOff(stats.weekends.totalInHours, 9)} days</span></div>
+                        <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(salary * roundOff(stats.weekends.totalInHours, 9), 2) | currency}</span></div>
+                    </div>
+                </div>
+            {% endif %}
         {% endif %}
     </div>
 </div>

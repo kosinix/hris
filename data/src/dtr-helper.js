@@ -281,7 +281,7 @@ const getTimeBreakdown = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
     return {
         totalInDays: parseFloat(new Decimal(minutes).div(8).div(60)),
         totalMinutes: minutes,
-        totalInHours: minutes / 60,
+        totalInHours: parseFloat(new Decimal(minutes).div(60)),
         renderedDays: Math.floor(renderedDays),
         renderedHours: Math.floor(renderedHours),
         renderedMinutes: Math.round(renderedMinutes),
@@ -2204,21 +2204,10 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
         dtr.underMinutes = Math.round(dtr.underMinutes)
 
         if (null === attendance) dtr = null
-        ////////
-        //let dtr = calcDailyAttendance(attendance, CONFIG.workTime.hoursPerDay, CONFIG.workTime.travelPoints, timeSegments, holiday)
-
+        
         let isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
         let isWeekend = ['Sun', 'Sat'].includes(weekDay) ? true : false
-
-        // Push if PM login
-        // if (attendance) {
-        //     if (attendance.logs[0] && attendance.logs.length <= 2) {
-        //         if ('PM' === moment(attendance.logs[0].dateTime).format('A')) {
-        //             attendance.logs.unshift(null)
-        //             attendance.logs.unshift(null)
-        //         }
-        //     }
-        // }
+        
         return {
             date: date,
             year: year,

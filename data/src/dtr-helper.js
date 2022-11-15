@@ -2248,24 +2248,34 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
 
     days = days.map((day) => {
         let times = {
-            inAM: time(lodash.get(day, 'attendance.logs[0].dateTime')),
-            outAM: time(lodash.get(day, 'attendance.logs[1].dateTime')),
-            inPM: time(lodash.get(day, 'attendance.logs[2].dateTime')),
-            outPM: time(lodash.get(day, 'attendance.logs[3].dateTime')),
+            inAM: '',
+            outAM: '',
+            inPM: '',
+            outPM: '',
         }
-        if (lodash.get(day, 'attendance.logs.length') == 2) {
-            if ('PM' == time(lodash.get(day, 'attendance.logs[0].dateTime'), 'A')) {
-                times.inPM = times.inAM
-                times.outPM = times.outAM
-                times.inAM = ''
-                times.outAM = ''
-            } else if ('AM' == time(lodash.get(day, 'attendance.logs[0].dateTime'), 'A') && 'PM' == time(lodash.get(day, 'attendance.logs[1].dateTime'), 'A')) {
-                times.inAM = times.inAM
-                times.outPM = times.outAM
-                times.outAM = ''
-                times.inPM = ''
+        if (lodash.get(day, 'dtr.totalMinutes', 0) > 0) {
+
+            times = {
+                inAM: time(lodash.get(day, 'attendance.logs[0].dateTime')),
+                outAM: time(lodash.get(day, 'attendance.logs[1].dateTime')),
+                inPM: time(lodash.get(day, 'attendance.logs[2].dateTime')),
+                outPM: time(lodash.get(day, 'attendance.logs[3].dateTime')),
+            }
+            if (lodash.get(day, 'attendance.logs.length') == 2) {
+                if ('PM' == time(lodash.get(day, 'attendance.logs[0].dateTime'), 'A')) {
+                    times.inPM = times.inAM
+                    times.outPM = times.outAM
+                    times.inAM = ''
+                    times.outAM = ''
+                } else if ('AM' == time(lodash.get(day, 'attendance.logs[0].dateTime'), 'A') && 'PM' == time(lodash.get(day, 'attendance.logs[1].dateTime'), 'A')) {
+                    times.inAM = times.inAM
+                    times.outPM = times.outAM
+                    times.outAM = ''
+                    times.inPM = ''
+                }
             }
         }
+
         day.display = times
         return day
     })

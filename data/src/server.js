@@ -26,6 +26,7 @@
     const httpServer = http.createServer(app)
     const io = new Server(httpServer, CONFIG.socketio)
     const ioFlagRaising = io.of("/flag-raising")
+    const ioMonitoring = io.of("/monitoring")
 
 
     //// Setup view
@@ -51,6 +52,7 @@
         app.locals.CONFIG = lodash.cloneDeep(CONFIG) // Config
         req.io = io
         req.ioFlagRaising = ioFlagRaising
+        req.ioMonitoring = ioMonitoring
         next();
     });
 

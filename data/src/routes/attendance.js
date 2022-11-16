@@ -253,6 +253,188 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
     }
 });
 
+router.get('/attendance/monitoring', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
+    try {
+        let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
+        let attendanceTypes = lodash.get(req, 'query.byAttendanceType', ['normal', 'wfh', 'leave', 'pass', 'travel'])
+        if (!Array.isArray(attendanceTypes)) {
+            attendanceTypes = [attendanceTypes]
+        }
+        let mCalendar = moment(date)
+
+        let query = {
+            createdAt: {
+                $gte: mCalendar.startOf('day').toDate(),
+                $lte: mCalendar.endOf('day').toDate(),
+            }
+        }
+
+        // Filter employees per campus depending on role
+        let employeesForThisCampuses = []
+        if (res.user.roles.includes('president')) {
+            employeesForThisCampuses = lodash.union(employeesForThisCampuses, ['main', 'mosqueda', 'baterna'])
+        }
+        if (res.user.roles.includes('campusdirectormosqueda')) {
+            employeesForThisCampuses = lodash.union(employeesForThisCampuses, ['mosqueda'])
+        }
+        if (res.user.roles.includes('campusdirectorbaterna')) {
+            employeesForThisCampuses = lodash.union(employeesForThisCampuses, ['baterna'])
+        }
+
+        if (employeesForThisCampuses.length > 0) {
+            let employments = await req.app.locals.db.main.Employment.find({
+                campus: {
+                    $in: employeesForThisCampuses
+                }
+            }).lean()
+
+            let _employmentIds = employments.map((e) => e._id)
+
+            query['employmentId'] = {
+                $in: _employmentIds
+            }
+        }
+
+        if (attendanceTypes.length > 0) {
+            query['type'] = {
+                $in: attendanceTypes
+            }
+        }
+
+        let aggr = []
+        aggr.push({ $match: query })
+        aggr.push({
+            $lookup: {
+                from: "employees",
+                localField: "employeeId",
+                foreignField: "_id",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $lookup: {
+                from: "employments",
+                localField: "employmentId",
+                foreignField: "_id",
+                as: "employments"
+            }
+        })
+
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                },
+                "employment": {
+                    $arrayElemAt: ["$employments", 0]
+                }
+            }
+        })
+        
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                _id: 1,
+                type: 1,
+                employeeId: 1,
+                employmentId: 1,
+                workScheduleId: 1,
+                createdAt: 1,
+                updatedAt: 1,
+                logs: 1,
+                employee: {
+                    firstName: 1,
+                    middleName: 1,
+                    lastName: 1,
+                    suffix: 1,
+                    gender: 1,
+                    profilePhoto: 1,
+                },
+                employment: {
+                    active: 1,
+                    employeeId: 1,
+                    campus: 1,
+                    group: 1,
+                    position: 1,
+                    department: 1,
+                },
+            }
+        })
+
+        aggr.push({
+            $project: {
+                employees: 0,
+                employments: 0,
+            }
+        })
+
+        aggr.push({
+            $unwind: { path: "$logs" } 
+        })
+
+        aggr.push({
+            $addFields: {
+                "logMade": "$logs.dateTime",
+                "log": "$logs",
+            } 
+        })
+        
+        aggr.push({
+            $sort: {
+                "logMade": 1
+            } 
+        })
+
+        aggr.push({
+            $project: {
+                logs: 0,
+            }
+        })
+        
+        //console.log(aggr)
+        attendances = await req.app.locals.db.main.Attendance.aggregate(aggr)
+        // return res.send(attendances)
+        
+        res.render('attendance/monitoring.html', {
+            flash: flash.get(req, 'attendance'),
+            mCalendar: mCalendar,
+            attendances: attendances,
+            attendanceTypes: attendanceTypes,
+            aws: {
+                bucketName: CONFIG.aws.bucket1.name,
+                bucketPrefix: CONFIG.aws.bucket1.prefix,
+            },
+            s3Prefix: `/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}`,
+            serverUrl: CONFIG.app.url,
+            attendanceTypesList: [
+                {
+                    key: 'normal',
+                    value: 'Normal'
+                },
+                {
+                    key: 'wfh',
+                    value: 'Work From Home'
+                },
+                {
+                    key: 'travel',
+                    value: 'On Travel'
+                },
+                {
+                    key: 'leave',
+                    value: 'On Leave'
+                },
+                {
+                    key: 'pass',
+                    value: 'Pass Slip'
+                }
+            ],
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
 // Flag raising
 router.get(['/attendance/flag/all', '/attendance/flag.xlsx'], middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
     try {

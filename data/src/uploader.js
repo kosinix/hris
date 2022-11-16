@@ -288,24 +288,24 @@ let handleExpressUploadLocalAsync = async (files, uploadDir, allowedMimes = ["im
             }
 
             let exifData = {};
-            if (mimeType === 'image/jpeg') { // Exif data applies to JPEG only
+            // if (mimeType === 'image/jpeg') { // Exif data applies to JPEG only
 
-                try {
-                    let image = sharp(destFile);
-                    let metaData = await image.metadata();
+            //     try {
+            //         let image = sharp(destFile);
+            //         let metaData = await image.metadata();
 
-                    let exif = exifReader(metaData.exif);
-                    exifData = {
-                        image: lodash.get(exif, 'image'),
-                        DateTimeOriginal: lodash.get(exif, 'exif.DateTimeOriginal'),
-                        gps: lodash.get(exif, 'gps'),
-                        lat: lodash.get(exif, 'gps.GPSLatitude.0', 0) + (lodash.get(exif, 'gps.GPSLatitude.1', 0) / 60) + (lodash.get(exif, 'gps.GPSLatitude.2', 0) / 3600),
-                        long: lodash.get(exif, 'gps.GPSLongitude.0', 0) + (lodash.get(exif, 'gps.GPSLongitude.1', 0) / 60) + (lodash.get(exif, 'gps.GPSLongitude.2', 0) / 3600),
-                    }
-                } catch (err) {
-                }
+            //         let exif = exifReader(metaData.exif);
+            //         exifData = {
+            //             image: lodash.get(exif, 'image'),
+            //             DateTimeOriginal: lodash.get(exif, 'exif.DateTimeOriginal'),
+            //             gps: lodash.get(exif, 'gps'),
+            //             lat: lodash.get(exif, 'gps.GPSLatitude.0', 0) + (lodash.get(exif, 'gps.GPSLatitude.1', 0) / 60) + (lodash.get(exif, 'gps.GPSLatitude.2', 0) / 3600),
+            //             long: lodash.get(exif, 'gps.GPSLongitude.0', 0) + (lodash.get(exif, 'gps.GPSLongitude.1', 0) / 60) + (lodash.get(exif, 'gps.GPSLongitude.2', 0) / 3600),
+            //         }
+            //     } catch (err) {
+            //     }
 
-            }
+            // }
 
             returnedFields[fieldName].push({
                 fieldName: fieldName,

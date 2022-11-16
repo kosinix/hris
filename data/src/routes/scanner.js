@@ -502,6 +502,11 @@ router.post('/scanner/:scannerUid/log', middlewares.guardRoute(['use_scanner']),
             }
             return log
         })
+
+        payload.employee = employee
+        payload.employment = mainEmployment
+        payload.logMade = payload.log.dateTime
+        req.ioMonitoring.emit('added', payload)
         res.send(payload)
     } catch (err) {
         next(err)

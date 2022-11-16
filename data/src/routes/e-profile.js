@@ -1023,14 +1023,11 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
         let source = {
             id: res.user._id,
             type: 'userAccount', // Online user account
-        }
-        let extra = {
             lat: lat,
             lon: lon,
             photo: lodash.get(saveList, 'photos[0]', ''),
         }
-
-        let log = await dtrHelper.logAttendance(req.app.locals.db, employee, employment, null, 15, extra, 'online', source) // 15mins timeout
+        let log = await dtrHelper.logNormal(req.app.locals.db, moment(), employee, employment, source, 15) // 15mins timeout
         flash.ok(req, 'employee', 'Attendance saved.')
         res.send(log)
     } catch (err) {

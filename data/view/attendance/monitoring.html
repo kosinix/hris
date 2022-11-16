@@ -1,0 +1,129 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+
+    {% include 'parts/flash.html' %}
+    {% include 'attendance/header.html' %}
+    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3">
+        <h1 class="text-center h5 mb-2">Monitoring Sheet</h1>
+        <p class="text-center mb-3">{{mCalendar|format_date('dddd - MMM DD, YYYY')}}</p>
+
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <tr>
+                    <th width="5%" class="align-middle text-center">No.</th>
+                    <th width="25%" class="align-middle">Name</th>
+                    <th width="20%" class="align-middle">In</th>
+                </tr>
+                <tr v-for="attendance, index in attendances">
+                    <td class="text-center">${index + 1}</td>
+                    <td>
+                        <a v-bind:href="`/attendance/employment/${attendance.employmentId}`">
+                            ${attendance.employee.firstName} ${attendance.employee.lastName} ${attendance.employee.suffix}
+                        </a>
+                    </td>
+                    <td class="text-mono">
+                        ${attendance.log.dateTime|format_date('hh:mm A')} 
+                        <template v-if="attendance.log.mode==1">
+                            <em class="text-info">${logMode(attendance.log.mode)} </em>
+                        </template>
+                        <template v-else>
+                            <em class="text-secondary">${logMode(attendance.log.mode)}</em>
+                        </template>
+                        <a target="_blank" v-if="hasPhoto(attendance)" v-bind:href="viewPhoto(attendance)"><img width="30" height="30" v-bind:src="getPhoto(attendance, 'tiny')" alt="" /></a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/socket.io.min.js"></script>
+<script>
+    let socket = io("{{serverUrl}}/monitoring", {
+        query: {}
+    });
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        filters: {
+            capitalize: (value) => {
+                return _.capitalize(value);
+            },
+            format_date: (value, format, timeZone = '+0800') => {
+                let formatted = moment(value).utcOffset(timeZone).format(format);
+                if (formatted === "Invalid date") {
+                    return null;
+                }
+                return formatted;
+            },
+            ago: (value) => {
+                return moment(value).fromNow();
+            },
+        },
+        data: {
+            aws: {{aws|default({}, true)|stringify|safe}},
+            attendances: {{attendances|default([], true)|stringify|safe}},
+        },
+        mounted: function() {
+            socket.on("connect_error", (err) => {
+                console.error(err.message);
+            });
+
+            socket.on("added", (attendance) => {
+                let me = this;
+                if(attendance){
+                    this.attendances.push(attendance)
+                }
+            });
+        },
+        methods: {
+            hasPhoto: function(attendance){
+                return _.get(attendance, 'log.extra.photo', _.get(attendance, 'log.source.photo'))
+            },
+            viewPhoto: function(attendance, sizePrefix = '') {
+                if (sizePrefix) {
+                    sizePrefix += "-";
+                }
+                let value = _.get(attendance, 'log.extra.photo', _.get(attendance, 'log.source.photo'))
+                return '/file-viewer/' + this.aws.bucketName + '/' + this.aws.bucketPrefix + '/' + sizePrefix + value
+            },
+            getPhoto: function(attendance, sizePrefix = '') {
+                if (sizePrefix) {
+                    sizePrefix += "-";
+                }
+                let value = _.get(attendance, 'log.extra.photo', _.get(attendance, 'log.source.photo'))
+                return '/file-getter/' + this.aws.bucketName + '/' + this.aws.bucketPrefix + '/' + sizePrefix + value
+            },
+            showLog: function(date, mode) {
+                if(mode===1){
+                    return date
+                }
+            },
+            logMode: function(mode) {
+                if(mode===1) return 'In'
+                return 'Out'
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

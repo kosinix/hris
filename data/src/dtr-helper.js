@@ -2250,7 +2250,7 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
                 inPM: time(lodash.get(day, 'attendance.logs[2].dateTime')),
                 outPM: time(lodash.get(day, 'attendance.logs[3].dateTime')),
             }
-            if (lodash.get(day, 'attendance.logs.length') == 2) {
+            if (lodash.get(day, 'attendance.logs.length') == 2 && !day.isNow) {
                 if ('PM' == time(lodash.get(day, 'attendance.logs[0].dateTime'), 'A')) {
                     times.inPM = times.inAM
                     times.outPM = times.outAM

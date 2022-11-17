@@ -28,7 +28,7 @@
                     <a href="{{document.key|view_url}}">
                         <img src="{{document.key|s3_url('small')}}" alt="">
                     </a>
-                    <p>{{document.name}}</p>
+                    <p>{{document.name}} - {{document.docType}}</p>
                     <div>
                         <a href="{{document.key|s3_url}}" class="btn btn-sm btn-light">Download</a>
                         <a onclick="return confirm('Delete file permanently?')" href="/employee/{{employee._id}}/document/{{document._id}}/delete" class="btn btn-sm btn-danger">X</a>

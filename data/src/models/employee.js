@@ -130,6 +130,7 @@ const schema = new Schema({
             name: String,
             key: String,
             mimeType: String,
+            docType: String,
         }
     ],
     userId: {

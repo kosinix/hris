@@ -1173,18 +1173,20 @@ router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['cr
     try {
         let employee = res.employee
 
+        let name = lodash.get(req, 'body.name')
+        let docType = lodash.get(req, 'body.docType')
         let patch = {
-            documents: [
-                {
-                    name: lodash.get(req, 'body.name'),
-                    key: lodash.get(req, 'saveList.document[0]'),
-                    mimeType: '',
-                }
-            ]
+            documents: lodash.get(employee, 'documents', [])
         }
+        patch.documents.push({
+            name: name,
+            key: lodash.get(req, 'saveList.document[0]'),
+            mimeType: '',
+            docType: docType,
+        })
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
-        flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} documents.`)
+        flash.ok(req, 'employee', `Uploaded document ${name} - ${docType}.`)
         res.redirect(`/employee/${employee._id}/document/all`);
     } catch (err) {
         next(err);

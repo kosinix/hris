@@ -2,16 +2,22 @@
 
 {% block body %}
 <div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h5">201 Files</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/e/document/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
     {% include 'parts/flash.html' %}
-    {% include 'employee/employee-header.html' %}
-    {% include 'employee/employee-profile-photo.html' %}
-    {% include 'employee/employee-view-tabs.html' %}
-
     <div class="tab-content p-3 pt-4 min-height-500">
         <div class="d-flex align-items-center">
-            <h1 class="h4 mr-3 mb-3">Add Document</h1>
+            <h1 class="h5 mr-3 mb-3">Add Document</h1>
         </div>
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/document/create" method="POST" enctype="multipart/form-data" class="form-default">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e/document/create" method="POST" enctype="multipart/form-data" class="form-default">
             <div class="form-group">
                 <label for="document">Accepted File: ${acceptList}</label>
                 <div>
@@ -37,7 +43,6 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-<script src="{{app.url}}/js/vue-ph-address.js"></script>
 <script>
     var vApp = new Vue({
         el: '#vApp',

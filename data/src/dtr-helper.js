@@ -2204,10 +2204,10 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
         dtr.underMinutes = Math.round(dtr.underMinutes)
 
         if (null === attendance) dtr = null
-        
+
         let isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
         let isWeekend = ['Sun', 'Sat'].includes(weekDay) ? true : false
-        
+
         return {
             date: date,
             year: year,
@@ -2242,26 +2242,24 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
             inPM: '',
             outPM: '',
         }
-        if (lodash.get(day, 'dtr.totalMinutes', 0) > 0) {
 
-            times = {
-                inAM: time(lodash.get(day, 'attendance.logs[0].dateTime')),
-                outAM: time(lodash.get(day, 'attendance.logs[1].dateTime')),
-                inPM: time(lodash.get(day, 'attendance.logs[2].dateTime')),
-                outPM: time(lodash.get(day, 'attendance.logs[3].dateTime')),
-            }
-            if (lodash.get(day, 'attendance.logs.length') == 2 && !day.isNow) {
-                if ('PM' == time(lodash.get(day, 'attendance.logs[0].dateTime'), 'A')) {
-                    times.inPM = times.inAM
-                    times.outPM = times.outAM
-                    times.inAM = ''
-                    times.outAM = ''
-                } else if ('AM' == time(lodash.get(day, 'attendance.logs[0].dateTime'), 'A') && 'PM' == time(lodash.get(day, 'attendance.logs[1].dateTime'), 'A')) {
-                    times.inAM = times.inAM
-                    times.outPM = times.outAM
-                    times.outAM = ''
-                    times.inPM = ''
-                }
+        times = {
+            inAM: time(lodash.get(day, 'attendance.logs[0].dateTime')),
+            outAM: time(lodash.get(day, 'attendance.logs[1].dateTime')),
+            inPM: time(lodash.get(day, 'attendance.logs[2].dateTime')),
+            outPM: time(lodash.get(day, 'attendance.logs[3].dateTime')),
+        }
+        if (lodash.get(day, 'attendance.logs.length') == 2 && !day.isNow) {
+            if ('PM' == time(lodash.get(day, 'attendance.logs[0].dateTime'), 'A')) {
+                times.inPM = times.inAM
+                times.outPM = times.outAM
+                times.inAM = ''
+                times.outAM = ''
+            } else if ('AM' == time(lodash.get(day, 'attendance.logs[0].dateTime'), 'A') && 'PM' == time(lodash.get(day, 'attendance.logs[1].dateTime'), 'A')) {
+                times.inAM = times.inAM
+                times.outPM = times.outAM
+                times.outAM = ''
+                times.inPM = ''
             }
         }
 

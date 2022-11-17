@@ -7,11 +7,11 @@
     {% include 'employee/employee-profile-photo.html' %}
     {% include 'employee/employee-view-tabs.html' %}
 
-    <div class="tab-content p-3 pt-4 min-height-500">
+    <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3 pt-4 min-height-500">
         <div class="d-flex align-items-center">
             <h1 class="h4 mr-3 mb-3">Add Document</h1>
         </div>
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/document/create" method="POST" enctype="multipart/form-data" class="form-default">
+        <form ref="form" v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/document/create" method="POST" enctype="multipart/form-data" class="form-default">
             <div class="form-group">
                 <label for="document">Accepted File: ${acceptList}</label>
                 <div>
@@ -59,6 +59,7 @@
             window.vuelidateExtendMixin,
         ],
         data: {
+            pending: false,
             accept: ['image/jpeg', 'image/png', 'application/pdf'],
             name: '',
             docType: '',
@@ -120,6 +121,7 @@
                     alert('Please correct the errors to continue.')
                 } else {
                     me.$nextTick(function() {
+                        me.pending = true;
                         me.$refs.form.submit();
                     });
                 }

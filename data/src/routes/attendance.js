@@ -260,45 +260,43 @@ router.get('/attendance/monitoring', middlewares.guardRoute(['read_all_attendanc
         if (!Array.isArray(attendanceTypes)) {
             attendanceTypes = [attendanceTypes]
         }
-        let mCalendar = moment(date)
+        let momentDate = moment(date)
 
         let query = {
             createdAt: {
-                $gte: mCalendar.startOf('day').toDate(),
-                $lte: mCalendar.endOf('day').toDate(),
+                $gte: momentDate.startOf('day').toDate(),
+                $lte: momentDate.endOf('day').toDate(),
             }
         }
 
         // Filter employees per campus depending on role
-        let employeesForThisCampuses = []
-        if (res.user.roles.includes('president')) {
-            employeesForThisCampuses = lodash.union(employeesForThisCampuses, ['main', 'mosqueda', 'baterna'])
-        }
-        if (res.user.roles.includes('campusdirectormosqueda')) {
-            employeesForThisCampuses = lodash.union(employeesForThisCampuses, ['mosqueda'])
-        }
-        if (res.user.roles.includes('campusdirectorbaterna')) {
-            employeesForThisCampuses = lodash.union(employeesForThisCampuses, ['baterna'])
-        }
+        // let employeesForThisCampuses = []
+        // if (res.user.roles.includes('president')) {
+        //     employeesForThisCampuses = lodash.union(employeesForThisCampuses, ['main', 'mosqueda', 'baterna'])
+        // }
+        // if (res.user.roles.includes('campusdirectormosqueda')) {
+        //     employeesForThisCampuses = lodash.union(employeesForThisCampuses, ['mosqueda'])
+        // }
+        // if (res.user.roles.includes('campusdirectorbaterna')) {
+        //     employeesForThisCampuses = lodash.union(employeesForThisCampuses, ['baterna'])
+        // }
 
-        if (employeesForThisCampuses.length > 0) {
-            let employments = await req.app.locals.db.main.Employment.find({
-                campus: {
-                    $in: employeesForThisCampuses
-                }
-            }).lean()
+        // if (employeesForThisCampuses.length > 0) {
+        //     let employments = await req.app.locals.db.main.Employment.find({
+        //         campus: {
+        //             $in: employeesForThisCampuses
+        //         }
+        //     }).lean()
 
-            let _employmentIds = employments.map((e) => e._id)
+        //     let _employmentIds = employments.map((e) => e._id)
 
-            query['employmentId'] = {
-                $in: _employmentIds
-            }
-        }
+        //     query['employmentId'] = {
+        //         $in: _employmentIds
+        //     }
+        // }
 
         if (attendanceTypes.length > 0) {
-            query['type'] = {
-                $in: attendanceTypes
-            }
+            query['type'] = 'normal'
         }
 
         let aggr = []
@@ -398,7 +396,7 @@ router.get('/attendance/monitoring', middlewares.guardRoute(['read_all_attendanc
         
         res.render('attendance/monitoring.html', {
             flash: flash.get(req, 'attendance'),
-            mCalendar: mCalendar,
+            momentDate: momentDate,
             attendances: attendances,
             attendanceTypes: attendanceTypes,
             aws: {

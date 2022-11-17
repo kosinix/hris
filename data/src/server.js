@@ -206,6 +206,13 @@
             socket.join(room)
         }
     })
+    
+    ioMonitoring.on('connection', function (socket) {
+        let room = lodash.get(socket, 'handshake.query.room')
+        if (room) {
+            socket.join(room)
+        }
+    })
 
     //// Routes
     app.use(routes);

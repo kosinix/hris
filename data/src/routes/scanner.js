@@ -454,6 +454,8 @@ router.post('/scanner/:scannerUid/log', middlewares.guardRoute(['use_scanner']),
             return sortPriority.indexOf(a.employmentType) - sortPriority.indexOf(b.employmentType);
         });
 
+        let momentDate = moment()
+
         // Log for every active employment
         for (let c = 0; c < employments.length; c++) {
             let source = {
@@ -461,7 +463,7 @@ router.post('/scanner/:scannerUid/log', middlewares.guardRoute(['use_scanner']),
                 type: 'scanner',
                 photo: lodash.get(saveList, 'photos[0]', '')
             }
-            let attendanceChanged = await dtrHelper.logNormal(req.app.locals.db, moment(), employee, employments[c], source)
+            let attendanceChanged = await dtrHelper.logNormal(req.app.locals.db, momentDate, employee, employments[c], source)
             payload.attendances.push(attendanceChanged)
         }
 
@@ -503,10 +505,13 @@ router.post('/scanner/:scannerUid/log', middlewares.guardRoute(['use_scanner']),
             return log
         })
 
-        payload.employee = employee
+        payload.employmentId = mainEmployment._id
         payload.employment = mainEmployment
         payload.logMade = payload.log.dateTime
-        req.ioMonitoring.emit('added', payload)
+        
+        let room = momentDate.format('YYYY-MM-DD')
+        req.ioMonitoring.to(room).emit('added', payload)
+
         res.send(payload)
     } catch (err) {
         next(err)

@@ -7,7 +7,7 @@
     {% include 'attendance/header.html' %}
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3">
         <h1 class="text-center h5 mb-2">Monitoring Sheet</h1>
-        <p class="text-center mb-3">{{mCalendar|format_date('dddd - MMM DD, YYYY')}}</p>
+        <p class="text-center mb-3">{{momentDate|format_date('dddd - MMM DD, YYYY')}}</p>
 
         <div class="table-responsive">
             <table class="table table-sm">
@@ -44,7 +44,9 @@
 <script src="{{app.url}}/js/socket.io.min.js"></script>
 <script>
     let socket = io("{{serverUrl}}/monitoring", {
-        query: {}
+        query: {
+            room: '{{momentDate|format_date("YYYY-MM-DD")}}'
+        }
     });
     var vApp = new Vue({
         el: '#vApp',

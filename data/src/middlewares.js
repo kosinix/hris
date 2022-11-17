@@ -554,6 +554,66 @@ module.exports = {
             next(err)
         }
     },
+    perAppViewVars: function (req, res, next) {
+        app.locals.app = {}
+        app.locals.app.title = CONFIG.app.title;
+        app.locals.app.description = CONFIG.description;
+        app.locals.CONFIG = lodash.cloneDeep(CONFIG) // Config
+        req.io = io
+        req.ioFlagRaising = ioFlagRaising
+        req.ioMonitoring = ioMonitoring
+        next();
+    },
+    perRequestViewVars: async (req, res, next) => {
+        try {
+            res.locals.user = null
+            let authUserId = lodash.get(req, 'session.authUserId');
+            if (authUserId) {
+                let user = await req.app.locals.db.main.User.findById(authUserId)
+                if (user) {
+                    user = lodash.pickBy(user.toObject(), (_, key) => {
+                        return !['createdAt', 'updatedAt', '__v', 'passwordHash', 'salt'].includes(key) // Remove these props
+                    })
+                }
+                res.locals.user = user
+            }
+
+            res.locals.acsrf = lodash.get(req, 'session.acsrf');
+
+            res.locals.url = req.url
+            res.locals.urlPath = req.path
+            res.locals.query = req.query
+
+            let bodyClass = 'page' + (req.baseUrl + req.path).replace(/\//g, '-');
+            bodyClass = lodash.trim(bodyClass, '-');
+            bodyClass = lodash.trimEnd(bodyClass, '.html');
+            res.locals.bodyClass = bodyClass; // global body class css
+
+            res.locals.hideNav = lodash.get(req, 'cookies.hideNav', 'true')
+
+            next();
+        } catch (error) {
+            next(error);
+        }
+    },
+    saneTitles: async (req, res, next) => {
+        try {
+            if (!res.locals.title && !req.xhr) {
+                let title = lodash.trim(req.originalUrl.split('/').join(' '));
+                title = lodash.trim(title.replace('-', ' '));
+                let words = lodash.map(title.split(' '), (word) => {
+                    return lodash.capitalize(word);
+                })
+                title = words.join(' - ')
+                if (title) {
+                    res.locals.title = `${title} | ${app.locals.app.title} `;
+                }
+            }
+            next();
+        } catch (error) {
+            next(error);
+        }
+    },
     requireAuthScanner: requireAuthScanner, // TODO: @deprecated
     requireAssignedScanner: async (req, res, next) => {
         try {

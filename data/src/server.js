@@ -29,6 +29,10 @@
     const ioFlagRaising = io.of("/flag-raising")
     const ioMonitoring = io.of("/monitoring")
 
+    // Sockets IO
+    app.locals.io = io
+    app.locals.ioFlagRaising = ioFlagRaising
+    app.locals.ioMonitoring = ioMonitoring
 
     //// Setup view
     nunjucksEnv.express(app)
@@ -37,7 +41,7 @@
     app.locals.db = await db.connect()
 
     // Remove express
-    // app.set('x-powered-by', false);
+    app.set('x-powered-by', false);
 
     //// Middlewares
     app.use(cors({

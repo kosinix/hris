@@ -537,33 +537,46 @@ module.exports = {
     },
     requireAuthUser: async (req, res, next) => {
         try {
-            let authUserId = lodash.get(req, 'session.authUserId');
+            let authUserId = lodash.get(req, 'session.authUserId')
             if (!authUserId) {
                 return res.redirect('/login')
             }
-            let user = await req.app.locals.db.main.User.findById(authUserId);
+            let user = await req.app.locals.db.main.User.findById(authUserId)
             if (!user) {
                 return res.redirect('/logout') // Prevent redirect loop when user is null
             }
             if (!user.active) {
                 return res.redirect('/logout')
             }
-            res.user = user;
-            next();
+            res.user = user
+            next()
         } catch (err) {
             next(err)
         }
     },
+    /**
+     * See: https://expressjs.com/en/api.html#app.locals
+     * See: https://expressjs.com/en/api.html#req.app
+     * 
+     * @param {*} req 
+     * @param {*} res 
+     * @param {*} next 
+     */
     perAppViewVars: function (req, res, next) {
-        app.locals.app = {}
-        app.locals.app.title = CONFIG.app.title;
-        app.locals.app.description = CONFIG.description;
-        app.locals.CONFIG = lodash.cloneDeep(CONFIG) // Config
-        req.io = io
-        req.ioFlagRaising = ioFlagRaising
-        req.ioMonitoring = ioMonitoring
-        next();
+        req.app.locals.app = {
+            title: CONFIG.app.title,
+            description: CONFIG.description,
+        }
+        req.app.locals.CONFIG = lodash.cloneDeep(CONFIG) // Config
+        next()
     },
+    /**
+     * See: https://expressjs.com/en/api.html#res.locals
+     * 
+     * @param {*} req 
+     * @param {*} res 
+     * @param {*} next 
+     */
     perRequestViewVars: async (req, res, next) => {
         try {
             res.locals.user = null
@@ -606,7 +619,7 @@ module.exports = {
                 })
                 title = words.join(' - ')
                 if (title) {
-                    res.locals.title = `${title} | ${app.locals.app.title} `;
+                    res.locals.title = `${title} | ${req.app.locals.app.title} `;
                 }
             }
             next();

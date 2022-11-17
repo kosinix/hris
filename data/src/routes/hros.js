@@ -707,7 +707,7 @@ router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), 
         //return res.send(attendances)
 
         let room = momentDate.format('YYYY-MM-DD')
-        req.ioFlagRaising.to(room).emit('added', attendances.pop())
+        req.app.locals.ioFlagRaising.to(room).emit('added', attendances.pop())
 
         flash.ok(req, 'attendance', 'Flag raising attendance saved.')
         res.send(attendance)

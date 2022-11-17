@@ -164,7 +164,7 @@ router.post('/scanner/:scannerId/edit', middlewares.guardRoute(['read_scanner', 
         lodash.set(patch, 'useCam', useCam === 'true' ? true : false)
 
         // socket io refresh whoa
-        req.io.emit('refresh', { scanner: scanner._id })
+        req.app.locals.io.emit('refresh', { scanner: scanner._id })
 
         await req.app.locals.db.main.Scanner.updateOne({ _id: scanner._id }, patch)
 
@@ -508,9 +508,9 @@ router.post('/scanner/:scannerUid/log', middlewares.guardRoute(['use_scanner']),
         payload.employmentId = mainEmployment._id
         payload.employment = mainEmployment
         payload.logMade = payload.log.dateTime
-        
+
         let room = momentDate.format('YYYY-MM-DD')
-        req.ioMonitoring.to(room).emit('added', payload)
+        req.app.locals.ioMonitoring.to(room).emit('added', payload)
 
         res.send(payload)
     } catch (err) {

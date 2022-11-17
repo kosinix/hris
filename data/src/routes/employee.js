@@ -513,7 +513,7 @@ router.post('/employee/:employeeId/personal', middlewares.guardRoute(['update_em
 router.get('/employee/:employeeId/employment', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
-        
+
         res.render('employee/employment/all.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
@@ -1160,16 +1160,16 @@ router.get('/employee/:employeeId/document/create', middlewares.guardRoute(['rea
     try {
         let employee = res.employee
 
-
-        res.render('employee/document/create.html', {
+        let data = {
             flash: flash.get(req, 'employee'),
             employee: employee,
-        });
+        }
+        res.render('employee/document/create.html', data);
     } catch (err) {
         next(err);
     }
 });
-router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"] }), async (req, res, next) => {
+router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png", "application/pdf"] }), async (req, res, next) => {
     try {
         let employee = res.employee
 
@@ -1196,7 +1196,7 @@ router.get('/employee/:employeeId/document/:documentId/delete', middlewares.guar
         let employee = res.employee
         let documentId = req.params.documentId
 
-        let document = employee.toObject().documents.find(o => {
+        let document = employee.documents.find(o => {
             return o._id.toString() === documentId
         })
         if (!document) {
@@ -1222,7 +1222,7 @@ router.get('/employee/:employeeId/document/:documentId/delete', middlewares.guar
             console.log(resx)
         }
 
-        let documents = employee.toObject().documents.filter(o => {
+        let documents = employee.documents.filter(o => {
             return o._id.toString() !== documentId
         })
         await req.app.locals.db.main.Employee.updateOne({

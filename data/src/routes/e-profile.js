@@ -1362,6 +1362,57 @@ router.get('/e-profile/payroll', middlewares.guardRoute(['use_employee_profile']
     }
 });
 
+router.use('/e', middlewares.requireAuthUser)
+router.get('/e/document/all', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        let data = {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            momentNow: moment(),
+        }
+        res.render('e-profile/document/all.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/e/document/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        let data = {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            momentNow: moment(),
+        }
+        res.render('e-profile/document/create.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e/document/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png", "application/pdf"] }), async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        let name = lodash.get(req, 'body.name')
+        let patch = {
+            documents: lodash.get(employee, 'documents', [])
+        }
+        patch.documents.push({
+            name: name,
+            key: lodash.get(req, 'saveList.document[0]'),
+            mimeType: '',
+        })
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
+
+        flash.ok(req, 'employee', `Uploaded document "${name} ${employee.lastName}".`)
+        res.redirect(`/e-profile/document/all`);
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/e-profile/pds', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()

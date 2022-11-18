@@ -1775,8 +1775,8 @@ router.get('/e-profile/memo', middlewares.guardRoute(['use_employee_profile']), 
 
         let page = parseInt(lodash.get(req, 'query.page', 1))
         let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
-        let sortBy = lodash.get(req, 'query.sortBy', '_id')
-        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', 1))
+        let sortBy = lodash.get(req, 'query.sortBy', 'date')
+        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', -1))
         let customSort = parseInt(lodash.get(req, 'query.customSort'))
         lodash.set(req, 'session.pagination.perPage', perPage)
 

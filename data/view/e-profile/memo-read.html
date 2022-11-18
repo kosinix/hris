@@ -15,7 +15,7 @@
     {% include 'parts/flash.html' %}
     <!-- <div class="alert alert-info">You must be logged-in with your {{CONFIG.school.acronym}} Google account to see the memo.</div> -->
 
-    <iframe src="{{memo.url}}" width="100%" height="600px" frameborder="0"></iframe>
+    <iframe style="background: lightgray" src="{{memo.url}}" width="100%" height="600px" frameborder="0"></iframe>
 </div>
 {% endblock %}
 {% block scripts %}

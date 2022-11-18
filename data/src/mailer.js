@@ -43,7 +43,7 @@ const templates = {
             previewText: `Greetings ${templateVars.firstName}! These are the login credentials for your HRIS account...`
         }
         let mailOptions = {
-            from: `${CONFIG.school.acronym} MIS <mis@gsc.edu.ph>`,
+            from: `${CONFIG.school.acronym} HRIS <hris-noreply@gsu.edu.ph>`,
             to: templateVars.to,
             subject: 'HRIS Account',
             text: nunjucksEnv.render('emails/verified.txt', data),
@@ -63,7 +63,7 @@ const templates = {
             previewText: `Greetings ${templateVars.firstName}! These are the login credentials for your HRIS admin account...`
         }
         let mailOptions = {
-            from: `${CONFIG.school.acronym} MIS <mis@gsc.edu.ph>`,
+            from: `${CONFIG.school.acronym} HRIS <hris-noreply@gsu.edu.ph>`,
             to: templateVars.to,
             subject: 'HRIS Admin Account',
             text: nunjucksEnv.render('emails/change-password.txt', data),
@@ -82,7 +82,7 @@ const templates = {
             previewText: `HRIS Password Reset...`
         }
         let mailOptions = {
-            from: `${CONFIG.school.acronym} MIS <mis@gsc.edu.ph>`,
+            from: `${CONFIG.school.acronym} HRIS <hris-noreply@gsu.edu.ph>`,
             to: templateVars.to,
             subject: 'HRIS Password Reset',
             text: nunjucksEnv.render('emails/reset.txt', data),

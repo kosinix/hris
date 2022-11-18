@@ -2,7 +2,6 @@
 
 {% block body %}
 <div class="col-md-12">
-    {% include 'parts/flash.html' %}
     {% include 'employee/employee-header.html' %}
     {% include 'employee/employee-profile-photo.html' %}
     {% include 'employee/employee-view-tabs.html' %}
@@ -13,29 +12,44 @@
         </div>
         <form ref="form" v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/document/create" method="POST" enctype="multipart/form-data" class="form-default">
             <div class="form-group">
-                <label for="document">Accepted File: ${acceptList}</label>
+                <label for="document">Accepted File <span class="text-danger">*</span>: ${acceptList}</label>
                 <div>
                     <input v-on:change="readFile" name="document" id="document" ref="fileDocument" v-bind:accept="acceptList" type="file" class="form-control">
                     <small class="invalid-feedback">${getError('filesLength')}</small>
                 </div>
             </div>
             <div class="form-group">
-                <label for="name">Document Name</label>
+                <label for="name">Document Name <span class="text-danger">*</span></label>
                 <div>
                     <input v-model="name" name="name" id="name" type="text" class="form-control">
                     <small class="invalid-feedback">${getError('name')}</small>
                 </div>
             </div>
             <div class="form-group">
-                <label for="name">Document Type</label>
-                <div>
-                    <select v-model="docType" name="docType" id="docType" class="form-control">
-                        <option value=""></option>
-                        {% for option in CONFIG.e201Types %}
-                            <option value="{{option}}">{{option}}</option>
-                        {% endfor %}
-                    </select>
-                    <small class="invalid-feedback">${getError('docType')}</small>
+                <div class="form-row">
+                    <div class="col-md-6">
+                        <label for="docTypeSelect">Document Type <span class="text-danger">*</span></label>
+                        <div>
+                            <select v-on:change="onDocTypeChange" v-model="docTypeSelect" name="docTypeSelect" id="docTypeSelect" class="form-control">
+                                <option value=""></option>
+                                {% for option in CONFIG.e201Types %}
+                                    <option value="{{option}}">{{option}}</option>
+                                {% endfor %}
+                                <option value="others">Others</option>
+                            </select>
+                            <small class="invalid-feedback">${getError('docTypeSelect')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                         <div v-if="docTypeSelect==='others'" class="form-group">
+                            <label for="docTypeSelect">Please specify document type<span class="text-danger">*</span>:</label>
+                            <div>
+                                <input type="text" v-model="docType" name="docType" id="docType" class="form-control">
+                                <small class="invalid-feedback">${getError('docType')}</small>
+                            </div>
+                        </div>
+                        <input v-else type="hidden" v-model="docType" name="docType" id="docType">
+                    </div>
                 </div>
             </div>
             <div class="form-row pt-3 pb-3">
@@ -63,10 +77,14 @@
             accept: ['image/jpeg', 'image/png', 'application/pdf'],
             name: '',
             docType: '',
+            docTypeSelect: '',
             filesLength: 0,
         },
         validations: {
             name: {
+                required: window.validators.required
+            },
+            docTypeSelect: {
                 required: window.validators.required
             },
             docType: {
@@ -82,6 +100,9 @@
             }
         },
         methods: {
+            onDocTypeChange: function(event){
+                this.docType = (this.docTypeSelect === 'others') ? '' : this.docTypeSelect
+            },
             readFile: function(event){
                 var me = this;
                 var files = [];

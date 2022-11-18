@@ -12,7 +12,7 @@ const moment = require('moment')
 const qr = require('qr-image')
 
 //// Modules
-const dtrHelper = require('../dtr-helper');
+const address = require('../address');
 const excelGen = require('../excel-gen');
 const mailer = require('../mailer');
 const middlewares = require('../middlewares');
@@ -661,9 +661,7 @@ router.post('/employee/:employeeId/employment/:employmentId/delete', middlewares
 router.get('/employee/:employeeId/address', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
-        // employee.address = await req.app.locals.db.main.Address.findOneFullAddress({
-        //     code: employee.addressPsgc
-        // })
+    
         res.render('employee/address.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
@@ -694,7 +692,7 @@ router.post('/employee/:employeeId/address', middlewares.guardRoute(['create_emp
             code: lodash.get(body, 'psgc0', '')
         })
         if (address0) {
-            let full = res.employee.buildAddress(
+            let full = address.build(
                 lodash.get(patch, 'addresses.0.unit'),
                 lodash.get(patch, 'addresses.0.street'),
                 lodash.get(patch, 'addresses.0.village'),
@@ -720,7 +718,7 @@ router.post('/employee/:employeeId/address', middlewares.guardRoute(['create_emp
             code: lodash.get(body, 'psgc1', '')
         })
         if (address1) {
-            let full = res.employee.buildAddress(
+            let full = address.build(
                 lodash.get(patch, 'addresses.1.unit'),
                 lodash.get(patch, 'addresses.1.street'),
                 lodash.get(patch, 'addresses.1.village'),
@@ -1186,7 +1184,7 @@ router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['cr
         })
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
-        flash.ok(req, 'employee', `Uploaded document ${name} - ${docType}.`)
+        flash.ok(req, 'employee', `Uploaded document "${name} - ${docType}".`)
         res.redirect(`/employee/${employee._id}/document/all`);
     } catch (err) {
         next(err);
@@ -1221,7 +1219,7 @@ router.get('/employee/:employeeId/document/:documentId/delete', middlewares.guar
                     ]
                 }
             }).promise()
-            console.log(resx)
+            // console.log(resx)
         }
 
         let documents = employee.documents.filter(o => {
@@ -1233,7 +1231,7 @@ router.get('/employee/:employeeId/document/:documentId/delete', middlewares.guar
             documents: documents
         })
 
-        flash.ok(req, 'employee', `Deleted document.`)
+        flash.ok(req, 'employee', `Deleted document "${document.name} - ${document.docType}".`)
         res.redirect(`/employee/${employee._id}/document/all`);
     } catch (err) {
         next(err);

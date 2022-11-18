@@ -13,6 +13,7 @@ const qr = require('qr-image')
 const sharp = require('sharp')
 
 //// Modules
+const address = require('../address');
 const countries = require('../countries');
 const dtrHelper = require('../dtr-helper');
 const excelGen = require('../excel-gen');
@@ -1504,7 +1505,7 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
             code: lodash.get(body, 'psgc0', '')
         })
         if (address0) {
-            let full = res.employee.buildAddress(
+            let full = address.build(
                 lodash.get(patch, 'addresses.0.unit'),
                 lodash.get(patch, 'addresses.0.street'),
                 lodash.get(patch, 'addresses.0.village'),
@@ -1530,7 +1531,7 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
             code: lodash.get(body, 'psgc1', '')
         })
         if (address1) {
-            let full = res.employee.buildAddress(
+            let full = address.build(
                 lodash.get(patch, 'addresses.1.unit'),
                 lodash.get(patch, 'addresses.1.street'),
                 lodash.get(patch, 'addresses.1.village'),

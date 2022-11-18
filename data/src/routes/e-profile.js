@@ -396,6 +396,9 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
 
         // Get related logsheet images
         let momentDate = moment(attendance.createdAt)
+        if(momentDate.clone().startOf('day').isSame(moment().startOf('day'))){
+            throw new Error('Please apply for correction tomorrow. Your attendance today is still ongoing. ')
+        }
         let aggr = [
             {
                 $match: {
@@ -608,6 +611,10 @@ router.post('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute(
                 mode = 0
             }
             return mode
+        }
+
+        if(moment(attendance.createdAt).clone().startOf('day').isSame(moment().startOf('day'))){
+            throw new Error('Please apply for correction tomorrow. Your attendance today is still ongoing. ')
         }
 
         // Merge 4 logs

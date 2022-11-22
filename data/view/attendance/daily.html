@@ -4,7 +4,22 @@
 <div class="col-md-12">
 
     {% include 'parts/flash.html' %}
-    {% include 'attendance/header.html' %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <div>
+                <h1 class="h5">Attendance</h1>
+                <p class="mb-0 pl-1">
+                    
+                </p>
+            </div>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/attendance/monitoring?date={{mCalendar|format_date('YYYY-MM-DD')}}" class="btn btn-sm btn-outline-primary">Monitoring</a>
+                <a href="/attendance/monthly?date={{mCalendar|format_date('YYYY-MM-DD')}}" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
     <div class="tab-content pt-3 pb-2 pl-3 pr-3">
         <h1 class="text-center h4 mb-2">Attendance Sheet</h1>
         <p class="text-center mb-3">{{mCalendar|format_date('dddd - MMM DD, YYYY')}}</p>

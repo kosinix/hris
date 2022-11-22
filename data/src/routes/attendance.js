@@ -220,6 +220,7 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
             res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             return res.send(buffer)
         }
+        
         res.render('attendance/daily.html', {
             flash: flash.get(req, 'attendance'),
             mCalendar: mCalendar,
@@ -681,7 +682,7 @@ router.post('/attendance/flag/create', middlewares.guardRoute(['create_attendanc
         attendance.userId = user._id
 
         let room = momentDate.format('YYYY-MM-DD')
-        req.app.locals.ioFlagRaising.to(room).emit('added', attendance)
+        req.app.locals.io.of("/flag-raising").to(room).emit('added', attendance)
 
         flash.ok(req, 'attendance', 'Flag raising attendance saved.')
         res.redirect('/attendance/flag/all')
@@ -728,7 +729,7 @@ router.get('/attendance/flag/:attendanceFlagId/delete', middlewares.guardRoute([
         let deleted = await attendance.remove()
 
         let room = moment(deleted.createdAt).format('YYYY-MM-DD')
-        req.app.locals.ioFlagRaising.to(room).emit('deleted', {
+        req.app.locals.io.of("/flag-raising").to(room).emit('deleted', {
             _id: deleted._id,
             employeeId: employee._id,
             userId: user._id,

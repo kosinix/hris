@@ -74,7 +74,6 @@
                             <video id="webcam-feed"></video>
                             <canvas id="webcam-snapshot"></canvas>
                         </div>
-                        
                     </div>
                     {# 2 #}
                     <div class="carousel-item">
@@ -115,11 +114,8 @@
                 </div>
             </div>
             {#  #}
-           
         </div>
-        <div class="col-md-2 col-xlx-4"></div>
-
-       
+        <div class="col-md-2 col-xlx-4"></div>       
     </div>
     <form v-if="!duplicate" ref="form" class=" text-center" v-on:submit.prevent="onSubmit" action="/scanner/{{scanner.uid}}/scan" method="POST" novalidate>
         <div style="position:relative; overflow:hidden">
@@ -139,11 +135,15 @@
 <script src="{{app.url}}/js/axios.min.js"></script>
 <script src="{{app.url}}/js/media-devices.js"></script>
 <script src="{{app.url}}/js/socket.io.min.js"></script>
+<script src="{{app.url}}/js/localforage.min.js"></script>
 <script>
     var socket = io("{{serverUrl}}", {
         query: {
             scanner: '{{scanner._id}}',
         }
+    });
+    localforage.config({
+        name: 'hris'
     });
     let enumerateDaysBetweenDates = (startDate, endDate) => {
         let now = startDate.clone(), dates = [];
@@ -169,6 +169,7 @@
         delimiters: ["${", "}"],
         mixins: [],
         data: {
+            scannerId: '{{scanner._id}}',
             pending: false,
             duplicate: false,
             page: 0,
@@ -276,13 +277,25 @@
                 console.error(err.message);
             });
             
-            socket.on("refresh", (args) => {
-                var scanner = args.scanner
-                if('{{scanner._id}}' === scanner){
-                    setTimeout(function(){
-                        window.location.reload(false); 
-                    }, 3000)
-                    console.log('REFRESH', args);
+            socket.on("refresh", async (scannerId) => {
+                console.log('REFRESH in 10 seconds');
+                await new Promise(resolve => setTimeout(resolve, 10000))
+                socket.emit('refreshed', scannerId)
+                window.location.reload(false);
+            });
+
+            socket.on("sendscanstoserver", async (args) => {
+                if(me.scannerId === args.scannerId){
+                    let momentDate = moment(args.date)
+                    let key = momentDate.format('YYYY-MM-DD')
+                    let scans = await localforage.getItem(key)
+                    if(scans){
+                        console.log(moment().format('YYYY-MM-DD h:mmA'), ': Scanner ' + args.scannerName + ' is sending scans to server...')
+                        socket.emit('scansfromclient', {
+                            scannerId: me.scannerId,
+                            scans: scans
+                        })
+                    }
                 }
             });
 
@@ -457,9 +470,32 @@
                     photo: me.photo
                 }
                 me.pending = true
+
+                let momentNow = moment()
+                let key = momentNow.format('YYYY-MM-DD')
+                localforage.getItem(key).then(function(scans) {
+                    if(!scans){
+                        scans = []
+                    }
+                    let found = scans.find(l => l.uid === me.code)
+                    if(!found){
+                        found = {
+                            uid: me.code,
+                            logs: []
+                        }
+                        scans.push(found)
+                    }
+                    found.logs.push(momentNow.format('hh:mmA'))
+                    localforage.setItem(key, scans).then(function(value) {}).catch(function(err) {
+                        console.error(err);
+                    });
+                }).catch(function(err) {
+                    console.error(err);
+                });
+                
                 axios.post('/scanner/{{scanner.uid}}/log', body, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (response) {
                     let data = _.get(response, 'data')
-                    console.log(data)
+                    //console.log(data)
 
                     let log = _.get(data, 'log')
                     me.log0 = _.get(data, 'logs.log0')

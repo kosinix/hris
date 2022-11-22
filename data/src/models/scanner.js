@@ -46,6 +46,9 @@ let schema = mongoose.Schema({
     online: { // If scanner is connected to server
         $type: Boolean,
         default: false
+    },
+    scans: { // Local scans stored in indexedDb
+        
     }
 }, { timestamps: true, typeKey: '$type' })
 

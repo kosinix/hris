@@ -160,11 +160,13 @@ router.post('/scanner/:scannerId/edit', middlewares.guardRoute(['read_scanner', 
         lodash.set(patch, 'campus', lodash.get(body, 'campus'))
         lodash.set(patch, 'device', lodash.get(body, 'device'))
         lodash.set(patch, 'active', lodash.get(body, 'active'))
-        // lodash.set(patch, 'refresh', refresh === 'true' ? true : false)
+        lodash.set(patch, 'refresh', refresh === 'true' ? true : false)
         lodash.set(patch, 'useCam', useCam === 'true' ? true : false)
 
-        // socket io refresh whoa
-        req.app.locals.io.emit('refresh', { scanner: scanner._id })
+        if (patch.refresh) {
+            // socket io refresh whoa
+            req.app.locals.io.to(scanner._id.toString()).emit('refresh', scanner._id) // Convert mongodb _id to string
+        }
 
         await req.app.locals.db.main.Scanner.updateOne({ _id: scanner._id }, patch)
 
@@ -235,6 +237,41 @@ router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner',
         next(err);
     }
 });
+router.get('/scanner/:scannerId/clients', middlewares.guardRoute(['read_scanner', 'update_scanner']), middlewares.getScanner, async (req, res, next) => {
+    try {
+        let scanner = res.scanner.toObject()
+        scanner.user = await req.app.locals.db.main.User.findById(scanner.userId)
+
+        // Tell scanner to send its local scans to server
+        req.app.locals.io.emit('sendscanstoserver', {
+            scannerId: scanner._id,
+            scannerName: scanner.name,
+            date: req.query.date
+        })
+
+        await new Promise(resolve => setTimeout(resolve, 2000)) // timeout
+
+        scanner = await req.app.locals.db.main.Scanner.findById(scanner._id).lean()
+        let promises = lodash.get(scanner, 'scans', []).map((scan) => {
+            return req.app.locals.db.main.Employee.findOne({
+                uid: scan.uid
+            }, {
+                firstName: 1,
+                lastName: 1,
+            }).lean()
+        })
+        let employees = await Promise.all(promises)
+
+        let out = lodash.get(scanner, 'scans', []).map((scan, i) => {
+            scan = {scan, ...employees[i]}
+            return scan
+        })
+
+        res.send(out)
+    } catch (err) {
+        next(err);
+    }
+});
 
 // Scanner front page
 router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']), middlewares.getScanner, middlewares.requireAssignedScanner, async (req, res, next) => {
@@ -252,6 +289,12 @@ router.get('/scanner/:scannerUid/scan', middlewares.guardRoute(['use_scanner']),
         if (scanner.device === 'qrCodeDevice' || scanner.device === 'rfid') {
             template = 'scanner/scan-device3.html'
         }
+        res.set({
+            "Cache-Control": "no-cache, no-store, must-revalidate",  // HTTP 1.1.
+            "Pragma": "no-cache", // HTTP 1.0.
+            "Expires": "0" // Proxies.
+        })
+
         res.render(template, {
             qrData: qrData,
             scanner: scanner,
@@ -510,7 +553,7 @@ router.post('/scanner/:scannerUid/log', middlewares.guardRoute(['use_scanner']),
         payload.logMade = payload.log.dateTime
 
         let room = momentDate.format('YYYY-MM-DD')
-        req.app.locals.ioMonitoring.to(room).emit('added', payload)
+        req.app.locals.io.of("/monitoring").to(room).emit('added', payload)
 
         res.send(payload)
     } catch (err) {

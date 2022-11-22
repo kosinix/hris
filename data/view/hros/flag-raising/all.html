@@ -161,7 +161,6 @@
                     let index = me.attendances.findIndex(function(a){
                         return a._id === deleted._id
                     })
-                    console.log(me.user._id, deleted.userId)
                     if(me.user._id === deleted.userId){
                         me.alreadyLogged = false
                     }

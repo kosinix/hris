@@ -26,13 +26,6 @@
     //// Server and socket.io
     const httpServer = http.createServer(app)
     const io = new Server(httpServer, CONFIG.socketio)
-    const ioFlagRaising = io.of("/flag-raising")
-    const ioMonitoring = io.of("/monitoring")
-
-    // Sockets IO
-    app.locals.io = io
-    app.locals.ioFlagRaising = ioFlagRaising
-    app.locals.ioMonitoring = ioMonitoring
 
     //// Setup view
     nunjucksEnv.express(app)
@@ -86,116 +79,118 @@
             return middleware(socket.request, {}, next)
         }
     }
-
-    io.use(expressToSocketMiddleware(session));
-    io.use((socket, next) => {
+    const authSocket = (socket, next) => {
         let authUserId = lodash.get(socket, 'request.session.authUserId');
         if (!authUserId) {
             next(new Error("Unauthorized"));
         } else {
             next()
         }
-    });
+    }
+    const onSocketConnect = (socket) => {
+        let room = lodash.get(socket, 'handshake.query.room')
+        if (room) {
+            socket.join(room)
+        }
+    }
+    io.use(expressToSocketMiddleware(session));
+    io.use(authSocket);
     let scanners = [] // List of scanner IDs
     io.use(async (socket, next) => {
         try {
             let scannerId = lodash.get(socket, 'handshake.query.scanner')
-            if (scannerId) {
-                let scanner = await app.locals.db.main.Scanner.findById(scannerId)
-                if (!scanner) {
-                    return next(new Error("Scanner not found."));
-                }
-
-                if (scanners.includes(scannerId)) {
-                    return next(new Error("Duplicate scanner."));
-                }
-
-                socket.request.scanner = scanner
+            if (!scannerId) {
+                throw new Error('Need scanner ID.')
             }
+            let scanner = await app.locals.db.main.Scanner.findById(scannerId)
+            if (!scanner) {
+                throw new Error("Scanner not found.")
+            }
+            if (scanners.includes(scannerId)) {
+                throw new Error("Duplicate scanner.")
+            }
+            socket.data.scannerId = scannerId
             next()
         } catch (err) {
             next(err)
         }
     });
+    io.on('connection', async (socket) => {
+        try {
+            let scannerId = lodash.get(socket, 'data.scannerId') // From middleware
 
-    io.on('connection', function (socket) {
-        let scannerId = lodash.get(socket, 'handshake.query.scanner') // From client
-        let scanner = lodash.get(socket, 'request.scanner') // From middleware
-        // console.log(socket.request)
-        // console.log(`A scanner connected`, scanner, 'with socket ID', socket.id);
-        scanners.push(scannerId)
+            scanners.push(scannerId) // Add to main list
+            socket.join(scannerId) // Scanner id as room
 
-        scanner.online = true
-        scanner.save().then(r => {
-            // console.log('Saved', r)
-            app.locals.db.main.ScannerPing.create({
+            socket.on('scansfromclient', async (payload) => {
+                try {
+                    if (payload.scannerId && payload.scans) {
+                        let scannerId = payload.scannerId
+                        let scanner = await app.locals.db.main.Scanner.findById(scannerId)
+                        if (scanner) {
+                            scanner.scans = payload.scans
+                            await scanner.save()
+                        }
+                    }
+                } catch (err) {
+                    console.error(err)
+                }
+            })
+            socket.on('refreshed', async (scannerId) => {
+                try {
+                    if (scannerId) {
+                        let scanner = await app.locals.db.main.Scanner.findById(scannerId)
+                        if (scanner) {
+                            scanner.refresh = false
+                            await scanner.save()
+                        }
+                    }
+                } catch (err) {
+                    console.error(err)
+                }
+            })
+            socket.on('disconnect', async () => {
+                try {
+                    await app.locals.db.main.Scanner.updateOne({ _id: scannerId }, {
+                        online: false
+                    })
+                    await app.locals.db.main.ScannerPing.create({
+                        scannerId: scannerId,
+                        status: 0
+                    })
+                    scanners = scanners.filter((s) => {
+                        return scannerId != s
+                    })
+                } catch (err) {
+                    console.error(err)
+                }
+            });
+
+            await app.locals.db.main.Scanner.updateOne({ _id: scannerId }, {
+                online: true
+            })
+
+            await app.locals.db.main.ScannerPing.create({
                 scannerId: scannerId,
                 status: 1
-            }).then(r2 => {
-                // console.log('Online', r.name)
-            }).catch(err2 => {
-                console.error(err2)
             })
-        }).catch((err) => {
+        } catch (err) {
             console.error(err)
-        })
-
-        socket.on('disconnect', function () {
-            // console.log(`A scanner disconnected`, scanner, 'with socket ID', socket.id);
-            scanner.online = false
-            scanner.save().then(r => {
-                // console.log('Saved', r)
-                app.locals.db.main.ScannerPing.create({
-                    scannerId: scannerId,
-                    status: 0
-                }).then(r2 => {
-                    // console.log('Offline', r.name)
-                }).catch(err2 => {
-                    console.error(err2)
-                })
-            }).catch((err) => {
-                console.error(err)
-            })
-
-            scanners = scanners.filter((s) => {
-                return scannerId != s
-            })
-        });
+        }
     });
 
     // Flag raising namespaced websocket connection
-    ioFlagRaising.use(expressToSocketMiddleware(session));
-    ioFlagRaising.use((socket, next) => {
-        let authUserId = lodash.get(socket, 'request.session.authUserId');
-        if (!authUserId) {
-            next(new Error("Unauthorized"));
-        } else {
-            next()
-        }
-    });
-    ioFlagRaising.on('connection', function (socket) {
-        let room = lodash.get(socket, 'handshake.query.room')
-        if (room) {
-            socket.join(room)
-        }
-    })
+    io.of("/flag-raising").use(expressToSocketMiddleware(session));
+    io.of("/flag-raising").use(authSocket);
+    io.of("/flag-raising").on('connection', onSocketConnect)
 
     // Monitoring of attendance
-    ioMonitoring.use(expressToSocketMiddleware(session));
-    ioMonitoring.use((socket, next) => {
-        let authUserId = lodash.get(socket, 'request.session.authUserId');
-        if (!authUserId) {
-            next(new Error("Unauthorized"));
-        } else {
-            next()
-        }
-    });
-    ioMonitoring.on('connection', function (socket) {
-        let room = lodash.get(socket, 'handshake.query.room')
-        if (room) {
-            socket.join(room)
-        }
-    })
+    io.of("/monitoring").use(expressToSocketMiddleware(session));
+    io.of("/monitoring").use(authSocket);
+    io.of("/monitoring").on('connection', onSocketConnect)
+
+    // Sockets IO
+    app.locals.io = io
 
     //// Routes
     app.use(routes);

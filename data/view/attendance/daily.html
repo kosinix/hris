@@ -70,8 +70,12 @@
                             <td>
                             {{attendance.logs[0].dateTime|default('', true)|format_date('hh:mm')}}
 
-                            {% if log.extra.photo %} 
-                                <a href="{{log.extra.photo|view_url}}" target="_blank">
+                            {% set logPhoto = log.extra.photo %}
+                            {% if log.source.photo %} 
+                                {% set logPhoto = log.source.photo %}
+                            {% endif %}
+                            {% if logPhoto %} 
+                                <a href="{{logPhoto|view_url}}" target="_blank">
                                     <svg style="width:18px;height:18px" viewBox="0 0 24 24">
                                         <path fill="currentColor" d="M12,9.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,12A2.5,2.5 0 0,0 12,9.5M12,13A1,1 0 0,1 11,12A1,1 0 0,1 12,11A1,1 0 0,1 13,12A1,1 0 0,1 12,13M12,9.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,12A2.5,2.5 0 0,0 12,9.5M12,13A1,1 0 0,1 11,12A1,1 0 0,1 12,11A1,1 0 0,1 13,12A1,1 0 0,1 12,13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,16C9.37,16 7,14.43 6,12C7.38,8.69 11.19,7.12 14.5,8.5C16.08,9.16 17.34,10.42 18,12C17,14.43 14.63,16 12,16M12,9.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,12A2.5,2.5 0 0,0 12,9.5M12,13A1,1 0 0,1 11,12A1,1 0 0,1 12,11A1,1 0 0,1 13,12A1,1 0 0,1 12,13Z" />
                                     </svg>
@@ -86,16 +90,29 @@
                                 <div class="d-flex">
 
                                 {{log.dateTime|default('', true)|format_date('hh:mm')}}  
-                                {% if log.extra.lat %}
-                                    <a data-toggle="tooltip" data-placement="top" title="View Location" href="https://nominatim.openstreetmap.org/ui/reverse.html?lat={{log.extra.lat}}&lon={{log.extra.lon}}"> 
+                                
+                                {% set logLat = log.extra.lat %}
+                                {% set logLon = log.extra.lon %}
+                                {% if log.source.lat %} 
+                                    {% set logLat = log.source.lat %}
+                                {% endif %}
+                                {% if log.source.lon %} 
+                                    {% set logLon = log.source.lon %}
+                                {% endif %}
+                                {% if logLat and logLon %} 
+                                    <a data-toggle="tooltip" data-placement="top" title="View Location" href="https://nominatim.openstreetmap.org/ui/reverse.html?lat={{logLat}}&lon={{logLon}}"> 
                                         <svg style="width:18px;height:18px" viewBox="0 0 24 24">
                                             <path fill="currentColor" d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z" />
                                         </svg>
                                     </a>
                                 {% endif %}
 
-                                {% if log.extra.photo %} 
-                                    <a href="{{log.extra.photo|view_url}}" target="_blank">
+                                {% set logPhoto = log.extra.photo %}
+                                {% if log.source.photo %} 
+                                    {% set logPhoto = log.source.photo %}
+                                {% endif %}
+                                {% if logPhoto %} 
+                                    <a href="{{logPhoto|view_url}}" target="_blank">
                                         <svg style="width:18px;height:18px" viewBox="0 0 24 24">
                                             <path fill="currentColor" d="M12,9.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,12A2.5,2.5 0 0,0 12,9.5M12,13A1,1 0 0,1 11,12A1,1 0 0,1 12,11A1,1 0 0,1 13,12A1,1 0 0,1 12,13M12,9.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,12A2.5,2.5 0 0,0 12,9.5M12,13A1,1 0 0,1 11,12A1,1 0 0,1 12,11A1,1 0 0,1 13,12A1,1 0 0,1 12,13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,16C9.37,16 7,14.43 6,12C7.38,8.69 11.19,7.12 14.5,8.5C16.08,9.16 17.34,10.42 18,12C17,14.43 14.63,16 12,16M12,9.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,12A2.5,2.5 0 0,0 12,9.5M12,13A1,1 0 0,1 11,12A1,1 0 0,1 12,11A1,1 0 0,1 13,12A1,1 0 0,1 12,13Z" />
                                         </svg>
@@ -109,16 +126,28 @@
                                 {% set log = attendance.logs[2] %}
                                 {{log.dateTime|default('', true)|format_date('hh:mm')}}  
 
-                                {% if log.extra.lat %}
-                                    <a data-toggle="tooltip" data-placement="top" title="View Location" href="https://nominatim.openstreetmap.org/ui/reverse.html?lat={{log.extra.lat}}&lon={{log.extra.lon}}"> 
+                                {% set logLat = log.extra.lat %}
+                                {% set logLon = log.extra.lon %}
+                                {% if log.source.lat %} 
+                                    {% set logLat = log.source.lat %}
+                                {% endif %}
+                                {% if log.source.lon %} 
+                                    {% set logLon = log.source.lon %}
+                                {% endif %}
+                                {% if logLat and logLon %} 
+                                    <a data-toggle="tooltip" data-placement="top" title="View Location" href="https://nominatim.openstreetmap.org/ui/reverse.html?lat={{logLat}}&lon={{logLon}}"> 
                                         <svg style="width:18px;height:18px" viewBox="0 0 24 24">
                                             <path fill="currentColor" d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z" />
                                         </svg>
                                     </a>
                                 {% endif %}
 
-                                {% if log.extra.photo %} 
-                                    <a href="{{log.extra.photo|view_url}}" target="_blank">
+                                {% set logPhoto = log.extra.photo %}
+                                {% if log.source.photo %} 
+                                    {% set logPhoto = log.source.photo %}
+                                {% endif %}
+                                {% if logPhoto %} 
+                                    <a href="{{logPhoto|view_url}}" target="_blank">
                                         <svg style="width:18px;height:18px" viewBox="0 0 24 24">
                                             <path fill="currentColor" d="M12,9.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,12A2.5,2.5 0 0,0 12,9.5M12,13A1,1 0 0,1 11,12A1,1 0 0,1 12,11A1,1 0 0,1 13,12A1,1 0 0,1 12,13M12,9.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,12A2.5,2.5 0 0,0 12,9.5M12,13A1,1 0 0,1 11,12A1,1 0 0,1 12,11A1,1 0 0,1 13,12A1,1 0 0,1 12,13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,16C9.37,16 7,14.43 6,12C7.38,8.69 11.19,7.12 14.5,8.5C16.08,9.16 17.34,10.42 18,12C17,14.43 14.63,16 12,16M12,9.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,12A2.5,2.5 0 0,0 12,9.5M12,13A1,1 0 0,1 11,12A1,1 0 0,1 12,11A1,1 0 0,1 13,12A1,1 0 0,1 12,13Z" />
                                         </svg>
@@ -130,8 +159,12 @@
                                 {% set log = attendance.logs[3] %}
                                 {{log.dateTime|default('', true)|format_date('hh:mm')}}
 
-                                {% if log.extra.photo %} 
-                                    <a href="{{log.extra.photo|view_url}}" target="_blank">
+                                {% set logPhoto = log.extra.photo %}
+                                {% if log.source.photo %} 
+                                    {% set logPhoto = log.source.photo %}
+                                {% endif %}
+                                {% if logPhoto %} 
+                                    <a href="{{logPhoto|view_url}}" target="_blank">
                                         <svg style="width:18px;height:18px" viewBox="0 0 24 24">
                                             <path fill="currentColor" d="M12,9.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,12A2.5,2.5 0 0,0 12,9.5M12,13A1,1 0 0,1 11,12A1,1 0 0,1 12,11A1,1 0 0,1 13,12A1,1 0 0,1 12,13M12,9.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,12A2.5,2.5 0 0,0 12,9.5M12,13A1,1 0 0,1 11,12A1,1 0 0,1 12,11A1,1 0 0,1 13,12A1,1 0 0,1 12,13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,16C9.37,16 7,14.43 6,12C7.38,8.69 11.19,7.12 14.5,8.5C16.08,9.16 17.34,10.42 18,12C17,14.43 14.63,16 12,16M12,9.5A2.5,2.5 0 0,0 9.5,12A2.5,2.5 0 0,0 12,14.5A2.5,2.5 0 0,0 14.5,12A2.5,2.5 0 0,0 12,9.5M12,13A1,1 0 0,1 11,12A1,1 0 0,1 12,11A1,1 0 0,1 13,12A1,1 0 0,1 12,13Z" />
                                         </svg>

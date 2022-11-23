@@ -1620,6 +1620,30 @@ router.post('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'personal.eligibilities', lodash.get(body, 'eligibilities'))
         lodash.set(patch, 'personal.workExperiences', lodash.get(body, 'workExperiences'))
 
+        patch.personal.eligibilities = patch.personal.eligibilities.sort((a, b) => {
+            let aFrom = moment(a.examDate).unix()
+            let bFrom = moment(b.examDate).unix()
+            if (aFrom < bFrom) {
+                return 1;
+            }
+            if (aFrom > bFrom) {
+                return -1;
+            }
+            return 0;
+        })
+
+        patch.personal.workExperiences = patch.personal.workExperiences.sort((a, b) => {
+            let aFrom = moment(a.fromDate).unix()
+            let bFrom = moment(b.fromDate).unix()
+            if (aFrom < bFrom) {
+                return 1;
+            }
+            if (aFrom > bFrom) {
+                return -1;
+            }
+            return 0;
+        })
+
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `PDS updated.`)
@@ -1659,6 +1683,30 @@ router.post('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'personal.voluntaryWorks', lodash.get(body, 'voluntaryWorks', []))
         lodash.set(patch, 'personal.trainings', lodash.get(body, 'trainings', []))
         lodash.set(patch, 'personal.extraCurriculars', lodash.get(body, 'extraCurriculars', []))
+
+        patch.personal.voluntaryWorks = patch.personal.voluntaryWorks.sort((a, b) => {
+            let aFrom = moment(a.fromDate).unix()
+            let bFrom = moment(b.fromDate).unix()
+            if (aFrom < bFrom) {
+                return 1;
+            }
+            if (aFrom > bFrom) {
+                return -1;
+            }
+            return 0;
+        })
+
+        patch.personal.trainings = patch.personal.trainings.sort((a, b) => {
+            let aFrom = moment(a.fromDate).unix()
+            let bFrom = moment(b.fromDate).unix()
+            if (aFrom < bFrom) {
+                return 1;
+            }
+            if (aFrom > bFrom) {
+                return -1;
+            }
+            return 0;
+        })
 
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 

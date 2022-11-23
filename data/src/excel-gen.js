@@ -888,16 +888,35 @@ let templatePds = async (employee) => {
         offset = 18
         let trainings = lodash.get(employee, `personal.trainings`, [])
         for (x = 0; x < trainings.length; x++) {
-            if (x >= 21) break
-            let training = trainings[x]
-            let row = offset + x
+            if (x < 21) {
+                let training = trainings[x]
+                let row = offset + x
 
-            slex.getCell(`A${row}`).value(`${lodash.get(training, 'title', '')}`)
-                .getCell(`E${row}`).value(`${lodash.get(training, 'fromDate', '')}`)
-                .getCell(`F${row}`).value(`${lodash.get(training, 'toDate', '')}`)
-                .getCell(`G${row}`).value(`${lodash.get(training, 'hours', '')}`)
-                .getCell(`H${row}`).value(`${lodash.get(training, 'type', '')}`)
-                .getCell(`I${row}`).value(`${lodash.get(training, 'sponsor', '')}`)
+                slex.getCell(`A${row}`).value(`${lodash.get(training, 'title', '')}`)
+                    .getCell(`E${row}`).value(`${lodash.get(training, 'fromDate', '')}`)
+                    .getCell(`F${row}`).value(`${lodash.get(training, 'toDate', '')}`)
+                    .getCell(`G${row}`).value(`${lodash.get(training, 'hours', '')}`)
+                    .getCell(`H${row}`).value(`${lodash.get(training, 'type', '')}`)
+                    .getCell(`I${row}`).value(`${lodash.get(training, 'sponsor', '')}`)
+
+            } else {
+                let worksheet2 = workbook.getWorksheet('L&D Cont.')
+                let slex2 = new Slex(workbook)
+                slex2.setSheet(worksheet2)
+                let training = trainings[x]
+                let offset = 5
+                let row = offset + x - 21
+
+                slex2.getCell(`A${row}`).value(`${lodash.get(training, 'title', '')}`)
+                    .getCell(`E${row}`).value(`${lodash.get(training, 'fromDate', '')}`)
+                    .getCell(`F${row}`).value(`${lodash.get(training, 'toDate', '')}`)
+                    .getCell(`G${row}`).value(`${lodash.get(training, 'hours', '')}`)
+                    .getCell(`H${row}`).value(`${lodash.get(training, 'type', '')}`)
+                    .getCell(`I${row}`).value(`${lodash.get(training, 'sponsor', '')}`)
+            }
+        }
+        if(trainings.length <= 21) {
+            workbook.removeWorksheet('L&D Cont.')
         }
 
         // 

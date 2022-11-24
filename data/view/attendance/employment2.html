@@ -129,6 +129,12 @@
                                 Work From Home
                             </td>
                         {% endif %}
+                    {% elif attendance.type === 'pass'%}
+                        <td class="text-center">{{day.display.inAM}}</td>
+                        <td class="text-center" colspan="2">
+                            Pass Slip
+                        </td>
+                        <td class="text-center">{{day.display.outPM}}</td>
                     {% else %}
                         <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')}}</td>
                     {% endif %}

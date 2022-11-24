@@ -262,6 +262,13 @@
                         </template>
                         
                     </template>
+                    <template v-else-if="_.get(day, 'attendance.type') === 'pass'">
+                        <td class="text-center">${day.display.inAM}</td>
+                        <td colspan="2" class="text-center">
+                            ${showLogType(_.get(day, 'attendance.type'))}
+                        </td>
+                        <td class="text-center">${day.display.outPM}</td>
+                    </template>
                     <template v-else>
                         <td colspan="4" class="text-center">
                             ${showLogType(_.get(day, 'attendance.type'))}

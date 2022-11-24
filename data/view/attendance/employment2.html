@@ -98,11 +98,11 @@
                             <td class="text-center" colspan="2">
                                 Travel
                             </td>
-                            <td class="text-center">{{day.display.inPM}}</td>
-                            <td class="text-center">{{day.display.outPM}}</td>
+                            <td>{{day.display.inPM}}</td>
+                            <td>{{day.display.outPM}}</td>
                         {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'travel' %}
-                            <td class="text-center">{{day.display.inAM}}</td>
-                            <td class="text-center">{{day.display.outAM}}</td>
+                            <td>{{day.display.inAM}}</td>
+                            <td>{{day.display.outAM}}</td>
                             <td class="text-center" colspan="2">
                                 Travel
                             </td>
@@ -116,11 +116,11 @@
                             <td class="text-center" colspan="2">
                                 Work From Home
                             </td>
-                            <td class="text-center">{{day.display.inPM}}</td>
-                            <td class="text-center">{{day.display.outPM}}</td>
+                            <td>{{day.display.inPM}}</td>
+                            <td>{{day.display.outPM}}</td>
                         {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'wfh' %}
-                            <td class="text-center">{{day.display.inAM}}</td>
-                            <td class="text-center">{{day.display.outAM}}</td>
+                            <td>{{day.display.inAM}}</td>
+                            <td>{{day.display.outAM}}</td>
                             <td class="text-center" colspan="2">
                                 Work From Home
                             </td>
@@ -130,11 +130,11 @@
                             </td>
                         {% endif %}
                     {% elif attendance.type === 'pass'%}
-                        <td class="text-center">{{day.display.inAM}}</td>
+                        <td>{{day.display.inAM}}</td>
                         <td class="text-center" colspan="2">
                             Pass Slip
                         </td>
-                        <td class="text-center">{{day.display.outPM}}</td>
+                        <td>{{day.display.outPM}}</td>
                     {% else %}
                         <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')}}</td>
                     {% endif %}

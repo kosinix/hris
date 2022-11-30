@@ -220,7 +220,7 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
             res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             return res.send(buffer)
         }
-        
+
         res.render('attendance/daily.html', {
             flash: flash.get(req, 'attendance'),
             mCalendar: mCalendar,
@@ -329,7 +329,7 @@ router.get('/attendance/monitoring', middlewares.guardRoute(['read_all_attendanc
                 }
             }
         })
-        
+
         // Turn array employees into field employee
         // Add field employee
         aggr.push({
@@ -369,20 +369,20 @@ router.get('/attendance/monitoring', middlewares.guardRoute(['read_all_attendanc
         })
 
         aggr.push({
-            $unwind: { path: "$logs" } 
+            $unwind: { path: "$logs" }
         })
 
         aggr.push({
             $addFields: {
                 "logMade": "$logs.dateTime",
                 "log": "$logs",
-            } 
+            }
         })
-        
+
         aggr.push({
             $sort: {
                 "logMade": 1
-            } 
+            }
         })
 
         aggr.push({
@@ -390,11 +390,11 @@ router.get('/attendance/monitoring', middlewares.guardRoute(['read_all_attendanc
                 logs: 0,
             }
         })
-        
+
         //console.log(aggr)
         attendances = await req.app.locals.db.main.Attendance.aggregate(aggr)
         // return res.send(attendances)
-        
+
         res.render('attendance/monitoring.html', {
             flash: flash.get(req, 'attendance'),
             momentDate: momentDate,
@@ -566,7 +566,7 @@ router.post('/attendance/flag/create', middlewares.guardRoute(['create_attendanc
         let employee = await req.app.locals.db.main.Employee.findById(body.employeeId)
         let time = body.time
         let campus = body.campus
-        if(!employee){
+        if (!employee) {
             throw new Error('Employee not found.')
         }
 
@@ -590,8 +590,8 @@ router.post('/attendance/flag/create', middlewares.guardRoute(['create_attendanc
             type: 'normal',
             source: {
                 id: res.user._id,
-                type: 'adminAccount', 
-                campus: campus, 
+                type: 'adminAccount',
+                campus: campus,
             }
         })
 
@@ -698,11 +698,11 @@ router.get('/attendance/flag/:attendanceFlagId/delete', middlewares.guardRoute([
             throw new Error('Attendance not found.')
         }
         let employee = await req.app.locals.db.main.Employee.findById(attendance.employeeId)
-        if(!employee){
+        if (!employee) {
             throw new Error('Employee not found.')
         }
         let user = await req.app.locals.db.main.User.findById(employee.userId)
-        if(!user){
+        if (!user) {
             throw new Error('User not found.')
         }
 
@@ -2436,7 +2436,103 @@ router.post('/attendance/holiday', middlewares.guardRoute(['update_attendance'])
     }
 });
 
-router.post('/attendance/holiday/:holidayId/delete', middlewares.guardRoute(['delete_attendance']), middlewares.getHoliday, async (req, res, next) => {
+router.get('/attendance/holiday/:holidayId/delete-assoc-attendances', middlewares.guardRoute(['update_attendance']), middlewares.getHoliday, async (req, res, next) => {
+    try {
+        let holiday = res.holiday
+
+        let attendances = await req.app.locals.db.main.Attendance.aggregate([
+            {
+                $match: {
+                    type: 'holiday',
+                    createdAt: moment(holiday.date).startOf('day').toDate()
+                }
+            },
+            {
+                $lookup: {
+                    localField: 'employeeId',
+                    foreignField: '_id',
+                    from: 'employees',
+                    as: 'employees'
+                }
+            },
+            {
+                $addFields: {
+                    "employee": {
+                        $arrayElemAt: ["$employees", 0]
+                    }
+                }
+            },
+            {
+                $project: {
+                    employees: 0,
+                }
+            },
+            {
+                $project: {
+                    type: 1,
+                    createdAt: 1,
+                    logs: 1,
+                    employee: {
+                        _id: 1,
+                        firstName: 1,
+                        lastName: 1,
+                    }
+                }
+            },
+            {
+                $sort: {
+                    "employee.lastName": 1
+                }
+            }
+        ])
+
+        let data = {
+            holiday: holiday,
+            attendances: attendances
+        }
+        // return res.send(data)
+        res.render(`attendance/holiday/delete-assoc.html`, data)
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/holiday/:holidayId/delete-assoc-attendances', middlewares.antiCsrfCheck, middlewares.guardRoute(['update_attendance']), middlewares.getHoliday, async (req, res, next) => {
+    try {
+        let holiday = res.holiday
+
+        let rr = await req.app.locals.db.main.Attendance.deleteMany({
+            "type": "holiday",
+            "createdAt": moment(holiday.date).startOf('day').toDate()
+        })
+
+        flash.ok(req, 'attendance', `Deleted ${rr.deletedCount} attendance(s) for holiday "${holiday.name}"`)
+        res.redirect(`/attendance/holiday/all`)
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/attendance/holiday/:holidayId/delete', middlewares.guardRoute(['delete_attendance']), middlewares.getHoliday, async (req, res, next) => {
+    try {
+        let holiday = res.holiday.toObject()
+
+        holiday.typeString = ''
+        if (holiday.type === 1) {
+            holiday.typeString = 'Regular Holiday'
+
+        } else if (holiday.type === 1) {
+            holiday.typeString = 'Special Non-working Holiday'
+        }
+
+        let data = {
+            holiday: holiday
+        }
+
+        res.render(`attendance/holiday/delete.html`, data)
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/holiday/:holidayId/delete', middlewares.antiCsrfCheck, middlewares.guardRoute(['delete_attendance']), middlewares.getHoliday, async (req, res, next) => {
     try {
         let holiday = res.holiday
 
@@ -2465,6 +2561,7 @@ router.get('/attendance/holiday/:holidayId', middlewares.guardRoute(['read_atten
         next(err);
     }
 });
+
 router.post('/attendance/holiday/:holidayId', middlewares.guardRoute(['update_attendance']), middlewares.getHoliday, async (req, res, next) => {
     try {
         let holiday = res.holiday

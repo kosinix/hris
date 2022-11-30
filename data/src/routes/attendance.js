@@ -2238,170 +2238,7 @@ router.get('/attendance/holiday/all', middlewares.guardRoute(['read_all_attendan
     }
 });
 
-router.get('/attendance/holiday/all-set-attendances', middlewares.guardRoute(['update_attendance']), async (req, res, next) => {
-    try {
-        // Get holidays
-        let year = lodash.get(req, 'query.year', moment().startOf('year').format('YYYY'))
 
-        let startMoment = moment().year(year).startOf('year')
-        let endMoment = moment().year(year).endOf('year')
-
-        if (!startMoment.isValid()) {
-            throw new Error(`Invalid start date.`)
-        }
-        if (!endMoment.isValid()) {
-            throw new Error(`Invalid end date.`)
-        }
-
-        if (endMoment.isBefore(startMoment)) {
-            throw new Error(`Invalid end date. Must not be less than the start date.`)
-        }
-
-        let aggr = [
-            {
-                $match: {
-                    date: { // event date
-                        $gte: startMoment.toDate(),
-                        $lte: endMoment.toDate(),
-                    }
-                }
-            },
-            {
-                $sort: {
-                    date: 1
-                }
-            }
-        ]
-        let holidays = await req.app.locals.db.main.Holiday.aggregate(aggr)
-
-
-        // Permanent employees
-        let employments = await req.app.locals.db.main.Employment.aggregate([
-            {
-                $match: {
-                    employmentType: 'permanent',
-                }
-            },
-            {
-                $lookup: {
-                    localField: 'employeeId',
-                    foreignField: '_id',
-                    from: 'employees',
-                    as: 'employees'
-                }
-            },
-            {
-                $addFields: {
-                    "employee": {
-                        $arrayElemAt: ["$employees", 0]
-                    }
-                }
-            },
-            {
-                $project: {
-                    employees: 0
-                }
-            }
-        ])
-        employments = employments.map((employment) => {
-            return {
-                _id: employment._id,
-                employeeId: employment.employeeId,
-            }
-        })
-
-        let holidayName = lodash.get(req, 'query.holiday', '')
-
-        let results = []
-        for (let x = 0; x < holidays.length; x++) {
-            let holiday = holidays[x]
-            if (holiday.name == holidayName) {
-                for (let e = 0; e < employments.length; e++) {
-                    let employment = employments[e]
-
-                    let attendances = await req.app.locals.db.main.Attendance.find({
-                        employmentId: employment._id,
-                        createdAt: {
-                            $gte: moment(holiday.date).startOf('day').toDate(),
-                            $lte: moment(holiday.date).endOf('day').toDate(),
-                        }
-                    }).lean()
-
-                    // Insert if dont have attendance yet on holidate
-                    let momentNow = moment()
-                    if (attendances.length <= 0) {
-                        let att = await req.app.locals.db.main.Attendance.create({
-                            "type": "holiday",
-                            "employeeId": employment.employeeId,
-                            "employmentId": employment._id,
-                            "logs": [],
-                            "changes": [{
-                                "summary": `${res.user.username} inserted a new attendance.`,
-                                "objectId": res.user._id,
-                                "createdAt": momentNow.toDate()
-                            },
-                            {
-                                "summary": `${res.user.username} inserted a new attendance.`,
-                                "objectId": res.user._id,
-                                "createdAt": momentNow.toDate()
-                            }],
-                            "comments": [{
-                                "summary": `Set to Holiday.`,
-                                "objectId": res.user._id,
-                                "createdAt": momentNow.toDate()
-                            }],
-                            "createdAt": moment(holiday.date).startOf('day').toDate()
-                        })
-                        results.push(`Insert holiday "${holidayName}" attId:${att._id} for employmentId:${employment._id}, `)
-
-                    }
-
-                }
-            }
-        }
-
-        // let attendances = await req.app.locals.db.main.Attendance.aggregate([
-        //     {
-        //         $match: {
-        //             type: 'holiday',
-        //             employmentId: {
-        //                 $in: employmentIds
-        //             },
-        //             createdAt: {
-        //                 $gte: moment(holiday.date).startOf('day').toDate(),
-        //                 $lte: moment(holiday.date).endOf('day').toDate(),
-        //             }
-        //         }
-        //     },
-        // ])
-
-        // attendances = attendances.filter((attendance)=>{
-        //     return attendance.employment.employmentType === 'permanent'
-        // })
-
-        return res.send(results)
-        // let data = {
-        //     flash: flash.get(req, 'attendance'),
-        //     holiday: holiday.toObject(),
-        // }
-
-        // let permanentStaff
-        // req.app.locals.db.main.Attendance.create({
-        //     "_id": ObjectId("6257f9958c32966ae20b5d0c"),
-        //     "type": "holiday",
-        //     "employeeId": ObjectId("61513763e1d53f182a5d7b72"),
-        //     "employmentId": ObjectId("615137aeb78600185b6096af"),
-        //     "logs": [],
-        //     "changes": [],
-        //     "comments": [],
-        //     "createdAt": ISODate("2022-04-14T10:38:13.584Z")
-        // })
-        // // return res.send(data)
-        // res.render('attendance/holiday/set-attendances.html', data);
-    } catch (err) {
-        next(err);
-    }
-});
 router.get('/attendance/holiday/create', middlewares.guardRoute(['create_attendance']), async (req, res, next) => {
     try {
         let data = {
@@ -2435,11 +2272,172 @@ router.post('/attendance/holiday', middlewares.guardRoute(['update_attendance'])
         next(err);
     }
 });
+router.get('/attendance/holiday/:holidayId/create-assoc-attendances', middlewares.guardRoute(['update_attendance']), middlewares.getHoliday, async (req, res, next) => {
+    try {
+        let holiday = res.holiday
 
+        // Get all holiday attendances
+        let attendances = await req.app.locals.db.main.Attendance.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: moment(holiday.date).startOf('day').toDate(),
+                        $lt: moment(holiday.date).endOf('day').toDate(),
+                    }
+                }
+            },
+            {
+                $lookup: {
+                    localField: 'employeeId',
+                    foreignField: '_id',
+                    from: 'employees',
+                    as: 'employees'
+                }
+            },
+            {
+                $lookup: {
+                    localField: 'employmentId',
+                    foreignField: '_id',
+                    from: 'employments',
+                    as: 'employments'
+                }
+            },
+            {
+                $addFields: {
+                    "employee": {
+                        $arrayElemAt: ["$employees", 0]
+                    }
+                },
+            },
+            {
+                $addFields: {
+                    "employment": {
+                        $arrayElemAt: ["$employments", 0]
+                    }
+                },
+            },
+            {
+                $project: {
+                    employees: 0,
+                    employments: 0,
+                }
+            },
+            {
+                $project: {
+                    type: 1,
+                    createdAt: 1,
+                    employeeId: 1,
+                    employmentId: 1,
+                    employee: {
+                        _id: 1,
+                        firstName: 1,
+                        lastName: 1,
+                    },
+                    employment: {
+                        _id: 1,
+                        position: 1,
+                        employmentType: 1,
+                    }
+                }
+            },
+            // {
+            //     $match: {
+            //         'employment.employmentType': 'cos'
+            //     }
+            // }
+            // {
+            //     $sort: {
+            //         "employee.lastName": 1
+            //     }
+            // }
+        ])
+
+        let employmentsWithAttendance = attendances.map(a => a.employmentId.toString())
+
+        // return res.send(employmentsWithAttendance)
+        // Permanent employees
+        let employments = await req.app.locals.db.main.Employment.aggregate([
+            {
+                $match: {
+                    employmentType: 'permanent',
+                }
+            },
+            {
+                $lookup: {
+                    localField: 'employeeId',
+                    foreignField: '_id',
+                    from: 'employees',
+                    as: 'employees'
+                }
+            },
+            {
+                $addFields: {
+                    "employee": {
+                        $arrayElemAt: ["$employees", 0]
+                    }
+                }
+            },
+            {
+                $project: {
+                    employees: 0
+                }
+            }
+        ])
+        // employments = employments.map((employment) => {
+        //     return {
+        //         _id: employment._id,
+        //         employeeId: employment.employeeId,
+        //     }
+        // })
+
+
+        let results = []
+        
+        for (let e = 0; e < employments.length; e++) {
+            let employment = employments[e]
+
+            // Insert if dont have attendance yet on holidate
+            let momentNow = moment()
+            if (employmentsWithAttendance.includes(employment._id.toString())) {
+                // results.push(`Excluded ${employment.position} ${employment._id}`)
+            } else {
+                let att = await req.app.locals.db.main.Attendance.create({
+                    "type": "holiday",
+                    "employeeId": employment.employeeId,
+                    "employmentId": employment._id,
+                    "logs": [],
+                    "changes": [{
+                        "summary": `${res.user.username} inserted a new attendance.`,
+                        "objectId": res.user._id,
+                        "createdAt": momentNow.toDate()
+                    },
+                    {
+                        "summary": `${res.user.username} inserted a new attendance.`,
+                        "objectId": res.user._id,
+                        "createdAt": momentNow.toDate()
+                    }],
+                    "comments": [{
+                        "summary": `Set to Holiday.`,
+                        "objectId": res.user._id,
+                        "createdAt": momentNow.toDate()
+                    }],
+                    "createdAt": moment(holiday.date).startOf('day').toDate()
+                })
+                results.push(`${results.length+1}-${employment.employee.lastName}, ${employment.employee.firstName}`)
+            }
+        }
+
+        flash.ok(req, 'attendance', `Inserted ${results.length} attendance(s) for holiday "${holiday.name}": ${results.join(", \n")}`)
+        res.redirect(`/attendance/holiday/all`)
+    } catch (err) {
+        next(err);
+    }
+});
 router.get('/attendance/holiday/:holidayId/delete-assoc-attendances', middlewares.guardRoute(['update_attendance']), middlewares.getHoliday, async (req, res, next) => {
     try {
         let holiday = res.holiday
 
+        // Get all holiday attendances
         let attendances = await req.app.locals.db.main.Attendance.aggregate([
             {
                 $match: {

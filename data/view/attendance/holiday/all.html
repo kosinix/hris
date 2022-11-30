@@ -59,10 +59,8 @@
                     
                     </td>
                     <td>
-        <form action="/attendance/holiday/{{holiday._id}}/delete" method="POST" class="form-default">
-                    <button class="btn btn-sm btn-danger">X</button>
-
-        </form>
+                        <a class="text-danger p-1" href="/attendance/holiday/{{holiday._id}}/delete-assoc-attendances">X Att.</a> | 
+                        <a class="text-danger p-1" href="/attendance/holiday/{{holiday._id}}/delete">X</a>
                     </td>
                 </tr>
                 {% endfor %}

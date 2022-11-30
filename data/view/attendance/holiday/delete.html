@@ -1,0 +1,82 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">Delete Holiday</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/attendance/holiday/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3">
+        <form action="/attendance/holiday/{{holiday._id}}/delete" method="POST" class="form-default">
+            <input type="hidden" name="acsrf" value="{{acsrf}}">
+            <div class="alert alert-warning">Are you sure you want to delete the {{holiday.name}} {{holiday.typeString}} for the year "{{holiday.createdAt|format_date('YYYY')}}"</div>
+            <div class="form-row mb-2">
+                <div class="col-md-6">
+                    <a href="/attendance/holiday/all" class="btn btn-light">Back</a>
+                </div>
+                <div class="col-md-6">
+                    <button class="btn btn-danger btn-full-width">Delete Permanently</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            type: {{holiday.type}},
+            name: '{{holiday.name}}',
+            date: '{{holiday.date|format_date("YYYY-MM-DD")}}',
+        },
+        computed: {
+            
+        },
+        validations: {
+            type: {
+                required: window.validators.required
+            },
+            date: {
+                required: window.validators.required
+            },
+            name: {
+                required: window.validators.required
+            },
+        },
+        created: function(){
+            var me = this;
+            me.name = me.name.replace('&#39;', "'")
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

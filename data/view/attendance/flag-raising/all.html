@@ -38,7 +38,7 @@
                         <th width="10%" class="align-middle">Campus</th>
                         <th width="10%" class="align-middle"></th>
                     </tr>
-                    <tr v-for="attendance, i in attendances">
+                    <tr v-for="attendance, i in attendances" v-bind:class="(attendance.employee._id === hash) ? 'bg-success' : ''">
                         <td class="text-center">${i+1}</td>
                         <td>
                             <div class="d-flex align-items-center">
@@ -47,7 +47,7 @@
                                         <img :src="photoUrl(attendance.source.photo)" alt="Photo">
                                     </a>
                                 </div>
-                                <div class="privy-name">
+                                <div class="privy-name" v-bind:id="attendance.employee._id">
                                     <u>${attendance.employee.firstName}</u> 
                                     <u>${attendance.employee.lastName}</u> 
                                     <u>${attendance.employee.suffix}</u> 
@@ -92,7 +92,8 @@
         data: {
             s3Prefix: '{{s3Prefix}}',
             attendances: {{attendances|default([], true)|stringify|safe}},
-            counter: 2
+            counter: 2,
+            hash: ''
         },
         methods: {
             viewPhoto: function(photo){
@@ -114,6 +115,8 @@
             },
         },
         mounted: function(){
+            this.hash = location.hash.substr(1)
+
             {#             
             socket.on("connect", () => {
             });

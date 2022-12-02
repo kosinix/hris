@@ -1036,7 +1036,7 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
         }); // 1-count
 
         let years = []
-        for (let y = parseInt(moment().format('YYYY')); y > 1999; y--) {
+        for (let y = parseInt(moment().format('YYYY')); y > 2020; y--) {
             years.push(y)
         }
         if (req.originalUrl.includes('.csv')) {

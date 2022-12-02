@@ -3,12 +3,14 @@
 {% block body %}
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <div class="d-flex align-items-start">
-            <h1 class="h5">Reports &raquo; Performance Management &raquo; Flag-Raising Attendance</h1>
+        <div class="">
+            <h1 class="h4">Reports</h1>
+            <p class="m-1 mb-0"><a href="/reports/pm/all">Performance Management</a> &raquo; Flag-Raising Attendance</p>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                <a href="/reports/pm/flag-raising/overall.csv?date={{mDate|format_date('YYYY-MM-DD')}}" class="btn btn-outline-primary btn-sm">Download CSV</a>
+                <a href="/reports/pm/flag-raising/overall.csv?date={{mDate|format_date('YYYY-MM-DD')}}" class="btn btn-outline-primary btn-sm">Download</a>
+                <a href="/reports/all" class="btn btn-outline-primary btn-sm">Back</a>
             </div>
         </div>
     </div>

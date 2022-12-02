@@ -232,6 +232,17 @@
         "hour": 7,
         "minute": 40
       }
+    },
+    "flagLowering": {
+      "weekDay": "Fri",
+      "start": {
+        "hour": 17,
+        "minute": 0
+      },
+      "end": {
+        "hour": 17,
+        "minute": 30
+      }
     }
   },
   "recaptchav3": {

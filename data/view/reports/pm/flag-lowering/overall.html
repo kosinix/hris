@@ -5,11 +5,11 @@
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="">
             <h1 class="h4">Reports</h1>
-            <p class="m-1 mb-0"><a href="/reports/pm/all">Performance Management</a> &raquo; Flag-Raising Attendance</p>
+            <p class="m-1 mb-0"><a href="/reports/pm/all">Performance Management</a> &raquo; Flag-Lowering Attendance</p>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                <a href="/reports/pm/flag-raising/overall.csv?date={{mDate|format_date('YYYY-MM-DD')}}" class="btn btn-outline-primary btn-sm">Download</a>
+                <a href="/reports/pm/flag-lowering/overall.csv?date={{mDate|format_date('YYYY-MM-DD')}}" class="btn btn-outline-primary btn-sm">Download</a>
             </div>
         </div>
     </div>
@@ -26,7 +26,7 @@
     <div class="tab-content pt-3 pb-2 pl-3 pr-3">
         <div class="form-row pb-3 align-items-center">
             <div class="col-md-9 col-12">
-                <h2 class="h5 mb-md-0">Flag-raising Attendance for {{mDate|format_date('MMM YYYY')}}</h2>
+                <h2 class="h5 mb-md-0">Flag-Lowering Attendance for {{mDate|format_date('MMM YYYY')}}</h2>
             </div>
             <div class="col-md-3 col-12 text-md-right">
                 <form action="">
@@ -59,7 +59,7 @@
                         {% for dateGroup in dateGroups %}
                             <td>
                                 {% if attendancesByGroups[employeeId][dateGroup] %}
-                                    <a href="/attendance/flag/all?date={{attendancesByGroups[employeeId][dateGroup].dateTime|format_date('YYYY-MM-DD')}}#{{employeeId}}">{{attendancesByGroups[employeeId][dateGroup].dateTime|format_date('hh:mm A')}}</a>
+                                    <a href="/attendance/flag-lowering/all?date={{attendancesByGroups[employeeId][dateGroup].dateTime|format_date('YYYY-MM-DD')}}#{{employeeId}}">{{attendancesByGroups[employeeId][dateGroup].dateTime|format_date('hh:mm A')}}</a>
                                 {% endif %}
                             </td>
                         {% endfor %}
@@ -71,8 +71,6 @@
         {% else %}
         <p><em>No attendance to show.</em></p>
         {% endif %}
-
     </div>
 </div>
 {% endblock %}
-

@@ -5,7 +5,7 @@
     {% include 'parts/flash.html' %}
     <div class="tab-content p-3 pt-4 min-height-500">
         <h2 class="h4 mb-3">Insert Attendance</h2>
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/attendance/flag/create" method="POST" class="form-default">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/attendance/flag-lowering/create" method="POST" class="form-default">
             <input type="hidden" name="acsrf" value="{{acsrf}}">
             <div class="form-group">
                 <label for="employeeId">Employee <span class="text-danger">*</span></label>
@@ -45,17 +45,14 @@
             </div>
             <div class="form-row pt-3 pb-3">
                 <div class="col-6 text-left">
-                    <a class="btn btn-link" href="/attendance/flag/all">Cancel</a>
+                    <a class="btn btn-link" href="/attendance/flag-lowering/all">Cancel</a>
                 </div>
                 <div class="col-6 text-right">
                     <button class="btn btn-primary">Insert</button>
                 </div>
             </div>
-
         </form>
-
     </div>
-
 </div>
 {% endblock %}
 {% block scripts %}

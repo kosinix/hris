@@ -993,4 +993,44 @@ module.exports = {
             next(err)
         }
     },
+    isFlagLoweringDay: async (req, res, next) => {
+        try {
+            let employee = res.employee
+            if (!employee) {
+                throw new Error('Employee ID needed.')
+            }
+            let momentDate = moment()
+            // let momentDate = moment().month(10).date(2).hour(7) // Test
+            let attendance = await req.app.locals.db.main.AttendanceFlagLowering.findOne({
+                employeeId: employee._id,
+                createdAt: {
+                    $gte: momentDate.clone().startOf('week').toDate(),
+                    $lt: momentDate.clone().endOf('week').toDate(),
+                }
+            }).lean()
+            if (attendance) {
+                throw new Error('You have already logged this week.')
+            }
+
+            // let flag = await dtrHelper.isFlagRaisingDay(req, momentDate)
+            // if (!flag) {
+            //     throw new Error(`There is no flag raising ceremony today (${momentDate.format('dddd, MMMM D')}).`)
+            // }
+
+            let momentFlagStart = momentDate.clone().startOf('day').hours(CONFIG.hros.flagLowering.start.hour).minutes(CONFIG.hros.flagLowering.start.minute)
+            let momentFlagEnd = momentDate.clone().startOf('day').hours(CONFIG.hros.flagLowering.end.hour).minutes(CONFIG.hros.flagLowering.end.minute)
+            // console.log(momentDate.format('MMMM-DD hh:mm A'), momentFlagEnd.format('MMMM-DD hh:mm A'))
+            if (momentDate.isBefore(momentFlagStart)) {
+                throw new Error(`Flag lowering ceremony starts at ${momentFlagStart.format('hh:mm A')}.`)
+            }
+
+            if (momentDate.isAfter(momentFlagEnd)) {
+                throw new Error(`Flag lowering ceremony is only until ${momentFlagEnd.format('hh:mm A')}.`)
+            }
+
+            next();
+        } catch (err) {
+            next(err)
+        }
+    },
 }

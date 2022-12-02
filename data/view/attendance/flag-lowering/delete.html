@@ -1,0 +1,71 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12 pt-3">
+    {% include 'parts/flash.html' %}
+    <div class="tab-content p-3 pt-4">
+        <h2 class="h4 mb-3">Delete Attendance</h2>
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/attendance/flag-lowering/{{attendance._id}}/delete" method="POST" class="form-default">
+            <input type="hidden" name="acsrf" value="{{acsrf}}">
+            <ol>
+                <li>Employee: {{employee.lastName}}, {{employee.firstName}}</li>
+                <li>Date: {{attendance.dateTime|format_date('MMM DD, YYYY hh:mm A')}}</li>
+                <li>Campus: {{attendance.source.campus}}</li>
+            </ol>
+           
+            <div class="form-row pt-3 pb-3">
+                <div class="col-6 text-left">
+                    <a class="btn btn-link" href="/attendance/flag-lowering/all">Cancel</a>
+                </div>
+                <div class="col-6 text-right">
+                    <button class="btn btn-danger">Delete</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vuejs-auto-complete.js"></script>
+<script src="{{app.url}}/js/vuejs-auto-complete-extend.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            window.vueJsAutoCompleteExtendMixin,
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        data: {
+            
+        },
+        validations: {
+            
+        },
+        mounted: function(){
+        },
+        computed:{
+           
+        },
+        methods: {
+            
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

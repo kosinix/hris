@@ -184,6 +184,11 @@
     io.of("/flag-raising").use(authSocket);
     io.of("/flag-raising").on('connection', onSocketConnect)
 
+    // Flag lowering namespaced websocket connection
+    io.of("/flag-lowering").use(expressToSocketMiddleware(session));
+    io.of("/flag-lowering").use(authSocket);
+    io.of("/flag-lowering").on('connection', onSocketConnect)
+
     // Monitoring of attendance
     io.of("/monitoring").use(expressToSocketMiddleware(session));
     io.of("/monitoring").use(authSocket);

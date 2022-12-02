@@ -236,12 +236,12 @@
     "flagLowering": {
       "weekDay": "Fri",
       "start": {
-        "hour": 17,
-        "minute": 0
+        "hour": 16,
+        "minute": 45
       },
       "end": {
         "hour": 17,
-        "minute": 30
+        "minute": 15
       }
     }
   },

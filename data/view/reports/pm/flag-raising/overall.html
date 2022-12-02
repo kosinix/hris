@@ -24,7 +24,7 @@
             {% endfor %}
         </ul>
     </div>
-    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3">
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3">
         <div class="form-row pb-3 align-items-center">
             <div class="col-md-9 col-12">
                 <h2 class="h5 mb-md-0">Flag-raising Attendance for {{mDate|format_date('MMM YYYY')}}</h2>
@@ -71,46 +71,5 @@
         </div>
     </div>
 </div>
-{% endblock %}
-{% block scripts %}
-{{ super() }}
-<script>
-    var vApp = new Vue({
-        el: '#vApp',
-        delimiters: ["${", "}"],
-        mixins: [
-            window.vuelidate.validationMixin,
-            window.vuelidateExtendMixin,
-        ],
-        data: {
-            urlPath: '{{urlPath}}',
-            startDate: '{{startMoment|format_date("YYYY-MM-DD")}}',
-            endDate: '{{endMoment|format_date("YYYY-MM-DD")}}',
-        },
-        validations: {
-        },
-        computed: {
-            urlParams: function(){
-                return '?start=' + this.startDate + '&end=' + this.endDate
-            }
-        },
-        methods: {
-            reloado: function(){
-                window.location.href = this.urlPath + this.urlParams
-            },
-            onSubmit: function(){
-                var me = this;
-                me.$v.$touch()
-                if (me.$v.$error) {
-                    alert('Please correct the errors to continue.')
-                } else {
-                    me.$nextTick(function() {
-                        me.$refs.form.submit();
-                    });
-                }
-            }
-        }
-    });
-</script>
 {% endblock %}
 

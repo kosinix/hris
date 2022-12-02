@@ -39,36 +39,40 @@
                 </form>
             </div>
         </div>
-        
-        <div class="table-responsive">
-            <table class="table table-sm table-striped">
-                <tr>
-                    <th width="3%">#</th>
-                    <th width="5%">Last Name</th>
-                    <th width="5%">First Name</th>
-                    {% for dateGroup in dateGroups %}
-                        <th width="5%">{{dateGroup|format_date('MMM DD (ddd)')}}</th>
+        {% if dateGroups.length %}
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <tr>
+                        <th width="3%">#</th>
+                        <th width="5%">Last Name</th>
+                        <th width="5%">First Name</th>
+                        {% for dateGroup in dateGroups %}
+                            <th width="5%">{{dateGroup|format_date('MMM DD (ddd)')}}</th>
+                        {% endfor %}
+                        <th width="5%" class="text-center">Out of {{dateGroups.length}}</th>
+                    </tr>
+                    {% for employeeId, attendance in attendances %}
+                    {% set  employee = attendance[0].employee %}
+                    <tr>
+                        <td>{{loop.index}}</td>
+                        <td><a href="/employee/{{employee._id}}/employment">{{employee.lastName}}</a></td>
+                        <td><a href="/employee/{{employee._id}}/employment">{{employee.firstName}}</a></td>
+                        {% for dateGroup in dateGroups %}
+                            <td>
+                                {% if attendancesByGroups[employeeId][dateGroup] %}
+                                    <a href="/attendance/flag/all?date={{attendancesByGroups[employeeId][dateGroup].dateTime|format_date('YYYY-MM-DD')}}#{{employeeId}}">{{attendancesByGroups[employeeId][dateGroup].dateTime|format_date('hh:mm A')}}</a>
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                        <td class="text-center">{{attendance.length}}</td>
+                    </tr>
                     {% endfor %}
-                    <th width="5%" class="text-center">Out of {{dateGroups.length}}</th>
-                </tr>
-                {% for employeeId, attendance in attendances %}
-                {% set  employee = attendance[0].employee %}
-                <tr>
-                    <td>{{loop.index}}</td>
-                    <td><a href="/employee/{{employee._id}}/employment">{{employee.lastName}}</a></td>
-                    <td><a href="/employee/{{employee._id}}/employment">{{employee.firstName}}</a></td>
-                    {% for dateGroup in dateGroups %}
-                        <td>
-                            {% if attendancesByGroups[employeeId][dateGroup] %}
-                                <a href="/attendance/flag/all?date={{attendancesByGroups[employeeId][dateGroup].dateTime|format_date('YYYY-MM-DD')}}#{{employeeId}}">{{attendancesByGroups[employeeId][dateGroup].dateTime|format_date('hh:mm A')}}</a>
-                            {% endif %}
-                        </td>
-                    {% endfor %}
-                    <td class="text-center">{{attendance.length}}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
+                </table>
+            </div>
+        {% else %}
+        <p><em>No attendance to show.</em></p>
+        {% endif %}
+
     </div>
 </div>
 {% endblock %}

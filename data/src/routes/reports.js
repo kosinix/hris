@@ -912,7 +912,7 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
         let mDate = moment(date)
 
         let query = {
-            createdAt: {
+            dateTime: {
                 $gte: mDate.clone().startOf('month').toDate(),
                 $lte: mDate.clone().endOf('month').toDate(),
             }
@@ -1078,6 +1078,192 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
             return res.send(csv.join("\n"))
         }
         res.render('reports/pm/flag-raising/overall.html', {
+            flash: flash.get(req, 'reports'),
+            mDate: mDate,
+            months: months,
+            years: years,
+            attendances: attendances,
+            attendancesByGroups: attendancesByGroups,
+            dateGroups: dateGroups,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// PM - Flag Lowering
+router.get(['/reports/pm/flag-lowering/overall', '/reports/pm/flag-lowering/overall.csv'], middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
+    try {
+        let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
+        let mDate = moment(date)
+
+        let query = {
+            dateTime: {
+                $gte: mDate.clone().startOf('month').toDate(),
+                $lte: mDate.clone().endOf('month').toDate(),
+            }
+        }
+
+        let aggr = []
+        aggr.push({ $match: query })
+        aggr.push({
+            $lookup: {
+                from: "employees",
+                localField: "employeeId",
+                foreignField: "_id",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                },
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0
+            }
+        })
+
+        // Hide not needed for lighter payload
+        aggr.push({
+            $project: {
+                employee: {
+                    addresses: 0,
+                    personal: 0,
+                    employments: 0,
+                    mobileNumber: 0,
+                    phoneNumber: 0,
+                    documents: 0,
+                    createdAt: 0,
+                    updatedAt: 0,
+                    uuid: 0,
+                    uid: 0,
+                    group: 0,
+                    __v: 0,
+                    profilePhoto: 0,
+                    acceptedDataPrivacy: 0,
+                    birthDate: 0,
+                    civilStatus: 0,
+                    addressPermanent: 0,
+                    addressPresent: 0,
+                    email: 0,
+                    history: 0,
+                    speechSynthesisName: 0,
+                    address: 0
+                }
+            }
+        })
+        aggr.push({
+            $project: {
+                employee: {
+                    addresses: 0,
+                    personal: 0,
+                    employments: 0,
+                    mobileNumber: 0,
+                    phoneNumber: 0,
+                    documents: 0,
+                    createdAt: 0,
+                    updatedAt: 0,
+                    uuid: 0,
+                    uid: 0,
+                    group: 0,
+                    __v: 0,
+                    profilePhoto: 0,
+                    acceptedDataPrivacy: 0,
+                    birthDate: 0,
+                    civilStatus: 0,
+                    addressPermanent: 0,
+                    addressPresent: 0,
+                    email: 0,
+                    history: 0,
+                    speechSynthesisName: 0,
+                    address: 0
+                }
+            }
+        })
+        aggr.push({
+            $addFields: { 
+                dateGroup: { 
+                    $dateToString: { format: "%Y-%m-%d", date: "$dateTime", "timezone": '+08'} 
+                }
+            }
+        })
+        
+        aggr.push({
+            $sort: { 
+                'employee.lastName': 1,
+                'dateGroup': 1,
+            }
+        })
+
+        let attendances = await req.app.locals.db.main.AttendanceFlagLowering.aggregate(aggr)
+        const dateGroups = Object.keys(lodash.groupBy(attendances, (attendance) => {
+            return attendance.dateGroup
+        })).sort()
+        attendances = lodash.groupBy(attendances, (attendance) => {
+            return attendance.employeeId
+        })
+
+        let attendancesByGroups = lodash.mapValues(attendances, (attendance, employeeId)=>{
+            attendance = lodash.keyBy(attendance, (a) => {
+                return a.dateGroup
+            })
+            return attendance
+        })
+
+        // return res.send(attendancesByGroups)
+        let months = Array.from(Array(12).keys()).map((e, i) => {
+            return mDate.clone().month(i).startOf('month')
+        }); // 1-count
+
+        let years = []
+        for (let y = parseInt(moment().format('YYYY')); y > 2020; y--) {
+            years.push(y)
+        }
+        if (req.originalUrl.includes('.csv')) {
+            let counter = 1
+            let csv = lodash.map(attendances, (o, employeeId) => {
+                let employee = o[0].employee
+                let lastName = employee.lastName || ''
+                let firstName = employee.firstName || ''
+
+                let row = [
+                    counter,
+                    lastName,
+                    firstName,
+                ]
+                dateGroups.forEach((dateGroup)=>{
+                    if (attendancesByGroups[employeeId][dateGroup]) {
+                        row.push(moment(attendancesByGroups[employeeId][dateGroup].dateTime).format('hh:mm A'))
+                    } else {
+                        row.push('')
+                    }
+                })
+                row.push(o.length)
+                counter++
+                return row.join(', ')
+            })
+            let titleRow = [
+                '#',
+                'Last Name',
+                'First Name',
+            ]
+            dateGroups.forEach((dateGroup)=>{
+                titleRow.push(moment(dateGroup).format('MMM DD (ddd)'))
+            })
+            titleRow.push(`Out of ${dateGroups.length}`)
+            
+            csv.unshift(titleRow.join(', '))
+            res.set('Content-Disposition', `attachment; filename="Flag-Lowering-${mDate.format('MMM-YYYY')}.csv"`)
+            res.set('Content-Type', 'text/csv')
+            return res.send(csv.join("\n"))
+        }
+        res.render('reports/pm/flag-lowering/overall.html', {
             flash: flash.get(req, 'reports'),
             mDate: mDate,
             months: months,

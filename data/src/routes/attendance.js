@@ -246,6 +246,10 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
                 {
                     key: 'pass',
                     value: 'Pass Slip'
+                },
+                {
+                    key: 'holiday',
+                    value: 'Holiday'
                 }
             ],
         });

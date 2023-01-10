@@ -9,7 +9,7 @@ const unlinkAsync = util.promisify(fs.unlink);
 const lodash = require('lodash');
 const fileGuesser = require('guess-file-type');
 const sharp = require('sharp');
-const exifReader = require('exif-reader');
+const moment = require('moment');
 
 //// Modules
 const logger = require('./logger')
@@ -256,7 +256,7 @@ let handleExpressUploadLocalAsync = async (files, uploadDir, allowedMimes = ["im
         fxFileName = (file, prefix = '') => {
             // Eg. format: '__incomplete-6899f496c5fef1f35bb110e3997a2f07.jpeg'
             let ext = fileGuesser.getExtensionFromMime(file.mimetype)
-            return `${prefix}${crypto.randomBytes(64).toString('hex')}.${ext}`
+            return `${prefix}${moment().format('YYYYMMDD')}${crypto.randomBytes(32).toString('hex')}.${ext}`
         }
     }
 

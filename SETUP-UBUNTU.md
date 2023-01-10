@@ -52,7 +52,7 @@ To confirm if node was installed do: `npm -v && node -v`
 
 Import public key
 
-    wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
+    wget -qO - https://www.mongodb.org/static/pgp/server-4.0.asc | sudo apt-key add -
 
 Create a list file for MongoDB for Ubuntu 18.04
 

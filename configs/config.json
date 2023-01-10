@@ -77,6 +77,11 @@
   "aws": {
     "region": "ap-southeast-1",
     "bucket1": {
+      "name": "hris-gsu-ph",
+      "url": "https://hris-gsu-ph.s3-ap-southeast-1.amazonaws.com/files-dev/",
+      "prefix": "files-dev"
+    },
+    "bucket2": {
       "name": "codefleet-hris-storage",
       "url": "https://codefleet-hris-storage.s3-ap-southeast-1.amazonaws.com/files-dev/",
       "prefix": "files-dev"

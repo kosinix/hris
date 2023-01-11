@@ -22,7 +22,20 @@
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3">
         <h1 class="text-center h5 mb-2">Monitoring Sheet</h1>
         <p class="text-center mb-3">{{momentDate|format_date('dddd - MMM DD, YYYY')}}</p>
-
+        <div class="text-right">
+            <div class="form-check align-items-center form-check-inline">
+                <input class="form-check-input" type="checkbox" id="notify" v-model="notify" @change="onNotify($event)" v-bind:value="false">
+                <label class="form-check-label" for="notify">
+                    <svg style="width:18px;height:18px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M21,19V20H3V19L5,17V11C5,7.9 7.03,5.17 10,4.29C10,4.19 10,4.1 10,4A2,2 0 0,1 12,2A2,2 0 0,1 14,4C14,4.1 14,4.19 14,4.29C16.97,5.17 19,7.9 19,11V17L21,19M14,21A2,2 0 0,1 12,23A2,2 0 0,1 10,21" />
+                    </svg>
+                </label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" v-model="autoscroll" id="autoscroll" v-bind:value="false">
+                <label class="form-check-label" for="autoscroll">Auto-scroll</label>
+            </div>
+        </div>
         <div class="table-responsive">
             <table class="table table-sm">
                 <tr>
@@ -62,7 +75,8 @@
             room: '{{momentDate|format_date("YYYY-MM-DD")}}'
         }
     });
-    var vApp = new Vue({
+    let audio = new Audio('/notify.mp3');
+    let vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
         mixins: [
@@ -87,20 +101,35 @@
         data: {
             aws: {{aws|default({}, true)|stringify|safe}},
             attendances: {{attendances|default([], true)|stringify|safe}},
+            notify: false,
+            autoscroll: false
         },
         mounted: function() {
             socket.on("connect_error", (err) => {
                 console.error(err.message);
             });
 
+            
+
             socket.on("added", (attendance) => {
                 let me = this;
                 if(attendance){
                     this.attendances.push(attendance)
+                    if(this.autoscroll){
+                        window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
+                    }
+                    if(this.notify){
+                        audio.play();
+                    }
                 }
             });
         },
         methods: {
+            onNotify: function(e){
+                if(this.notify){
+                    audio.play();
+                }
+            },
             hasPhoto: function(attendance){
                 return _.get(attendance, 'log.extra.photo', _.get(attendance, 'log.source.photo'))
             },

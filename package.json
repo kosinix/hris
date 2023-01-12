@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.245.0",
     "@mapbox/node-pre-gyp": "^1.0.5",
     "@popperjs/core": "^2.9.2",
     "acrb": "^0.1.0",

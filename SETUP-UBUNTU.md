@@ -148,15 +148,15 @@ Install server
 
 Edit config
 
-`sudo nano /etc/nginx/sites-available/hris.gsc.edu.ph`
+`sudo nano /etc/nginx/sites-available/hris.gsu.edu.ph`
 
-Inside `hris.gsc.edu.ph`:
+Inside `hris.gsu.edu.ph`:
 
     server {
         listen 80;
         listen [::]:80;
 
-        server_name hris.gsc.edu.ph;
+        server_name hris.gsu.edu.ph;
 
         root /home/ubuntu/hris/data/public;
         index index.html;
@@ -199,7 +199,7 @@ You need to restart for changes to take effect
 
 Then enable sites in Nginx by symlinking files above into sites-enabled dir:
 
-`sudo ln -s /etc/nginx/sites-available/hris.gsc.edu.ph /etc/nginx/sites-enabled/`
+`sudo ln -s /etc/nginx/sites-available/hris.gsu.edu.ph /etc/nginx/sites-enabled/`
 
 Restart Nginx for changes to take effect
 

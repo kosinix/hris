@@ -10,12 +10,14 @@
  */
 //// Core modules
 const fs = require('fs')
+const fsP = require('node:fs/promises')
 const path = require('path')
 const process = require('process')
 
 //// External modules
 const lodash = require('lodash')
 const pigura = require('pigura')
+const extract = require('extract-zip')
 
 //// Modules
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
@@ -77,8 +79,12 @@ global.CRED = credLoader.getConfig()
                     percentage = newPercentage
                 }
             })
-            outputStream.on('finish', () => {
+            outputStream.on('finish', async () => {
                 console.log(`Downloaded to ${CONFIG.app.dirs.upload}/${FILE_NAME}.`)
+                await extract(`${CONFIG.app.dirs.upload}/${FILE_NAME}`, { dir: `${CONFIG.app.dirs.upload}` })
+                await fsP.cp(`${CONFIG.app.dirs.upload}/home/ubuntu/hris/data/upload/${FILE_NAME.replace('.zip', '')}`, `${CONFIG.app.dirs.upload}/${FILE_NAME.replace('.zip', '')}`, { recursive: true })
+                await fsP.rm(`${CONFIG.app.dirs.upload}/home`, { recursive: true })
+                console.log(`Done. Extracted to ${CONFIG.app.dirs.upload}/${FILE_NAME.replace('.zip', '')}`)
             });
 
         } catch (err) {

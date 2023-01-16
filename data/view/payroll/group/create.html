@@ -1,0 +1,66 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h4">Payroll Groups</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/payroll/group/create" class="btn btn-sm btn-outline-primary">Create</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+        <form ref="form" v-cloak v-on:submit.prevent="onSubmit" action="/payroll/group/create" method="POST" class="form-default">
+            {% set name = 'name' %}
+            {% set label = 'Group Name' %}
+            {% include 'parts/form-group-text.html' %}
+            <div class="form-row pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">Create</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            pending: false,
+            name: '',
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

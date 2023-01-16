@@ -791,7 +791,11 @@ router.get('/payroll/group/all', middlewares.guardRoute(['read_all_employee', 'r
         let customFilterValue = lodash.get(req, 'query.customFilterValue')
         lodash.set(req, 'session.pagination.perPage', perPage)
 
-        let query = {}
+        let query = {
+            tags: {
+                $in: ['Fund Source']
+            }
+        }
         let projection = {}
 
 
@@ -809,13 +813,13 @@ router.get('/payroll/group/all', middlewares.guardRoute(['read_all_employee', 'r
         aggr.push({ $sort: sort })
 
         // Pagination
-        let countDocuments = await req.app.locals.db.main.Employee.aggregate(aggr)
+        let countDocuments = await req.app.locals.db.main.EmployeeList.aggregate(aggr)
         let totalDocs = countDocuments.length
         let pagination = paginator.paginate(
             page,
             totalDocs,
             perPage,
-            '/employee/list',
+            '/payroll/group',
             req.query
         )
 
@@ -840,14 +844,24 @@ router.get('/payroll/group/all', middlewares.guardRoute(['read_all_employee', 'r
     }
 });
 // C
-router.post('/payroll/group', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+router.get('/payroll/group/create', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+    try {
+        res.render('payroll/group/create.html', {
+            flash: flash.get(req, 'employee'),
+        });
+    } catch (err) {
+        next(err);
+    }
+})
+router.post('/payroll/group/create', middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
     try {
         let name = lodash.get(req, 'body.name')
-        let employeeList = await req.app.locals.db.main.EmployeeList.create({
-            name: name
+        let list = await req.app.locals.db.main.EmployeeList.create({
+            name: name,
+            tags:['Fund Source']
         })
         flash.ok(req, 'employee', `Created ${name}.`)
-        res.redirect(`/employee/list/${employeeList._id}`)
+        res.redirect(`/payroll/group/${list._id}`)
     } catch (err) {
         next(err);
     }
@@ -893,6 +907,7 @@ router.get('/payroll/group/:employeeListId', middlewares.guardRoute(['read_all_e
                 return {
                     employeeId: m.employeeId,
                     employmentId: m._id,
+                    fundSource: m.fundSource,
                     firstName: employees[i].firstName,
                     middleName: employees[i].middleName,
                     lastName: employees[i].lastName,
@@ -901,6 +916,7 @@ router.get('/payroll/group/:employeeListId', middlewares.guardRoute(['read_all_e
                 }
             })
             await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
+            return res.redirect(`/payroll/group/${employeeList._id}`)
         }
 
 
@@ -912,6 +928,93 @@ router.get('/payroll/group/:employeeListId', middlewares.guardRoute(['read_all_e
             pagination: {},
             query: req.query,
         });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// D
+router.delete('/payroll/group/:employeeListId', middlewares.guardRoute(['delete_employee']), middlewares.getEmployeeList, async (req, res, next) => {
+    try {
+        let employeeList = res.employeeList.toObject()
+
+        await req.app.locals.db.main.EmployeeList.remove({ _id: employeeList._id })
+
+        flash.ok(req, 'employee', `Deleted ${employeeList.name}.`)
+        res.send('Deleted.')
+    } catch (err) {
+        next(err);
+    }
+});
+
+// C
+router.post('/payroll/group/:employeeListId/member', middlewares.guardRoute(['create_employee']), middlewares.getEmployeeList, async (req, res, next) => {
+    try {
+        let employeeList = res.employeeList.toObject()
+
+        let employmentId = lodash.get(req, 'body.employmentId')
+
+        let matches = await req.app.locals.db.main.EmployeeList.find({
+            _id: employeeList._id,
+            members: {
+                $elemMatch: {
+                    employmentId: employmentId
+                }
+            }
+        })
+        if (matches.length > 0) {
+            flash.error(req, 'employee', `Duplicate entry.`)
+            return res.redirect(`/payroll/group/${employeeList._id}`)
+        }
+
+        let employment = await req.app.locals.db.main.Employment.findById(employmentId)
+        if (!employment) {
+            throw new Error('Employment not found.')
+        }
+        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId)
+        if (!employee) {
+            throw new Error('Employee not found.')
+
+        }
+
+        employeeList.members.push({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            firstName: employee.firstName,
+            middleName: employee.middleName,
+            lastName: employee.lastName,
+            suffix: employee.suffix,
+            position: employment.position,
+            fundSource: employment.fundSource,
+        })
+
+        await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
+
+
+        flash.ok(req, 'employee', `Added ${employee.firstName} ${employee.lastName}.`)
+        res.redirect(`/payroll/group/${employeeList._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+// D
+router.delete('/payroll/group/:employeeListId/member/:memberId', middlewares.guardRoute(['delete_employee']), middlewares.getEmployeeList, async (req, res, next) => {
+    try {
+        let employeeList = res.employeeList.toObject()
+
+        let memberId = lodash.get(req, 'params.memberId')
+
+        let index = employeeList.members.findIndex(e => e._id.toString() === memberId)
+        if (index <= -1) {
+            throw new Error("Member not found.")
+        }
+
+        let deleted = employeeList.members.splice(index, 1)
+
+        await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
+
+        flash.ok(req, 'employee', `Deleted ${deleted[0].firstName} ${deleted[0].lastName}.`)
+        res.send('Deleted.')
     } catch (err) {
         next(err);
     }

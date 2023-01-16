@@ -4,12 +4,12 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h2">Payroll Groups</h1>
+            <h1 class="h4">Payroll Groups</h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
-            {# <div class="btn-group mr-2">
-                <a href="/employee/list" class="btn btn-sm btn-outline-primary">Add List</a>
-            </div> #}
+            <div class="btn-group mr-2">
+                <a href="/payroll/group/create" class="btn btn-sm btn-outline-primary">Create</a>
+            </div>
         </div>
     </div>
     {% include 'parts/flash.html' %}
@@ -30,7 +30,6 @@
                                 {% set thId = 'count' %}
                                 {% include 'parts/sorted-th.html' %}
                             </th>
-                            <th>Tags</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -39,7 +38,6 @@
                         <tr>
                             <td><a href="/payroll/group/{{employeeList._id}}">{{employeeList.name}}</a></td>
                             <td><a href="/payroll/group/{{employeeList._id}}">{{employeeList.members.length}}</a></td>
-                            <td>{{employeeList.tags.join(', ')}}</td>
                             <td class="text-center" width="2%">
                                 <button v-on:click="deleteList('{{employeeList._id}}')" class="btn btn-sm btn-none text-danger">X</button>
                             </td>
@@ -48,23 +46,10 @@
                     </tbody>
                 </table>
             </div>
-            <div class="row">
-                <div class="col-md-12 text-center text-md-left mt-3 mb-2">
-                    {% include "parts/pagination.html" %}
-                </div>
+            <div>
+                {% include "parts/pagination.html" %}
             </div>
         {% endif %}
-        <hr>
-        <form ref="form" v-cloak v-on:submit.prevent="onSubmit" action="/group/list" method="POST" class="form-default">
-            {% set name = 'name' %}
-            {% set label = 'Name of List' %}
-            {% include 'parts/form-group-text.html' %}
-            <div class="form-row pb-3">
-                <div class="col-md-12">
-                    <button class="btn btn-primary">Add List</button>
-                </div>
-            </div>
-        </form>
     </div>
 </div>
 {% endblock %}
@@ -96,7 +81,7 @@
 
                 me.pending = true
 
-                axios.delete(`/employee/list/${listId}`, {}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
+                axios.delete(`/payroll/group/${listId}`, {}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
                     console.log(response.data);
                     window.location.reload(false); //refresh//
                 }).catch(function(error){

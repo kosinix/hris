@@ -23,6 +23,7 @@
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
         <p v-if="employeeList.members.length <= 0">No employees in list.</p>
         <div v-else class="table-responsive">
+            <p class="h6">${employeeList.members.length} employees</p>
             <table class="table table-sm table-striped">
                 <thead>
                     <tr>

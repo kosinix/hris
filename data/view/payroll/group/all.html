@@ -1,0 +1,108 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h4">Payroll Groups</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/payroll/group/create" class="btn btn-sm btn-outline-primary">Create</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+        {% if employeeLists.length <= 0 %}
+            <p>No list found.</p>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>
+                                {% set thId = 'name' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                {% set thId = 'count' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for employeeList in employeeLists %}
+                        <tr>
+                            <td><a href="/payroll/group/{{employeeList._id}}">{{employeeList.name}}</a></td>
+                            <td><a href="/payroll/group/{{employeeList._id}}">{{employeeList.members.length}}</a></td>
+                            <td class="text-center" width="2%">
+                                <button v-on:click="deleteList('{{employeeList._id}}')" class="btn btn-sm btn-none text-danger">X</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                {% include "parts/pagination.html" %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            pending: false,
+            name: '',
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            deleteList: function(listId){
+                var me = this;
+                
+                if(!confirm('Remove list?')) return false
+
+                me.pending = true
+
+                axios.delete(`/payroll/group/${listId}`, {}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
+                    console.log(response.data);
+                    window.location.reload(false); //refresh//
+                }).catch(function(error){
+                    alert("Something went wrong.");
+                }).then(function(){
+                    me.pending = false
+                });
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

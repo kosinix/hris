@@ -24,6 +24,7 @@ const schema = new Schema({
             lastName: String,
             suffix: String,
             position: String,
+            fundSource: String,
         }
     ],
     tags: [],

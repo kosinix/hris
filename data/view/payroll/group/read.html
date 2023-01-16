@@ -36,7 +36,7 @@
                 <tbody>
                     <tr v-for="(member, index) in employeeList.members">
                         <td>${index+1}</td>
-                        <td><a v-bind:href="`/employee/${member.employeeId}/employment`">${member.lastName}, ${member.firstName}</a></td>
+                        <td><a v-bind:href="`/employee/${member.employeeId}/employment`">${member.lastName}, ${member.firstName} ${member.suffix}</a></td>
                         <td>${member.fundSource}</td>
                         <td>${member.position}</td>
                         <td class="text-center">

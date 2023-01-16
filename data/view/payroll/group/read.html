@@ -21,55 +21,37 @@
     {% include 'parts/flash.html' %}
     
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
-        {% if employeeList.members.length <= 0 %}
-            <p>No employees in list.</p>
-        {% else %}
-            <div class="table-responsive">
-                <table class="table table-sm table-striped">
-                    <thead>
-                        <tr>
-                            <th width="1%"></th>
-                            <th>
-                                {% set thId = 'lastName' %}
-                                {% set thLabel = 'Name' %}
-                                {% include 'parts/sorted-th.html' %}
-                                {% set thLabel = '' %}
-                            </th>
-                            <th>
-                                {% set thId = 'fundSource' %}
-                                {% set thLabel = 'Fund Source' %}
-                                {% include 'parts/sorted-th.html' %} 
-                                {% set thLabel = '' %}
-                            </th>
-                            <th>
-                                {% set thId = 'position' %}
-                                {% include 'parts/sorted-th.html' %} 
-                            </th>
-                            <th width="1%"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for member in employeeList.members %}
-                        <tr>
-                            <td>{{loop.index}}</td>
-                            <td><a href="/employee/{{member.employeeId}}/employment">{{member.lastName}}, {{member.firstName}}</a></td>
-                            <td>{{member.fundSource}}</td>
-                            <td>{{member.position}}</td>
-                            <td class="text-center">
-                                <button v-on:click.prevent="deleteMember('{{member._id}}')" class="btn btn-sm btn-none text-danger">X</button>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% endif %}
+        <p v-if="employeeList.members.length <= 0">No employees in list.</p>
+        <div v-else class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th width="1%"></th>
+                        <th>Name</th>
+                        <th>Fund Source</th>
+                        <th>Position</th>
+                        <th width="1%"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(member, index) in employeeList.members">
+                        <td>${index+1}</td>
+                        <td><a v-bind:href="`/employee/${member.employeeId}/employment`">${member.lastName}, ${member.firstName}</a></td>
+                        <td>${member.fundSource}</td>
+                        <td>${member.position}</td>
+                        <td class="text-center">
+                            <button v-on:click.prevent="deleteMember(member._id, index)" class="btn btn-sm btn-none text-danger">X</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         <hr>
         <form ref="form" v-on:submit.prevent="onSubmit" action="/payroll/group/{{employeeList._id}}/member" method="POST" class="form-default pt-2">
             <div class="form-group">
                 <label for="employmentId">Employee <span class="text-danger">*</span></label>
                 <div>
-                    <autocomplete v-model="employmentId"
+                    <autocomplete ref="autocomplete" v-model="employmentId"
                         name="employmentId"
                         initial-value="{{''}}"
                         initial-display="{{''}}"
@@ -95,9 +77,15 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-<script src="{{app.url}}/js/axios.min.js"></script>
 <script src="{{app.url}}/js/vue-ph-address.js"></script>
 <script>
+    Vue.config.errorHandler = function (err, vm, info) {
+        console.error(err)
+        console.log(info)
+    // handle error
+    // `info` is a Vue-specific error info, e.g. which lifecycle hook
+    // the error was found in. Only available in 2.2.0+
+    }
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
@@ -112,6 +100,7 @@
         data: {
             employmentId: '',
             pending: false,
+            employeeList: {{employeeList|default(true, [])|stringify|safe}},
         },
         validations: {
             employmentId: {
@@ -125,30 +114,62 @@
             dataSource: function(input) {
                 return '/employee?s=' + input
             },
-            deleteMember: function(memberId){
+            deleteMember: function(memberId, index){
                 var me = this;
                 
                 if(!confirm('Remove member?')) return false
 
                 me.pending = true
 
-                axios.delete(`/payroll/group/{{employeeList._id}}/member/${memberId}`, {}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
-                    console.log(response.data);
-                    window.location.reload(false); //refresh//
-                }).catch(function(error){
-                    alert("Something went wrong.");
+                fetch(`/payroll/group/{{employeeList._id}}/member/${memberId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        me.employeeList.members.splice(index, 1)
+                    } else {
+                        throw new Error(await response.text())
+                    }
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
                 }).then(function(){
                     me.pending = false
                 });
             },
             onSubmit: function(){
                 var me = this;
+                me.pending = true;
                 me.$v.$touch()
                 if (me.$v.$error) {
                     alert('Please correct the errors to continue.')
                 } else {
-                    me.$nextTick(function() {
-                        me.$refs.form.submit();
+                    fetch(`/payroll/group/{{employeeList._id}}/member`, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            employmentId: me.employmentId
+                        }),
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    }).then(async function(response){
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        throw new Error(await response.text())
+                        
+                    }).then(function(responseJson){
+                        me.employeeList = responseJson
+                        me.$refs.autocomplete.clear()
+                    }).catch(async function(error){
+                        console.error(error)
+                        alert(error);
+                    }).then(function(){
+                        me.pending = false
                     });
                 }
             }

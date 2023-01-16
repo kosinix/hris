@@ -74,6 +74,19 @@
             },
         },
         methods: {
+            add: function(listId){
+                var me = this;
+                me.pending = true
+
+                axios.post(`/payroll/group/${listId}`, {}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
+                    console.log(response.data);
+                    window.location.reload(false); //refresh//
+                }).catch(function(error){
+                    alert("Something went wrong.");
+                }).then(function(){
+                    me.pending = false
+                });
+            },
             deleteList: function(listId){
                 var me = this;
                 

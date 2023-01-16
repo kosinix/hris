@@ -15,6 +15,7 @@ const excelGen = require('../excel-gen');
 const uid = require('../uid');
 const payrollJs = require('../../public/js/payroll');
 const dtrHelper = require('../dtr-helper');
+const {AppError} = require('../errors');
 
 // Router
 let router = express.Router()
@@ -962,6 +963,9 @@ router.post('/payroll/group/:employeeListId/member', middlewares.guardRoute(['cr
             }
         })
         if (matches.length > 0) {
+            if(req.xhr){
+                return res.status(400).send(`Duplicate entry.`)
+            }
             flash.error(req, 'employee', `Duplicate entry.`)
             return res.redirect(`/payroll/group/${employeeList._id}`)
         }
@@ -989,7 +993,12 @@ router.post('/payroll/group/:employeeListId/member', middlewares.guardRoute(['cr
 
         await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
 
-
+        if(req.xhr){
+            let updatedList = await req.app.locals.db.main.EmployeeList.findOne({
+                _id: employeeList._id,
+            })
+            return res.send(updatedList)
+        }
         flash.ok(req, 'employee', `Added ${employee.firstName} ${employee.lastName}.`)
         res.redirect(`/payroll/group/${employeeList._id}`)
     } catch (err) {
@@ -1012,7 +1021,7 @@ router.delete('/payroll/group/:employeeListId/member/:memberId', middlewares.gua
 
         await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
 
-        flash.ok(req, 'employee', `Deleted ${deleted[0].firstName} ${deleted[0].lastName}.`)
+        // flash.ok(req, 'employee', `Deleted ${deleted[0].firstName} ${deleted[0].lastName}.`)
         res.send('Deleted.')
     } catch (err) {
         next(err);

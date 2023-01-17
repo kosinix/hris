@@ -59,7 +59,7 @@ router.post('/login', async (req, res, next) => {
         let recaptchaToken = lodash.trim(lodash.get(post, 'recaptchaToken', ''))
 
         // Recaptcha
-        if (CONFIG.recaptchav3.enabled) {
+        if (CONFIG.recaptchav3.enable) {
 
             let params = new url.URLSearchParams({
                 secret: CRED.recaptchav3.secret,

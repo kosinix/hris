@@ -42,7 +42,7 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-{% if CONFIG.recaptchav3.enabled %}
+{% if CONFIG.recaptchav3.enable %}
     <script src="https://www.google.com/recaptcha/api.js?render=6LcB1_scAAAAABxNHSvZ1gnl5ZpTKZCoWa_JcYkV"></script>
 {% endif %}
 <script>

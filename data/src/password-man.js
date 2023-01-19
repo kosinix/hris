@@ -55,9 +55,15 @@ module.exports = {
         hex[randLocation2] = upperChars[crypto.randomInt(0, upperChars.length)]
         return hex.join('')
     },
-    genPassUpperCase: function(length = 10) {
-        const buf = buffer.Buffer.alloc(length / 2)
-        crypto.randomFillSync(buf)
-        return buf.toString('hex').toUpperCase()
+    genPassUpperCase: function (length = 10) {
+        const upperChars = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+        const letters = upperChars.split('')
+        for (let i = 0; i < letters.length; i++) {
+            let holder = letters[i]
+            let newIndex = crypto.randomInt(i, letters.length)
+            letters[i] = letters[newIndex]
+            letters[newIndex] = holder
+        }
+        return letters.join('').substring(0, length)
     }
 }

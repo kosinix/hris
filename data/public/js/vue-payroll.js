@@ -25,8 +25,14 @@ VuePayroll.mixin = {
         visibleColumns: function(column){
             return _.get(column, 'hidden', false) === false;
         },
-        attendanceLink: function(row, payroll){
-            return '/attendance/employee/' + row.employee._id + '/employment/' + row.employment._id + '?start=' + payroll.dateStart + '&end=' + payroll.dateEnd
+        attendanceLink: function(row, payroll, rowIndex, columnIndex){
+            try{
+                return '/attendance/employment/' + row.employment._id + '?start=' + payroll.dateStart + '&end=' + payroll.dateEnd
+            } catch (err) {
+                console.warn(`Some props returned null at rowIndex,columnIndex: ${rowIndex},${columnIndex}:`)
+                return `/attendance/employee/${_.get(row, 'employee._id','')}/employment/${_.get(row, 'employment._id')}?start=${_.get(payroll, 'dateStart')}&end=${_.get(payroll, 'dateEnd')}`
+
+            }
         }
     }
 }

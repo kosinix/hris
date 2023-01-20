@@ -286,18 +286,18 @@ module.exports = {
     lockPayroll: async (req, res, next) => {
         try {
 
-            let payroll = res.payroll.toObject()
-            let user = res.user.toObject()
+            // let payroll = res.payroll.toObject()
+            // let user = res.user.toObject()
 
-            if (payroll.assignedTo) {
-                if (payroll.assignedTo._id.toString() !== user._id.toString()) {
-                    flash.error(req, 'payroll', `Payroll locked. Currently edited by user "${payroll.assignedTo.username}".`)
-                    return res.redirect('/payroll/all')
-                }
-            } else {
-                payroll.assignedTo = user
-                await req.app.locals.db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
-            }
+            // if (payroll.assignedTo) {
+            //     if (payroll.assignedTo._id.toString() !== user._id.toString()) {
+            //         flash.error(req, 'payroll', `Payroll locked. Currently edited by user "${payroll.assignedTo.username}".`)
+            //         return res.redirect('/payroll/all')
+            //     }
+            // } else {
+            //     payroll.assignedTo = user
+            //     await req.app.locals.db.main.Payroll.updateOne({ _id: payroll._id }, payroll)
+            // }
             next();
         } catch (err) {
             next(err);

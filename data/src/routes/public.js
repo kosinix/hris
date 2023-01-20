@@ -91,7 +91,9 @@ router.post('/login', async (req, res, next) => {
         // Check password
         let passwordHash = passwordMan.hashPassword(password, user.salt);
         if (!timingSafeEqual(Buffer.from(passwordHash, 'utf8'), Buffer.from(user.passwordHash, 'utf8'))) {
-            throw new Error('Incorrect password.');
+            // throw new Error('Incorrect password.');
+            flash.error(req, 'login', 'Incorrect password.');
+            return res.redirect(`/login?username=${username}`);
         }
 
         if (!lodash.get(user.toObject(), 'settings.ol', true)) {

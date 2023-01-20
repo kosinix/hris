@@ -465,6 +465,7 @@ router.post('/scanner/:scannerUid/log', middlewares.guardRoute(['use_scanner']),
                 gender: employee.gender,
                 birthDate: employee.birthDate,
                 profilePhoto: employee.profilePhoto,
+                speechSynthesisName: employee.speechSynthesisName,
             },
             log: null,
             logs: {}

@@ -301,11 +301,11 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
         lodash.set(patch, 'dateStart', lodash.get(body, 'dateStart'))
         lodash.set(patch, 'dateEnd', lodash.get(body, 'dateEnd'))
         lodash.set(patch, 'workSchedule', lodash.get(body, 'workSchedule'))
-        let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(patch.workSchedule).lean()
-        let timeSegments = null
-        if (workSchedule) {
-            timeSegments = workSchedule.timeSegments
-        }
+        // let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(patch.workSchedule).lean()
+        // let timeSegments = []
+        // if (workSchedule) {
+        //     timeSegments = workSchedule.timeSegments
+        // }
 
         let profiles = [
             ['Permanent Faculty and Staff', 'permanent'],
@@ -357,7 +357,7 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
             let columns = payrollTemplate.getColumns(template)
 
             // 4. Format rows based on employee, employment, and columns for template, and attendance
-            let rows = employees.map((employee, i) => {
+            let rows = employees.map(async (employee, i) => {
                 let employment = employments[i]
 
                 // Generate cells
@@ -379,10 +379,44 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
                 let travelPoints = 480
                 for (let a = 0; a < _attendances.length; a++) {
                     let attendance = _attendances[a] // daily
-                    let dtr = dtrHelper.calcDailyAttendance(attendance, hoursPerDay, travelPoints, timeSegments)
-                    totalMinutes += dtr.totalMinutes
-                    totalMinutesUnderTime += dtr.underTimeTotalMinutes
+                    let dtr = dtrHelper.calcDailyAttendance(attendance, hoursPerDay, travelPoints)
+                    // totalMinutes += dtr.totalMinutes
+                    // totalMinutesUnderTime += dtr.underTimeTotalMinutes
                     _attendances[a].dtr = dtr
+
+                    // //////////////
+                    let workSchedule = {}
+                    if (attendance.workScheduleId) {
+                        workSchedule = await req.app.locals.db.main.WorkSchedule.findById(attendance.workScheduleId).lean()
+                    } else {
+                        workSchedule = await req.app.locals.db.main.WorkSchedule.findById(employment.workScheduleId).lean()
+                    }
+
+                    let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
+                    // Normalize schema
+                    attendance = dtrHelper.normalizeAttendance(attendance, employee, workScheduleTimeSegments)
+
+                    // Schedule segments
+                    let timeSegments = dtrHelper.buildTimeSegments(workScheduleTimeSegments)
+                    let logSegments = dtrHelper.buildLogSegments(attendance.logs)
+                    let options = {
+                        ignoreZero: true,
+                        noSpill: true
+                    }
+                    if (employment.employmentType === 'part-time' || attendance.type !== 'normal') {
+                        options.noSpill = false
+                    }
+                    let timeWorked = dtrHelper.countWork(timeSegments, logSegments, options)
+                    // return res.send(timeWorked)
+                    timeWorked.forEach(ts => {
+                        if (ts.name != 'OT') { // Exclude OT
+                            // ts.logSegments.forEach(ls => {
+                            //     dtr.excessMinutes += ls.countedExcess
+                            // })
+                            totalMinutes += ts.counted
+                            totalMinutesUnderTime += ts.countedUndertime
+                        }
+                    })
                 }
 
                 let timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, hoursPerDay)
@@ -398,6 +432,7 @@ router.post('/payroll/generate', middlewares.guardRoute(['create_payroll']), asy
                 }
             })
 
+            rows = await Promise.all(rows)
             if (template === 'cos_staff') {
                 // insert 
                 rows.unshift({

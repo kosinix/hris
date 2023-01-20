@@ -119,8 +119,14 @@ var formulas = [
     {
         uid: 'amountWorked',
         getValue: function (row, columnUid, formulas, columns) {
+            let amount = 0
+            try{
+                amount = amountWorked(_.get(row, 'employment.salary', 0), _.get(row, 'employment.salaryType'), _.get(row, 'timeRecord.totalMinutes', 0))
+            } catch (err){
+                console.warn(`Error at rowUid ${row.uid}, colUid ${columnUid}:`, err)
+            }
             return parseFloat(money.floatToAmount(
-                amountWorked(_.get(row, 'employment.salary', 0), _.get(row, 'employment.salaryType'), _.get(row, 'timeRecord.totalMinutes', 0))
+                amount
             ))
         }
     },

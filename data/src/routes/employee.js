@@ -1198,11 +1198,13 @@ router.post('/employee/:employeeId/user/password-reset', middlewares.guardRoute(
                 previewText: `Greetings ${employee.firstName}! This is your HRIS username and password login...`,
             }
             let info = await mailer.send('password-reset.html', data)
-            console.log(info)
+            // console.log(info)
+            flash.ok(req, 'employee', `Employee password updated and an email was sent to "${employeeUser.email}" with messageId: ${info.messageId}`)
+        } else {
+            flash.ok(req, 'employee', `Employee password updated.`)
         }
         await employeeUser.save()
 
-        flash.ok(req, 'employee', `Account password updated.`)
         res.redirect(`/employee/${employee._id}/user`)
     } catch (err) {
         next(err);

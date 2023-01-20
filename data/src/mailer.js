@@ -73,6 +73,26 @@ const templates = {
         // console.log(info.response)
         return info
     },
+    passwordReset: async (templateVars) => {
+        let data = {
+            firstName: templateVars.firstName,
+            username: templateVars.username,
+            password: templateVars.password,
+            loginUrl: templateVars.loginUrl,
+            baseUrl: `${CONFIG.app.url}`,
+            previewText: templateVars.previewText,
+        }
+        let mailOptions = {
+            from: `${CONFIG.school.acronym} HRIS <hris-noreply@gsu.edu.ph>`,
+            to: templateVars.to,
+            subject: 'HRIS Account',
+            text: nunjucksEnv.render('emails/password-reset.txt', data),
+            html: nunjucksEnv.render('emails/password-reset.html', data),
+        }
+        let info = await transport2.sendMail(mailOptions)
+        // console.log(info.response)
+        return info
+    },
     reset: async (templateVars) => {
         let data = {
             to: templateVars.to,
@@ -102,6 +122,8 @@ module.exports = {
             return await templates.changePassword(templateVars)
         } else if (templateName === 'reset.html') {
             return await templates.reset(templateVars)
+        } else if (templateName === 'password-reset.html') {
+            return await templates.passwordReset(templateVars)
         } else {
             throw new Error(`Template ${templateName} not found.`)
         }

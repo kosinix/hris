@@ -661,7 +661,7 @@ router.post('/employee/:employeeId/employment/:employmentId/delete', middlewares
 router.get('/employee/:employeeId/address', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
-    
+
         res.render('employee/address.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
@@ -1121,6 +1121,89 @@ router.post('/employee/:employeeId/user/:userId/update', middlewares.guardRoute(
             flash.ok(req, 'employee', `No changes.`)
         }
         res.redirect(`/employee/${employee._id}/user/${employeeUser._id}/update`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+// 
+router.get('/employee/:employeeId/user/password-reset', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee
+        let onlineAccount = await req.app.locals.db.main.User.findById(employee.userId)
+        if (!onlineAccount) {
+            flash.error(req, 'employee', 'No user account.')
+            return res.redirect(`/employee/${employee._id}/user`)
+        }
+
+        let username = passwordMan.genUsername(employee.firstName, employee.lastName)
+        let password = passwordMan.genPassword()
+
+        res.render('employee/online-account/password-reset.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            onlineAccount: onlineAccount,
+            username: username,
+            password: password,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+// check email look
+router.get('/employee/:employeeId/user/password-reset-email-preview', middlewares.guardRoute(['read_employee']), async (req, res, next) => {
+    try {
+        let firstName = lodash.get(req, 'query.firstName', 'Juan')
+        let email = lodash.get(req, 'query.email', 'juan@example.com')
+        let username = lodash.get(req, 'query.username', 'juan.cruz')
+        let password = lodash.get(req, 'query.password', passwordMan.genPassword(10))
+        let loginUrl = lodash.get(req, 'query.loginUrl', `${CONFIG.app.url}/login`)
+        res.render('emails/password-reset.html', {
+            to: email,
+            firstName: firstName,
+            username: username,
+            password: password,
+            appUrl: `${CONFIG.app.url}`,
+            loginUrl: loginUrl,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/:employeeId/user/password-reset', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee
+
+        let body = req.body
+        body.password = lodash.trim(lodash.get(body, 'password'))
+        body.send = lodash.trim(lodash.get(body, 'send', ''))
+
+        let salt = passwordMan.randomString(16)
+        let passwordHash = passwordMan.hashPassword(body.password, salt)
+
+        let employeeUser = await req.app.locals.db.main.User.findById(employee.userId)
+        if (!employeeUser) { // Associated user
+            throw new Error('User not found.')
+        }
+
+        employeeUser.salt = salt
+        employeeUser.passwordHash = passwordHash
+        if (body.send === 'on') {
+            let data = {
+                to: employeeUser.email,
+                firstName: employee.firstName,
+                username: employeeUser.username,
+                password: body.password,
+                loginUrl: `${CONFIG.app.url}/login?username=${employeeUser.username}`,
+                previewText: `Greetings ${employee.firstName}! This is your HRIS username and password login...`,
+            }
+            let info = await mailer.send('password-reset.html', data)
+            console.log(info)
+        }
+        await employeeUser.save()
+
+        flash.ok(req, 'employee', `Account password updated.`)
+        res.redirect(`/employee/${employee._id}/user`)
     } catch (err) {
         next(err);
     }

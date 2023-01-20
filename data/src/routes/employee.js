@@ -872,7 +872,7 @@ router.get('/employee/:employeeId/user/create', middlewares.guardRoute(['read_em
         }
 
         let username = passwordMan.genUsername(employee.firstName, employee.lastName)
-        let password = passwordMan.randomString(8)
+        let password = passwordMan.genPassword()
 
         res.render('employee/online-account/create.html', {
             flash: flash.get(req, 'employee'),

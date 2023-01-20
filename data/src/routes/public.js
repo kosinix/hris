@@ -333,7 +333,7 @@ router.get('/forgotten/:secureKey', async (req, res, next) => {
         }
 
         // Gen password
-        let password = passwordMan.genPassUpperCase(8)
+        let password = passwordMan.genPassword()
         let passwordHash = passwordMan.hashPassword(password, user.salt)
         user.passwordHash = passwordHash
         await user.save()

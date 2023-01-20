@@ -5,7 +5,6 @@
 
 //// Core modules
 const crypto = require('crypto')
-const buffer = require('buffer')
 const util = require('util')
 
 //// External modules
@@ -38,32 +37,22 @@ module.exports = {
         lastName = lastName.replace(/ /g, '') // remove spaces for maam josephine "de asis"
         return lodash.toLower(`${lastName}`) + '.' + lodash.toLower(`${firstName}`)
     },
-    genPassword: (length) => { // Guarantees 1 upper and 1 special char in a random string
-        const upperChars = "ABCDEFGHIJKLMNPQRSTUVWXYZ"
-        const specialChars = `!@#$_?]=` // Use only less confusing characters
+    genPassword: (length = 10) => { // Guarantees 1 upper and 1 special char in a random string
+        const upperChars = "ABCDEFGHJKLMNPQRSTUVWXYZ".split('')
+        const lowerChars = "abcdefghjkmnpqrstuvwxyz23456789".split('')
+        const specialChars = "-?!%".split('')
 
-        let bytes = crypto.randomBytes(length / 2);
-        let hex = bytes.toString('hex').split('') // convert to array
-
-        let randLocation = crypto.randomInt(0, hex.length)
-
-        hex[randLocation] = specialChars[crypto.randomInt(0, specialChars.length)]
-        let randLocation2 = crypto.randomInt(0, hex.length)
-        while (randLocation2 === randLocation) { // Do not overwrite character in randLocation
-            randLocation2 = crypto.randomInt(0, hex.length)
+        let newChars = []
+        for (let x = 0; x < length; x++) {
+            if (x === 0) {
+                newChars.push(upperChars[crypto.randomInt(0, upperChars.length)])
+            } else if (x === length - 1) {
+                newChars.push(specialChars[crypto.randomInt(0, specialChars.length)])
+            } else {
+                newChars.push(lowerChars[crypto.randomInt(0, lowerChars.length)])
+            }
         }
-        hex[randLocation2] = upperChars[crypto.randomInt(0, upperChars.length)]
-        return hex.join('')
-    },
-    genPassUpperCase: function (length = 10) {
-        const upperChars = "ABCDEFGHJKLMNPQRSTUVWXYZ"
-        const letters = upperChars.split('')
-        for (let i = 0; i < letters.length; i++) {
-            let holder = letters[i]
-            let newIndex = crypto.randomInt(i, letters.length)
-            letters[i] = letters[newIndex]
-            letters[newIndex] = holder
-        }
-        return letters.join('').substring(0, length)
+
+        return newChars.join('')
     }
 }

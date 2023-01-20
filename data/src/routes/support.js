@@ -134,7 +134,7 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
         registrationForm.userAccount = userAccount
 
         let username = registrationForm.userAccount.username
-        let password = passwordMan.genPassUpperCase()
+        let password = passwordMan.genPassword()
         let passwordHash = passwordMan.hashPassword(password, userAccount.salt)
 
         await req.app.locals.db.main.User.updateOne({ _id: registrationForm.userAccount._id }, {

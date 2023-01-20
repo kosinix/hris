@@ -9,9 +9,11 @@
 //// Core modules
 
 //// External modules
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 //// Modules
+const dtrHelper = require('../dtr-helper')
+
 
 const Schema = mongoose.Schema;
 
@@ -93,6 +95,10 @@ const schema = new Schema({
 //// Virtuals
 
 //// Schema methods
+schema.statics.getWorkScheduleTimeSegments = async (db, workScheduleId, givenDate) => {
+    let workSchedule = await db.main.WorkSchedule.findById(workScheduleId).lean()
+    return workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, givenDate)
+};
 
 //// Middlewares
 

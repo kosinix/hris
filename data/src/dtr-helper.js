@@ -1486,11 +1486,12 @@ const createWorkScheduleTemplate = () => {
  * @param {Number} timeSegment.start - Start minutes from midnight
  * @param {Number} timeSegment.end - End minutes from midnight
  * @param {Number|null|undefined} timeSegment.max - Max minutes. Auto computed if falsy.
- * @param {Array} timeSegment.breaks - Array of breaks
- * @throws {Error} 
- * @returns {Array}
+ * @param {Array} timeSegment.breaks - Array of breaks. See models/works-chedule.js
+ * @param {Boolean} throwOnOdd [throwOnOdd=false] Throws an error on odd points
+ * @throws {Error} Throws an error if one of the points has no partner (odd number of points) and if throwOnOdd is true. 
+ * @returns {Array} Array of time segments 
  */
-const breakTimeSegments = (timeSegment) => {
+const breakTimeSegments = (timeSegment, throwOnOdd = false) => {
 
     let points = []
     points.push(timeSegment.start)
@@ -1501,7 +1502,7 @@ const breakTimeSegments = (timeSegment) => {
     points.push(timeSegment.end)
 
     let isOdd = points.length % 2 > 0
-    if (isOdd) {
+    if (isOdd && throwOnOdd) {
         throw new Error('Odd points. Every point should have a partner.')
     }
     let chunks = []
@@ -1597,9 +1598,9 @@ const normalizeTimeSegments = (workScheduleTimeSegments) => {
 /**
  * Extract time segments from a work schedule on a given date
  * 
- * @param {*} workSchedule 
- * @param {*} givenDate 
- * @returns 
+ * @param {Array} workSchedule 
+ * @param {String} givenDate 
+ * @returns {Array.<{start: Number, end: Number, grace: Number, max: Number, flexible: Boolean, breaks: Array, weekDays: Array}>} Work schedule time segments
  */
 const getWorkScheduleTimeSegments = (workSchedule, givenDate) => {
     // Turn into date object
@@ -1622,15 +1623,25 @@ const getWorkScheduleTimeSegments = (workSchedule, givenDate) => {
     return normalizeTimeSegments(workScheduleTimeSegments)
 }
 
-const buildLogSegments = (logs) => {
+/**
+ * Turn array of attendance.logs into array of log segments
+ * 
+ * @param {Array.<{dateTime: Date|string, [...]}>} logs Array of attendance.logs
+ * @param {Boolean} throwOnOdd Throw an error when odd number of points - point with no partner.
+ * @returns {Array.<{start: number, end: number, raw: number, type: string}>}
+ */
+const buildLogSegments = (logs, throwOnOdd = false) => {
+    // Turn array of dateTime into points
     let points = logs.map(log => {
         return timeToM(moment(log.dateTime).format('HH:mm'))
     })
 
     let isOdd = points.length % 2 > 0
-    if (isOdd) {
-        // throw new Error('Odd points. Every point should have a partner.')
+    if (isOdd && throwOnOdd) {
+        throw new Error('Odd points. Every point should have a partner.')
     }
+
+    // Chunks are array of segments [[start, end], [start, end]...]
     let chunks = []
     let chunkSize = 2
     for (let i = 0; i < points.length; i += chunkSize) {
@@ -2368,6 +2379,17 @@ const workScheduleDisplay = (workSchedule, weekDays) => {
     }))
 }
 
+const readableSchedule = (workScheduleTimeSegments) => {
+    return workScheduleTimeSegments.map(o => {
+        let brs = lodash.get(o, 'breaks', []).map(o => {
+            return `${mToTime(o.start, 'hh:mmA')} - ${mToTime(o.end, 'hh:mmA')}`
+        }).join(', ')
+        if (brs) {
+            brs = ` (Breaks: ${brs})`
+        }
+        return `${mToTime(o.start, 'hh:mmA')} - ${mToTime(o.end, 'hh:mmA')}${brs}`
+    }).join(', ')
+}
 
 module.exports = {
     logAttendance: logAttendance,
@@ -2406,5 +2428,6 @@ module.exports = {
     logTravelAndWfh: logTravelAndWfh,
     logNormal: logNormal,
     workScheduleDisplay: workScheduleDisplay,
+    readableSchedule: readableSchedule,
 }
 

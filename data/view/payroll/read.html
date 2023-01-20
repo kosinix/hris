@@ -62,6 +62,13 @@
 <script src="{{app.url}}/js/Sortable.min.js"></script>
 {% include "parts/script-employment.html" %}
 <script>
+    Vue.config.errorHandler = function (err, vm, info) {
+        let error = `${err.stack}\n\nfound in ${info} of component`
+        console.error(error)
+        // handle error
+        // `info` is a Vue-specific error info, e.g. which lifecycle hook
+        // the error was found in. Only available in 2.2.0+
+    }
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],

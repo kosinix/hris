@@ -507,22 +507,22 @@ router.get(['/reports/lad/training/all', '/reports/lad/training/all.xlsx'], midd
             if (school) {
                 schools.push(school)
             }
-            school = e.personal.schools.find(s => s.level === 'Secondary')
+            school = lodash.get(e, 'personal.schools', []).find(s => s.level === 'Secondary')
             if (school) {
                 schools.push(school)
             }
 
-            school = e.personal.schools.find(s => s.level === 'Vocational')
+            school = lodash.get(e, 'personal.schools', []).find(s => s.level === 'Vocational')
             if (school) {
                 schools.push(school)
             }
 
-            school = e.personal.schools.find(s => s.level === 'College')
+            school = lodash.get(e, 'personal.schools', []).find(s => s.level === 'College')
             if (school) {
                 schools.push(school)
             }
 
-            school = e.personal.schools.find(s => s.level === 'Graduate Studies')
+            school = lodash.get(e, 'personal.schools', []).find(s => s.level === 'Graduate Studies')
             if (school) {
                 schools.push(school)
             }

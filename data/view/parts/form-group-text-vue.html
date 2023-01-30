@@ -5,7 +5,7 @@
         {% endif %}
     </label>
     <div>
-        <input v-bind:name="{{name}}" v-bind:id="{{name}}" v-model="{% if vModel %}{{vModel}}{% else %}{{name}}{% endif %}" type="text" class="form-control">
+        <input v-bind:name="{{name}}" v-bind:id="{{name}}" v-model="{% if vModel %}{{vModel}}{% else %}{{name}}{% endif %}" {% if placeholder %}placeholder="{{placeholder}}"{% endif %} type="text" class="form-control">
         <small class="invalid-feedback">${getError({{name}})}</small>
     </div>
 </div>

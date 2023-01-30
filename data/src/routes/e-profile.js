@@ -397,7 +397,7 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
 
         // Get related logsheet images
         let momentDate = moment(attendance.createdAt)
-        if(momentDate.clone().startOf('day').isSame(moment().startOf('day'))){
+        if (momentDate.clone().startOf('day').isSame(moment().startOf('day'))) {
             throw new Error('Please apply for correction tomorrow. Your attendance today is still ongoing. ')
         }
         let aggr = [
@@ -614,7 +614,7 @@ router.post('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute(
             return mode
         }
 
-        if(moment(attendance.createdAt).clone().startOf('day').isSame(moment().startOf('day'))){
+        if (moment(attendance.createdAt).clone().startOf('day').isSame(moment().startOf('day'))) {
             throw new Error('Please apply for correction tomorrow. Your attendance today is still ongoing. ')
         }
 
@@ -1617,8 +1617,8 @@ router.post('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']),
         let body = lodash.get(req, 'body')
         // return res.send(body)
 
-        lodash.set(patch, 'personal.eligibilities', lodash.get(body, 'eligibilities'))
-        lodash.set(patch, 'personal.workExperiences', lodash.get(body, 'workExperiences'))
+        lodash.set(patch, 'personal.eligibilities', lodash.get(body, 'eligibilities', []))
+        lodash.set(patch, 'personal.workExperiences', lodash.get(body, 'workExperiences', []))
 
         patch.personal.eligibilities = patch.personal.eligibilities.sort((a, b) => {
             let aFrom = moment(a.examDate).unix()

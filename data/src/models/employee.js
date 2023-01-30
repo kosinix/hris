@@ -300,7 +300,27 @@ const schema = new Schema({
             $type: String,
             trim: true,
         },
-        references: []
+        references: [],
+        governmentId: {
+            $type: String,
+            trim: true,
+        },
+        governmentIdNumber: {
+            $type: String,
+            trim: true,
+        },
+        governmentIdDatePlace: {
+            $type: String,
+            trim: true,
+        },
+        datePdsFilled: {
+            $type: String,
+            trim: true,
+        },
+        personAdministeringOath: {
+            $type: String,
+            trim: true,
+        },
     },
     acceptedDataPrivacy: {
         $type: Boolean,

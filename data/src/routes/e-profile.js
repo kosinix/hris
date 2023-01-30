@@ -1769,6 +1769,11 @@ router.post('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']),
         lodash.set(patch, 'personal.soloParent', lodash.get(body, 'soloParent'))
         lodash.set(patch, 'personal.soloParentDetails', lodash.get(body, 'soloParentDetails'))
         lodash.set(patch, 'personal.references', lodash.get(body, 'references', []))
+        lodash.set(patch, 'personal.governmentId', lodash.get(body, 'governmentId'))
+        lodash.set(patch, 'personal.governmentIdNumber', lodash.get(body, 'governmentIdNumber'))
+        lodash.set(patch, 'personal.governmentIdDatePlace', lodash.get(body, 'governmentIdDatePlace'))
+        lodash.set(patch, 'personal.datePdsFilled', lodash.get(body, 'datePdsFilled'))
+        lodash.set(patch, 'personal.personAdministeringOath', lodash.get(body, 'personAdministeringOath'))
 
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 

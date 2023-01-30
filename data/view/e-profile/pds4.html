@@ -220,6 +220,7 @@
                                 {% set vModel = 'reference.name' %}
                                 {% set label = "Name" %}
                                 {% include 'parts/form-group-text-vue.html' %}
+                                {% set vModel = "" %}
                                 {% set label = '' %}
                             </div>
                             <div class="col-md-4">
@@ -227,6 +228,7 @@
                                 {% set vModel = 'reference.address' %}
                                 {% set label = "Address" %}
                                 {% include 'parts/form-group-text-vue.html' %}
+                                {% set vModel = "" %}
                                 {% set label = '' %}
                             </div>
                             <div class="col-md-4">
@@ -234,6 +236,7 @@
                                 {% set vModel = 'reference.phoneNumber' %}
                                 {% set label = "Phone No." %}
                                 {% include 'parts/form-group-text-vue.html' %}
+                                {% set vModel = "" %}
                                 {% set label = '' %}
                             </div>
                         </div>
@@ -241,6 +244,53 @@
                     <div class="text-center" v-if="references.length < 3">
                         <button type="button" v-on:click.prevent="addReference" class="btn btn-sm btn-primary">Add Reference</button>
                     </div> 
+                </div>
+                <div class="form-group focusable" tabindex="0">
+                    <h2 class="h5">Government ID</h2>
+
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "governmentId" %}
+                            {% set label = "Government Issued ID (ie. Passport, GSIS, SSS, PRC, Driver's License, etc.)" %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "governmentIdNumber" %}
+                            {% set label = "ID/License/Passport No." %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "governmentIdDatePlace" %}
+                            {% set label = "Date/Place of Issuance" %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group focusable" tabindex="0">
+                    <h2 class="h5">Misc.</h2>
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "datePdsFilled" %}
+                            {% set label = "Date PDS Accomplished" %}
+                            {% include 'parts/form-group-date.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            {% set name = "personAdministeringOath" %}
+                            {% include 'parts/form-group-text.html' %}
+                            {% set label = '' %}
+                        </div>
+                    </div>
                 </div>
                 <hr>
                 <div class="form-row pt-3 pb-3">
@@ -295,6 +345,11 @@
             soloParent: '{{employee.personal.soloParent}}',
             soloParentDetails: '{{employee.personal.soloParentDetails}}',
             references:{{employee.personal.references|default([], true)|stringify|safe}},
+            governmentId: '{{employee.personal.governmentId}}',
+            governmentIdNumber: '{{employee.personal.governmentIdNumber}}',
+            governmentIdDatePlace: '{{employee.personal.governmentIdDatePlace}}',
+            datePdsFilled: '{{employee.personal.datePdsFilled}}',
+            personAdministeringOath: '{{employee.personal.personAdministeringOath}}',
         },
         mounted: function(){
         },

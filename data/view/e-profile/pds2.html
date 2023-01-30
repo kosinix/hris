@@ -87,20 +87,29 @@
                                 {% set label = '' %}
                             </div>
                             <div class="col-md-2">
-                                {% set name = "'workExperiences[' + index + '][toDate]'"|safe %}
-                                {% set vModel = 'experience.toDate' %}
-                                {% set label = "Work To" %}
-                                {% include 'parts/form-group-date-vue.html' %}
+                                <template v-if="!workExperiences[index]['present']">
+                                    {% set name = "'workExperiences[' + index + '][toDate]'"|safe %}
+                                    {% set vModel = 'experience.toDate' %}
+                                    {% set label = "Work To" %}
+                                    {% include 'parts/form-group-date-vue.html' %}
+                                    {% set label = '' %}
+                                </template>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-center">
+                                {% set name = "'workExperiences[' + index + '][present]'"|safe %}
+                                {% set vModel = 'experience.present' %}
+                                {% set label = "Present Work" %}
+                                {% include 'parts/form-group-checkbox-vue.html' %}
                                 {% set label = '' %}
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 {% set name = "'workExperiences[' + index + '][positionTitle]'"|safe %}
                                 {% set vModel = 'experience.positionTitle' %}
                                 {% set label = "Position Title" %}
                                 {% include 'parts/form-group-text-vue.html' %}
                                 {% set label = '' %}
                             </div>                                                                                          		
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 {% set name = "'workExperiences[' + index + '][department]'"|safe %}
                                 {% set vModel = 'experience.department' %}
                                 {% set label = "Department/Agency/Office/Company" %}

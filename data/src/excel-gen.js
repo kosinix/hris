@@ -807,7 +807,7 @@ let templatePds = async (employee) => {
                 slex.getCell(`N${rowY}`).value(school.honors)
             }
         }
-        
+
         slex.getCell('L60').value(toPDSDate(lodash.get(employee, 'personal.datePdsFilled', '')))
 
     }
@@ -854,10 +854,17 @@ let templatePds = async (employee) => {
             let payGrade = lodash.get(workExperience, `payGrade`, '')
             let appointmentStatus = lodash.get(workExperience, `appointmentStatus`, '')
             let isGov = lodash.get(workExperience, `isGov`, '')
+            let isPresent = lodash.get(workExperience, `present`, '')
 
+
+            if(isPresent){
+                toDate = `Present`
+            } else {
+                toDate = toPDSDate(toDate)
+            }
             let row = offset + x
             slex.getCell(`A${row}`).value(`${toPDSDate(fromDate)}`)
-                .getCell(`C${row}`).value(`${toPDSDate(toDate)}`)
+                .getCell(`C${row}`).value(`${toDate}`)
                 .getCell(`D${row}`).value(`${positionTitle}`)
                 .getCell(`G${row}`).value(`${department}`)
                 .getCell(`J${row}`).value(`${salary}`)

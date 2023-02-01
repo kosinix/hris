@@ -12,9 +12,8 @@
     </div>
     <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width:900px; margin:0 auto;">
         {% include 'parts/flash.html' %}
-        <div v-if="timeZone != 8" class="alert alert-warning"><strong>Warning:</strong> Your time zone is currently not set to Philippine time. Your time will be displayed incorrectly. Please set your device's timezone to UTC+8:00. <a href="/help/timezone-correction">See help instructions</a>
-        
-        </div>
+        <div v-if="timeZone != 8" class="alert alert-warning"><strong>Warning:</strong> Your time zone is currently not set to Philippine time. Your time will be displayed incorrectly. Please set your device's timezone to UTC+8:00. <a href="/help/timezone-correction">See help instructions</a></div>
+        {% include "e-profile/dtr/modal-dtr-settings.html" %}
         <div class="row mb-4">
             <div class="col-md-4 col-xl-3 mb-1">
                 <div class="e-profile-photo ml-auto mr-auto">
@@ -48,7 +47,8 @@
                     <div class="col-sm-6 text-center text-sm-right">
                         <div class="btn-toolbar justify-content-center justify-content-sm-end">
                             <div class="btn-group">
-                                <button v-on:click="settingsEditable = true" type="button" class="btn btn-sm btn-primary">Settings</button>
+                                {# <button v-on:click="settingsEditable = true" type="button" class="btn btn-sm btn-primary">Settings</button> #}
+                                <button v-on:click="showSettings" type="button" class="btn btn-sm btn-primary">Settings</button>
                                 <a v-bind:href="printUrl" class="btn btn-sm btn-primary">Print</a>
                                 <a v-bind:href="shareUrl" class="btn btn-sm btn-primary">Share</a>
                             </div>
@@ -540,6 +540,9 @@
             var me = this;
         },
         methods: {
+            showSettings: function(){
+                jQuery('#vAppDtrSettings').modal('show')
+            },
             alert: function(s){
                 alert(s)
             },

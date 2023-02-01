@@ -658,7 +658,7 @@
                     this.xhrPatchDtr()
                 } else {
                     this.pending = true
-                    window.location.reload()
+                    window.location.href = this.fullUrl
                 }
             },
             xhrPatchDtr: function(){

@@ -154,6 +154,8 @@
                                     Dual Citizenship
                                 </label>
                             </div>
+                            
+
                         </div>
                         <div class="col-md-3" v-if="citizenship.includes('dual')">
                             {% set name = 'citizenshipCountry' %}
@@ -161,18 +163,14 @@
                             {% set options = countries %}
                             {% include 'parts/form-group-select.html' %}
                             {% set label = '' %}
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="col-md-3">
+
+                            {#  #}
                             <div class="form-check pl-5">
                                 <input class="form-check-input" type="checkbox" v-model="citizenshipSource" name="citizenshipSource[]" value="birth" id="citizenship-src-birth">
                                 <label class="form-check-label" for="citizenship-src-birth">
                                     by Birth
                                 </label>
                             </div>
-                        </div>
-                        <div class="col-md-3">
                             <div class="form-check pl-5">
                                 <input class="form-check-input" type="checkbox" v-model="citizenshipSource" name="citizenshipSource[]" value="naturalization" id="citizenship-src-natural">
                                 <label class="form-check-label" for="citizenship-src-natural">

@@ -668,6 +668,359 @@ router.post('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute(
     }
 });
 
+router.get('/e-profile/dtr/:employmentId/attendance/:date', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        // Date
+        let date = lodash.get(req, 'params.date')
+        if (!date) {
+            throw new Error('Missing date.')
+        }
+        let mDate = moment(date)
+
+        const isForCorrection = ['2023-02-02', '2023-02-03'].includes(mDate.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
+        if(!isForCorrection){
+            throw new Error('Not allowed.')
+        }
+
+        // Get employee
+        if (!res.employee) {
+            throw new Error('Employee needed.')
+        }
+        let employee = res.employee.toObject()
+
+        // Employment
+        let employmentId = lodash.get(req, 'params.employmentId')
+        let employment = await req.app.locals.db.main.Employment.findOne({
+            _id: employmentId,
+            employeeId: employee._id,
+        }).lean()
+        if (!employment) {
+            throw new Error('Employment not found.')
+        }
+
+        // Get attendance
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
+            employmentId: employmentId,
+            createdAt: {
+                $gte: mDate.clone().startOf('day').toDate(),
+                $lte: mDate.clone().endOf('day').toDate(),
+            }
+        }).lean()
+        if (!attendance) {
+            
+            attendance = await req.app.locals.db.main.Attendance.create({
+                type: 'normal',
+                employmentId: employmentId,
+                employeeId: employee._id,
+                workScheduleId: employment.workScheduleId,
+                createdAt: mDate.clone().startOf('day').toDate()
+            })
+            attendance = JSON.parse(JSON.stringify(attendance))
+        }
+        const attendanceId = attendance._id
+
+        // Get pending
+        let attendanceReview = await req.app.locals.db.main.AttendanceReview.findOne({
+            attendanceId: attendanceId,
+            status: 'pending'
+        }).lean()
+
+        if (attendanceReview) {
+            throw new Error('Attendance correction application for this date is still under review.')
+        }
+
+        // Get rejected
+        let attendanceDenied = await req.app.locals.db.main.AttendanceReview.findOne({
+            attendanceId: attendanceId,
+            status: 'rejected'
+        }).sort({ _id: -1 }).lean()
+
+
+        // Get related logsheet images
+        let momentDate = moment(attendance.createdAt)
+        if (momentDate.clone().startOf('day').isSame(moment().startOf('day'))) {
+            throw new Error('Please apply for correction tomorrow. Your attendance today is still ongoing. ')
+        }
+        let aggr = [
+            {
+                $match: {
+                    createdAt: {
+                        $gte: momentDate.clone().startOf('day').toDate(),
+                        $lt: momentDate.clone().endOf('day').toDate(),
+                    },
+                    status: 'approved',
+                    attachments: {
+                        $exists: true,
+                        $ne: []
+                    },
+                }
+            },
+            {
+                $lookup: {
+                    localField: 'employmentId',
+                    foreignField: '_id',
+                    from: 'employments',
+                    as: 'employments'
+                }
+            },
+            {
+                $match: {
+                    "employments": {
+                        $elemMatch: {
+                            "employmentType": employment.employmentType, // COS or whatevs
+                        }
+                    }
+                }
+            },
+            {
+                $addFields: {
+                    "employment": {
+                        $arrayElemAt: ["$employments", 0]
+                    }
+                }
+            },
+            {
+                $project: {
+                    employments: 0,
+                }
+            },
+            {
+                $limit: 10
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+        ]
+        let logSheets = await req.app.locals.db.main.AttendanceReview.aggregate(aggr)
+        
+        let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(
+            lodash.get(attendance, 'workScheduleId')
+        )
+
+        attendance.shifts = lodash.get(workSchedule, 'timeSegments')
+
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
+        workSchedules = workSchedules.map((o) => {
+            let times = []
+            o.timeSegments = o.timeSegments.map((t) => {
+                t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
+                t.end = moment().startOf('day').minutes(t.end).format('hh:mm A')
+                times.push(`${t.start} to ${t.end}`)
+                return t
+            })
+            o.times = times.join(", \n")
+            return o
+        })
+        let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
+        attendance = dtrHelper.normalizeAttendance(attendance, employee, workScheduleTimeSegments)
+
+        let attendanceType = lodash.get(attendance, 'type')
+
+        // For use by vuejs in frontend
+        let ui = {
+            editable: false,
+            attendanceType: attendanceType,
+            log0: '',
+            log1: '',
+            log2: '',
+            log3: '',
+        }
+
+        if (attendanceType === 'normal') {
+            let maxLogNumber = 4
+            for (let l = 0; l < maxLogNumber; l++) {
+                let log = lodash.get(attendance, `logs[${l}]`)
+                if (log) {
+                    lodash.set(ui, `log${l}`, moment(log.dateTime).format('HH:mm'))
+                } else {
+                    lodash.set(ui, `log${l}`, '')
+                    ui.editable = true
+                }
+            }
+        }
+
+        attendance.ui = ui
+
+
+        // return res.send(attendance)
+        res.render('e-profile/attendance/apply2.html', {
+            flash: flash.get(req, 'employee'),
+            attendance: attendance,
+            employee: employee,
+            employment: employment,
+            workSchedules: workSchedules,
+            attendanceTypes: CONFIG.attendance.types,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal', 'wfh', 'pass'].includes(o)),
+            correctionReasons: CONFIG.attendance.correctionReasons,
+            attendanceDenied: attendanceDenied,
+            logSheets: logSheets,
+            date: mDate.format('YYYY-MM-DD'),
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e-profile/dtr/:employmentId/attendance/:date', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.dataUrlToReqFiles(['photo']), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"] }), async (req, res, next) => {
+    try {
+        // Date
+        let date = lodash.get(req, 'params.date')
+        if (!date) {
+            throw new Error('Missing date.')
+        }
+        let mDate = moment(date)
+        const isForCorrection = ['2023-02-02', '2023-02-03'].includes(mDate.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
+        if(!isForCorrection){
+            throw new Error('Not allowed.')
+        }
+        
+        // Get employee
+        if (!res.employee) {
+            throw new Error('Employee needed.')
+        }
+        let employee = res.employee
+
+        // Get attendance
+        let attendanceId = lodash.get(req, 'params.attendanceId')
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
+            _id: attendanceId,
+            employeeId: employee._id,
+        }).lean()
+        if (!attendance) {
+            attendance = await req.app.locals.db.main.Attendance.create({
+                type: 'normal',
+                createdAt: mDate.clone().startOf('day').toDate()
+            })
+            console.log(attendance._id)
+            attendance = JSON.parse(JSON.stringify(attendance))
+        }
+
+        // Employment
+        let employmentId = lodash.get(req, 'params.employmentId')
+        let employment = await req.app.locals.db.main.Employment.findOne({
+            _id: employmentId,
+            employeeId: employee._id,
+        }).lean()
+        if (!employment) {
+            throw new Error('Employment not found.')
+        }
+
+        // Get pending
+        let attendanceReview = await req.app.locals.db.main.AttendanceReview.findOne({
+            attendanceId: attendanceId,
+            status: 'pending'
+        }).lean()
+
+        if (attendanceReview) {
+            throw new Error('Attendance correction application for this date is still under review.')
+        }
+
+        let saveList = lodash.get(req, 'saveList')
+        let attachments = lodash.get(saveList, 'photo') // Use base64 uploaded image
+        let body = lodash.get(req, 'body')
+        let photo2 = lodash.get(body, 'photo2') // Use existing already uploaded
+
+        if (photo2) {
+            photo2 = path.basename(photo2)
+
+            let pos = photo2.indexOf('-') // Get position of -. If absent, returns -1
+            if (pos > -1) {
+                pos += 1 // Add 1 to start after -
+            }
+            photo2 = photo2.substring(pos) // Cut part after -. If no -, return whole string
+
+            attachments = []
+            attachments.push(photo2)
+        }
+
+
+        // ORIG
+        let orig = JSON.parse(JSON.stringify(attendance))
+        delete orig._id
+        delete orig.createdAt
+
+        // PATCH
+        let patch = JSON.parse(JSON.stringify(attendance))
+        delete patch._id
+        delete patch.createdAt
+
+        patch.attendanceId = attendance._id.toString()
+        patch.attachments = attachments
+        patch.type = body.type
+        patch.correctionReason = body.correctionReason
+        patch.logsheetNumber = body.logsheetNumber
+        patch.workScheduleId = body.workScheduleId
+        patch.status = 'pending'
+
+        let getMode = (x) => {
+            let mode = 1
+            if (x === 0) {
+                mode = 1
+            } else if (x === 1) {
+                mode = 0
+            } else if (x === 2) {
+                mode = 1
+            } else if (x === 3) {
+                mode = 0
+            }
+            return mode
+        }
+
+        if (moment(attendance.createdAt).clone().startOf('day').isSame(moment().startOf('day'))) {
+            throw new Error('Please apply for correction tomorrow. Your attendance today is still ongoing. ')
+        }
+
+        // Merge 4 logs
+        for (let x = 0; x < 4; x++) {
+            let origLog = lodash.get(orig, `logs[${x}]`)
+            let patchLog = lodash.get(body, `log${x}`)
+            let newLog = origLog
+            let momentLog = moment(patchLog, 'HH:mm', true) // Turn to moment or null if fails
+            if (momentLog.isValid()) {
+
+                let dateTime = moment(attendance.createdAt).hours(momentLog.hours()).minutes(momentLog.minutes()).toDate()
+                let mode = getMode(x)
+                if (origLog) {
+                    newLog.dateTime = dateTime
+                    newLog.mode = mode
+                } else { // undefined
+                    newLog = {
+                        _id: req.app.locals.db.mongoose.Types.ObjectId(),
+                        scannerId: null,
+                        dateTime: dateTime,
+                        mode: mode,
+                        type: 'online',
+
+                    }
+                }
+
+            }
+
+            patch.logs[x] = newLog
+        }
+        // Remove undefined
+        patch.logs = patch.logs.filter(o => o !== undefined)
+        patch = JSON.parse(JSON.stringify(patch))
+
+        // return res.send(patch)
+        let merged = lodash.merge(orig, patch)
+        let review = await req.app.locals.db.main.AttendanceReview.create(merged)
+
+        // return res.send({
+        //     orig: JSON.parse(JSON.stringify(attendance)),
+        //     patch: patch,
+        //     merged: merged,
+        //     review: review,
+        // })
+
+        flash.ok(req, 'employee', 'Application submitted.')
+        res.redirect(`/e-profile/dtr/${employmentId}`)
+    } catch (err) {
+        next(err);
+    }
+});
+
 // Set attendance to wfh
 router.get('/e-profile/dtr/:employmentId/wfh', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {

@@ -175,11 +175,19 @@
                 </tr>
                 <tr v-for="day in days" v-bind:class="dayCssClasses(day)">
                     <td class="text-center">
-                        <template v-if="day.attendance">
-                            <button v-on:click="showModalSelect('edit', '{{employment._id}}', day.attendance._id)">${day.day}</button>
-                        </template>
-                        <template v-else-if="day.isNow">
+                        
+                        <template v-if="day.isNow">
                             <button v-on:click="showModalSelect('create', '{{employment._id}}', '')">${day.day}</button>
+                        </template>
+                        <template v-else-if="day.isPast">
+                            <template v-if="day.isForCorrection">
+                                <button v-if="day.hasAttendance" v-on:click="showModalSelect('edit', '{{employment._id}}', day.attendance._id)">${day.day}</button>
+                                <a v-else class="btn-link btn-link-danger" v-bind:href="`/e-profile/dtr/{{employment._id}}/attendance/${day.date}`">${day.day}</a>
+                            </template>
+                            <template v-else>
+                                <button v-if="day.hasAttendance" v-on:click="showModalSelect('edit', '{{employment._id}}', day.attendance._id)">${day.day}</button>
+                                <button v-else v-on:click="showModalSelect('create', '{{employment._id}}', '')">${day.day}</button>
+                            </template>
                         </template>
                         <template v-else>
                             <span class="text-dark">${day.day}</span>

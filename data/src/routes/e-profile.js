@@ -874,7 +874,7 @@ router.post('/e-profile/dtr/:employmentId/attendance/:date', middlewares.guardRo
         if(!isForCorrection){
             throw new Error('Not allowed.')
         }
-        
+
         // Get employee
         if (!res.employee) {
             throw new Error('Employee needed.')
@@ -888,12 +888,7 @@ router.post('/e-profile/dtr/:employmentId/attendance/:date', middlewares.guardRo
             employeeId: employee._id,
         }).lean()
         if (!attendance) {
-            attendance = await req.app.locals.db.main.Attendance.create({
-                type: 'normal',
-                createdAt: mDate.clone().startOf('day').toDate()
-            })
-            console.log(attendance._id)
-            attendance = JSON.parse(JSON.stringify(attendance))
+            throw new Error('No attendance')
         }
 
         // Employment

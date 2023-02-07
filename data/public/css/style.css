@@ -704,8 +704,7 @@ div.focusable:focus-within  {
 }
 .toggler span {
     display: block;
-    min-width: 16px;
-    width: 100%;
+    width: 18px;
     height: 2px;
     background: #fff;
     margin-bottom: 2px;
@@ -720,7 +719,6 @@ div.focusable:focus-within  {
 }
 .main .toggler {
     display: none;
-    height: 20px;
     border: 1px solid #125196;
     background: #125196
 }
@@ -778,6 +776,51 @@ div.focusable:focus-within  {
     display: block;
 }
 
+.btn-link,
+.btn-link:hover {
+    color: #222;
+    text-decoration:none;
+}
+.btn-link {
+    padding: 1px 4px;
+    cursor: pointer;
+    background: #e9e9ed;
+    border-top: 2px solid #e3e3e3;
+    border-left: 2px solid #e3e3e3;
+    border-right: 2px solid #979797;
+    border-bottom: 2px solid #979797;
+    margin: 1px;
+    display: inline-block;
+}
+.btn-link:hover {
+    background: #d0d0d7;
+}
+.btn-link:active {
+    border-top: 3px solid #e3e3e3;
+    border-left: 3px solid #e3e3e3;
+    border-right: 1px solid #979797;
+    border-bottom: 1px solid #979797;
+    padding: 0 4px 2px;
+}
+.btn-link-danger {
+    background: #ef4502;
+    border-top-color: #ef4502;
+    border-left-color: #ef4502;
+    border-right-color: #a21212;
+    border-bottom-color: #a21212;
+    color: #fff;
+}
+.btn-link-danger:hover {
+    background: #cb3b02;
+    color: #fff;
+}
+.btn-link-danger:active {
+    border-top: 3px solid #cb3b02;
+    border-left: 3px solid #cb3b02;
+    border-right: 1px solid #a21212;
+    border-bottom: 1px solid #a21212;
+    padding: 0 4px 2px;
+}
 /* DTR */
 .table-dtr tr.selected td{
     background: #a1f8b4;

@@ -182,7 +182,7 @@
                         <template v-else-if="day.isPast">
                             <template v-if="day.isForCorrection">
                                 <button v-if="day.hasAttendance" v-on:click="showModalSelect('edit', '{{employment._id}}', day.attendance._id)">${day.day}</button>
-                                <a v-else class="btn-link btn-link-danger" v-bind:href="`/e-profile/dtr/{{employment._id}}/attendance/${day.date}`">${day.day}</a>
+                                <a v-else class="btn-square-link btn-square-link-danger" v-bind:href="`/e-profile/dtr/{{employment._id}}/attendance/${day.date}`">${day.day}</a>
                             </template>
                             <template v-else>
                                 <button v-if="day.hasAttendance" v-on:click="showModalSelect('edit', '{{employment._id}}', day.attendance._id)">${day.day}</button>

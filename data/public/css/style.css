@@ -776,12 +776,12 @@ div.focusable:focus-within  {
     display: block;
 }
 
-.btn-link,
-.btn-link:hover {
+.btn-square-link,
+.btn-square-link:hover {
     color: #222;
     text-decoration:none;
 }
-.btn-link {
+.btn-square-link {
     padding: 1px 4px;
     cursor: pointer;
     background: #e9e9ed;
@@ -792,17 +792,17 @@ div.focusable:focus-within  {
     margin: 1px;
     display: inline-block;
 }
-.btn-link:hover {
+.btn-square-link:hover {
     background: #d0d0d7;
 }
-.btn-link:active {
+.btn-square-link:active {
     border-top: 3px solid #e3e3e3;
     border-left: 3px solid #e3e3e3;
     border-right: 1px solid #979797;
     border-bottom: 1px solid #979797;
     padding: 0 4px 2px;
 }
-.btn-link-danger {
+.btn-square-link-danger {
     background: #ef4502;
     border-top-color: #ef4502;
     border-left-color: #ef4502;
@@ -810,11 +810,11 @@ div.focusable:focus-within  {
     border-bottom-color: #a21212;
     color: #fff;
 }
-.btn-link-danger:hover {
+.btn-square-link-danger:hover {
     background: #cb3b02;
     color: #fff;
 }
-.btn-link-danger:active {
+.btn-square-link-danger:active {
     border-top: 3px solid #cb3b02;
     border-left: 3px solid #cb3b02;
     border-right: 1px solid #a21212;

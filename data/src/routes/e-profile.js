@@ -1140,11 +1140,14 @@ router.post('/e-profile/dtr/:employmentId/attendance/:date', middlewares.guardRo
 router.get('/e-profile/dtr/:employmentId/attendance-set', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, async (req, res, next) => {
     try {
 
-
-
         let attendanceNewType = lodash.get(req, 'query.type')
         if (!attendanceNewType) {
             throw new Error('Missing type.')
+        }
+
+        const allowed = ['leave', 'travel', 'wfh']
+        if (!allowed.includes(attendanceNewType)) {
+            throw new Error(`Invalid type. Must be ${allowed.join(", ")}`)
         }
 
         let attendanceDate = lodash.get(req, 'query.date')
@@ -1155,7 +1158,6 @@ router.get('/e-profile/dtr/:employmentId/attendance-set', middlewares.guardRoute
         const isPastOrNow = moment(attendanceDate).isBefore(moment().endOf('day'))
         if (!isPastOrNow) {
             throw new Error('Not allowed.')
-
         }
         let user = res.user.toObject()
 
@@ -1170,6 +1172,12 @@ router.get('/e-profile/dtr/:employmentId/attendance-set', middlewares.guardRoute
         if (!employment.active) {
             throw new Error('Cannot modify DTR as employment is no longer active.')
         }
+
+        if (attendanceNewType === 'leave' && employment.employmentType !== 'permanent') {
+            throw new Error('Invalid type and employment.')
+        }
+
+
 
         let source = {
             id: user._id,

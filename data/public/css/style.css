@@ -826,7 +826,13 @@ div.focusable:focus-within  {
     background: #a1f8b4;
 }
 .table-dtr tr.undertime td{
-    background: #f8a1a1;
+    color: #f53c3c;
+}
+.table-dtr tr.holiday td{
+    background: #ffcbcb;
+}
+.table-dtr tr.weekend > td:nth-child(2){
+    font-weight: bold;
 }
 .table-dtr tr td.bg-light{
     background: #e9e9e9 !important;

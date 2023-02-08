@@ -8,6 +8,7 @@
             mode: 'create', // or edit
             employmentId: '',
             attendanceId: '',
+            date: '',
         },
         computed: {
             urlCorrection: function() {
@@ -20,13 +21,13 @@
                 if(this.attendanceId) {
                     return '/e-profile/attendance/' + this.attendanceId + '/travel'
                 }
-                return '/e-profile/dtr/'+ this.employmentId + '/travel'
+                return '/e-profile/dtr/'+ this.employmentId + '/travel/' + this.date
             },
             urlWfh: function() {
                 if(this.attendanceId) {
                     return '/e-profile/attendance/' + this.attendanceId + '/wfh'
                 }
-                return '/e-profile/dtr/'+ this.employmentId + '/wfh'
+                return '/e-profile/dtr/'+ this.employmentId + '/wfh/' + this.date
             },
             urlAnal: function() {
                 if(this.attendanceId) {

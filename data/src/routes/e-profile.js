@@ -1152,7 +1152,7 @@ router.get('/e-profile/dtr/:employmentId/attendance-set', middlewares.guardRoute
             throw new Error('Missing date.')
         }
 
-        const isPastOrNow = moment().isBefore(moment(attendanceDate).endOf('day'))
+        const isPastOrNow = moment(attendanceDate).isBefore(moment().endOf('day'))
         if (!isPastOrNow) {
             throw new Error('Not allowed.')
 

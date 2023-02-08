@@ -829,7 +829,7 @@ div.focusable:focus-within  {
     color: #f53c3c;
 }
 .table-dtr tr.holiday td{
-    background: #ffcbcb;
+    background: #c5d3ff;
 }
 .table-dtr tr.weekend > td:nth-child(2){
     font-weight: bold;

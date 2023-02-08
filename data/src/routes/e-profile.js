@@ -255,7 +255,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             periodWeekDays: periodWeekDays
         }
 
-        let { days, stats, compute } = await dtrHelper.getDtrByDateRange2(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days, stats, compute } = await dtrHelper.getDtrByDateRange4(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         let periodMonthYearMoment = moment(periodMonthYear)
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
@@ -349,6 +349,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
     }
 });
 
+// TODO: Fix or remove
 router.get(['/e-profile/dtr4/:employmentId', '/e-profile/dtr4/print/:employmentId'], middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()

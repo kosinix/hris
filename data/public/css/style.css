@@ -823,7 +823,7 @@ div.focusable:focus-within  {
 }
 /* DTR */
 .table-dtr tr.selected td{
-    background: #a1f8b4;
+    background: #b9ffc8;
 }
 .table-dtr tr.undertime td{
     color: #f53c3c;

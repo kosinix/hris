@@ -102,7 +102,7 @@
                 <tr v-for="day in days" v-bind:class="dayCssClasses(day)">
                     <td class="text-center">
                         <template v-if="day.isNow">
-                            <button v-on:click="showModalSelect('create', '{{employment._id}}', '')">${day.day}</button>
+                            <button v-on:click="showModalSelect('create', '{{employment._id}}', '', day.date)">${day.day}</button>
                         </template>
                         <template v-else-if="day.isPast">
                             <template v-if="day.isForCorrection">

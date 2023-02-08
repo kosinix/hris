@@ -1379,9 +1379,9 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         let employment = res.employment.toObject()
         let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
 
-        let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
+        let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
         let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
-        let showWeekDays = lodash.get(req, 'query.showWeekDays', 'Mon|Tue|Wed|Thu|Fri')
+        let showWeekDays = lodash.get(req, 'query.showWeekDays', 'Mon|Tue|Wed|Thu|Fri|Sat|Sun')
         let showTotalAs = lodash.get(req, 'query.undertime') == 1 ? 'undertime' : 'time'
 
         let startMoment = moment(start).startOf('day')

@@ -871,7 +871,6 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
     } catch (_err) { }
 
     if (!attendance) {
-
         // We need 2 logs to form a segment
         let logs = []
         logs.push({
@@ -895,6 +894,7 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
             workScheduleId: employment.workScheduleId,
             type: attendanceType,
             logs: logs,
+            createdAt: momentDate.clone().startOf('day').toDate(),
         })
 
     } else {
@@ -2512,6 +2512,7 @@ const getDtrByDateRange4 = async (db, employeeId, employmentId, startMoment, end
         const month = _moment.format('MM')
         const weekDay = _moment.format('ddd')
         const day = _moment.format('DD')
+        const isWeekend = ['Sat','Sun'].includes(weekDay)
         const isPast = _moment.clone().startOf('day').isBefore(moment().startOf('day'))
         const isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
         const isForCorrection = ['2023-02-02', '2023-02-03'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
@@ -2535,6 +2536,8 @@ const getDtrByDateRange4 = async (db, employeeId, employmentId, startMoment, end
             month: month,
             weekDay: weekDay,
             day: day,
+            isWeekend: isWeekend,
+            isHoliday: (holiday) ? true : false,
             isPast: isPast,
             isNow: isNow,
             isForCorrection: isForCorrection,

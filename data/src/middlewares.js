@@ -725,7 +725,7 @@ module.exports = {
             let periodSlice = lodash.get(req, 'query.periodSlice')
             let periodWeekDays = lodash.get(req, 'query.periodWeekDays', 'All')
             let showTotalAs = lodash.get(req, 'query.showTotalAs', 'time')
-            let countTimeBy = lodash.get(req, 'query.countTimeBy', 'weekdays')
+            let countTimeBy = lodash.get(req, 'query.countTimeBy', 'all')
 
             let momentNow = moment()
 

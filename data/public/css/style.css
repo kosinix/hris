@@ -828,6 +828,9 @@ div.focusable:focus-within  {
 .table-dtr tr.undertime td{
     color: #f53c3c;
 }
+.table-dtr tr.selected td{
+    color: inherit;
+}
 .table-dtr tr.holiday td{
     background: #c5d3ff;
 }

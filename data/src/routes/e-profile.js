@@ -1002,16 +1002,6 @@ router.post('/e-profile/dtr/:employmentId/attendance/:date', middlewares.guardRo
         }
         let employee = res.employee
 
-        // Get attendance
-        let attendanceId = lodash.get(req, 'params.attendanceId')
-        let attendance = await req.app.locals.db.main.Attendance.findOne({
-            _id: attendanceId,
-            employeeId: employee._id,
-        }).lean()
-        if (!attendance) {
-            throw new Error('No attendance')
-        }
-
         // Employment
         let employmentId = lodash.get(req, 'params.employmentId')
         let employment = await req.app.locals.db.main.Employment.findOne({
@@ -1021,6 +1011,20 @@ router.post('/e-profile/dtr/:employmentId/attendance/:date', middlewares.guardRo
         if (!employment) {
             throw new Error('Employment not found.')
         }
+
+        // Get attendance
+        let attendance = await req.app.locals.db.main.Attendance.findOne({
+            employmentId: employment._id,
+            employeeId: employee._id,
+            createdAt: {
+                $gte: mDate.clone().startOf('day').toDate(),
+                $lte: mDate.clone().endOf('day').toDate(),
+            }
+        }).lean()
+        if (!attendance) {
+            throw new Error('No attendance')
+        }
+        let attendanceId = attendance._id
 
         // Get pending
         let attendanceReview = await req.app.locals.db.main.AttendanceReview.findOne({

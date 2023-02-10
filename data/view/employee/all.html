@@ -111,7 +111,7 @@
                             <td>
                                 <template v-for="employment in employee.employments">
                                     <div v-if="employment.active"><a :class="(employee.employments.length > 1) ? 'text-success' : ''" :href="'/employee/' + employee._id + '/employment'">${employment.position}</a></div>
-                                    <div v-else><a class="text-warning" :href="'/employee/' + employee._id + '/employment'">${employment.position}</a></div>
+                                    <div v-else><a class="text-secondary" :href="'/employee/' + employee._id + '/employment'">${employment.position}</a></div>
                                 </template>
                             </td>
                             <td>

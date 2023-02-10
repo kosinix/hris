@@ -95,7 +95,7 @@
 
                 <tr class="{{cssClass.join(",")}}">
                     <td class="text-left">
-                        {% if attendance %}
+                        {% if day.hasAttendance %}
                             <a href="/attendance/{{attendance._id}}/edit">{{day.date|format_date('MMM')}} {{day.day}}</a>
                         {% else %}
                             <span class="text-dark">{{day.date|format_date('MMM')}} {{day.day}}</span>

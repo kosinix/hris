@@ -1407,7 +1407,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         if (!options.showWeekDays.length) {
             options.showWeekDays = showWeekDays.split('|')
         }
-        let { days } = await dtrHelper.getDtrByDateRange2(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days } = await dtrHelper.getDtrByDateRange4(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         // console.log(options)
         let totalMinutes = 0

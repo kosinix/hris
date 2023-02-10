@@ -2541,6 +2541,7 @@ const getDtrByDateRange4 = async (db, employeeId, employmentId, startMoment, end
             isPast: isPast,
             isNow: isNow,
             isForCorrection: isForCorrection,
+            isUndertime: lodash.get(dtr, 'underTimeTotalMinutes', 0) > 0,
             hasAttendance: (attendance) ? true : false,
             holiday: holiday,
             display: fromLogsToDisplayTime(lodash.get(attendance, 'logs', []), isNow),

@@ -79,7 +79,21 @@
                 </tr>
                 {% for day in days %}
                 {% set attendance = day.attendance %}
-                <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
+                {% set cssClass = [] %}
+
+                {% if day.isNow %}
+                    {% set cssClass = (cssClass.push('selected'), cssClass) %}
+                {% endif %}
+
+                {% if day.isUndertime %}
+                    {% set cssClass = (cssClass.push('undertime'), cssClass) %}
+                {% endif %}
+
+                {% if day.isHoliday %}
+                    {% set cssClass = (cssClass.push('holiday'), cssClass) %}
+                {% endif %}
+
+                <tr class="{{cssClass.join(",")}}">
                     <td class="text-left">
                         {% if attendance %}
                             <a href="/attendance/{{attendance._id}}/edit">{{day.date|format_date('MMM')}} {{day.day}}</a>

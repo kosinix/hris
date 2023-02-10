@@ -41,6 +41,9 @@ const schema = new Schema({
     employmentStart: {
         $type: Date
     },
+    employmentEnd: {
+        $type: Date
+    },
     salary: {
         $type: Number,
     },

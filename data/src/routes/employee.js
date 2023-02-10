@@ -462,11 +462,17 @@ router.post('/employee/:employeeId/delete', middlewares.guardRoute(['delete_empl
     }
 });
 
-router.get('/employee/history/:employeeId', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+router.get('/employee/:employeeId/history', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
 
-        res.send(employee.history)
+        const history = await req.app.locals.db.main.EmployeeHistory.find({
+            employeeId: employee._id
+        })
+        res.render('employee/history.html', {
+            employee: employee,
+            history: history,
+        });
     } catch (err) {
         next(err);
     }
@@ -567,6 +573,14 @@ router.post('/employee/:employeeId/employment/create', middlewares.guardRoute(['
         let employment = new req.app.locals.db.main.Employment(patch)
         await employment.save()
 
+        await req.app.locals.db.main.EmployeeHistory.create({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            description: `Employment "${employment.position}" for "${employee.firstName} ${employee.lastName}" created by "${res.user.username}".`,
+            alert: 'text-success',
+            userId: res.user._id,
+        })
+
         flash.ok(req, 'employee', `Added to "${employee.firstName} ${employee.lastName}'s" employment.`)
         res.redirect(`/employee/${employee._id}/employment`)
 
@@ -648,10 +662,90 @@ router.post('/employee/:employeeId/employment/:employmentId/delete', middlewares
         let employee = res.employee
         let employment = res.employment
 
+        await req.app.locals.db.main.EmployeeHistory.create({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            description: `Employment "${employment.position}" for "${employee.firstName} ${employee.lastName}" deleted by "${res.user.username}".`,
+            alert: 'text-danger',
+            userId: res.user._id,
+        })
         await employment.remove()
 
         flash.ok(req, 'employee', `Deleted "${employee.firstName} ${employee.lastName}'s" employment.`)
         res.redirect(`/employee/${employee._id}/employment`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Promote
+// C
+router.get('/employee/:employeeId/employment/:employmentId/promote', middlewares.guardRoute(['read_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee
+        let employment = res.employment
+
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
+        workSchedules = workSchedules.map((w) => {
+            return {
+                value: w._id,
+                text: w.name
+            }
+        })
+
+        // return res.send(workSchedules)
+        res.render('employee/employment/promote.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            employment: employment.toObject(),
+            workSchedules: workSchedules,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/:employeeId/employment/:employmentId/promote', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let employee = res.employee
+        let employment = res.employment
+        let body = req.body
+
+        // Deactivate employment
+        await req.app.locals.db.main.Employment.updateOne({ _id: employment._id }, {
+            active: false,
+            employmentEnd: moment(lodash.get(body, 'employmentStart')).subtract(1,'day').endOf('day').toDate()
+        })
+
+
+        // Create new
+        let patch = {}
+        lodash.set(patch, `employeeId`, employee._id)
+        lodash.set(patch, `campus`, lodash.get(body, 'campus'))
+        lodash.set(patch, `group`, lodash.get(body, 'group'))
+        lodash.set(patch, `position`, lodash.get(body, 'position'))
+        lodash.set(patch, `department`, lodash.get(body, 'department'))
+        lodash.set(patch, `employmentType`, lodash.get(body, 'employmentType'))
+        lodash.set(patch, `employmentStart`, lodash.get(body, 'employmentStart'))
+        lodash.set(patch, `salary`, lodash.get(body, 'salary').replace(/,/g, ''))
+        lodash.set(patch, `salaryType`, lodash.get(body, 'salaryType'))
+        lodash.set(patch, `fundSource`, lodash.get(body, 'fundSource'))
+        lodash.set(patch, `sssDeduction`, lodash.get(body, 'sssDeduction'))
+        lodash.set(patch, `workScheduleId`, lodash.get(body, 'workScheduleId'))
+        lodash.set(patch, `active`, true)
+
+        await req.app.locals.db.main.Employment.create(patch)
+
+        await req.app.locals.db.main.EmployeeHistory.create({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            description: `Employment "${patch.position}" for "${employee.firstName} ${employee.lastName}" created by "${res.user.username}".`,
+            alert: 'text-success',
+            userId: res.user._id,
+        })
+
+        flash.ok(req, 'employee', `Promoted "${employee.firstName} ${employee.lastName}'s" employment.`)
+        res.redirect(`/employee/${employee._id}/employment`)
+
     } catch (err) {
         next(err);
     }

@@ -11,69 +11,11 @@
         <div class="d-flex align-items-center mb-4">
             <h1 class="h4 mr-3 mb-0">History</h1>
         </div>
-        <ul>
-            {% for h in employee.history%}
-            <li>{{h.summary}} - <em>{{h.createdAt|from_now}}</em></li>
+        <ol>
+            {% for h in history%}
+            <li><span class="{{h.alert}}">{{h.description}}</span> | {{h.createdAt|format_date('MMM DD, YYYY - h:mm A')}} - <em>{{h.createdAt|from_now}}</em></li>
             {% endfor %}
-        </ul>
-
+        </ol>
     </div>
-
 </div>
-{% endblock %}
-{% block scripts %}
-{{ super() }}
-<script>
-    var vApp = new Vue({
-        el: '#vApp',
-        delimiters: ["${", "}"],
-        mixins: [
-            window.vuelidate.validationMixin,
-            window.vuelidateExtendMixin,
-        ],
-        data: {
-            firstName: '{{person.firstName}}',
-            middleName: '{{person.middleName}}',
-            lastName: '{{person.lastName}}',
-            suffix: '{{person.suffix}}',
-            gender: '{{person.gender|default(true, "M")}}',
-            birthDate: '{{person.birthDate|format_date("YYYY-MM-DD")}}',
-            civilStatus: '{{person.civilStatus|default(true, "S")}}',
-        },
-        validations: {
-            firstName: {
-                required: window.validators.required
-            },
-            middleName: {
-                required: window.validators.required
-            },
-            lastName: {
-                required: window.validators.required
-            },
-            gender: {
-                required: window.validators.required
-            },
-            birthDate: {
-                required: window.validators.required
-            },
-            civilStatus: {
-                required: window.validators.required
-            },
-        },
-        methods: {
-            onSubmit: function(){
-                var me = this;
-                me.$v.$touch()
-                if (me.$v.$error) {
-                    alert('Please correct the errors to continue.')
-                } else {
-                    me.$nextTick(function() {
-                        me.$refs.form.submit();
-                    });
-                }
-            }
-        }
-    });
-</script>
-{% endblock %}
-
+{% endblock body %}

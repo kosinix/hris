@@ -30,6 +30,7 @@ module.exports = {
             main.AuthorityToTravel = main.model('AuthorityToTravel', require('./models/authority-to-travel'));
             main.App = main.model('App', require('./models/app'));
             main.Employee = main.model('Employee', require('./models/employee'));
+            main.EmployeeHistory = main.model('EmployeeHistory', require('./models/employee-history'));
             main.EmployeeList = main.model('EmployeeList', require('./models/employee-list'));
             main.Employment = main.model('Employment', require('./models/employment'));
             main.Map = main.model('Map', require('./models/map'));

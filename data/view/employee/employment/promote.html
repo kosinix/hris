@@ -8,47 +8,31 @@
     {% include 'employee/employee-view-tabs.html' %}
 
     <div class="tab-content p-3 pt-4 min-height-500">
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/employment/{{employment._id}}/update" method="POST" class="form-default">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/employment/{{employment._id}}/promote" method="POST" class="form-default">
 
+            <h2 class="h5 mb-4 text-success text-center">Promotion</h2>
+            <hr>
             <div class="form-group">
-                <label for="active">Employment Status <span class="text-danger">*</span></label>
+                <label for="position">Position <span class="text-danger">*</span></label>
                 <div>
-                    <select name="active" id="active" v-model="active" class="form-control">
-                        {% set options = [{ value: true, text: "Active" }, { value: false, text: "Inactive" }] %}
-                        {% for option in options %}
-                            <option value="{{option.value}}">{{option.text}}</option>
-                        {% endfor %}
-                    </select>
-                    <small class="invalid-feedback">${getError('active')}</small>
+                    <input name="position" id="position" v-model="position" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('position')}</small>
                 </div>
             </div>
-
             <div class="form-group">
-                <label for="campus">Campus <span class="text-danger">*</span></label>
+                <label for="salary">Salary <span class="text-danger">*</span></label>
                 <div>
-                    <select name="campus" id="campus" v-model="campus" class="form-control">
-                        {% set options = CONFIG.campuses %}
-                        {% for option in options %}
-                            <option value="{{option.value}}">{{option.text}}</option>
-                        {% endfor %}
-                    </select>
-                    <small class="invalid-feedback">${getError('campus')}</small>
+                    <input step="any" name="salary" id="salary" v-model="salary" type="number" class="form-control">
+                    <small class="invalid-feedback">${getError('salary')}</small>
                 </div>
             </div>
-
             <div class="form-group">
-                <label for="group">Group <span class="text-danger">*</span></label>
+                <label for="employmentStart">Employment Start</label>
                 <div>
-                    <select name="group" id="group" v-model="group" class="form-control">
-                        {% set options = [{value:'', text:''}, {value:'staff', text:'Staff'}, {value:'faculty', text:'Faculty'}, {value:'other', text:'Others'}] %}
-                        {% for option in options %}
-                            <option value="{{option.value}}">{{option.text}}</option>
-                        {% endfor %}
-                    </select>
-                    <small class="invalid-feedback">${getError('group')}</small>
+                    <input name="employmentStart" id="employmentStart" v-model="employmentStart" type="date" class="form-control">
+                    <small class="invalid-feedback">${getError('employmentStart')}</small>
                 </div>
             </div>
-
             <div class="form-group">
                 <label for="employmentType">Employment Type <span class="text-danger">*</span></label>
                 <div>
@@ -61,23 +45,30 @@
                     <small class="invalid-feedback">${getError('employmentType')}</small>
                 </div>
             </div>
-
             <div class="form-group">
-                <label for="position">Position <span class="text-danger">*</span></label>
+                <label for="campus">Campus <span class="text-danger">*</span></label>
                 <div>
-                    <input name="position" id="position" v-model="position" type="text" class="form-control">
-                    <small class="invalid-feedback">${getError('position')}</small>
+                    <select name="campus" id="campus" v-model="campus" class="form-control">
+                        {% set options = CONFIG.campuses %}
+                        {% for option in options %}
+                            <option value="{{option.value}}">{{option.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('campus')}</small>
                 </div>
             </div>
-
             <div class="form-group">
-                <label for="salary">Salary <span class="text-danger">*</span></label>
+                <label for="group">Group <span class="text-danger">*</span></label>
                 <div>
-                    <input step="any" name="salary" id="salary" v-model="salary" type="number" class="form-control">
-                    <small class="invalid-feedback">${getError('salary')}</small>
+                    <select name="group" id="group" v-model="group" class="form-control">
+                        {% set options = [{value:'', text:''}, {value:'staff', text:'Staff'}, {value:'faculty', text:'Faculty'}, {value:'other', text:'Others'}] %}
+                        {% for option in options %}
+                            <option value="{{option.value}}">{{option.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('group')}</small>
                 </div>
             </div>
-
             <div class="form-group">
                 <label for="salaryType">Salary Rate <span class="text-danger">*</span></label>
                 <div>
@@ -104,21 +95,8 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="employmentStart">Employment Start</label>
-                <div>
-                    <input name="employmentStart" id="employmentStart" v-model="employmentStart" type="date" class="form-control">
-                    <small class="invalid-feedback">${getError('employmentStart')}</small>
-                </div>
-            </div>
+            
 
-            <div class="form-group">
-                <label for="employmentEnd">Employment End</label>
-                <div>
-                    <input name="employmentEnd" id="employmentEnd" v-model="employmentEnd" type="date" class="form-control">
-                    <small class="invalid-feedback">${getError('employmentEnd')}</small>
-                </div>
-            </div>
 
             {% set name = 'department' %}
             {% set label = 'Department' %}
@@ -137,14 +115,12 @@
                             <div class="btn-toolbar">
                                 <div class="btn-group">
                                     <a href="/employee/{{employee._id}}/employment" class="btn btn-light">Cancel</a>
-                                    <a href="/employee/{{employee._id}}/employment/{{employment._id}}/delete" class="btn btn-danger">Delete Employment</a>
-                                    <a href="/employee/{{employee._id}}/employment/{{employment._id}}/promote" class="btn btn-success">Promote Employment</a>
                                 </div>
                             </div>
                         </div>
                         <div class="btn-toolbar">
                             <div class="btn-group">
-                                <button class="btn btn-primary">Update Employment</button>
+                                <button class="btn btn-success">Promote</button>
                             </div>
                         </div>
                     </div>
@@ -168,14 +144,12 @@
             window.vuelidateExtendMixin,
         ],
         data: {
-            active: '{{employment.active}}',
             campus: '{{employment.campus}}',
             group: '{{employment.group}}',
-            position: '{{employment.position}}',
+            position: '',
             employmentType: '{{employment.employmentType}}',
-            employmentStart: "{{employment.employmentStart|default('',true)|format_date('YYYY-MM-DD')}}",
-            employmentEnd: "{{employment.employmentEnd|default('',true)|format_date('YYYY-MM-DD')}}",
-            salary: '{{employment.salary}}',
+            employmentStart: "",
+            salary: '',
             salaryType: '{{employment.salaryType}}',
             department: '{{employment.department}}',
             fundSource: '{{employment.fundSource}}',
@@ -194,6 +168,9 @@
                 required: window.validators.required
             },
             employmentType: {
+                required: window.validators.required
+            },
+            employmentStart: {
                 required: window.validators.required
             },
             workScheduleId: {

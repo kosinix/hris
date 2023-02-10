@@ -49,7 +49,8 @@
                         <td>
                             <a href="/employee/{{employee._id}}/employment/{{employment._id}}/update">Edit</a> |
                             <a href="/attendance/employment/{{employment._id}}">Att.</a> | 
-                            <a href="/reports/pm/tardiness/{{employment._id}}/report">Tardi.</a>
+                            <a href="/reports/pm/tardiness/{{employment._id}}/report">Tardi.</a> |
+                            <a href="/employee/{{employee._id}}/employment/{{employment._id}}/delete" class="text-danger">X</a>
                         </td>
                     </tr>
                     {% endfor %}

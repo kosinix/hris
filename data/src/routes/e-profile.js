@@ -1373,9 +1373,34 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
             lon: lon,
             photo: lodash.get(saveList, 'photos[0]', ''),
         }
-        let log = await dtrHelper.logNormal(req.app.locals.db, moment(), employee, employment, source, 15) // 15mins timeout
+        attendance = await dtrHelper.logNormal(req.app.locals.db, moment(), employee, employment, source, 15) // 15mins timeout
+
+        // For monitoring page
+        let payload = {
+            attendances: [],
+            employee: {
+                firstName: employee.firstName,
+                middleName: employee.middleName,
+                lastName: employee.lastName,
+                gender: employee.gender,
+                birthDate: employee.birthDate,
+                profilePhoto: employee.profilePhoto,
+                speechSynthesisName: employee.speechSynthesisName,
+            },
+            log: lodash.get(attendance, `logs[${attendance.logs.length - 1}]`),
+            logs: {
+                log0: lodash.get(attendance, 'logs[0]'),
+                log1: lodash.get(attendance, 'logs[1]'),
+                log2: lodash.get(attendance, 'logs[2]'),
+                log3: lodash.get(attendance, 'logs[3]')
+            }
+        }
+        let room = moment().format('YYYY-MM-DD')
+        req.app.locals.io.of("/monitoring").to(room).emit('added', payload)
+        // End for monitoring page
+        
         flash.ok(req, 'employee', 'Attendance saved.')
-        res.send(log)
+        res.send(attendance)
     } catch (err) {
         next(new AppError(err.message));
     }

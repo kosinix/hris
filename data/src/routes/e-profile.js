@@ -1378,6 +1378,7 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
         // For monitoring page
         let payload = {
             attendances: [],
+            employmentId: employment._id,
             employee: {
                 firstName: employee.firstName,
                 middleName: employee.middleName,

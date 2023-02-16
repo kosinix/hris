@@ -40,7 +40,7 @@
                         </div>
                         <div class="ui-work-schedule-time">
                             <template v-for="(timeSegment, t) in getTimeSegments(w)">
-                                <div class="ui-work-schedule-bar" v-on:click="showModalUpdate(timeSegment, t, w)" v-bind:style="setPosition(timeSegment)" v-bind:title="'Schedule: '+displayTime(timeSegment)"></div>
+                                <div class="ui-work-schedule-bar text-center text-white" v-on:click="showModalUpdate(timeSegment, t, w)" v-bind:style="setPosition(timeSegment)" v-bind:title="'Schedule: '+displayTime(timeSegment)">${displayTime(timeSegment)}</div>
                                 <template v-for="br in timeSegment.breaks">
                                     <div class="ui-work-schedule-bar-break" v-on:click="showModalUpdate(timeSegment, t, w)" v-bind:style="setPosition(br)" v-bind:title="'Break: '+displayTime(br)"></div>
                                 </template>
@@ -230,6 +230,14 @@
                 var me = this;
                 me.newTimeSegment.weekDay = w
                 me.newTimeSegment.index = me.workSchedule.weekDays[w].timeSegments.length
+                if(me.newTimeSegment.index < 1){
+                    me.newTimeSegment.start = "08:00"
+                    me.newTimeSegment.end = "12:00"
+                }
+                if(me.newTimeSegment.index >= 1){
+                    me.newTimeSegment.start = "13:00"
+                    me.newTimeSegment.end = "17:00"
+                }
                 jQuery('#vModalScheduleCreate').modal('show')
             },
             onSubmitTimeSegmentCreate: function(){
@@ -300,6 +308,37 @@
                         }),
                     }
                 }
+            },
+            cloneMe: function(weekDay, timeSegment){
+                var me = this;
+                if(weekDay=== 'mon'){
+                    weekDay = 'tue'
+                } else if(weekDay==='tue'){
+                    weekDay = 'wed'
+                } else if(weekDay==='wed'){
+                    weekDay = 'thu'
+                } else if(weekDay==='thu'){
+                    weekDay = 'fri'
+                } else if(weekDay==='fri'){
+                    weekDay = 'sat'
+                } else if(weekDay==='sat'){
+                    weekDay = 'sun'
+                } else {
+                    throw new Error('Invalid weekday.')
+                }
+                
+                this.workSchedule.weekDays[weekDay].timeSegments.push({
+                    start: me.timeToM(timeSegment.start),
+                    end: me.timeToM(timeSegment.end),
+                    grace: timeSegment.grace,
+                    max: (timeSegment.max) ? timeSegment.max * 60 : timeSegment.max,
+                    flexible: timeSegment.flexible,
+                    breaks: timeSegment.breaks.map(br => {
+                        br.start = me.timeToM(br.start)
+                        br.end = me.timeToM(br.end)
+                        return br
+                    }),
+                })
             },
             addBreak: function(weekDay, index){
                 this.updateTimeSegment.breaks.push({
@@ -410,6 +449,16 @@
                 }
             },
             displayTime: function(ts){
+                var me = this;
+                return `${me.replace(me.mToTime(ts.start, 'h:mmA'), ':00', '')} - ${me.replace(me.mToTime(ts.end, 'h:mmA'), ':00', '')}`
+            },
+            replace: function(str,a,b){
+                if(str) {
+                    return str.replace(a,b)
+                }
+                return str
+            },
+            displayTime2: function(ts){
                 var me = this;
                 return `${me.mToTime(ts.start)} - ${me.mToTime(ts.end)}`
             },

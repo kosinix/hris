@@ -98,6 +98,7 @@
                     <button v-on:click="deleteTimeSegment(updateTimeSegment.weekDay, updateTimeSegment.index)" type="button" class="btn btn-danger">Delete</button>
                     <div>
                         <button data-dismiss="modal" type="button" class="btn btn-light">Cancel</button>
+                        <button data-dismiss="modal" v-on:click="cloneMe(updateTimeSegment.weekDay, updateTimeSegment)" type="button" class="btn btn-info">Clone</button>
                         <button v-on:click="addBreak(updateTimeSegment.weekDay, updateTimeSegment.index)" type="button" class="btn btn-info">Add Breaks</button>
                         <button class="btn btn-success">Update</button>
                     </div>

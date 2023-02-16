@@ -67,7 +67,7 @@
                 <div class="row mb-2">
                     <div class="col-sm-3">Schedule:</div>
                     <div class="col-sm-9 d-flex align-items-center">
-                        <div class="font-weight-bold" style="white-space: pre; font-family:Consolas, 'Courier New', mono">{{workScheduleWeek|replace('Mon,Tue,Wed,Thu,Fri,Sat,Sun: ','')}}</div>
+                        <div class="font-weight-bold" style="white-space: pre; font-family:Consolas, 'Courier New', mono">{{workScheduleWeek|default('', true)|replace('Mon,Tue,Wed,Thu,Fri,Sat,Sun: ','')}}</div>
                     </div>
                 </div>
                 <div class="row mb-2">

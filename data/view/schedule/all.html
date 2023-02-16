@@ -35,8 +35,8 @@
                         <tr>
                             <td class="text-center" width="5%">{{loop.index}}</td>
                             <td><a href="/schedule/{{schedule._id}}">{{schedule.name}}</a></td>
-                            <td>
-                                <ul>
+                            <td>{{schedule.readable|replace(r/\n/g, '<br />')|safe}}
+                                {# <ul>
                                     {% for segment in schedule.timeSegments %}
                                         <li>
                                             {{segment.start}} - {{segment.end}} <em>({{segment.maxHours}} hrs)</em> 
@@ -45,7 +45,7 @@
                                             {% if segment.grace > 0 %} <em>with ({{segment.grace}} minutes grace)</em> {% endif %}
                                         </li>
                                     {% endfor %}
-                                </ul>
+                                </ul> #}
                             </td>
                             <td width="10%">{{schedule.visibility|replace('members', 'Selected Employees Only')}}</td>
                         </tr>

@@ -31,6 +31,15 @@ router.get('/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_s
                 t.end = moment().startOf('day').minutes(t.end).format('hh:mm A')
                 return t
             })
+            o.readable = dtrHelper.workScheduleDisplay(o, [
+                'mon',
+                'tue',
+                'wed',
+                'thu',
+                'fri',
+                'sat',
+                'sun',
+            ]).replace('Mon,Tue,Wed,Thu,Fri,Sat,Sun: ', '')
             return o
         })
 
@@ -288,6 +297,15 @@ router.get('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']),
         }
 
         //workSchedule = lodash.merge(defaultWorkSchedule, workSchedule)
+        let workScheduleWeek = dtrHelper.workScheduleDisplay(workSchedule, [
+            'mon',
+            'tue',
+            'wed',
+            'thu',
+            'fri',
+            'sat',
+            'sun',
+        ])
 
         // return res.send(workSchedule)
         res.render('schedule/create.html', {
@@ -295,6 +313,7 @@ router.get('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']),
             hourList: hourList,
             employeeLists: employeeLists,
             workSchedule: workSchedule,
+            workScheduleWeek: workScheduleWeek,
             scheduleId: workSchedule._id,
         });
     } catch (err) {
@@ -365,7 +384,7 @@ router.post('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule'])
                 return t
             })
         })
-        
+
         // return res.send(workSchedule)
         await req.app.locals.db.main.WorkSchedule.updateOne({
             _id: res.schedule._id,

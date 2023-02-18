@@ -307,6 +307,17 @@ router.get('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']),
             'sun',
         ])
 
+        // regular and faculty sched
+        if(['617b61a1a1fd8c6af3375168', '6180a9776d975c0a5df168c1'].includes(workSchedule._id.toString())){
+            return res.render('schedule/read.html', {
+                flash: flash.get(req, 'schedule'),
+                hourList: hourList,
+                employeeLists: employeeLists,
+                workSchedule: workSchedule,
+                workScheduleWeek: workScheduleWeek,
+                scheduleId: workSchedule._id,
+            });
+        }
         // return res.send(workSchedule)
         res.render('schedule/create.html', {
             flash: flash.get(req, 'schedule'),

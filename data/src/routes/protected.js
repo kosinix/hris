@@ -30,7 +30,7 @@ router.get('/', middlewares.requireAuthUser, async (req, res, next) => {
         if (user.roles.includes('support')) {
             return res.redirect('/support/register')
         }
-        if (user.roles.includes('president') || user.roles.includes('campusdirectormosqueda') || user.roles.includes('campusdirectorbaterna')) {
+        if (user.roles.includes('president') || user.roles.includes('campusdirectormosqueda') || user.roles.includes('campusdirectorbaterna') || user.roles.includes('monitor')) {
             return res.redirect('/attendance/monthly')
         }
         if (user.roles.includes('checker')) {

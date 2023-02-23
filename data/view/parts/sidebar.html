@@ -30,7 +30,7 @@
     {% elif user.roles and user.roles.includes('president') %}
         {% include 'parts/sidebar-president.html' %}
 
-    {% elif user.roles and (user.roles.includes('campusdirectormosqueda') or user.roles.includes('campusdirectorbaterna')) %}
+    {% elif user.roles and (user.roles.includes('campusdirectormosqueda') or user.roles.includes('campusdirectorbaterna') or user.roles.includes('monitor')) %}
         {% include 'parts/sidebar-director.html' %}
 
 

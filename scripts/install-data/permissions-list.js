@@ -53,6 +53,10 @@ module.exports = [
     'update_attendance',
     'delete_attendance',
 
+    // Monitoring
+    'read_all_monitoring',
+    'read_monitoring',
+
     // Work Schedule
     'read_all_schedule',
     'create_schedule',

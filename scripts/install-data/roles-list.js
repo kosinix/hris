@@ -243,6 +243,17 @@ const ROLES = [
             'delete_memo',
         ]
     },
+    {
+        key: 'monitor',
+        name: 'Monitoring Staff',
+        description: 'Can view monitoring.',
+        permissions: [
+            'read_all_attendance',
+            'read_attendance',
+            'read_all_monitoring',
+            'read_monitoring',
+        ]
+    },
 ]
 
 module.exports = ROLES

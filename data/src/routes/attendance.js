@@ -258,7 +258,7 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
     }
 });
 
-router.get('/attendance/monitoring', middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
+router.get('/attendance/monitoring', middlewares.guardRoute(['read_all_attendance', 'read_attendance', 'read_all_monitoring', 'read_monitoring']), async (req, res, next) => {
     try {
         let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
         let attendanceTypes = lodash.get(req, 'query.byAttendanceType', ['normal', 'wfh', 'leave', 'pass', 'travel'])
@@ -716,7 +716,7 @@ router.get('/attendance/flag/:attendanceFlagId/delete', middlewares.guardRoute([
             throw new Error('User not found.')
         }
 
-        
+
         res.render('attendance/flag-raising/delete.html', {
             attendance: attendance,
             employee: employee,
@@ -1055,7 +1055,7 @@ router.get('/attendance/flag-lowering/:attendanceFlagLoweringId/delete', middlew
             throw new Error('User not found.')
         }
 
-        
+
         res.render('attendance/flag-lowering/delete.html', {
             attendance: attendance,
             employee: employee,
@@ -2530,7 +2530,7 @@ router.get('/attendance/holiday/:holidayId/create-assoc-attendances', middleware
 
 
         let results = []
-        
+
         for (let e = 0; e < employments.length; e++) {
             let employment = employments[e]
 
@@ -2561,7 +2561,7 @@ router.get('/attendance/holiday/:holidayId/create-assoc-attendances', middleware
                     }],
                     "createdAt": moment(holiday.date).startOf('day').toDate()
                 })
-                results.push(`${results.length+1}-${employment.employee.lastName}, ${employment.employee.firstName}`)
+                results.push(`${results.length + 1}-${employment.employee.lastName}, ${employment.employee.firstName}`)
             }
         }
 

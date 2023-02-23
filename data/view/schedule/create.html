@@ -22,7 +22,47 @@
         </div>
         <form ref="form" v-on:submit.prevent="onSubmit" v-bind:action="formUrl" method="POST" class="form-default">
             <input type="hidden" v-model="scheduleId" name="scheduleId">
-            <div class="ui-work-schedule mb-5">
+            <div class="ui-schedule-time-table mb-1">
+                <div class="column">Time</div>
+                <div v-for="(weekDay, w) in workSchedule.weekDays" class="column">
+                    <div class="text-capitalize">${w}</div>
+                    <div>
+                        <button v-on:click.prevent="showModalCreate(w)" v-if="weekDay.timeSegments.length <= 1" class="btn btn-full-width btn-sm btn-success p-0 pl-1 pr-1" type="button">+</button>
+                        <button v-else disabled class="btn btn-full-width btn-sm btn-success p-0 pl-1 pr-1" type="button">+</button>
+                    </div>
+                </div>
+            </div>
+            <div id="sched-scroll" style="resize: vertical; padding-top: 20px; height: 300px; overflow-x: hidden; overflow-y:auto;">
+                <div class="ui-schedule-time-table mb-1">
+                    <div class="column">
+                        {% for h in hourList %}
+                            <div class="tian-marking" style="width: auto;">
+                                <div class="tian-filler" style="width: auto; max-width: 65px;">
+                                    <div class="tian-time">{{h|to12Hour(true)}}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div v-for="(weekDay,w) in workSchedule.weekDays" class="column">
+                        <template v-for="(timeSegment, t) in getTimeSegments(w)">
+                            <div class="ui-work-schedule-bar2 text-center text-white" v-on:click="showModalUpdate(timeSegment, t, w)" v-bind:style="setPosition2(timeSegment)" v-bind:title="'Schedule: '+displayTime(timeSegment)">${displayTime(timeSegment)}</div>
+                            <template v-for="br in timeSegment.breaks">
+                                <div class="ui-work-schedule-bar-break2" v-on:click="showModalUpdate(timeSegment, t, w)" v-bind:style="setPosition2(br)" v-bind:title="'Break: '+displayTime(br)"></div>
+                            </template>
+                            <div v-if="timeSegment.grace > 0" class="ui-work-schedule-bar-grace2" v-on:click="showModalUpdate(timeSegment, t, w)" v-bind:style="setLineByLen2(timeSegment.start, timeSegment.grace)" v-bind:title="'Grace Period: '+timeSegment.grace"></div>
+                        </template>
+                        {% for h in hourList %}
+                            <div style="border-top: 1px dotted gray;">
+                                <div style="height: 20px;">
+                                    
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            {# <div class="ui-work-schedule mb-5">
                 <div class="ui-work-schedule-group">
                     <div class="ui-work-schedule-weekday">&nbsp;</div>
                     <div class="ui-work-schedule-time">
@@ -49,8 +89,7 @@
                         </div>
                     </div>
                 </template>
-            </div>
-            
+            </div> #}
             <div class="form-group">
                 <label for="workSchedule.name">Name <span class="text-danger">*</span></label>
                 <div>
@@ -180,6 +219,9 @@
                 updateTimeSegment: [],
                 workSchedule: [],
             }
+        },
+        mounted: function(){
+            document.getElementById('sched-scroll').scrollTop = 140
         },
         computed: {
             createModalTitle: function(){
@@ -467,6 +509,11 @@
                 let w = 100 / 1440; // oneMinuteWidth
                 return `left: ${w * ts.start}%; width: ${w * (ts.end - ts.start)}%;`
             },
+            setPosition2: function(ts){
+                var me = this;
+                let w = 100 / 1440; // oneMinuteWidth
+                return `top: ${w * ts.start}%; height: ${w * (ts.end - ts.start)}%;`
+            },
             setLine: function(start, end){
                 var me = this;
                 let w = 100 / 1440; // oneMinuteWidth
@@ -478,6 +525,13 @@
                 var start = parseInt(start)
                 var length = parseInt(length)
                 return `left: ${w * start}%; width: ${w * length}%;`
+            },
+            setLineByLen2: function(start, length){
+                var me = this;
+                let w = 100 / 1440; // oneMinuteWidth
+                var start = parseInt(start)
+                var length = parseInt(length)
+                return `top: ${w * start}%; height: ${w * length}%;`
             },
             getTimeSegments: function(weekDay){
                 var me = this;

@@ -285,7 +285,91 @@ div[data-pending="true"]:after {
     border: 1px solid orange;
 }
 
+/* v2 schedule */
+.ui-schedule-time-table {
+    font-family: monospace;
+    display: flex;
+}
+.ui-schedule-time-table .column {
+    width: 12.5%;
+    text-align: center;
+    position: relative;
+    border-right: 1px solid #fff;
+}
 
+.ui-work-schedule-bar2 {
+    position: absolute; 
+    left:0; 
+    top:0; 
+    width: 100%; 
+    height: 50%; 
+    z-index:1; 
+    background:green;
+}
+
+.ui-work-schedule {
+    position: relative;
+    border-top: dotted 1px gray;
+    background: lightgray;
+}
+.ui-work-schedule-group {
+    display: flex;
+    border-bottom: dotted 1px gray;
+}
+.ui-work-schedule-weekday {
+    width: 5%;
+    min-height: 1px;
+    text-align: right;
+    padding: 0 5px;
+    border-right: dotted 1px gray;
+}
+.ui-work-schedule-time {
+    width: 95%; 
+    position:relative;
+    font-size: 11px;
+}
+.ui-work-schedule-add2,
+.ui-work-schedule-bar2,
+.ui-work-schedule-bar-break2,
+.ui-work-schedule-bar-grace2 {
+    cursor: pointer;
+    position: absolute; 
+    left: 0; 
+    right: 0; 
+}
+.ui-work-schedule-add {
+    right: 0;
+    left: 0;
+}
+.ui-work-schedule-bar2 {
+    z-index: 1;
+    background:rgb(96 163 34);
+    border: 1px solid white;
+    font-size: 11px;
+}
+.ui-work-schedule-bar-break2 {
+    z-index: 2;
+    background:gray;
+    border: 1px solid white;
+}
+.ui-work-schedule-bar-grace2 {
+    z-index: 2;
+    background:goldenrod;
+    border: 1px solid white;
+}
+.ui-work-schedule-bar:hover {
+    background:rgb(38, 200, 38);
+}
+.ui-work-schedule-bar-break:hover {
+    background:rgb(240, 240, 240);
+    z-index: 5;
+}
+.ui-work-schedule-bar:hover,
+.ui-work-schedule-bar-break2:hover {
+    border: 1px solid orange;
+}
+
+/* aaaaaaaaaaaaaaaaaaaaaaa */
 /* Time Analysis */
 .time-analysis {
     font-size: 12px;

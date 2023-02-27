@@ -210,7 +210,7 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
 
         aggr.push({
             $sort: {
-                createdAt: -1,
+                createdAt: 1,
             }
         })
 

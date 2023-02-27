@@ -208,6 +208,12 @@ router.get(['/attendance/daily', `/attendance/daily.xlsx`], middlewares.guardRou
             }
         })
 
+        aggr.push({
+            $sort: {
+                createdAt: -1,
+            }
+        })
+
         //console.log(aggr)
         attendances = await req.app.locals.db.main.Attendance.aggregate(aggr)
         //return res.send(attendances)

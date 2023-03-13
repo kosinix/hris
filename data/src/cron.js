@@ -90,9 +90,9 @@ module.exports = {
             });
 
         }
-        
+
         // 12AM everday
-        console.log('Running a task 12AM everday.')
+        console.log('Running backup task 12AM everday.')
         cron.schedule('0 0 * * *', cronJob)
     }
 }

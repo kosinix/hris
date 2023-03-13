@@ -1,0 +1,38 @@
+{% extends "document-email.html" %}
+
+{% block body %}
+<p>Greetings {{firstName}}!</p>
+
+<p>Backup saved to `{{backupFile}}`.</p>
+
+<p style="margin-top: 100px; text-align: center; font-size: 14px">Did you encounter any problems? Or do you have questions? <br>You can reach us via these channels:</p>
+<table style="font-size: 11px;" aria-hidden="true" cellspacing="0" cellpadding="0" border="0" align="center" width="100%">
+    <tr>
+        <td style="text-align: center;  padding: 5px">
+            <a href="mailto:hrmo@gsc.edu.ph"><img src="{{baseUrl}}/images/email.png" alt="email"></a>
+            <span style="display: block; text-align: center">   
+                <span style="font-size: 11px;">for Attendance Concerns</span> 
+                <br><a href="mailto:hrmo@gsc.edu.ph"><em>hrmo@gsc.edu.ph</em></a>
+                <br><span style="font-size: 10px;">Human Resource Management Office</span> 
+
+            </span> 
+        </td>
+        <td style="text-align: center;  padding: 5px">
+            <a href="mailto:mis@gsc.edu.ph"><img src="{{baseUrl}}/images/technical.png" alt="email"></a>
+            <span style="display: block; text-align: center">   
+                <span style="font-size: 11px;">for Technical Issues</span> 
+                <br><a href="mailto:mis@gsc.edu.ph"><em>mis@gsc.edu.ph</em></a>
+                <br><span style="font-size: 10px;">Management Information System</span> 
+            </span> 
+        </td>
+        <td style="text-align: center;  padding: 5px">
+            <a href="{{baseUrl}}/help"><img src="{{baseUrl}}/images/help.png" alt="email"></a>
+            <span style="display: block; text-align: center">   
+                <span style="font-size: 11px;">Browse Help Topics</span> 
+                <br><a href="{{baseUrl}}/help"><em>/help</em></a>
+            </span> 
+        </td>
+    </tr>
+</table>
+{% endblock %}
+

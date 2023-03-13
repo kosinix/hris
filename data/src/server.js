@@ -18,7 +18,9 @@
     const routes = require('./routes')
     const session = require('./session')
     const middlewares = require('./middlewares')
+    const cron = require('./cron')
 
+    cron.run()
 
     //// Create app
     const app = express()

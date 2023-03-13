@@ -111,6 +111,25 @@ const templates = {
         let info = await transport2.sendMail(mailOptions)
         // console.log(info.response)
         return info
+    },
+    backup: async (templateVars) => {
+        let data = {
+            to: templateVars.to,
+            firstName: templateVars.firstName,
+            backupFile: templateVars.backupFile,
+            baseUrl: `${CONFIG.app.url}`,
+            previewText: `HRIS Backup...`
+        }
+        let mailOptions = {
+            from: `${CONFIG.school.acronym} HRIS <hris-noreply@gsu.edu.ph>`,
+            to: templateVars.to,
+            subject: 'HRIS Backup',
+            text: nunjucksEnv.render('emails/backup.txt', data),
+            html: nunjucksEnv.render('emails/backup.html', data),
+        }
+        let info = await transport2.sendMail(mailOptions)
+        // console.log(info.response)
+        return info
     }
 }
 
@@ -124,6 +143,8 @@ module.exports = {
             return await templates.reset(templateVars)
         } else if (templateName === 'password-reset.html') {
             return await templates.passwordReset(templateVars)
+        } else if (templateName === 'backup-message.html') {
+            return await templates.backup(templateVars)
         } else {
             throw new Error(`Template ${templateName} not found.`)
         }

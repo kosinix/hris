@@ -1,0 +1,69 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h4">Options</h1>
+        </div>
+        
+    </div>
+    {% include 'parts/flash.html' %}
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/options/save" method="POST" class="form-default">
+            <div class="form-group">
+                <label for="time">Flag raising time <span class="text-danger">*</span></label>
+                <div>
+                    <input name="time" id="time" v-model="time" type="time" class="form-control">
+                    <small class="invalid-feedback">${getError('time')}</small>
+                </div>
+            </div>
+
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        components: {
+        },
+        data: {
+            pending: false,
+            time: '{{time}}',
+        },
+        validations: {
+            time: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+           
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            },
+        }
+    });
+</script>
+{% endblock %}
+

@@ -28,6 +28,7 @@ router.use(require('./routes/support'));
 router.use(require('./routes/account'));
 router.use(require('./routes/auto-complete'));
 router.use(require('./routes/reports'));
+router.use(require('./routes/options'));
 
 // 404 Page
 router.use((req, res) => {

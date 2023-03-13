@@ -29,7 +29,7 @@ module.exports = {
 
             let cmd2 = `zip -r ${backupFile}.zip ${backupFile}`
             let cmd3 = `FILE_NAME=${backupFileName}.zip node scripts/tos3.js`
-            let opt3 = {}
+            let opt3 = { cwd: CONFIG.app.dir }
 
             if (IS_WIN) {
 
@@ -39,7 +39,7 @@ module.exports = {
 
                 cmd2 = `powershell Compress-Archive -Force ${backupFile} ${backupFile}.zip`
                 cmd3 = `set FILE_NAME=${backupFileName}.zip&& node scripts/tos3.js`
-                opt3 = { cwd: `./` }
+                opt3 = { cwd: CONFIG.app.dir }
 
             }
 

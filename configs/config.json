@@ -235,7 +235,7 @@
       "weekDay": "Mon",
       "end": {
         "hour": 7,
-        "minute": 40
+        "minute": 45
       }
     },
     "flagLowering": {
@@ -246,7 +246,7 @@
       },
       "end": {
         "hour": 17,
-        "minute": 15
+        "minute": 0
       }
     }
   },

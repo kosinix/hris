@@ -594,7 +594,26 @@ router.get('/employee/:employeeId/employment/:employmentId/update', middlewares.
         let employee = res.employee
         let employment = res.employment
 
-        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.aggregate([
+            {
+                $match: {
+                    $or: [
+                        {
+                            'members': {
+                                $elemMatch: {
+                                    'objectId': employment._id
+                                }
+                            }
+                        },
+                        {
+                            'members': []
+                        }
+                    ]
+                }
+            },
+        ])
+
+        
         workSchedules = workSchedules.map((w) => {
             return {
                 value: w._id,

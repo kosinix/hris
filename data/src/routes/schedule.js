@@ -24,7 +24,51 @@ router.use('/schedule', middlewares.requireAuthUser)
 // Work Schedule
 router.get('/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_schedule']), async (req, res, next) => {
     try {
-        let schedules = await req.app.locals.db.main.WorkSchedule.find().lean()
+        let name = (new String(req.query.name ?? '')).trim()
+        let search = {}
+        if (name) {
+            search = {
+                name: {
+                    $regex: new RegExp(name, "i")
+                }
+            }
+        }
+        let aggr = []
+
+        aggr.push({
+            $lookup:
+            {
+                localField: "_id",
+                foreignField: "workScheduleId",
+                from: "employments",
+                as: "employments"
+            }
+        })
+       
+        aggr.push({
+            $project:
+            {
+                name: 1,
+                timeSegments: 1,
+                members: 1,
+                createdAt: 1,
+                updatedAt: 1,
+                visibility: 1,
+                locked: 1,
+                weekDays: 1,
+                employments: {
+                    active: 1,
+                    employeeId: 1,
+                },
+                attendances: {
+                    employeeId: 1,
+                    employmentId: 1,
+                }
+            }
+        })
+
+        let schedules = await req.app.locals.db.main.WorkSchedule.aggregate(aggr)
+
         schedules = schedules.map((o) => {
             o.timeSegments = o.timeSegments.map((t) => {
                 t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
@@ -43,9 +87,18 @@ router.get('/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_s
             return o
         })
 
+        let attendancesCount = schedules.map((o) => {
+            return req.app.locals.db.main.Attendance.countDocuments({
+                workScheduleId: o._id
+            })
+        })
+        attendancesCount = await Promise.allSettled(attendancesCount)
+        attendancesCount = attendancesCount.map(o => o.value)
         res.render('schedule/all.html', {
             flash: flash.get(req, 'schedule'),
             schedules: schedules,
+            attendancesCount: attendancesCount,
+            name: name,
         });
     } catch (err) {
         next(err);
@@ -308,7 +361,7 @@ router.get('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']),
         ])
 
         // regular and faculty sched
-        if(!res.user.roles.includes('admin') && ['617b61a1a1fd8c6af3375168', '6180a9776d975c0a5df168c1'].includes(workSchedule._id.toString())){
+        if (!res.user.roles.includes('admin') && workSchedule.locked) {
             return res.render('schedule/read.html', {
                 flash: flash.get(req, 'schedule'),
                 hourList: hourList,
@@ -333,6 +386,10 @@ router.get('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']),
 });
 router.post('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']), middlewares.getSchedule, async (req, res, next) => {
     try {
+        if (workSchedule.locked && !res.user.roles.includes('admin')) {
+            throw new Error('Cannot edit locked schedule.')
+        }
+
         let body = lodash.get(req, 'body')
 
         let workSchedule = JSON.parse(lodash.get(body, 'workSchedule'))

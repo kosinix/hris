@@ -89,7 +89,8 @@ const schema = new Schema({
     // New schedule feb 2022
     dateStart: Date, // Schedule date range
     dateEnd: Date, // Schedule date range
-    weekDays: {}
+    weekDays: {},
+    locked: Boolean, // True = non editable by non admin
 }, { timestamps: true, typeKey: '$type' })
 
 //// Virtuals

@@ -1,0 +1,53 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h5">Work Schedule: {{schedule.name}}</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/schedule/create" class="btn btn-sm btn-primary">Create Schedule</a>
+                {# <a href="/attendance/schedule/all" class="btn btn-sm btn-outline-primary">Classic Schedule System</a> #}
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+        {% if employments.length <= 0 %}
+            <p>None found.</p>
+        {% else %}
+            <p><em>Found {{employments.length}} employments using this work schedule</em></p>
+            <p></p>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th class="text-center" width="5%">#</th>
+                            <th>Name</th>
+                            <th>Position</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for employment in employments %}
+                        <tr>
+                            <td class="text-center" width="5%">{{loop.index}}</td>
+                            <td>
+
+                                <a href="/employee/{{employment.employee._id}}/employment/{{employment._id}}/update">{{employment.employee.lastName}}, {{employment.employee.firstName}}</a>
+                            </td>
+                            <td>
+                                {{employment.position}}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

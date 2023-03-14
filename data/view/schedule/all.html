@@ -33,14 +33,23 @@
                 <table class="table table-sm table-striped">
                     <thead>
                         <tr>
-                            <th class="text-center" width="5%">#</th>
+                            <th class="text-center text-middle" width="5%">#</th>
                             <th>Name</th>
                             <th>Time</th>
                             <th>Visible To</th>
-                            <th>Use Count</th>
+                            <th colspan="2" class="text-center">Usage</th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th><em>Employments</em></th>
+                            <th><em>Attendances</em></th>
                         </tr>
                     </thead>
                     <tbody>
+                        
                     {% for schedule in schedules %}
                         <tr>
                             <td class="text-center" width="5%">{{loop.index}}</td>
@@ -62,7 +71,8 @@
                                 </ul> #}
                             </td>
                             <td width="10%">{{schedule.visibility|replace('members', 'Selected Employees Only')}}</td>
-                            <td width="10%">{{schedule.employments.length}} | {{attendancesCount[loop.index0]}}</td>
+                            <td width="10%" class="text-right"><a href="/schedule/{{schedule._id}}/employments">{{schedule.employments.length}}</a></td>
+                            <td width="10%" class="text-right">{{attendancesCount[loop.index0]}}</td>
                         </tr>
                     {% endfor %}
                     </tbody>

@@ -93,7 +93,7 @@ router.get('/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_s
             })
         })
         attendancesCount = await Promise.allSettled(attendancesCount)
-        attendancesCount = attendancesCount.map(o => o.value)
+        attendancesCount = attendancesCount.map(o => o.value ?? 0)
         res.render('schedule/all.html', {
             flash: flash.get(req, 'schedule'),
             schedules: schedules,
@@ -535,6 +535,63 @@ router.get('/schedule/:scheduleId/members/:memberId/delete', middlewares.guardRo
         flash.ok(req, 'schedule', `Removed ${member} from list.`)
         res.redirect(`/schedule/${res.schedule._id}`)
 
+    } catch (err) {
+        next(err);
+    }
+});
+
+
+router.get('/schedule/:scheduleId/employments', middlewares.guardRoute(['read_all_schedule', 'read_schedule']), middlewares.getSchedule, async (req, res, next) => {
+    try {
+        let schedule = res.schedule
+
+       
+        let aggr = []
+
+        aggr.push({
+            $match: {
+                workScheduleId: schedule._id
+            }
+        })
+
+        aggr.push({
+            $lookup: {
+                localField: "employeeId",
+                foreignField: "_id",
+                from: "employees",
+                as: "employees"
+            }
+        })
+       
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                },
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+                employee: {
+                    personal: 0,
+                    employments: 0,
+                    addresses: 0,
+                }
+               
+            }
+        }) 
+        
+
+        let employments = await req.app.locals.db.main.Employment.aggregate(aggr)
+       
+        res.render('schedule/employments.html', {
+            flash: flash.get(req, 'schedule'),
+            schedule: schedule,
+            employments: employments,
+        });
     } catch (err) {
         next(err);
     }

@@ -24,7 +24,16 @@ router.use('/schedule', middlewares.requireAuthUser)
 // Work Schedule
 router.get('/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_schedule']), async (req, res, next) => {
     try {
-        let schedules = await req.app.locals.db.main.WorkSchedule.find().lean()
+        let name = (new String(req.query.name ?? '')).trim()
+        let search = {}
+        if(name){
+            search = {
+                name: {
+                    $regex: new RegExp(name, "i")
+                }
+            }
+        }
+        let schedules = await req.app.locals.db.main.WorkSchedule.find(search).lean()
         schedules = schedules.map((o) => {
             o.timeSegments = o.timeSegments.map((t) => {
                 t.start = moment().startOf('day').minutes(t.start).format('hh:mm A')
@@ -46,6 +55,7 @@ router.get('/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_s
         res.render('schedule/all.html', {
             flash: flash.get(req, 'schedule'),
             schedules: schedules,
+            name: name,
         });
     } catch (err) {
         next(err);

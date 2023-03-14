@@ -308,7 +308,7 @@ router.get('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']),
         ])
 
         // regular and faculty sched
-        if(!res.user.roles.includes('admin') && ['617b61a1a1fd8c6af3375168', '6180a9776d975c0a5df168c1'].includes(workSchedule._id.toString())){
+        if(!res.user.roles.includes('admin') && workSchedule.locked){
             return res.render('schedule/read.html', {
                 flash: flash.get(req, 'schedule'),
                 hourList: hourList,
@@ -333,6 +333,10 @@ router.get('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']),
 });
 router.post('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']), middlewares.getSchedule, async (req, res, next) => {
     try {
+        if(workSchedule.locked && !res.user.roles.includes('admin')){
+            throw new Error('Cannot edit locked schedule.')
+        }
+
         let body = lodash.get(req, 'body')
 
         let workSchedule = JSON.parse(lodash.get(body, 'workSchedule'))

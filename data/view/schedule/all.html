@@ -71,8 +71,8 @@
                                 </ul> #}
                             </td>
                             <td width="10%">{{schedule.visibility|replace('members', 'Selected Employees Only')}}</td>
-                            <td width="10%" class="text-right"><a href="/schedule/{{schedule._id}}/employments">{{schedule.employments.length}}</a></td>
-                            <td width="10%" class="text-right">{{attendancesCount[loop.index0]}}</td>
+                            <td width="10%" class="text-center"><a href="/schedule/{{schedule._id}}/employments">{{schedule.employments.length}}</a></td>
+                            <td width="10%" class="text-center">{{attendancesCount[loop.index0]}}</td>
                         </tr>
                     {% endfor %}
                     </tbody>

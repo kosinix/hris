@@ -386,13 +386,14 @@ router.get('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']),
 });
 router.post('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule']), middlewares.getSchedule, async (req, res, next) => {
     try {
-        if (workSchedule.locked && !res.user.roles.includes('admin')) {
-            throw new Error('Cannot edit locked schedule.')
-        }
+        let schedule = res.schedule
 
         let body = lodash.get(req, 'body')
-
         let workSchedule = JSON.parse(lodash.get(body, 'workSchedule'))
+
+        if ((schedule.locked ?? false) && !res.user.roles.includes('admin')) {
+            throw new Error('Cannot edit locked schedule.')
+        }
 
         let errors = []
         if (!workSchedule.name) {

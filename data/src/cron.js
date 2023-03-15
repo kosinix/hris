@@ -92,8 +92,9 @@ module.exports = {
         }
 
         // 12AM everday
-        console.log('Running backup task 12AM everday.')
-        cron.schedule('0 0 * * *', cronJob)
+        // https://crontab.cronhub.io/
+        console.log('Running backup task 11PM everday.')
+        cron.schedule('0 23 * * *', cronJob)
         // cronJob()
     }
 }

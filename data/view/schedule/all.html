@@ -15,7 +15,7 @@
     </div>
     {% include 'parts/flash.html' %}
 
-    <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+    <div id="vApp" class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
         <div class="row mb-3">
             <div class="col-md-4">
                 <form id="form" action="">
@@ -37,8 +37,9 @@
                             <th>Name</th>
                             <th>Time</th>
                             <th>Visible To</th>
-                            <th colspan="2" class="text-center">Usage</th>
+                            <th colspan="2" class="text-center">{% if showAttendance %}Usage{% endif %}</th>
                         </tr>
+                        {% if showAttendance %}
                         <tr>
                             <th></th>
                             <th></th>
@@ -47,6 +48,7 @@
                             <th><em>Employments</em></th>
                             <th><em>Attendances</em></th>
                         </tr>
+                        {% endif %}
                     </thead>
                     <tbody>
                         
@@ -72,7 +74,10 @@
                             </td>
                             <td width="10%">{{schedule.visibility|replace('members', 'Selected Employees Only')}}</td>
                             <td width="10%" class="text-center"><a href="/schedule/{{schedule._id}}/employments">{{schedule.employments.length}}</a></td>
+                            {% if showAttendance %}
                             <td width="10%" class="text-center">{{attendancesCount[loop.index0]}}</td>
+                            {% endif %}
+
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -81,4 +86,33 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    const vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        data: {
+            pending: false,
+           
+        },
+        mounted: function(){
+        },
+        
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                me.$nextTick(function() {
+                    me.$refs.form.submit();
+                });
+            });
+        }
+    });
+</script>
 {% endblock %}

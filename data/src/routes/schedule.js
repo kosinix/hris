@@ -25,6 +25,7 @@ router.use('/schedule', middlewares.requireAuthUser)
 router.get('/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_schedule']), async (req, res, next) => {
     try {
         let name = (new String(req.query.name ?? '')).trim()
+        let showAttendance = req.query.showAttendance ?? false
         let search = {}
         if (name) {
             search = {
@@ -44,7 +45,7 @@ router.get('/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_s
                 as: "employments"
             }
         })
-       
+
         aggr.push({
             $project:
             {
@@ -88,9 +89,13 @@ router.get('/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_s
         })
 
         let attendancesCount = schedules.map((o) => {
-            return req.app.locals.db.main.Attendance.countDocuments({
-                workScheduleId: o._id
-            })
+            if (showAttendance) {
+                return req.app.locals.db.main.Attendance.countDocuments({
+                    workScheduleId: o._id
+                })
+            } else {
+                return 0
+            }
         })
         attendancesCount = await Promise.allSettled(attendancesCount)
         attendancesCount = attendancesCount.map(o => o.value ?? 0)
@@ -99,6 +104,7 @@ router.get('/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_s
             schedules: schedules,
             attendancesCount: attendancesCount,
             name: name,
+            showAttendance: showAttendance,
         });
     } catch (err) {
         next(err);
@@ -546,7 +552,7 @@ router.get('/schedule/:scheduleId/employments', middlewares.guardRoute(['read_al
     try {
         let schedule = res.schedule
 
-       
+
         let aggr = []
 
         aggr.push({
@@ -563,7 +569,7 @@ router.get('/schedule/:scheduleId/employments', middlewares.guardRoute(['read_al
                 as: "employees"
             }
         })
-       
+
         aggr.push({
             $addFields: {
                 "employee": {
@@ -581,13 +587,13 @@ router.get('/schedule/:scheduleId/employments', middlewares.guardRoute(['read_al
                     employments: 0,
                     addresses: 0,
                 }
-               
+
             }
-        }) 
-        
+        })
+
 
         let employments = await req.app.locals.db.main.Employment.aggregate(aggr)
-       
+
         res.render('schedule/employments.html', {
             flash: flash.get(req, 'schedule'),
             schedule: schedule,

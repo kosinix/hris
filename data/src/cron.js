@@ -91,11 +91,13 @@ module.exports = {
 
         }
 
-        // 12AM everday
-        // https://crontab.cronhub.io/
-        console.log('Running backup task 11PM everday.')
-        cron.schedule('0 23 * * *', cronJob)
-        // cronJob()
+        if (ENV !== 'dev') {
+            // 12AM everday
+            // https://crontab.cronhub.io/
+            console.log('Running backup task 11PM everday.')
+            cron.schedule('0 23 * * *', cronJob)
+            // cronJob()
+        }
     }
 }
 

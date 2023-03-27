@@ -783,6 +783,228 @@ router.post('/attendance/flag/:attendanceFlagId/delete', middlewares.antiCsrfChe
     }
 });
 
+// Change sched
+// Usage: /attendance/flag/change?date=2023-03-13&rollback=0
+router.get('/attendance/flag/change', middlewares.guardRoute(['read_all_attendance', 'update_attendance']), async (req, res, next) => {
+    try {
+        let user = res.user
+        let date = lodash.get(req, 'query.date', lodash.get(req, 'session.attendanceFlag.date', moment().format('YYYY-MM-DD')))
+        lodash.set(req, 'session.attendanceFlag.date', date)
+
+        let mCalendar = moment(date)
+
+        // 1. Get flag attendances for these dates
+        let aggr = []
+        aggr.push({
+            $match: {
+                dateTime: {
+                    $gte: mCalendar.clone().startOf('day').toDate(),
+                    $lte: mCalendar.clone().endOf('day').toDate(),
+                }
+            }
+        })
+        aggr.push({
+            $lookup: {
+                from: "employees",
+                localField: "employeeId",
+                foreignField: "_id",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                },
+            }
+        })
+
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+            }
+        })
+
+        // Hide not needed for lighter payload
+        aggr.push({
+            $project: {
+                employee: {
+                    _id: 1
+                }
+            }
+        })
+
+        aggr.push({
+            $sort: { dateTime: 1 }
+        })
+
+        // 2. Turn flag attendances into employee IDs
+        let attendances = await req.app.locals.db.main.AttendanceFlag.aggregate(aggr)
+        const employeeIds = attendances.map(a => {
+            return req.app.locals.db.mongoose.Types.ObjectId(a.employee._id)
+        })
+
+        // console.log(employeeIds)
+
+        // 3. Schedules
+        let schedule = await req.app.locals.db.main.WorkSchedule.findOne({
+            name: 'Regular Working Hours'
+        }).lean()
+        if (!schedule) throw new Error('Could not find schedule 1')
+
+        let schedule2 = await req.app.locals.db.main.WorkSchedule.findOne({
+            name: '7:30AM-12NN,1PM-4:30PM'
+        }).lean()
+        if (!schedule2) throw new Error('Could not find schedule 2')
+
+        // 4. Get employments that are active and using the Regular Working Hours, matched with employees with flag attendances
+        aggr = []
+        aggr.push({
+            $match: {
+                active: true,
+                group: 'staff',
+                workScheduleId: schedule._id
+            }
+        })
+        aggr.push({
+            $lookup: {
+                from: "employees",
+                localField: "employeeId",
+                foreignField: "_id",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                },
+            }
+        })
+        aggr.push({
+            $project: {
+                employees: 0,
+            }
+        })
+        aggr.push({
+            $match: {
+                employeeId: {
+                    $in: employeeIds
+                }
+            }
+        })
+        // Hide not needed for lighter payload
+        aggr.push({
+            $project: {
+                inCharge: 0,
+                employee: {
+                    addresses: 0,
+                    personal: 0,
+                    employments: 0,
+                    mobileNumber: 0,
+                    phoneNumber: 0,
+                    documents: 0,
+                    createdAt: 0,
+                    updatedAt: 0,
+                    uuid: 0,
+                    uid: 0,
+                    group: 0,
+                    __v: 0,
+                    profilePhoto: 0,
+                    acceptedDataPrivacy: 0,
+                    birthDate: 0,
+                    civilStatus: 0,
+                    addressPermanent: 0,
+                    addressPresent: 0,
+                    email: 0,
+                    history: 0,
+                    speechSynthesisName: 0,
+                    address: 0
+                }
+            }
+        })
+        let employments = await req.app.locals.db.main.Employment.aggregate(aggr)
+        const EMPLOYMENT_IDS = employments.map(e => e._id)
+        if (req.query.rollback !== '1') {
+
+            // 5. Update EMPLOYMENT_IDS to schedule2
+            let message = `Adjusted schedule from ${schedule.name} to ${schedule2.name} because of the flag raising attendance.`
+            let updated = await req.app.locals.db.main.Attendance.updateMany(
+                {
+                    employmentId: {
+                        $in: EMPLOYMENT_IDS
+                    },
+                    workScheduleId: {
+                        $ne: schedule2._id
+                    },
+                    createdAt: {
+                        $gte: mCalendar.clone().startOf('day').toDate(),
+                        $lte: mCalendar.clone().endOf('day').toDate(),
+                    }
+                },
+                {
+                    $set: {
+                        workScheduleId: schedule2._id
+                    },
+                    $push: {
+                        comments: {
+                            summary: message,
+                            objectId: user._id,
+                            createdAt: moment().toDate()
+                        }
+                    },
+                },
+                {
+                    multi: true
+                }
+            )
+            return res.send(updated)
+
+            // 
+        } else if (req.query.rollback === '1') {
+            let updated = await req.app.locals.db.main.Attendance.updateMany(
+                {
+                    employmentId: {
+                        $in: EMPLOYMENT_IDS
+                    },
+                    workScheduleId: {
+                        $ne: schedule._id
+                    },
+                    createdAt: {
+                        $gte: mCalendar.clone().startOf('day').toDate(),
+                        $lte: mCalendar.clone().endOf('day').toDate(),
+                    }
+                },
+                {
+                    $set: {
+                        workScheduleId: schedule._id
+                    },
+                },
+                {
+                    multi: true
+                }
+            )
+            return res.send(updated)
+
+        }
+
+
+        res.render('attendance/flag-raising/all.html', {
+            flash: flash.get(req, 'attendance'),
+            mCalendar: mCalendar,
+            attendances: attendances,
+            s3Prefix: `/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}`,
+            serverUrl: CONFIG.app.url,
+            next: mCalendar.clone().startOf('isoWeek').add(1, 'week').day("monday").format('YYYY-MM-DD'),
+            prev: mCalendar.clone().startOf('isoWeek').subtract(1, 'week').day("monday").format('YYYY-MM-DD'),
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
 // Flag lowering
 router.get(['/attendance/flag-lowering/all', '/attendance/flag-lowering.xlsx'], middlewares.guardRoute(['read_all_attendance', 'read_attendance']), async (req, res, next) => {
     try {

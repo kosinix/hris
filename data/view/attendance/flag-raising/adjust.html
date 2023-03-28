@@ -1,0 +1,111 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="">
+            <h1 class="h4">Attendance</h1>
+            <p class="m-1 mb-0">Flag-Raising</p>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/attendance/flag/all?date={{mCalendar|format_date('YYYY-MM-DD')}}" class="btn btn-outline-primary btn-sm">Back</a>
+            </div>
+        </div>
+    </div>
+    <div id="vApp" v-cloak class="tab-content p-3 mt-3">
+        {% include 'parts/flash.html' %}
+        <h1 class="h5 mb-2">Early-out Adjustment</h1>
+        <p>Showing employees that are qualified for 4:30PM log out.</p>
+        <div class="text-right">
+            <a class="btn btn-primary" href="/attendance/flag/change?date={{mCalendar|format_date('YYYY-MM-DD')}}">Adjust Log-outs?</a>
+        </div>
+        <div v-if="attendances.length > 0">
+            <div class="table-responsive mt-4">
+                <table class="table table-flag-attendance table-sm table-striped">
+                    <tr class="text-center">
+                        <th width="10%" class="align-middle text-center">No.</th>
+                        <th width="50%" class="align-middle text-left">Name</th>
+                        <th width="10%" class="align-middle">Group</th>
+                        <th width="30%" class="align-middle">Schedule</th>
+                    </tr>
+                    <tr v-for="attendance, i in attendances" v-bind:class="(attendance.employee._id === hash) ? 'bg-success' : ''">
+                        <td class="text-center">${i+1}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="mr-2">
+                                    <a v-if="attendance.source.photo" target="_blank" :href="viewPhoto(attendance.source.photo)" style="width:20px; height:20px; border-radius: 100%; display:block; overflow: hidden; border: 2px solid teal">
+                                        <img :src="photoUrl(attendance.source.photo)" alt="Photo">
+                                    </a>
+                                </div>
+                                <div class="privy-name" v-bind:id="attendance.employee._id">
+                                    <a v-bind:href="`/attendance/employment/` + attendance?.employment?._id">
+                                        <u>${attendance.employee.firstName}</u> 
+                                        <u>${attendance.employee.lastName}</u> 
+                                        <u>${attendance.employee.suffix}</u> 
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">${attendance.employment.group|capitalize}</td>
+                        <td class="text-center">${schedule.name}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="text-right">
+                <a class="btn btn-primary" href="/attendance/flag/change?date={{mCalendar|format_date('YYYY-MM-DD')}}">Adjust Log-outs?</a>
+            </div>
+        </div>
+        <div v-else class="text-center">
+            <p><em>No attendance logs found.</em></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/socket.io.min.js"></script>
+<script>
+    
+    let vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            s3Prefix: '{{s3Prefix}}',
+            attendances: {{attendances|default([], true)|stringify|safe}},
+            schedule: {{schedule|default({}, true)|stringify|safe}},
+            counter: 2,
+            hash: ''
+        },
+        filters: {
+            capitalize: function(e){
+                return _.capitalize(e)
+            }
+        },
+        methods: {
+            viewPhoto: function(photo){
+                if(!photo){
+                    return ''
+                }
+                return `/file-viewer${this.s3Prefix}/${photo}`
+            },
+            photoUrl: function(photo, size = 'tiny'){
+                if(!photo){
+                    return ''
+                }
+                return `/file-getter${this.s3Prefix}/${size}-${photo}`
+            },
+            changeDate: function(e){
+                var href = new URL(window.location.href);
+                href.searchParams.set('date', e.target.value);
+                window.location.href = href.toString()
+            },
+        },
+        mounted: function(){
+            this.hash = location.hash.substr(1)
+            
+        }
+    })
+</script>
+{% endblock %}

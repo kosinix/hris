@@ -9,7 +9,7 @@
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                <a href="/reports/pm/flag-raising/overall?date={{mDate|format_date('YYYY-MM-DD')}}" class="btn btn-outline-primary btn-sm">View Report</a>
+                <a href="/reports/pm/flag-raising/overall?date={{mCalendar|format_date('YYYY-MM-DD')}}" class="btn btn-outline-primary btn-sm">View Report</a>
             </div>
         </div>
     </div>
@@ -33,6 +33,12 @@
                             <a href="?date={{next}}" class="btn btn-sm btn-outline-primary">&gt;</a>
                             <a class="btn btn-sm btn-primary" href="/attendance/flag/create?date={{mCalendar|format_date('YYYY-MM-DD')}}">Insert Attendance</a>
                         </div>
+                    </div>
+                    <div class="pl-3 pr-3">
+                        <a class="btn btn-sm btn-secondary" href="/attendance/flag/adjust?date={{mCalendar|format_date('YYYY-MM-DD')}}">4:30PM Log-outs</a>
+                        {% if user.roles.includes('admin') %}
+                            <a class="btn btn-sm btn-secondary" href="/attendance/flag/change?date={{mCalendar|format_date('YYYY-MM-DD')}}&rollback=1">Rollback Adjustments</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -59,9 +65,11 @@
                                     </a>
                                 </div>
                                 <div class="privy-name" v-bind:id="attendance.employee._id">
-                                    <u>${attendance.employee.firstName}</u> 
-                                    <u>${attendance.employee.lastName}</u> 
-                                    <u>${attendance.employee.suffix}</u> 
+                                    <a v-bind:href="`/employee/`+attendance?.employee?._id+`/employment`">
+                                        <u>${attendance.employee.firstName}</u> 
+                                        <u>${attendance.employee.lastName}</u> 
+                                        <u>${attendance.employee.suffix}</u> 
+                                    </a>
                                 </div>
                             </div>
                         </td>
@@ -79,7 +87,7 @@
                 </table>
             </div>
             <div>
-                <a class="btn btn-sm btn-primary" href="/attendance/flag.xlsx?{{query|query_string}}">Download</a>
+                <a class="btn btn-sm btn-primary" href="/attendance/flag/change?{{query|query_string}}">Download</a>
             </div>
         </div>
         <div v-else class="text-center">

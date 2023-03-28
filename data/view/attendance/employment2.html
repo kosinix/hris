@@ -4,7 +4,6 @@
 <div class="col-md-12">
     {% include 'parts/flash.html' %}
     {% include 'attendance/header.html' %}
-    {# {% include 'attendance/tabs-calendar.html' %} #}
     <div id="vApp" v-cloak style="background: #e3ecf2" class="tab-content pt-3 pb-2 pl-3 pr-3">
         <div class="d-flex mb-3">
             {% if employee.profilePhoto %}
@@ -47,7 +46,7 @@
         </div>
         <div class="btn-toolbar justify-content-end mb-3">
             <div class="btn-group mr-2">
-                <a href="/attendance/employee/{{employee._id}}/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm">Insert Attendance</a>
+                <a href="/attendance/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm">Insert Attendance</a>
                 <a href="/attendance/employment/{{employment._id}}/print?{{compatibilityUrl}}" class="btn btn-light btn-sm" target="_blank">Print DTR</a>
             </div>
         </div>

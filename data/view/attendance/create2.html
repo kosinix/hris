@@ -1,0 +1,230 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <div>
+                <h1 class="h4">Insert Attendance</h1>
+                <p class="mb-0 pl-1"></p>
+            </div>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/attendance/employment/{{employment._id}}?start={{attendance.createdAt|format_date('YYYY-MM-DD')}}&amp;end={{attendance.createdAt|format_date('YYYY-MM-DD')}}" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3">
+        <h1 class="h5 mt-2">
+            {{employee.lastName}},
+            {{employee.firstName}} - {{employment.position}}
+        </h1>
+        <div class="alert alert-warning">Warning: Manual adding of time must be supported by a log sheet or other supporting documents.</div>
+        <form id="vApp" v-cloak ref="form" v-on:submit.prevent="onSubmit" action="/attendance/employment/{{employment._id}}/attendance/create" method="POST" class="form-default">
+            {% include 'parts/flash.html' %}
+            <div class="form-row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="date" class="font-weight-bold">Date <span class="text-danger">*</span></label>
+                        <input type="date" v-model="date" name="date" id="date" class="form-control">
+                        <small class="invalid-feedback">${getError('date')}</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="attendanceType" class="font-weight-bold">Attendance Type <span class="text-danger">*</span></label>
+                        <select v-model="attendanceType" name="attendanceType" id="attendanceType" class="form-control">
+                            <option value=""></option>
+                            <option v-for="attendanceType in attendanceTypes" v-bind:value="attendanceType.value">${attendanceType.name}</option>
+                        </select>
+                        <small class="invalid-feedback">${getError('attendanceType')}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row" v-if="['normal', 'wfh', 'pass'].includes(attendanceType)">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <div class="d-flex align-items-start justify-content-between">
+                            <label for="log0" class="font-weight-bold mr-3">Morning In</label> 
+                            <button title="Move Time" v-bind:style="isHidden(0, 1)" v-on:click.prevent="moveTimeLog(0, 1)" class="btn btn-sm btn-light p-0" type="button"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M10,17L15,12L10,7V17Z" /></svg></button>
+                        </div> 
+                        <input v-model="log0" type="time" name="log0" id="log0" class="form-control">
+                        <small class="invalid-feedback">${getError('log0')}</small>
+                    </div>
+                </div> 
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <div class="d-flex align-items-start justify-content-between">
+                            <label for="log1" class="font-weight-bold mr-3">Morning Out</label> 
+                            <div>
+                                <button title="Move Time" v-bind:style="isHidden(1, 0)" v-on:click.prevent="moveTimeLog(1, 0)" class="btn btn-sm btn-light p-0" type="button"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M14,7L9,12L14,17V7Z" /></svg></button>
+                                <button title="Move Time" v-bind:style="isHidden(1, 2)" v-on:click.prevent="moveTimeLog(1, 2)" class="btn btn-sm btn-light p-0" type="button"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M10,17L15,12L10,7V17Z" /></svg></button>
+                            </div>
+                        </div> 
+                        <input v-model="log1" type="time" name="log1" id="log1" class="form-control">
+                        <small class="invalid-feedback">${getError('log1')}</small>
+                    </div>
+                </div> 
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <div class="d-flex align-items-start justify-content-between">
+                            <label for="log2" class="font-weight-bold mr-3">Afternoon In </label> 
+                            <div>
+                                <button title="Move Time" v-bind:style="isHidden(2, 1)" v-on:click.prevent="moveTimeLog(2, 1)" class="btn btn-sm btn-light p-0" type="button"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M14,7L9,12L14,17V7Z" /></svg></button>
+                                <button title="Move Time" v-bind:style="isHidden(2, 3)" v-on:click.prevent="moveTimeLog(2, 3)" class="btn btn-sm btn-light p-0" type="button"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M10,17L15,12L10,7V17Z" /></svg></button>
+                            </div>
+                        </div> 
+                        <input v-model="log2" type="time" name="log2" id="log2" class="form-control">
+                        <small class="invalid-feedback">${getError('log2')}</small>
+                    </div>
+                </div> 
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <div class="d-flex align-items-start justify-content-between">
+                            <label for="log3" class="font-weight-bold mr-3">Afternoon Out </label> 
+                            <button title="Move Time" v-bind:style="isHidden(3, 2)" v-on:click.prevent="moveTimeLog(3, 2)" class="btn btn-sm btn-light p-0" type="button"><svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M14,7L9,12L14,17V7Z" /></svg></button>
+                        </div> 
+                        <input v-model="log3" type="time" name="log3" id="log3" class="form-control">
+                        <small class="invalid-feedback">${getError('log3')}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="workScheduleId" class="font-weight-bold">Work Schedule <span class="text-danger">*</span></label>
+                <select v-model="workScheduleId" name="workScheduleId" id="workScheduleId" class="form-control">
+                    <option v-for="workSchedule in workSchedules" v-bind:value="workSchedule._id">${workSchedule.name}</option>
+                </select>
+                <small class="invalid-feedback">${getError('workScheduleId')}</small>
+            </div>
+            <div class="form-group">
+                <label for="comment" class="font-weight-bold">Comments <span class="text-danger">*</span></label>
+                <div>
+                    <select v-model="commentSelect" id="comment" class="form-control">
+                        <option>Scanner was offline according to employee.</option>
+                        <option>Scanner did not register log according to employee.</option>
+                        <option>Inserted manually. Employee forgot to log.</option>
+                        <option>Inserted manually. Employee did not have ID.</option>
+                        <option>Set to Holiday.</option>
+                        <option>Write comment.</option>
+                    </select>
+                    <textarea v-if="commentSelect == 'Write comment.'" v-model="commentBox" rows="1" class="form-control"></textarea>
+                    <input type="hidden" v-model="comment" name="comment">
+                    <small class="invalid-feedback">${getError('comment')}</small>
+                </div>
+            </div>
+            <div class="text-right">
+                <button class="btn btn-primary btn-sm">Insert Time Log</button>
+            </div>
+        </form>
+        <hr>
+        <div class="mb-5">
+            {% if attendance.changes.length > 0 %}
+                <h2 class="h2">History</h2>
+                <ul>
+                    {% for change in attendance.changes.reverse() %}
+                        <li>{{change.summary}} - <a href="#"><em title="{{change.createdAt|format_date('MMM DD, YYYY - h:mm:ss A')}}">{{change.createdAt|from_now}}</em></a>
+                         </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if attendance.comments.length > 0 %}
+                <h2 class="h2">Comments</h2>
+                <ul>
+                    {% for comment in attendance.comments.reverse() %}
+                        <li>{{comment.summary}} - <a href="#"><em title="{{comment.createdAt|format_date('MMM DD, YYYY - h:mm:ss A')}}">{{comment.createdAt|from_now}}</em></a>
+                         </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            workScheduleId: '{{employment.workScheduleId}}',
+            workSchedules: {{workSchedules|default([], true)|stringify|safe}},
+            attendanceTypes: {{attendanceTypes|default([], true)|stringify|safe}},
+            attendanceTypesList: {{attendanceTypesList|default([], true)|stringify|safe}},
+            date: '',
+            attendanceType: 'normal',
+            log0: '',
+            log1: '',
+            log2: '',
+            log3: '',
+            commentSelect: '',
+            commentBox: '',
+        },
+        computed: {
+            comment: function(){
+                if(this.commentSelect === 'Write comment.'){
+                    return this.commentBox
+                }
+                return this.commentSelect
+            }
+        },
+        validations: {
+            workScheduleId: {
+                required: window.validators.required
+            },
+            date: {
+                required: window.validators.required
+            },
+            comment: {
+                required: window.validators.required
+            },
+            log0: {
+                required: window.validators.requiredIf(function(){
+                    return this.attendanceType === 'normal';
+                })
+            },
+            
+        },
+        methods: {
+            moveTimeLog: function(current, next){
+                const me = this;
+                const currentLog = _.get(me, 'log' + current);
+                const nextLog = _.get(me, 'log' + next);
+                if(currentLog && !nextLog){
+                    me['log' + next] = currentLog
+                    me['log' + current] = ''
+                }
+            },
+            isHidden: function(current, next){
+                const me = this;
+                const currentLog = _.get(me, 'log' + current);
+                const nextLog = _.get(me, 'log' + next);
+
+                if(!currentLog) {
+                    return 'display:none'
+                } else if(nextLog) {
+                    return 'display:none'
+                }
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

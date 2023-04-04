@@ -958,10 +958,12 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
             let lastLog = attendance.logs[attendance.logs.length - 1]
             let lastLogMoment = moment(lastLog.dateTime)
 
+            attendance.logs[1].dateTime = lastLogMoment.clone().startOf('day').add(firstShift.end, 'minutes').toDate()
+
             // We need 2 logs to form a segment
             attendance.logs.push({
                 _id: db.mongoose.Types.ObjectId(),
-                dateTime: lastLogMoment.toDate(),
+                dateTime: lastLogMoment.clone().startOf('day').add(lastShift.start, 'minutes').toDate(),
                 mode: 1, // 1 = in, 0 = out
                 type: attendanceType, // 'normal', 'wfh', 'travel', 'pass'
                 source: logSource,
@@ -2211,7 +2213,7 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
                 ignoreZero: true,
                 noSpill: true
             }
-            if (employment.employmentType === 'part-time' || attendance.type !== 'normal') {
+            if (employment.employmentType === 'part-time' || (attendance.type !== 'normal' && attendance.type !== 'travel')) {
                 options.noSpill = false
             }
             let timeWorked = countWork(timeSegments, logSegments, options)

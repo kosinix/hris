@@ -929,15 +929,15 @@ const logTravelAndWfh = async (db, date, employee, employment, source, attendanc
             // We need 3 more logs
             attendance.logs.push({
                 _id: db.mongoose.Types.ObjectId(),
-                dateTime: momentDate.clone().toDate(),
-                mode: 1, // 1 = in, 0 = out
+                dateTime: momentDate.clone().startOf('day').add(firstShift.end, 'minutes').toDate(),
+                mode: 0, // 1 = in, 0 = out
                 type: attendanceType, // 'normal', 'wfh', 'travel', 'pass'
                 source: logSource,
                 createdAt: moment().toDate(),
             })
             attendance.logs.push({
                 _id: db.mongoose.Types.ObjectId(),
-                dateTime: momentDate.clone().toDate(),
+                dateTime: momentDate.clone().startOf('day').add(lastShift.start, 'minutes').toDate(),
                 mode: 1, // 1 = in, 0 = out
                 type: attendanceType,
                 source: logSource,

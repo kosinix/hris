@@ -37,7 +37,7 @@
                     <div class="pl-3 pr-3">
                         <a class="btn btn-sm btn-secondary" href="/attendance/flag/adjust?date={{mCalendar|format_date('YYYY-MM-DD')}}">4:30PM Log-outs</a>
                         {% if user.roles.includes('admin') %}
-                            <a class="btn btn-sm btn-secondary" href="/attendance/flag/change?date={{mCalendar|format_date('YYYY-MM-DD')}}&rollback=1">Rollback Adjustments</a>
+                            <a class="btn btn-sm btn-secondary" href="/attendance/flag/adjust?date={{mCalendar|format_date('YYYY-MM-DD')}}&rollback=true">Rollback Adjustments</a>
                         {% endif %}
                     </div>
                 </div>

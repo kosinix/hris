@@ -8,15 +8,13 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const schema = new Schema({
-    employeeId: {
-        $type: mongoose.Schema.Types.ObjectId,
-    },
-    employmentId: {
-        $type: mongoose.Schema.Types.ObjectId,
-    },
+    employeeId: mongoose.Schema.Types.ObjectId,
+    employmentId: mongoose.Schema.Types.ObjectId,
     description: String,
     alert: String,
     userId: mongoose.Schema.Types.ObjectId,
+    username: String,
+    op: String, // Operation type: c, r, u, d for create, read, update, delete
 }, { timestamps: {createdAt: true, updatedAt: false}, typeKey: '$type' })
 
 //// Virtuals

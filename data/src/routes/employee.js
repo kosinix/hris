@@ -429,6 +429,16 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
 
         let employee = new req.app.locals.db.main.Employee(patch)
         await employee.save()
+
+        await req.app.locals.db.main.EmployeeHistory.create({
+            employeeId: employee._id,
+            description: `Employee "${employee.lastName}, ${employee.firstName}" created by "${res.user.username}".`,
+            alert: `text-success`,
+            userId: res.user._id,
+            username: res.user.username,
+            op: 'c',
+        })
+
         flash.ok(req, 'employee', `Added ${employee.firstName} ${employee.lastName}.`)
         res.redirect(`/employee/${employee._id}/employment`)
     } catch (err) {
@@ -471,6 +481,43 @@ router.get('/employee/:employeeId/history', middlewares.guardRoute(['read_employ
         })
         res.render('employee/history.html', {
             employee: employee,
+            history: history,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/employee/history/all', middlewares.guardRoute(['read_employee']), async (req, res, next) => {
+    try {
+        const firstId = req.query?.firstId
+        const lastId = req.query?.lastId
+        let criteria = {}
+        if (firstId) {
+            criteria = {
+                _id: {
+                    $lt: req.app.locals.db.mongoose.Types.ObjectId(firstId)
+                }
+            }
+        } else if (lastId) {
+            criteria = {
+                _id: {
+                    $gt: req.app.locals.db.mongoose.Types.ObjectId(lastId)
+                }
+            }
+        }
+
+        const history = await req.app.locals.db.main.EmployeeHistory.aggregate([
+           
+            {
+                $match: criteria
+            },
+            {
+                $limit: 10
+            },
+        ])
+
+        res.render('employee/history/all.html', {
             history: history,
         });
     } catch (err) {
@@ -579,6 +626,8 @@ router.post('/employee/:employeeId/employment/create', middlewares.guardRoute(['
             description: `Employment "${employment.position}" for "${employee.firstName} ${employee.lastName}" created by "${res.user.username}".`,
             alert: 'text-success',
             userId: res.user._id,
+            username: res.user.username,
+            op: 'c'
         })
 
         flash.ok(req, 'employee', `Added to "${employee.firstName} ${employee.lastName}'s" employment.`)
@@ -613,7 +662,7 @@ router.get('/employee/:employeeId/employment/:employmentId/update', middlewares.
             },
         ])
 
-        
+
         workSchedules = workSchedules.map((w) => {
             return {
                 value: w._id,
@@ -683,10 +732,11 @@ router.post('/employee/:employeeId/employment/:employmentId/delete', middlewares
 
         await req.app.locals.db.main.EmployeeHistory.create({
             employeeId: employee._id,
-            employmentId: employment._id,
             description: `Employment "${employment.position}" for "${employee.firstName} ${employee.lastName}" deleted by "${res.user.username}".`,
             alert: 'text-danger',
             userId: res.user._id,
+            username: res.user.username,
+            op: 'd',
         })
         await employment.remove()
 
@@ -732,7 +782,7 @@ router.post('/employee/:employeeId/employment/:employmentId/promote', middleware
         // Deactivate employment
         await req.app.locals.db.main.Employment.updateOne({ _id: employment._id }, {
             active: false,
-            employmentEnd: moment(lodash.get(body, 'employmentStart')).subtract(1,'day').endOf('day').toDate()
+            employmentEnd: moment(lodash.get(body, 'employmentStart')).subtract(1, 'day').endOf('day').toDate()
         })
 
 
@@ -760,6 +810,8 @@ router.post('/employee/:employeeId/employment/:employmentId/promote', middleware
             description: `Employment "${patch.position}" for "${employee.firstName} ${employee.lastName}" created by "${res.user.username}".`,
             alert: 'text-success',
             userId: res.user._id,
+            username: res.user.username,
+            op: 'c',
         })
 
         flash.ok(req, 'employee', `Promoted "${employee.firstName} ${employee.lastName}'s" employment.`)
@@ -1088,6 +1140,15 @@ router.post('/employee/:employeeId/user/create', middlewares.guardRoute(['update
             // loginUrl: `${CONFIG.app.url}/login?username=${employeeUser.username}`
         }
 
+        await req.app.locals.db.main.EmployeeHistory.create({
+            employeeId: employee._id,
+            description: `User "${employeeUser.username}" created by "${res.user.username}".`,
+            alert: `text-success`,
+            userId: res.user._id,
+            username: res.user.username,
+            op: 'c',
+        })
+
         let info = await mailer.send('verified.html', data)
 
         flash.ok(req, 'employee', `Account created with username "${body.username}" and password "${body.password}".`)
@@ -1140,6 +1201,15 @@ router.post('/employee/:employeeId/user/delete', middlewares.guardRoute(['update
     try {
         let employee = res.employee
         let deleted = await req.app.locals.db.main.User.findByIdAndDelete(employee.userId)
+
+        await req.app.locals.db.main.EmployeeHistory.create({
+            employeeId: employee._id,
+            description: `User "${deleted.username}" deleted by "${res.user.username}".`,
+            alert: 'text-danger',
+            userId: res.user._id,
+            username: res.user.username,
+            op: 'd',
+        })
 
         flash.ok(req, 'employee', `Account "${deleted.username}" deleted.`)
         res.redirect(`/employee/${employee._id}/user`)
@@ -1301,7 +1371,9 @@ router.post('/employee/:employeeId/user/password-reset', middlewares.guardRoute(
 
         employeeUser.salt = salt
         employeeUser.passwordHash = passwordHash
+        let emailedLog = ``
         if (body.send === 'on') {
+            emailedLog = `emailed to "${employeeUser.email}"`
             let data = {
                 to: employeeUser.email,
                 firstName: employee.firstName,
@@ -1317,7 +1389,14 @@ router.post('/employee/:employeeId/user/password-reset', middlewares.guardRoute(
             flash.ok(req, 'employee', `Employee password updated.`)
         }
         await employeeUser.save()
-
+        await req.app.locals.db.main.EmployeeHistory.create({
+            employeeId: employee._id,
+            description: `User "${employeeUser.username}" password ${emailedLog} updated by "${res.user.username}".`,
+            alert: `text-info`,
+            userId: res.user._id,
+            username: res.user.username,
+            op: 'u',
+        })
         res.redirect(`/employee/${employee._id}/user`)
     } catch (err) {
         next(err);

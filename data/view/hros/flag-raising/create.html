@@ -392,6 +392,9 @@
                                 me.latLon = [lat, lon]
                                 me.locationMessage = 'Your are inside ' + data + '.'
                                 me.campus = ('' + data).replace(' Campus', '')
+                                setTimeout(() => {
+                                    window.location.href = window.location.href;
+                                }, 30000)
 
                             }).catch(function (error) {
                                 if (error.response) {

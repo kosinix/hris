@@ -539,99 +539,20 @@ router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile'])
         let user = res.user.toObject()
         let employee = res.employee.toObject()
 
-        const creditFlag = async (rollback = 0) => {
+        let momentDate = moment()
 
-            let momentDate = moment()
-
-            let employment = await req.app.locals.db.main.Employment.findOne({
-                employeeId: employee._id
-            })
-            if (!employment) throw new Error('Employment not found')
-
-            let regularSchedule = await req.app.locals.db.main.WorkSchedule.findOne({
-                name: 'Regular Working Hours'
-            }).lean()
-            if (!regularSchedule) throw new Error('Could not find schedule 1')
-
-            let schedule2 = await req.app.locals.db.main.WorkSchedule.findOne({
-                name: '7:30AM-12NN,1PM-4:30PM'
-            }).lean()
-            if (!schedule2) throw new Error('Could not find schedule 2')
-
-            let presentOnFlag = await req.app.locals.db.main.AttendanceFlag.countDocuments({
-                employeeId: employee._id,
-                dateTime: {
-                    $gte: momentDate.clone().startOf('day').toDate(),
-                    $lte: momentDate.clone().endOf('day').toDate(),
-                }
-            }).lean()
-            presentOnFlag = presentOnFlag > 0 ? true : false
-            // console.log(presentOnFlag)
-
-            if (employment.group === 'staff' && employment.workScheduleId?.toString() === regularSchedule._id?.toString() && presentOnFlag) {
-                if (rollback === 0) {
-                    let message = `${user.username} adjusted schedule from ${regularSchedule.name} to ${schedule2.name} because of the flag raising attendance.`
-                    let updated = await req.app.locals.db.main.Attendance.updateMany(
-                        {
-                            employmentId: employment._id,
-                            workScheduleId: {
-                                $ne: schedule2._id
-                            },
-                            createdAt: {
-                                $gte: momentDate.clone().startOf('day').toDate(),
-                                $lte: momentDate.clone().endOf('day').toDate(),
-                            }
-                        },
-                        {
-                            $set: {
-                                workScheduleId: schedule2._id
-                            },
-                            $push: {
-                                comments: {
-                                    summary: message,
-                                    objectId: user._id,
-                                    createdAt: moment().toDate()
-                                }
-                            },
-                        },
-                        {
-                            multi: false
-                        }
-                    )
-                } else {
-                    let message = `${user.username} adjusted schedule from ${regularSchedule.name} to ${schedule2.name} because of the flag raising attendance.`
-                    let updated = await req.app.locals.db.main.Attendance.updateMany(
-                        {
-                            employmentId: employment._id,
-                            workScheduleId: {
-                                $ne: schedule2._id
-                            },
-                            createdAt: {
-                                $gte: momentDate.clone().startOf('day').toDate(),
-                                $lte: momentDate.clone().endOf('day').toDate(),
-                            }
-                        },
-                        {
-                            $set: {
-                                workScheduleId: schedule2._id
-                            },
-                            $push: {
-                                comments: {
-                                    summary: message,
-                                    objectId: user._id,
-                                    createdAt: moment().toDate()
-                                }
-                            },
-                        },
-                        {
-                            multi: false
-                        }
-                    )
-                }
-
+        let presentOnFlag = await req.app.locals.db.main.AttendanceFlag.countDocuments({
+            employeeId: employee._id,
+            dateTime: {
+                $gte: momentDate.clone().startOf('day').toDate(),
+                $lte: momentDate.clone().endOf('day').toDate(),
             }
+        }).lean()
+        presentOnFlag = presentOnFlag > 0 ? true : false
+
+        if(presentOnFlag){
+            return res.redirect('/hros/flag/all')
         }
-        let r = await creditFlag(1)
 
         let data = {
             title: 'Human Resource Online Services (HROS) - Flag',

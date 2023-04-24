@@ -534,7 +534,7 @@ router.get('/hros/flag/all', middlewares.guardRoute(['use_employee_profile']), m
         next(err);
     }
 });
-router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee,/* middlewares.isFlagRaisingDay, */async (req, res, next) => {
+router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.isFlagRaisingDay, async (req, res, next) => {
     try {
         let user = res.user.toObject()
         let employee = res.employee.toObject()
@@ -566,7 +566,7 @@ router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile'])
         next(err);
     }
 });
-router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, /*middlewares.isFlagRaisingDay,*/ async (req, res, next) => {
+router.post('/hros/flag/log', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.isFlagRaisingDay, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
 

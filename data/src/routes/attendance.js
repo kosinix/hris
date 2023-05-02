@@ -885,7 +885,7 @@ router.get('/attendance/flag/adjust', middlewares.guardRoute(['read_all_attendan
         let workScheduleMatcher = {
             $ne: schedule2._id,
         }
-        if(rollback){
+        if (rollback) {
             workScheduleMatcher = {
                 $ne: schedule1._id,
             }
@@ -1868,6 +1868,7 @@ router.get('/attendance/employment/:employmentId/move', middlewares.guardRoute([
     try {
         let employment = res.employment.toObject()
         let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
 
         let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
         let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
@@ -1890,6 +1891,20 @@ router.get('/attendance/employment/:employmentId/move', middlewares.guardRoute([
 
         let momentNow = moment()
 
+        // ATTENDANCES
+        let attendances = await req.app.locals.db.main.Attendance.aggregate([
+            {
+                $match: {
+                    employeeId: employment.employeeId,
+                    employmentId: employment._id,
+                    createdAt: {
+                        $gte: startMoment.clone().startOf('day').toDate(),
+                        $lte: endMoment.clone().endOf('day').toDate(),
+                    }
+                }
+            },
+        ])
+        // return res.send(attendances)
         let options = {
             showTotalAs: showTotalAs,
             showWeekDays: showWeekDays,
@@ -1955,6 +1970,9 @@ router.get('/attendance/employment/:employmentId/move', middlewares.guardRoute([
             momentNow: momentNow,
             months: months,
             days: days,
+            attendances: attendances,
+            attendanceIds: attendances.map(a => a._id),
+            workSchedules: workSchedules,
             selectedMonth: 'nu',
             showTotalAs: showTotalAs,
             showWeekDays: showWeekDays,
@@ -1970,6 +1988,43 @@ router.get('/attendance/employment/:employmentId/move', middlewares.guardRoute([
         next(err);
     }
 });
+router.post('/attendance/employment/:employmentId/move', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let attendanceIds = req.body.attendanceIds.split(',').map((a) => {
+            return req.app.locals.db.mongoose.Types.ObjectId(a)
+        })
+        // ATTENDANCES
+        // let attendances = await req.app.locals.db.main.Attendance.aggregate([
+        //     {
+        //         $match: {
+        //             _id: {
+        //                 $in: attendanceIds
+        //             }
+        //         }
+        //     },
+        // ])
+
+        await req.app.locals.db.main.Attendance.update(
+            {
+                _id: {
+                    $in: attendanceIds
+                }
+            },
+            {
+                $set: {
+                    workScheduleId: req.body.workScheduleId
+                },
+            },
+            {
+                multi: true
+            }
+        )
+
+        res.send('changed')
+    } catch (err) {
+        next(err);
+    }
+})
 
 router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_attendance']), middlewares.getAttendance, async (req, res, next) => {
     try {

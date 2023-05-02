@@ -15,7 +15,7 @@ const excelGen = require('../excel-gen');
 const uid = require('../uid');
 const payrollJs = require('../../public/js/payroll');
 const dtrHelper = require('../dtr-helper');
-const {AppError} = require('../errors');
+const { AppError } = require('../errors');
 
 // Router
 let router = express.Router()
@@ -524,6 +524,113 @@ router.get(['/payroll/:payrollId', `/payroll/:payrollId/payroll.xlsx`], middlewa
             payrollJs: payrollJs.formulas[payroll.template],
             dtrHelper: dtrHelper,
         });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/payroll/x/view', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
+    try {
+
+        let employeeLists = await req.app.locals.db.main.EmployeeList.find()
+
+        res.render('payroll/viewer.html', {
+            employeeLists: employeeLists.filter(o => o.tags.includes('Fund Source')).map((o) => {
+                return {
+                    value: o._id,
+                    text: o.name
+                }
+            })
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/payroll/x/viewer', middlewares.guardRoute(['read_payroll']), async (req, res, next) => {
+    try {
+        let dateStart = req.query?.dateStart
+        let dateEnd = req.query?.dateEnd
+        let employeeListId = req.query?.employeeList
+
+        let employeeList = await req.app.locals.db.main.EmployeeList.findById(employeeListId).lean();
+        if (!employeeList) {
+            throw new Error(`Employee list not found.`)
+        }
+        let members = employeeList.members
+
+        let startMoment = moment(dateStart)
+        let endMoment = moment(dateEnd)
+        console.log(startMoment)
+        let options = {
+            padded: true,
+            showTotalAs: 'time',
+            showWeekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            periodWeekDays: 'All'
+        }
+        let rows = []
+        for (let x = 0; x < members.length; x++) {
+            // for (let x = 0; x < 20; x++) {
+            let member = members[x]
+            // console.log(member)
+
+            let { days, stats, compute } = await dtrHelper.getDtrByDateRange4(req.app.locals.db, member.employeeId, member.employmentId, startMoment, endMoment, options)
+
+            let employments = await req.app.locals.db.main.Employment.aggregate([
+                {
+                    $match: {
+                        _id: member.employmentId
+                    }
+                },
+                {
+                    $lookup: {
+                        localField: 'employeeId',
+                        foreignField: '_id',
+                        from: 'employees',
+                        as: 'employees'
+                    }
+                },
+                {
+                    $addFields: {
+                        "employee": {
+                            $arrayElemAt: ["$employees", 0]
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        employees: 0,
+                        employee: {
+                            personal: 0,
+                            employments: 0,
+                            addresses: 0,
+                        }
+                    }
+                }
+            ])
+            const precisionRound = (number, precision) => {
+                var factor = Math.pow(10, precision);
+                return Math.round(number * factor) / factor;
+            }
+            let employment = employments?.pop()
+            let employee = employment.employee
+            rows.push({
+                sourceOfFund: employment.department,
+                name: `${employee.lastName}, ${employee.firstName}`,
+                position: employment.position,
+                wage: employment.salary,
+                days: stats.weekdays.renderedDays,
+                hours: stats.weekdays.renderedHours,
+                minutes: stats.weekdays.renderedMinutes,
+                gross: precisionRound((employment.salary / 8 / 60) * stats.weekdays.totalMinutes, 9).toFixed(2)
+                // stats: stats,
+                // compute: compute,
+            })
+        }
+        // return res.send(rows)
+
+        res.render('payroll/table-xxx.html', {
+            rows: rows
+        })
     } catch (err) {
         next(err);
     }
@@ -1039,7 +1146,7 @@ router.post('/payroll/group/:employeeListId/member', middlewares.guardRoute(['cr
             }
         })
         if (matches.length > 0) {
-            if(req.xhr){
+            if (req.xhr) {
                 return res.status(400).send(`Duplicate entry.`)
             }
             flash.error(req, 'employee', `Duplicate entry.`)
@@ -1069,7 +1176,7 @@ router.post('/payroll/group/:employeeListId/member', middlewares.guardRoute(['cr
 
         await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
 
-        if(req.xhr){
+        if (req.xhr) {
             let updatedList = await req.app.locals.db.main.EmployeeList.findOne({
                 _id: employeeList._id,
             })

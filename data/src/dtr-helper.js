@@ -2170,7 +2170,7 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
         let attendance = attendances[date] || null
         let holiday = holidays[date] || null
         let workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
-        const isForCorrection = ['2023-02-02', '2023-02-03'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
+        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         let dtr = {
             totalMinutes: 0,
             totalInHours: 0,
@@ -2426,15 +2426,32 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
     dtr.underHours = Math.floor(dtr.underHours)
     dtr.underMinutes = Math.round(dtr.underMinutes)
 
+    dtr.logs = []
+    timeWorked = timeWorked.map(t => {
+        
+        t.logSegments.forEach((l)=>{
+            dtr.logs.push({
+                in: mToTime(l.start, 'hh:mm A'),
+                out: mToTime(l.end, 'hh:mm A'),
+                tardy: l.countedExcess < 0
+            })  
+        })
+        return t
+    })
+    dtr.timeWorked = timeWorked
+
     return dtr
 }
 
-const getDtrByDateRange4 = async (db, employeeId, employmentId, startMoment, endMoment, options) => {
+const getDtrByDateRange4 = async (db, employeeId, employmentId, _startMoment, _endMoment, options) => {
 
     const defaults = {
         padded: false,
         excludeWeekend: false,
     }
+
+    const startMoment = _startMoment.clone()
+    const endMoment = _endMoment.clone()
 
     options = lodash.merge(defaults, options)
     const { showTotalAs, showWeekDays, padded, excludeWeekend, periodWeekDays } = options;
@@ -2514,10 +2531,10 @@ const getDtrByDateRange4 = async (db, employeeId, employmentId, startMoment, end
         const month = _moment.format('MM')
         const weekDay = _moment.format('ddd')
         const day = _moment.format('DD')
-        const isWeekend = ['Sat','Sun'].includes(weekDay)
+        const isWeekend = ['Sat', 'Sun'].includes(weekDay)
         const isPast = _moment.clone().startOf('day').isBefore(moment().startOf('day'))
         const isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
-        const isForCorrection = ['2023-02-02', '2023-02-03'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
+        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         const holiday = holidays[date] || null
         const attendance = attendances[date] || null
         const workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
@@ -2551,7 +2568,7 @@ const getDtrByDateRange4 = async (db, employeeId, employmentId, startMoment, end
             attendance: {
                 _id: lodash.get(attendance, '_id'),
                 type: lodash.get(attendance, 'type', ''),
-                logs: lodash.get(attendance, 'logs', []), // for half-day travel
+                // logs: lodash.get(attendance, 'logs', []), // for half-day travel
             },
             dtr: dtr,
         }

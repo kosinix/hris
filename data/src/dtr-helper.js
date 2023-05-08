@@ -2440,7 +2440,21 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
     })
     dtr.timeWorked = timeWorked
 
-    return dtr
+    return {
+        segments: timeWorked,
+        time: {
+            days: dtr.renderedDays,
+            hours: dtr.renderedHours,
+            minutes: dtr.renderedMinutes,
+            total: dtr.totalMinutes
+        },
+        undertime: {
+            days: dtr.underDays,
+            hours: dtr.underHours,
+            minutes: dtr.underMinutes,
+            total: dtr.underTimeTotalMinutes
+        }
+    }
 }
 
 const getDtrByDateRange4 = async (db, employeeId, employmentId, _startMoment, _endMoment, options) => {
@@ -2570,7 +2584,7 @@ const getDtrByDateRange4 = async (db, employeeId, employmentId, _startMoment, _e
                 type: lodash.get(attendance, 'type', ''),
                 // logs: lodash.get(attendance, 'logs', []), // for half-day travel
             },
-            dtr: dtr,
+            ...dtr,
         }
     })
     // console.dir(days, {depth:null})

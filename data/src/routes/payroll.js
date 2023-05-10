@@ -573,7 +573,7 @@ router.get('/payroll/x/viewer', middlewares.guardRoute(['read_payroll']), async 
             let member = members[x]
             // console.log(member)
 
-            let { days, stats, compute } = await dtrHelper.getDtrByDateRange4(req.app.locals.db, member.employeeId, member.employmentId, startMoment, endMoment, options)
+            let { days, stats, compute } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, member.employeeId, member.employmentId, startMoment, endMoment, options)
 
             let employments = await req.app.locals.db.main.Employment.aggregate([
                 {

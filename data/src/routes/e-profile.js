@@ -255,8 +255,8 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             periodWeekDays: periodWeekDays
         }
 
-        let { days, stats, compute } = await dtrHelper.getDtrByDateRange4(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
-return res.send({ days: days[1], stats, compute })
+        let { days, stats, compute } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+// return res.send({ days: days[1], stats, compute })
         let periodMonthYearMoment = moment(periodMonthYear)
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
         let months = Array.from(range1.by('months')).reverse()
@@ -341,129 +341,9 @@ return res.send({ days: days[1], stats, compute })
         // return res.send(days)
 
         if (/^\/e-profile\/dtr\/print/.test(req.path)) {
-            return res.render('e-profile/dtr-print2.html', data)
+            return res.render('e-profile/dtr-print6.html', data)
         }
-        res.render('e-profile/dtr4.html', data)
-    } catch (err) {
-        next(err);
-    }
-});
-
-// TODO: Fix or remove
-router.get(['/e-profile/dtr4/:employmentId', '/e-profile/dtr4/print/:employmentId'], middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.getDtrQueries, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let employment = res.employment
-        let employmentId = employment._id
-
-        let {
-            periodMonthYear,
-            periodSlice,
-            periodWeekDays,
-            showTotalAs,
-            showWeekDays,
-            startMoment,
-            endMoment,
-            countTimeBy,
-        } = res
-
-
-        let options = {
-            padded: true,
-            showTotalAs: showTotalAs,
-            showWeekDays: showWeekDays,
-            periodWeekDays: periodWeekDays
-        }
-
-        let { days, stats, compute } = await dtrHelper.getDtrByDateRange4(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
-
-        let periodMonthYearMoment = moment(periodMonthYear)
-        const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
-        let months = Array.from(range1.by('months')).reverse()
-
-        let periodMonthYearList = months.map((_moment) => {
-            let date = _moment.startOf('month')
-
-            return {
-                value: date.format('YYYY-MM-DD'),
-                text: date.format('MMM YYYY'),
-            }
-        })
-
-        let workSchedules = await workScheduler.getEmploymentWorkSchedule(req.app.locals.db, employmentId)
-
-        let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(employment.workScheduleId)
-
-        let workScheduleWeekDays = dtrHelper.workScheduleDisplay(workSchedule, [
-            'mon',
-            'tue',
-            'wed',
-            'thu',
-            'fri',
-        ])
-
-        let workScheduleWeekEnd = dtrHelper.workScheduleDisplay(workSchedule, [
-            'sat',
-            'sun',
-        ])
-
-        let workScheduleWeek = dtrHelper.workScheduleDisplay(workSchedule, [
-            'mon',
-            'tue',
-            'wed',
-            'thu',
-            'fri',
-            'sat',
-            'sun',
-        ])
-
-        let data = {
-            title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
-
-            flash: flash.get(req, 'employee'),
-
-            employee: employee,
-            employment: employment,
-
-            // Data that might change
-            days: days,
-            stats: stats,
-            compute: compute,
-
-            showTotalAs: showTotalAs,
-            workSchedules: workSchedules,
-            periodMonthYearList: periodMonthYearList,
-            periodMonthYear: periodMonthYearMoment.format('YYYY-MM-DD'),
-            periodWeekDays: periodWeekDays,
-            periodSlice: periodSlice,
-            inCharge: employment.inCharge,
-            countTimeBy: countTimeBy,
-
-            startDate: startMoment.format('YYYY-MM-DD'),
-            endDate: endMoment.format('YYYY-MM-DD'),
-
-            workSchedule: workSchedule,
-            shared: false,
-
-            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => !['normal'].includes(o)),
-            workScheduleWeekDays: workScheduleWeekDays,
-            workScheduleWeekEnd: workScheduleWeekEnd,
-            workScheduleWeek: workScheduleWeek,
-        }
-
-        // return res.send(req.path)
-        if (req.xhr) {
-            return res.json(data)
-        }
-
-
-        // console.log(stats)
-        // return res.send(days)
-
-        if (/^\/e-profile\/dtr\/print/.test(req.path)) {
-            return res.render('e-profile/dtr-print2.html', data)
-        }
-        res.render('e-profile/dtr4.html', data)
+        res.render('e-profile/dtr6.html', data)
     } catch (err) {
         next(err);
     }

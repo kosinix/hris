@@ -1684,14 +1684,14 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         if (!options.showWeekDays.length) {
             options.showWeekDays = showWeekDays.split('|')
         }
-        let { days } = await dtrHelper.getDtrByDateRange4(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         // console.log(options)
         let totalMinutes = 0
         let totalMinutesUnderTime = 0
         days.forEach((day) => {
-            totalMinutes += lodash.get(day, 'dtr.totalMinutes', 0)
-            totalMinutesUnderTime += lodash.get(day, 'dtr.underTimeTotalMinutes', 0)
+            totalMinutes += lodash.get(day, 'time.total', 0)
+            totalMinutesUnderTime += lodash.get(day, 'undertime.total', 0)
         })
 
         // return res.send(days)
@@ -1752,7 +1752,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
             compatibilityUrl: compatibilityUrl,
         }
         // return res.send(days)
-        res.render('attendance/employment2.html', data);
+        res.render('attendance/employment6.html', data);
     } catch (err) {
         next(err);
     }
@@ -1912,14 +1912,14 @@ router.get('/attendance/employment/:employmentId/move', middlewares.guardRoute([
         if (!options.showWeekDays.length) {
             options.showWeekDays = showWeekDays.split('|')
         }
-        let { days } = await dtrHelper.getDtrByDateRange4(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         // console.log(options)
         let totalMinutes = 0
         let totalMinutesUnderTime = 0
         days.forEach((day) => {
-            totalMinutes += lodash.get(day, 'dtr.totalMinutes', 0)
-            totalMinutesUnderTime += lodash.get(day, 'dtr.underTimeTotalMinutes', 0)
+            totalMinutes += lodash.get(day, 'time.total', 0)
+            totalMinutesUnderTime += lodash.get(day, 'undertime.total', 0)
         })
 
         // return res.send(days)

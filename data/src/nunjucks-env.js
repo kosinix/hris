@@ -120,5 +120,12 @@ env.addFilter('mobile_num', (mobileNo) => {
     return lodash.join(mobileNo, '');
 });
 
+env.addFilter('blank', (num) => {
+    if(!num){
+        return ''
+    }
+    return num
+});
+
 //// Export
 module.exports = env;

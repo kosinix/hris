@@ -490,25 +490,22 @@ router.get('/employee/:employeeId/history', middlewares.guardRoute(['read_employ
 
 router.get('/employee/history/all', middlewares.guardRoute(['read_employee']), async (req, res, next) => {
     try {
-        const firstId = req.query?.firstId
         const lastId = req.query?.lastId
         let criteria = {}
-        if (firstId) {
+        if (lastId) {
             criteria = {
                 _id: {
-                    $lt: req.app.locals.db.mongoose.Types.ObjectId(firstId)
-                }
-            }
-        } else if (lastId) {
-            criteria = {
-                _id: {
-                    $gt: req.app.locals.db.mongoose.Types.ObjectId(lastId)
+                    $lt: req.app.locals.db.mongoose.Types.ObjectId(lastId)
                 }
             }
         }
 
         const history = await req.app.locals.db.main.EmployeeHistory.aggregate([
-           
+            {
+                $sort: {
+                    _id: -1
+                }
+            },
             {
                 $match: criteria
             },

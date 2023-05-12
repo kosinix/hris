@@ -532,6 +532,23 @@ h4, h5, h6 {
     transition: all 0.5s;
 }
 
+.table-payroll-sim  {
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+    font-size: 12px;
+}
+
+.table-payroll-sim th,
+.table-payroll-sim td {
+    padding: 3px;
+}
+
+.table-payroll-sim th {
+    border: 1px solid #111;
+}
+.table-payroll-sim td {
+    border: 1px solid #ccc;
+}
+
 .table-payroll {
     position: relative;
 }

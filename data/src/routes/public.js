@@ -341,6 +341,15 @@ router.get('/forgotten/:secureKey', async (req, res, next) => {
         await user.save()
         await passwordReset.remove()
 
+        let employee = await req.app.locals.db.main.Employee.findOne({ userId: user._id });
+        await req.app.locals.db.main.EmployeeHistory.create({
+            employeeId: employee?._id || null,
+            description: `User "${user.username}" used forgot password with email "${user.email}".`,
+            alert: `text-info`,
+            userId: user._id,
+            username: user.username,
+            op: 'u',
+        })
         return res.render('sent-done.html', {
             username: user.username,
             password: password,

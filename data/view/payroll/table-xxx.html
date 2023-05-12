@@ -1,0 +1,40 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="p-3">
+    <div class="table-responsive">
+        <table class="table-payroll-sim">
+            <thead>
+                <tr>
+                    <th>NO.</th>
+                    <th>Source of Fund</th>
+                    <th>Name</th>
+                    <th>Position</th>
+                    <th>DAILY/ MONTHLY WAGE</th>
+                    <th colspan="6"> No. of Days Rendered</th>
+                    <th>Gross Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in rows %}
+                <tr>
+                    <td>{{loop.index}}</td>
+                    <td>{{row.sourceOfFund}}</td>
+                    <td>{{row.name}}</td>
+                    <td>{{row.position}}</td>
+                    <td>{{row.wage}}</td>
+                    <td>{{row.days|blank}}</td>
+                    <td>days</td>
+                    <td>{{row.hours|blank}}</td>
+                    <td>hrs</td>
+                    <td>{{row.minutes|blank}}</td>
+                    <td>mins</td>
+                    <td>{{row.gross}}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div> 
+</div>
+{% endblock %}

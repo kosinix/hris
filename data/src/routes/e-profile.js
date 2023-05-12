@@ -2060,6 +2060,15 @@ router.post('/e-profile/account/password', middlewares.guardRoute(['use_employee
         user.passwordHash = passwordMan.hashPassword(lodash.get(body, 'newPassword'), user.salt);
         await user.save()
 
+        let employee = await req.app.locals.db.main.Employee.findOne({ userId: user._id });
+        await req.app.locals.db.main.EmployeeHistory.create({
+            employeeId: employee?._id || null,
+            description: `User "${user.username}" changed the password.`,
+            alert: `text-info`,
+            userId: user._id,
+            username: user.username,
+            op: 'u',
+        })
         flash.ok(req, 'employee', `Password changed successfully.`)
         return res.redirect(`/e-profile/account/password`)
     } catch (err) {

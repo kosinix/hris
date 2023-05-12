@@ -1781,7 +1781,7 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
             showWeekDays: showWeekDays,
         }
 
-        let { days, stats } = await dtrHelper.getDtrByDateRange2(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+        let { days, stats } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         let periodMonthYearMoment = moment(periodMonthYear)
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
@@ -1857,7 +1857,7 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
         }
 
         // return res.send(days)
-        return res.render('e-profile/dtr-print2.html', data)
+        return res.render('e-profile/dtr-print6.html', data)
     } catch (err) {
         next(err);
     }

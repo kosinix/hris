@@ -18,7 +18,7 @@
                     {% for h in history%}
                     <tr>
                         <td>
-                            <span class="{{h.alert}}">{{h.description}}</span>
+                            <span class="{{h.alert}}" title="{{h._id}}">{{h.description}}</span>
                         </td>
                         <td>{{h.createdAt|format_date('MMM DD, YYYY - h:mm A')}}</td>
                         <td><em>{{h.createdAt|from_now}}</em></td>
@@ -26,8 +26,7 @@
                     {% endfor %}
                 </table>
             </div>
-            <div class="d-flex justify-content-between">
-                <a href="/employee/history/all?firstId={{history.at(0)._id}}" class="btn btn-light btn-sm">Prev</a>
+            <div class="d-flex justify-content-end">
                 <a href="/employee/history/all?lastId={{history.at(-1)._id}}" class="btn btn-light btn-sm">Next</a>
             </div>
         {% else %}

@@ -532,6 +532,12 @@ h4, h5, h6 {
     transition: all 0.5s;
 }
 
+/*  */
+.table-travel {
+    font-size: 14px;
+}
+
+/*  */
 .table-payroll-sim  {
     font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
     font-size: 12px;

@@ -32,26 +32,39 @@ router.get('/online-services/home', middlewares.guardRoute(['read_all_attendance
 // Authority to Travel
 router.get('/online-services/at/all', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
     try {
-        let page = parseInt(lodash.get(req, 'query.page', 1))
-        let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
-        let sortBy = lodash.get(req, 'query.sortBy', '_id')
+        let lastId = lodash.get(req, 'query.lastId', '')
+        let perPage = 100
         let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', 1))
-        let customSort = lodash.get(req, 'query.customSort')
-        let customFilter = lodash.get(req, 'query.customFilter')
-        let customFilterValue = lodash.get(req, 'query.customFilterValue')
+        let page = parseInt(lodash.get(req, 'query.page', 1))
+        let lastName = lodash.get(req, 'query.lastName')
         lodash.set(req, 'session.pagination.perPage', perPage)
 
         let query = {}
-        let projection = {}
 
-        let options = { skip: (page - 1) * perPage, limit: perPage };
-        let sort = {}
-        sort = lodash.set(sort, sortBy, sortOrder)
-
-        // console.log(query, projection, options, sort)
+        if (lastId) {
+            if (sortOrder === -1) {
+                query = {
+                    _id: {
+                        $lt: req.app.locals.db.mongoose.Types.ObjectId(lastId)
+                    }
+                }
+            } else {
+                query = {
+                    _id: {
+                        $gt: req.app.locals.db.mongoose.Types.ObjectId(lastId)
+                    }
+                }
+            }
+        }
 
         let aggr = []
 
+        // Sort by _id 
+        aggr.push({ $sort: { _id: sortOrder } })
+        aggr.push({ $match: query })
+        if (!lastName) {
+            aggr.push({ $limit: perPage })
+        }
         aggr.push({
             $lookup:
             {
@@ -75,33 +88,64 @@ router.get('/online-services/at/all', middlewares.guardRoute(['read_all_attendan
                 employees: 0,
             }
         })
-        aggr.push({ $match: query })
-        aggr.push({ $sort: sort })
 
-        // Pagination
-        let countDocuments = await req.app.locals.db.main.AuthorityToTravel.aggregate(aggr)
-        let totalDocs = countDocuments.length
-        let pagination = paginator.paginate(
-            page,
-            totalDocs,
-            perPage,
-            '/online-services/at/all',
-            req.query
-        )
 
-        if (!isNaN(perPage)) {
-            aggr.push({ $skip: options.skip })
-            aggr.push({ $limit: options.limit })
+        if (lastName) {
+            aggr.push({
+                $match: {
+                    'employee.lastName': new RegExp(lastName, "i")
+                }
+            })
+            aggr.push({ $limit: perPage })
+
         }
+
+        let util = require('util')
+        console.log(util.inspect(aggr, false, null, true))
         let ats = await req.app.locals.db.main.AuthorityToTravel.aggregate(aggr)
+
+        //
+        aggr = []
+
+        // Sort by _id 
+        aggr.push({ $sort: { _id: sortOrder } })
+        if (lastName) {
+            aggr.push({
+                $lookup:
+                {
+                    localField: "employeeId",
+                    foreignField: "_id",
+                    from: "employees",
+                    as: "employees"
+                }
+            })
+            aggr.push({
+                $addFields: {
+                    "employee": {
+                        $arrayElemAt: ["$employees", 0]
+                    }
+                }
+            })
+            aggr.push({
+                $match: {
+                    'employee.lastName': new RegExp(lastName, "i")
+                }
+            })
+        }
+
+        let counts = await req.app.locals.db.main.AuthorityToTravel.aggregate(aggr)
 
         // return res.send(ats)
         let data = {
             title: 'Human Resource Online Services (HROS) - Authority to Travel',
             flash: flash.get(req, 'online-services'),
             ats: ats,
-            pagination: pagination,
+            sortOrder: sortOrder,
+            lastName: lastName,
+            page: page,
+            perPage: perPage,
             momentNow: moment(),
+            count: counts.length
         }
         res.render('online-services/authority-to-travel/all.html', data);
 
@@ -114,7 +158,7 @@ router.get('/online-services/at/:atId', middlewares.guardRoute(['read_all_attend
     try {
         let atId = req.params.atId
         let at = await req.app.locals.db.main.AuthorityToTravel.findById(atId).lean()
-        if(!at){
+        if (!at) {
             throw new Error('Not found.')
         }
         let data = {
@@ -132,7 +176,7 @@ router.get('/online-services/at/:atId/delete', middlewares.guardRoute(['read_all
     try {
         let atId = req.params.atId
         let at = await req.app.locals.db.main.AuthorityToTravel.findById(atId)
-        if(!at){
+        if (!at) {
             throw new Error('Not found.')
         }
         console.log(at)

@@ -51,7 +51,7 @@
                         </a>
                     </td>
                     <td class="text-mono">
-                        ${attendance.log.dateTime|format_date('hh:mm A')} 
+                        ${attendance.log.dateTime|format_date('hh:mm:ss A')} 
                         <template v-if="attendance.log.mode==1">
                             <em class="text-info">${logMode(attendance.log.mode)} </em>
                         </template>

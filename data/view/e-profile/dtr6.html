@@ -670,7 +670,7 @@
                 this.pending = true;
             },
             isUnderTime: function(segment, suffix='text-center'){
-                if(segment.countedUndertime > 0){
+                if(segment?.countedUndertime > 0){
                     return 'text-danger '+suffix
                 }
                 return ' '+suffix

@@ -121,24 +121,23 @@
                     <td :class="weekDayCssClasses(day)">${day.weekDay}</td>
                     
                     <template v-if="_.get(day, 'attendance.type') === 'normal'">
-                        <td v-bind:class="isUnderTime(day?.segments[0], day?.attendance?.logs?.length)">${day.display.inAM}</td>
-                        <td v-bind:class="isUnderTime(day?.segments[0], day?.attendance?.logs?.length)">
+                        <td v-bind:class="isUnderTime(day?.segments?.at(0), day?.attendance?.logs?.length)">${day.display.inAM}</td>
+                        <td v-bind:class="isUnderTime(day?.segments?.at(0), day?.attendance?.logs?.length)">
                             ${day.display.outAM}
-
                             <div v-if="isTimeOutShown(day)">
                                 <a v-on:click="onlineLog" href="/e-profile/dtr/{{employment._id}}/online" class="btn-square-link">Out</a>
                                 {# <button v-on:click="logTime(0)" class="btn-sm" style="font-size:10px">OUT</button> #}
                             </div>
                         </td>
                         
-                        <td v-bind:class="isUnderTime(day?.segments[1], day?.attendance?.logs?.length)">
+                        <td v-bind:class="isUnderTime(day?.segments?.at(1), day?.attendance?.logs?.length)">
                             ${day.display.inPM}
                             <div v-if="isTimeInShown(day)">
                                 <a v-on:click="onlineLog" href="/e-profile/dtr/{{employment._id}}/online" class="btn-square-link">In</a>
                                 {# <button v-on:click="logTime(1)" class="btn-sm" style="font-size:10px">IN</button> #}
                             </div>
                         </td>
-                        <td v-bind:class="isUnderTime(day?.segments[1], day?.attendance?.logs?.length)">${day.display.outPM}</td>
+                        <td v-bind:class="isUnderTime(day?.segments?.at(1), day?.attendance?.logs?.length)">${day.display.outPM}</td>
                     </template>
                     <template v-else-if="_.get(day, 'attendance.type') === 'travel'">
                         <template v-if="_.get(day, 'attendance.logs.length') == 2 && _.get(day, 'attendance.logs[0].type') === 'travel'">

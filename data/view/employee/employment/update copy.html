@@ -1,0 +1,305 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'employee/employee-header.html' %}
+    {% include 'employee/employee-profile-photo.html' %}
+    {% include 'employee/employee-view-tabs.html' %}
+
+    <div class="tab-content p-3 pt-4 min-height-500">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/employment/{{employment._id}}/update" method="POST" class="form-default">
+
+            <div class="form-group">
+                <label for="active">Employment Status <span class="text-danger">*</span></label>
+                <div>
+                    <select name="active" id="active" v-model="active" class="form-control">
+                        {% set options = [{ value: true, text: "Active" }, { value: false, text: "Inactive" }] %}
+                        {% for option in options %}
+                            <option value="{{option.value}}">{{option.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('active')}</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="campus">Campus <span class="text-danger">*</span></label>
+                <div>
+                    <select name="campus" id="campus" v-model="campus" class="form-control">
+                        {% set options = CONFIG.campuses %}
+                        {% for option in options %}
+                            <option value="{{option.value}}">{{option.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('campus')}</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="group">Group <span class="text-danger">*</span></label>
+                <div>
+                    <select name="group" id="group" v-model="group" class="form-control">
+                        {% set options = [{value:'', text:''}, {value:'staff', text:'Staff'}, {value:'faculty', text:'Faculty'}, {value:'other', text:'Others'}] %}
+                        {% for option in options %}
+                            <option value="{{option.value}}">{{option.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('group')}</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="employmentType">Employment Type <span class="text-danger">*</span></label>
+                <div>
+                    <select @blur="guessPosition" name="employmentType" id="employmentType" v-model="employmentType" class="form-control">
+                        {% set options = [{value:'', text:''}, {value:'permanent', text:'Permanent'}, {value:'cos', text:'Contract of Service'}, {value:'jo', text:'Job Order'}, {value:'part-time', text:'Part-Time'}, {value:'casual', text:'Casual'}] %}
+                        {% for option in options %}
+                            <option value="{{option.value}}">{{option.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('employmentType')}</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="position">Position <span class="text-danger">*</span></label>
+                <div>
+                    <input name="position" id="position" v-model="position" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('position')}</small>
+                </div>
+            </div>
+
+            
+
+            <div class="form-group">
+                <label for="workScheduleId">Work Schedule <span target="_blank" class="text-danger">*</span> <a href="/schedule/create" class="btn btn-sm btn-outline-secondary">Create Schedule</a></label>
+                <div>
+                    <select name="workScheduleId" id="workScheduleId" v-model="workScheduleId" class="form-control">
+                        {% set options = workSchedules %}
+                        {% for option in options %}
+                            <option value="{{option.value}}">{{option.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('workScheduleId')}</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="employmentStart">Employment Start</label>
+                <div>
+                    <input name="employmentStart" id="employmentStart" v-model="employmentStart" type="date" class="form-control">
+                    <small class="invalid-feedback">${getError('employmentStart')}</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="employmentEnd">Employment End</label>
+                <div>
+                    <input name="employmentEnd" id="employmentEnd" v-model="employmentEnd" type="date" class="form-control">
+                    <small class="invalid-feedback">${getError('employmentEnd')}</small>
+                </div>
+            </div>
+
+            {% set name = 'department' %}
+            {% set label = 'Department' %}
+            {% include 'parts/form-group-text.html' %}
+            {% set label = '' %}
+
+            {% set name = 'fundSource' %}
+            {% set label = 'Source of Fund' %}
+            {% include 'parts/form-group-text.html' %}
+            {% set label = '' %}
+
+            <div class="bg-light border p-3">
+                <div class="form-group">
+                    <label for="salary">Salary <span class="text-danger">*</span></label>
+                    <div>
+                        <input step="any" name="salary" id="salary" v-model="salary" type="number" class="form-control">
+                        <small class="invalid-feedback">${getError('salary')}</small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="salaryType">Salary Rate <span class="text-danger">*</span></label>
+                    <div>
+                        <select name="salaryType" id="salaryType" v-model="salaryType" class="form-control">
+                            {% set options = [{value:'', text:''}, {value:'monthly', text:'Monthly'}, {value:'daily', text:'Daily'}, {value:'hourly', text:'Hourly'}] %}
+                            {% for option in options %}
+                                <option value="{{option.value}}">{{option.text}}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="invalid-feedback">${getError('salaryType')}</small>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-6">
+                        <div class="border bg-white p-3">
+                            <h6 class="h6">Subtractions</h6>
+                            <div class="form-group">
+                                <label for="salary">Tax (1%)</label>
+                                <div>
+                                    <input step="any" name="salary" id="salary" v-model="salary" type="number" class="form-control">
+                                    <small class="invalid-feedback">${getError('salary')}</small>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="salary">Tax (5%)</label>
+                                <div>
+                                    <input step="any" name="salary" id="salary" v-model="salary" type="number" class="form-control">
+                                    <small class="invalid-feedback">${getError('salary')}</small>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="salary">Tax (10%)</label>
+                                <div>
+                                    <input step="any" name="salary" id="salary" v-model="salary" type="number" class="form-control">
+                                    <small class="invalid-feedback">${getError('salary')}</small>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="salary">SSS Contribution</label>
+                                <div>
+                                    <input step="any" name="salary" id="salary" v-model="salary" type="number" class="form-control">
+                                    <small class="invalid-feedback">${getError('salary')}</small>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="salary">SSS EC</label>
+                                <div>
+                                    <input step="any" name="salary" id="salary" v-model="salary" type="number" class="form-control">
+                                    <small class="invalid-feedback">${getError('salary')}</small>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="salary">IGP</label>
+                                <div>
+                                    <input step="any" name="salary" id="salary" v-model="salary" type="number" class="form-control">
+                                    <small class="invalid-feedback">${getError('salary')}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border bg-white p-3">
+                            <h6 class="h6">Additions</h6>
+                            <div class="form-group">
+                                <label for="salary">5% Premium</label>
+                                <div>
+                                    <input step="any" name="salary" id="salary" v-model="salary" type="number" class="form-control">
+                                    <small class="invalid-feedback">${getError('salary')}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="btn-toolbar">
+                                <div class="btn-group">
+                                    <a href="/employee/{{employee._id}}/employment" class="btn btn-light">Cancel</a>
+                                    <a href="/employee/{{employee._id}}/employment/{{employment._id}}/delete" class="btn btn-danger">Delete Employment</a>
+                                    <a href="/employee/{{employee._id}}/employment/{{employment._id}}/promote" class="btn btn-success">Promote Employment</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="btn-toolbar">
+                            <div class="btn-group">
+                                <button class="btn btn-primary">Update Employment</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>
+{# {% include "parts/modal-employment.html" %} #}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{# {% include "parts/script-employment.html" %} #}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            active: '{{employment.active}}',
+            campus: '{{employment.campus}}',
+            group: '{{employment.group}}',
+            position: '{{employment.position}}',
+            employmentType: '{{employment.employmentType}}',
+            employmentStart: "{{employment.employmentStart|default('',true)|format_date('YYYY-MM-DD')}}",
+            employmentEnd: "{{employment.employmentEnd|default('',true)|format_date('YYYY-MM-DD')}}",
+            salary: '{{employment.salary}}',
+            salaryType: '{{employment.salaryType}}',
+            department: '{{employment.department}}',
+            fundSource: '{{employment.fundSource}}',
+            sssDeduction: '{{employment.sssDeduction}}',
+            workScheduleId: '{{employment.workScheduleId}}',
+            workSchedules: {{workSchedules|default([], true)|stringify|safe}},
+        },
+        validations: {
+            campus: {
+                required: window.validators.required
+            },
+            group: {
+                required: window.validators.required
+            },
+            position: {
+                required: window.validators.required
+            },
+            employmentType: {
+                required: window.validators.required
+            },
+            workScheduleId: {
+                required: window.validators.required
+            },
+            salary: {
+                required: window.validators.required,
+                isMoneyFormat: window.customValidators.isMoneyFormat('Not a valid money format.')
+            },
+            salaryType: {
+                required: window.validators.required,
+            },
+            sssDeduction: {
+                isMoneyFormat: window.customValidators.isMoneyFormat('Not a valid money format.')
+            },
+        },
+        methods: {
+            guessPosition: function(){
+                let position = ''
+                if(this.employmentType === 'cos'){
+                    position += 'COS'
+                } else if(this.employmentType === 'part-time'){
+                    position += 'Part-Time'
+                }
+                if(this.group === 'faculty'){
+                    if(!this.position){
+                        this.position = position + ' Faculty'
+                    }
+                }
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

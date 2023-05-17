@@ -1,0 +1,141 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Add Payroll</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/payroll/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <form ref="form" v-on:submit.prevent="onSubmit" action="/payroll/x/create" method="POST" class="form-default">
+            <div class="form-group">
+                <label for="dateStart">Period *</label>
+                <div class="d-flex">
+                    <div>
+                        <input name="dateStart" v-on:change="updateName" id="dateStart" v-model="dateStart" type="date" class="form-control">
+                        <small class="invalid-feedback">${getError('dateStart')}</small>
+                    </div>
+                    <div class="align-self-center pl-2 pr-2"> to </div>
+                    <div>
+                        <input name="dateEnd" v-on:change="updateName" id="dateEnd" v-model="dateEnd" type="date" class="form-control">
+                        <small class="invalid-feedback">${getError('dateEnd')}</small>
+                    </div>
+                </div>
+            </div>
+
+
+            {% set name = 'employeeList' %}
+            {% set label = 'Employee List *' %}
+            {% set options = employeeLists %}
+            <div class="form-group">
+                <label for="{{name}}">
+                    {% if label %}
+                        {{label}}
+                    {% else %}
+                        {{name|start_case}}
+                    {% endif %}
+                </label>
+                <div>
+                    <select name="{{name}}" id="{{name}}" v-on:change="updateName" v-model="{% if vModel %}{{vModel}}{% else %}{{name}}{% endif %}" class="form-control">
+                        {% for option in options %}
+                            <option value="{{option.value}}">{{option.text}}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="invalid-feedback">${getError('{{name}}')}</small>
+                </div>
+            </div>
+            {% set label = '' %}
+
+            {% set name = 'name' %}
+            {% set label = 'Payroll Name *' %}
+            {% include 'parts/form-group-text.html' %}
+            {% set label = '' %}
+
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">View</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            name: '',
+            dateStart: '',
+            dateEnd: '',
+            template: '',
+            employeeList: '',
+            employeeLists: {{employeeLists|default([], true)|stringify|safe}}
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+            dateStart: {
+                required: window.validators.required
+            },
+            dateEnd: {
+                required: window.validators.required
+            },
+            employeeList: {
+                required: window.validators.required
+            },
+        },
+        mounted: function(){
+            this.updateName()
+        },
+        methods: {
+            updateName: function() {
+                var me = this;
+                var mDateStart = moment(me.dateStart);
+                var mDateEnd = moment(me.dateEnd);
+                if(!mDateStart.isValid() || !mDateEnd.isValid()){
+                    return false
+                }
+
+                var mQuincena = mDateStart.clone().startOf('month').add(14, 'days');
+                var mToday = moment();
+                var name = '';
+                if(mDateEnd.isSameOrBefore(mQuincena)){
+                    name = mQuincena.format('MMMM Do YYYY');
+                } else {
+                    name = mQuincena.clone().endOf('month').format('MMMM Do YYYY');
+                }
+                var f = _.find(me.employeeLists, function(e){
+                    return e.value === me.employeeList;
+                })
+                this.name = _.trim(name + ' ' + _.get(f, 'text', ''));
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

@@ -2773,6 +2773,8 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
     days = days.map((day) => {
         if (!showWeekDays.includes(day.weekDay)) {
             day.dtr = null
+            day.time = null
+            day.undertime = null
             day.attendance = null
         }
         return day

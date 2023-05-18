@@ -253,11 +253,28 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json', '/employ
             }
         }
 
+        if (req?.query?.letter) {
+            let letter = req?.query?.letter
+            if (!query['$and']) {
+                query['$and'] = []
+            }
+            query['$and'].push({
+                lastName: RegExp(`^${letter.at(0)}`, "i")
+            })
+            perPage = 1000
+        }
+
         let options = { skip: (page - 1) * perPage, limit: perPage };
         let sort = {}
         sort = lodash.set(sort, sortBy, sortOrder)
         if (['department', 'employmentType', 'group', 'position', 'campus'].includes(sortBy)) {
             sort[`employments.0.${sortBy}`] = sortOrder
+        }
+
+        if (req?.query?.letter) {
+            sort = {}
+
+            sort['lastName'] = 1
         }
 
         // console.log(query, projection, options, sort)

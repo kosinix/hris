@@ -22,17 +22,22 @@
     {% else %}
         {% include 'employee/employee-tabs.html' %}
         <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
-            <div class="d-flex justify-content-between">
-                <div class="d-flex pb-3 align-self-center pr-3">
-                    <form @submit.prevent="search(s)" action="">
+            <div class="form-row pb-3">
+                <div class="col-md-2 d-flex align-items-center pr-3">
+                    <form @submit.prevent="search(s)" action="" class="mr-1">
                         <input @search="search(s)" v-model="s" type="search" placeholder="Search by name..." class="form-control">
                     </form>
                 </div>
-                <div class="d-flex justify-content-between">
-                    <div class="pb-3 align-self-center pr-3 text-right">
+                <div class="col-md-8">
+                    <div class="d-flex">
+                        <a v-for="letter in alphabet" :href="`/employee/all?` + query_string(pagination.query,{letter: letter })" :class="letterCss(letter)">${letter}</a>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-center justify-content-between">
+                    <div class="pr-3 text-right">
                         Per page:
                     </div>
-                    <div class=" pb-3">
+                    <div class="">
                         {% set url = '/employee/all' %}
                         {% include 'parts/form-per-page.html' %}
                     </div>
@@ -187,6 +192,7 @@
             employees: {{employees|default([], true)|stringify|safe}},
             pagination: {{pagination|default({}, true)|stringify|safe}},
             query: {{query|default({}, true)|stringify|safe}},
+            alphabet: ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"],
         },
         filters: {
             s3_url: function (value, sizePrefix = "") {
@@ -209,6 +215,13 @@
             }
         },
         methods: {
+            letterCss: function(current){
+                var me = this;
+                if(current === _.get(me, 'query.letter')){
+                    return `btn btn-sm btn-primary`
+                }
+                return `btn btn-sm`
+            },
             query_string: function(defs, params){
                 let merged = { ...defs, ...params }
                 let qs = new URLSearchParams(merged);

@@ -41,6 +41,7 @@ module.exports = {
             main.Pass = main.model('Pass', require('./models/pass'));
             main.PasswordReset = main.model('PasswordReset', require('./models/password-reset'));
             main.Payroll = main.model('Payroll', require('./models/payroll'));
+            main.Payroll2 = main.model('Payroll2', require('./models/payroll2'));
             main.Permission = main.model('Permission', require('./models/permission'));
             main.Position = main.model('Position', require('./models/position'));
             main.RegistrationForm = main.model('RegistrationForm', require('./models/registration-form'));

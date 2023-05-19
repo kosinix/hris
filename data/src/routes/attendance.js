@@ -1724,6 +1724,9 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
             periodWeekDays = 'Sat-Sun'
         }
         showTotalAs = 'time'
+        if (req?.query?.undertime == 1) {
+            showTotalAs = 'undertime'
+        }
         let countTimeBy = 'all'
         let compatibilityUrl = [
             `periodMonthYear=${periodMonthYear}`,

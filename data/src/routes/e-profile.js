@@ -256,7 +256,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
         }
 
         let { days, stats, compute } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
-// return res.send({ days: days[1], stats, compute })
+        // return res.send({ days: days[2], stats, compute })
         let periodMonthYearMoment = moment(periodMonthYear)
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
         let months = Array.from(range1.by('months')).reverse()

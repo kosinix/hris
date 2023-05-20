@@ -1,0 +1,178 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="p-3" id="vApp" v-cloak>
+    <h1 class="h6 mb-2">{{payroll.name}}</h1>
+    <div class="btn-group mb-2">
+        <a href="/payroll/x/{{payroll._id}}/add-row?index=0&title=Subtotal" class="btn btn-sm btn-outline-secondary">Add Row</a>
+        <a href="/payroll/x/{{payroll._id}}/add-row2" class="btn btn-sm btn-outline-secondary">Add Row2</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table-payroll-sim">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>NO.</th>
+                    <th>Source of Fund</th>
+                    <th>Name</th>
+                    <th>Position</th>
+                    <th>DAILY/ MONTHLY WAGE</th>
+                    <th colspan="6"> No. of Days Rendered</th>
+                    <th>Gross Amount</th>
+                    <th>Late</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="sortMe">
+                <tr v-for="(row, index) in payroll.rows" v-bind:data-ruid="row.uid">
+                    <td style="padding:0; text-align:center; vertical-align: middle;">
+                        <svg class="dragMe" style="cursor: move; width:24px;height:24px; opacity: 0.4" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
+                        </svg>
+                    </td>
+                    <template v-if="row.rtype === 1">
+                        <td>${row.count}</td>
+                        <td>${row.sourceOfFund}</td>
+                        <td>${row.name}</td>
+                        <td>${row.position}</td>
+                        <td>${row.wage}</td>
+                        <td>${row.days|blank}</td>
+                        <td>days</td>
+                        <td>${row.hours|blank}</td>
+                        <td>hrs</td>
+                        <td>${row.minutes|blank}</td>
+                        <td>mins</td>
+                        <td>${row.gross}</td>
+                        <td></td>
+                    </template>
+                    <template v-else-if="row.rtype === 2">
+                        <td>${row.name}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </template>
+                    <td>
+                        <a v-bind:href="`/payroll/x/${payroll._id}/del-row?index=${index}`" class="text-danger">X</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div> 
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
+<script src="{{app.url}}/js/script-axios-extend.js"></script>
+<script src="{{app.url}}/js/Sortable.min.js"></script>
+<script>
+    Vue.config.errorHandler = function (err, vm, info) {
+        console.error(err)
+        console.log(info)
+    // handle error
+    // `info` is a Vue-specific error info, e.g. which lifecycle hook
+    // the error was found in. Only available in 2.2.0+
+    }
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        components: {
+        },
+        data: {
+            pending: false,
+            activeDrag: false,
+            payroll: {{payroll|default(true, [])|stringify|safe}},
+        },
+        validations: {
+            
+        },
+        filters: {
+            blank: function(value){
+                return (value) ? value : ''
+            }
+        },
+        mounted: function() {
+            var me = this;
+            me.$nextTick(function () {
+                if(!document.getElementById('sortMe')) return
+                var sortable = Sortable.create(document.getElementById('sortMe'), {
+                    handle: '.dragMe',
+                    dataIdAttr: 'data-ruid',
+                    onSort: function (evt) {
+                        /* Undo HTML sort since vue will auto sort based on vm.data */
+                        /* {# https://github.com/SortableJS/Sortable/issues/264#issuecomment-224127048 #} */ 
+                        var oldId = evt.oldIndex,
+                            newId = evt.newIndex,
+                            reArrange = sortable.toArray(),
+                            oldSort = sortable.toArray();
+
+                        if (oldId < newId) {
+                            for (var i = oldId; i < newId; i++)
+                                reArrange[i+1] = oldSort[i];
+                        } else {
+                            for (var i = newId + 1; i <= oldId; i++)
+                                reArrange[i-1] = oldSort[i];
+                        }
+
+                        reArrange[oldId] = oldSort[newId];
+                        sortable.sort(reArrange);
+
+                    },
+                    onEnd: function (evt) {
+                        if(evt.newIndex === evt.oldIndex) return false;
+
+                        jQuery('.cover').addClass('wait')
+                        var rowsIdsArray = []
+                        jQuery('.drag-employment').each(function(i, e){
+                            rowsIdsArray.push(String(jQuery(e).data('ruid'))) // Row UID
+                        })
+
+                        me.pending = true;
+                        window.axios.post('/payroll/x/{{payroll._id}}/sort-rows', {oldIndex: evt.oldIndex, newIndex: evt.newIndex}).then(function(response){
+                            var data = response.data;
+
+                            /*{# https://stackoverflow.com/a/6470794/1594918 #}*/
+                            /* Move array element from old to new index */
+                            var element = me.payroll.rows[evt.oldIndex];
+                            me.payroll.rows.splice(evt.oldIndex, 1);
+                            me.payroll.rows.splice(evt.newIndex, 0, element);
+                            let counter = 0
+                            me.payroll.rows = me.payroll.rows.map((row)=>{
+                                if(row.rtype === 1){
+                                    row.count = ++counter
+                                }
+                                return row
+                            }) 
+                            console.log('Changes saved.');
+                        }).catch(function(error){
+                            handleAxiosError(error);
+                        }).then(function(){
+                            me.pending = false;
+                            jQuery('.cover').removeClass('wait');
+                        });
+                    },
+                });
+            })
+        },
+        methods: {
+            setActiveDrag: function(){
+                this.activeDrag = !this.activeDrag
+            }
+        }
+    });
+</script>
+{% endblock %}

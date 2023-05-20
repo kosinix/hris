@@ -94,6 +94,7 @@ router.get('/payroll/all', middlewares.guardRoute(['read_all_payroll', 'read_pay
 
 router.get('/payroll/create', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
     try {
+        // return res.redirect('/payroll/x/create')
 
         let employeeLists = await req.app.locals.db.main.EmployeeList.find()
 
@@ -111,7 +112,7 @@ router.get('/payroll/create', middlewares.guardRoute(['create_payroll']), async 
 });
 router.get('/payroll/generate', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
     try {
-
+        return res.redirect('/payroll/x/create')
         let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
         let data = {
             workSchedules: workSchedules
@@ -284,6 +285,7 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
             template: patch.template,
             status: 1
         }
+        return res.send(payroll)
 
         payroll = await req.app.locals.db.main.Payroll.create(payroll)
         // return res.send(payroll)
@@ -529,12 +531,10 @@ router.get(['/payroll/:payrollId', `/payroll/:payrollId/payroll.xlsx`], middlewa
     }
 });
 
-router.get('/payroll/x/view', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
+router.get('/payroll/x/create', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
     try {
-
         let employeeLists = await req.app.locals.db.main.EmployeeList.find()
-
-        res.render('payroll/viewer.html', {
+        res.render('payroll/xcreate.html', {
             employeeLists: employeeLists.filter(o => o.tags.includes('Fund Source')).map((o) => {
                 return {
                     value: o._id,
@@ -546,11 +546,13 @@ router.get('/payroll/x/view', middlewares.guardRoute(['create_payroll']), async 
         next(err);
     }
 });
-router.get('/payroll/x/viewer', middlewares.guardRoute(['read_payroll']), async (req, res, next) => {
+router.post('/payroll/x/create', middlewares.guardRoute(['read_payroll']), async (req, res, next) => {
     try {
-        let dateStart = req.query?.dateStart
-        let dateEnd = req.query?.dateEnd
-        let employeeListId = req.query?.employeeList
+        let name = req.body?.name
+        let template = req.body?.template
+        let dateStart = req.body?.dateStart
+        let dateEnd = req.body?.dateEnd
+        let employeeListId = req.body?.employeeList
 
         let employeeList = await req.app.locals.db.main.EmployeeList.findById(employeeListId).lean();
         if (!employeeList) {
@@ -560,7 +562,7 @@ router.get('/payroll/x/viewer', middlewares.guardRoute(['read_payroll']), async 
 
         let startMoment = moment(dateStart)
         let endMoment = moment(dateEnd)
-        console.log(startMoment)
+        // console.log(startMoment)
         let options = {
             padded: true,
             showTotalAs: 'time',
@@ -611,26 +613,120 @@ router.get('/payroll/x/viewer', middlewares.guardRoute(['read_payroll']), async 
                 var factor = Math.pow(10, precision);
                 return Math.round(number * factor) / factor;
             }
-            let employment = employments?.pop()
-            let employee = employment.employee
-            rows.push({
-                sourceOfFund: employment.department,
-                name: `${employee.lastName}, ${employee.firstName}`,
-                position: employment.position,
-                wage: employment.salary,
-                days: stats.weekdays.renderedDays,
-                hours: stats.weekdays.renderedHours,
-                minutes: stats.weekdays.renderedMinutes,
-                gross: precisionRound((employment.salary / 8 / 60) * stats.weekdays.totalMinutes, 9).toFixed(2)
-                // stats: stats,
-                // compute: compute,
-            })
-        }
-        // return res.send(rows)
+            let employment = employments.at(-1)
+            if (employment) {
+                let employee = employment?.employee
+                let perMinute = 0
+                let totalWorkDays = 22
+                if (employment?.salaryType === 'monthly') {
+                    perMinute = precisionRound((employment.salary / totalWorkDays / 8 / 60), 9)
+                } else if (employment?.salaryType === 'daily') {
+                    perMinute = precisionRound((employment.salary / 8 / 60), 9)
+                } else if (employment?.salaryType === 'hourly') {
+                    perMinute = precisionRound((employment.salary / 60), 9)
+                }
 
-        res.render('payroll/table-xxx.html', {
-            rows: rows
+                rows.push({
+                    uid: employment?._id,
+                    rtype: 1,
+                    sourceOfFund: employment?.department,
+                    name: `${employee.lastName}, ${employee.firstName}`,
+                    position: employment?.position,
+                    wage: employment?.salary,
+                    days: stats.weekdays.renderedDays,
+                    hours: stats.weekdays.renderedHours,
+                    minutes: stats.weekdays.renderedMinutes,
+                    gross: parseFloat(precisionRound(perMinute * stats.weekdays.totalMinutes, 9).toFixed(2)),
+                    tardy: parseFloat(precisionRound(perMinute * stats.weekdays.underTimeTotalMinutes, 9).toFixed(2)),
+                    // stats: stats,
+                    // compute: compute,
+                })
+            }
+        }
+     
+        return res.send(rows)
+        let payroll2 = await req.app.locals.db.main.Payroll2.create({
+            name: name,
+            template: template,
+            dateStart: dateStart,
+            dateEnd: dateEnd,
+            rows: rows,
         })
+        res.redirect(`/payroll/x/view/${payroll2._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/payroll/x/view/:payrollId', middlewares.guardRoute(['read_payroll']), async (req, res, next) => {
+    try {
+        let payroll = await req.app.locals.db.main.Payroll2.findById(req?.params?.payrollId).lean()
+        if (!payroll) {
+            throw new Error(`Payroll not found.`)
+        }
+        let counter = 0
+        payroll.rows = payroll.rows.map((row) => {
+            if (row.rtype === 1) {
+                row.count = ++counter
+            }
+            return row
+        })
+        res.render(`payroll/xtable-payroll-${payroll.template}.html`, {
+            payroll: payroll
+        })
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/payroll/x/:payrollId/add-row', middlewares.guardRoute(['read_payroll']), async (req, res, next) => {
+    try {
+        let payroll = await req.app.locals.db.main.Payroll2.findById(req?.params?.payrollId)
+        if (!payroll) {
+            throw new Error(`Payroll not found.`)
+        }
+        payroll.rows.splice(req?.query?.index, 0, {
+            uid: req.app.locals.db.mongoose.Types.ObjectId(),
+            rtype: 2,
+            name: req?.query?.title
+        })
+        await payroll.save()
+        res.redirect(`/payroll/x/view/${payroll._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/payroll/x/:payrollId/del-row', middlewares.guardRoute(['read_payroll']), async (req, res, next) => {
+    try {
+        let payroll = await req.app.locals.db.main.Payroll2.findById(req?.params?.payrollId)
+        if (!payroll) {
+            throw new Error(`Payroll not found.`)
+        }
+        payroll.rows.splice(req?.query?.index, 1)
+        await payroll.save()
+        res.redirect(`/payroll/x/view/${payroll._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/payroll/x/:payrollId/sort-rows', middlewares.guardRoute(['update_payroll']), async (req, res, next) => {
+    try {
+        let payroll = await req.app.locals.db.main.Payroll2.findById(req?.params?.payrollId).lean()
+        if (!payroll) {
+            return res.render('error.html', { error: "Sorry, payroll not found." })
+        }
+
+        let body = req.body
+        let oldIndex = lodash.get(body, 'oldIndex')
+        let newIndex = lodash.get(body, 'newIndex')
+
+        /*{# https://stackoverflow.com/a/6470794/1594918 #}*/
+        /* Move array element from old to new index */
+        let element = payroll.rows[oldIndex];
+        payroll.rows.splice(oldIndex, 1);
+        payroll.rows.splice(newIndex, 0, element);
+
+        await req.app.locals.db.main.Payroll2.updateOne({ _id: payroll._id }, payroll)
+
+        res.send('Sorting saved.')
     } catch (err) {
         next(err);
     }
@@ -1115,7 +1211,27 @@ router.get('/payroll/group/:employeeListId', middlewares.guardRoute(['read_all_e
         next(err);
     }
 });
+router.post('/payroll/group/:employeeListId/update', middlewares.guardRoute(['update_employee']), middlewares.getEmployeeList, async (req, res, next) => {
+    try {
+        let employeeList = res.employeeList.toObject()
 
+        let body = req.body
+        let oldIndex = lodash.get(body, 'oldIndex')
+        let newIndex = lodash.get(body, 'newIndex')
+
+        /*{# https://stackoverflow.com/a/6470794/1594918 #}*/
+        /* Move array element from old to new index */
+        let element = employeeList.members[oldIndex];
+        employeeList.members.splice(oldIndex, 1);
+        employeeList.members.splice(newIndex, 0, element);
+
+        await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
+
+        res.send('Sorting saved.')
+    } catch (err) {
+        next(err);
+    }
+});
 // D
 router.delete('/payroll/group/:employeeListId', middlewares.guardRoute(['delete_employee']), middlewares.getEmployeeList, async (req, res, next) => {
     try {

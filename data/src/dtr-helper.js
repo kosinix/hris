@@ -2656,6 +2656,9 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
     }
 
     const employment = await db.main.Employment.findOne(employmentId);
+    if(!employment){
+        throw new Error(`Employment not found for employee with ID "${employeeId}"`)
+    }
 
     // ATTENDANCES
     let attendances = await db.main.Attendance.aggregate([
@@ -2805,6 +2808,7 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
     let stats = {
         days: getTimeBreakdown(daysTotalMinutes, daysTotalMinutesUnderTime, hoursPerDay),
         weekdays: getTimeBreakdown(weekdaysTotalMinutes, weekdaysTotalMinutesUnderTime, hoursPerDay),
+        weekdaysTotal: weekdays.length,
         weekends: getTimeBreakdown(weekendsTotalMinutes, weekendsTotalMinutesUnderTime, hoursPerDay),
         restDays: getTimeBreakdown(restDaysTotalMinutes, restDaysTotalMinutesUnderTime, hoursPerDay),
     }

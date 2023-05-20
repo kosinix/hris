@@ -108,9 +108,6 @@
             socket.on("connect_error", (err) => {
                 console.error(err.message);
             });
-
-            
-
             socket.on("added", (attendance) => {
                 let me = this;
                 if(attendance){

@@ -1684,7 +1684,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         if (!options.showWeekDays.length) {
             options.showWeekDays = showWeekDays.split('|')
         }
-        let { days } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+        let { stats, days } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         // console.log(options)
         let totalMinutes = 0
@@ -1754,7 +1754,8 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
             compatibilityUrl: compatibilityUrl,
         }
-        // return res.send(days)
+        return res.send(stats)
+        
         res.render('attendance/employment6.html', data);
     } catch (err) {
         next(err);

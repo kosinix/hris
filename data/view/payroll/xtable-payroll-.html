@@ -147,7 +147,13 @@
                             var element = me.payroll.rows[evt.oldIndex];
                             me.payroll.rows.splice(evt.oldIndex, 1);
                             me.payroll.rows.splice(evt.newIndex, 0, element);
-
+                            let counter = 0
+                            me.payroll.rows = me.payroll.rows.map((row)=>{
+                                if(row.rtype === 1){
+                                    row.count = ++counter
+                                }
+                                return row
+                            }) 
                             console.log('Changes saved.');
                         }).catch(function(error){
                             handleAxiosError(error);

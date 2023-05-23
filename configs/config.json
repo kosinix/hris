@@ -27,7 +27,7 @@
   },
   "nunjucks": {
     "loader": {
-      "watch": true,
+      "watch": false,
       "noCache": true
     },
     "environment": {

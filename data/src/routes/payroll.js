@@ -643,7 +643,7 @@ router.post('/payroll/x/create', middlewares.guardRoute(['read_payroll']), async
                 })
             }
         }
-     
+
         return res.send(rows)
         let payroll2 = await req.app.locals.db.main.Payroll2.create({
             name: name,
@@ -1171,29 +1171,56 @@ router.get('/payroll/group/:employeeListId', middlewares.guardRoute(['read_all_e
         let refresh = lodash.get(req, 'query.refresh', false)
         if (refresh) { // Rebuild list
 
-            let promises = []
-            promises = employeeList.members.map((m) => {
-                return req.app.locals.db.main.Employment.findById(m.employmentId).lean()
-            })
-            employeeList.members = await Promise.all(promises)
+            let employmentIds = employeeList.members.map(m => m.employmentId)
+            let employments = await req.app.locals.db.main.Employment.aggregate([
+                {
+                    $match: {
+                        _id: {
+                            $in: employmentIds
+                        }
+                    }
+                },
+                {
+                    $lookup: {
+                        localField: 'employeeId',
+                        foreignField: '_id',
+                        from: 'employees',
+                        as: 'employees'
+                    }
+                },
+                {
+                    $addFields: {
+                        "employee": {
+                            $arrayElemAt: ["$employees", 0]
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        employees: 0,
+                        employee: {
+                            personal: 0,
+                            employments: 0,
+                            addresses: 0,
+                        }
+                    }
+                }
+            ])
 
-            promises = []
-            promises = employeeList.members.map((m) => {
-                return req.app.locals.db.main.Employee.findById(m.employeeId).lean()
-            })
-            let employees = await Promise.all(promises)
-            employeeList.members = employeeList.members.map((m, i) => {
+            employments = employments.map((m, i) => {
                 return {
                     employeeId: m.employeeId,
                     employmentId: m._id,
                     fundSource: m.fundSource,
-                    firstName: employees[i].firstName,
-                    middleName: employees[i].middleName,
-                    lastName: employees[i].lastName,
-                    suffix: employees[i].suffix,
+                    firstName: m.employee.firstName,
+                    middleName: m.employee.middleName,
+                    lastName: m.employee.lastName,
+                    suffix: m.employee.suffix,
                     position: m.position,
                 }
             })
+
+            employeeList.members = employments
             await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
             return res.redirect(`/payroll/group/${employeeList._id}`)
         }

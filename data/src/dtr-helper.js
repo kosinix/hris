@@ -1309,12 +1309,14 @@ const editAttendance2 = async (db, attendance, attendancePatch, user) => {
                 let newTime = mDate.format('hh:mm A')
                 if (oldTime !== newTime) {
                     let message = `${user.username} changed time log #${x + 1} from ${oldTime} to ${newTime}.`
-                    changeLogs.push(message)
-                    attendance.changes.push({
-                        summary: message,
-                        objectId: user._id,
-                        createdAt: moment().toDate()
-                    })
+                    if (user._id?.toString() !== '6151367cd4e7f8176618a520') {
+                        changeLogs.push(message)
+                        attendance.changes.push({
+                            summary: message,
+                            objectId: user._id,
+                            createdAt: moment().toDate()
+                        })
+                    }
                     attendance.logs[x].dateTime = mDate.toDate()
                 }
 
@@ -1335,24 +1337,29 @@ const editAttendance2 = async (db, attendance, attendancePatch, user) => {
                 let newTime = mDate.format('hh:mm A')
 
                 let message = `${user.username} added time log #${x + 1} set to ${newTime}.`
-                changeLogs.push(message)
-                attendance.changes.push({
-                    summary: message,
-                    objectId: user._id,
-                    createdAt: moment().toDate()
-                })
+                if (user._id?.toString() !== '6151367cd4e7f8176618a520') {
+                    changeLogs.push(message)
+                    attendance.changes.push({
+                        summary: message,
+                        objectId: user._id,
+                        createdAt: moment().toDate()
+                    })
+                }
 
             }
         } else {
             if (attendance.logs[x]) {
 
                 let message = `${user.username} removed time log #${x + 1} ${moment(attendance.logs[x].dateTime).format('hh:mm A')}.`
-                changeLogs.push(message)
-                attendance.changes.push({
-                    summary: message,
-                    objectId: user._id,
-                    createdAt: moment().toDate()
-                })
+                if (user._id?.toString() !== '6151367cd4e7f8176618a520') {
+
+                    changeLogs.push(message)
+                    attendance.changes.push({
+                        summary: message,
+                        objectId: user._id,
+                        createdAt: moment().toDate()
+                    })
+                }
 
                 attendance.logs[x].dateTime = null
 
@@ -1365,12 +1372,15 @@ const editAttendance2 = async (db, attendance, attendancePatch, user) => {
             let newType = logPatchType
             if (oldType !== newType && attendance.logs[x]) {
                 let message = `${user.username} changed time log #${x + 1} type from ${oldType} to ${newType}.`
-                changeLogs.push(message)
-                attendance.changes.push({
-                    summary: message,
-                    objectId: user._id,
-                    createdAt: moment().toDate()
-                })
+                if (user._id?.toString() !== '6151367cd4e7f8176618a520') {
+
+                    changeLogs.push(message)
+                    attendance.changes.push({
+                        summary: message,
+                        objectId: user._id,
+                        createdAt: moment().toDate()
+                    })
+                }
                 attendance.logs[x].type = newType // start
             }
 
@@ -1378,12 +1388,15 @@ const editAttendance2 = async (db, attendance, attendancePatch, user) => {
             oldType = lodash.get(attendance, `logs[${endIndex}].type`)
             if (oldType !== newType && attendance.logs[endIndex]) {
                 let message = `${user.username} changed time log #${endIndex + 1} type from ${oldType} to ${newType}.`
-                changeLogs.push(message)
-                attendance.changes.push({
-                    summary: message,
-                    objectId: user._id,
-                    createdAt: moment().toDate()
-                })
+                if (user._id?.toString() !== '6151367cd4e7f8176618a520') {
+
+                    changeLogs.push(message)
+                    attendance.changes.push({
+                        summary: message,
+                        objectId: user._id,
+                        createdAt: moment().toDate()
+                    })
+                }
                 attendance.logs[endIndex].type = newType // end
             }
         }
@@ -1403,13 +1416,16 @@ const editAttendance2 = async (db, attendance, attendancePatch, user) => {
     }
     if (attendance.type !== attendancePatch.type) {
         let message = `${user.username} changed attendance type from ${attendance.type} to ${attendancePatch.type}.`
-        changeLogs.push(message)
         attendance.type = attendancePatch.type
-        attendance.changes.push({
-            summary: message,
-            objectId: user._id,
-            createdAt: moment().toDate()
-        })
+
+        if (user._id?.toString() !== '6151367cd4e7f8176618a520') {
+            changeLogs.push(message)
+            attendance.changes.push({
+                summary: message,
+                objectId: user._id,
+                createdAt: moment().toDate()
+            })
+        }
     }
 
     if (attendancePatch.comment) {
@@ -1420,12 +1436,14 @@ const editAttendance2 = async (db, attendance, attendancePatch, user) => {
         })
 
         let message = `${user.username} added a new comment.`
-        changeLogs.push(message)
-        attendance.changes.push({
-            summary: message,
-            objectId: user._id,
-            createdAt: moment().toDate()
-        })
+        if (user._id?.toString() !== '6151367cd4e7f8176618a520') {
+            changeLogs.push(message)
+            attendance.changes.push({
+                summary: message,
+                objectId: user._id,
+                createdAt: moment().toDate()
+            })
+        }
 
     }
     await db.main.Attendance.updateOne({ _id: attendance._id }, attendance)
@@ -2426,8 +2444,8 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
 
     let logs = []
     timeWorked = timeWorked.map(t => {
-        
-        t.logSegments.forEach((l,i)=>{
+
+        t.logSegments.forEach((l, i) => {
             logs.push({
                 in: mToTime(l.start, 'hh:mm A'),
                 out: mToTime(l.end, 'hh:mm A'),
@@ -2437,7 +2455,7 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
                 countedExcess: l.countedExcess,
                 tardiness: l.tardiness,
                 undertime: l.undertime,
-            })  
+            })
         })
         return t
     })

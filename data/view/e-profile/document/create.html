@@ -25,6 +25,33 @@
                 </div>
             </div>
             <div class="form-group">
+                <div class="form-row">
+                    <div class="col-md-6">
+                        <label for="docTypeSelect">Document Type <span class="text-danger">*</span></label>
+                        <div>
+                            <select v-on:change="onDocTypeChange" v-model="docTypeSelect" name="docTypeSelect" id="docTypeSelect" class="form-control">
+                                <option value=""></option>
+                                {% for option in e201Types %}
+                                    <option value="{{option}}">{{option}}</option>
+                                {% endfor %}
+                                <option value="others">Others</option>
+                            </select>
+                            <small class="invalid-feedback">${getError('docTypeSelect')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                         <div v-if="docTypeSelect==='others'" class="form-group">
+                            <label for="docTypeSelect">Please specify document type<span class="text-danger">*</span>:</label>
+                            <div>
+                                <input type="text" v-model="docType" name="docType" id="docType" class="form-control">
+                                <small class="invalid-feedback">${getError('docType')}</small>
+                            </div>
+                        </div>
+                        <input v-else type="hidden" v-model="docType" name="docType" id="docType">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
                 <div class="text-center">
                     <button class="btn btn-primary">Upload</button>
                 </div>
@@ -35,6 +62,7 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
+<script src="{{app.url}}/js/vue-ph-address.js"></script>
 <script>
     var vApp = new Vue({
         el: '#vApp',
@@ -44,12 +72,21 @@
             window.vuelidateExtendMixin,
         ],
         data: {
-            accept: ['image/jpeg', 'image/png', 'application/pdf'],
+            pending: false,
+            accept: ['image/jpeg', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
             name: '',
+            docType: '',
+            docTypeSelect: '',
             filesLength: 0,
         },
         validations: {
             name: {
+                required: window.validators.required
+            },
+            docTypeSelect: {
+                required: window.validators.required
+            },
+            docType: {
                 required: window.validators.required
             },
             filesLength: {
@@ -62,6 +99,9 @@
             }
         },
         methods: {
+            onDocTypeChange: function(event){
+                this.docType = (this.docTypeSelect === 'others') ? '' : this.docTypeSelect
+            },
             readFile: function(event){
                 var me = this;
                 var files = [];

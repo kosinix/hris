@@ -1623,6 +1623,7 @@ router.get('/e/document/all', middlewares.guardRoute(['use_employee_profile']), 
             flash: flash.get(req, 'employee'),
             employee: employee,
             momentNow: moment(),
+            title: '201 Files'
         }
         res.render('e-profile/document/all.html', data);
     } catch (err) {
@@ -1637,6 +1638,7 @@ router.get('/e/document/create', middlewares.guardRoute(['use_employee_profile']
             flash: flash.get(req, 'employee'),
             employee: employee,
             momentNow: moment(),
+            title: 'Add 201 File'
         }
         res.render('e-profile/document/create.html', data);
     } catch (err) {

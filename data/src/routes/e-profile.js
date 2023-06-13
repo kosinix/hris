@@ -1637,12 +1637,15 @@ router.get('/e/document/create', middlewares.guardRoute(['use_employee_profile']
         let e201Types = await req.app.locals.db.main.Option.findOne({
             key: 'e201Types'
         })
+        if(!e201Types){
+            throw new Error('Missing e201Types from options.')
+        }
         let data = {
             flash: flash.get(req, 'employee'),
             employee: employee,
             momentNow: moment(),
             title: 'Add 201 File',
-            e201Types: e201Types.value
+            e201Types: e201Types?.value
         }
         res.render('e-profile/document/create.html', data);
     } catch (err) {

@@ -64,6 +64,7 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
+    "chokidar": "^3.5.3",
     "csv-parser": "^3.0.0",
     "csv-stringify": "^5.6.2",
     "open": "^8.2.1",

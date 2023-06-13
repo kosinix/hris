@@ -256,7 +256,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
         }
 
         let { days, stats, compute } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
-// return res.send({ days: days[1], stats, compute })
+        // return res.send({ days: days[1], stats, compute })
         let periodMonthYearMoment = moment(periodMonthYear)
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
         let months = Array.from(range1.by('months')).reverse()
@@ -678,7 +678,7 @@ router.get('/e-profile/dtr/:employmentId/attendance/:date', middlewares.guardRou
         }
         let mDate = moment(date)
 
-        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22', '2023-06-01' , '2023-06-02'].includes(mDate.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
+        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22', '2023-06-01', '2023-06-02'].includes(mDate.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         if (!isForCorrection) {
             throw new Error('Not allowed.')
         }
@@ -1279,7 +1279,7 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
         let room = moment().format('YYYY-MM-DD')
         req.app.locals.io.of("/monitoring").to(room).emit('added', payload)
         // End for monitoring page
-        
+
         flash.ok(req, 'employee', 'Attendance saved.')
         res.send(attendance)
     } catch (err) {
@@ -1623,6 +1623,7 @@ router.get('/e/document/all', middlewares.guardRoute(['use_employee_profile']), 
             flash: flash.get(req, 'employee'),
             employee: employee,
             momentNow: moment(),
+            title: '201 Files'
         }
         res.render('e-profile/document/all.html', data);
     } catch (err) {
@@ -1633,21 +1634,27 @@ router.get('/e/document/create', middlewares.guardRoute(['use_employee_profile']
     try {
         let employee = res.employee.toObject()
 
+        let e201Types = await req.app.locals.db.main.Option.findOne({
+            key: 'e201Types'
+        })
         let data = {
             flash: flash.get(req, 'employee'),
             employee: employee,
             momentNow: moment(),
+            title: 'Add 201 File',
+            e201Types: e201Types.value
         }
         res.render('e-profile/document/create.html', data);
     } catch (err) {
         next(err);
     }
 });
-router.post('/e/document/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png", "application/pdf"] }), async (req, res, next) => {
+router.post('/e/document/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png", "application/pdf", 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'] }), async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
 
         let name = lodash.get(req, 'body.name')
+        let docType = lodash.get(req, 'body.docType')
         let patch = {
             documents: lodash.get(employee, 'documents', [])
         }
@@ -1655,11 +1662,12 @@ router.post('/e/document/create', middlewares.guardRoute(['use_employee_profile'
             name: name,
             key: lodash.get(req, 'saveList.document[0]'),
             mimeType: '',
+            docType: docType
         })
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
         flash.ok(req, 'employee', `Uploaded document "${name} ${employee.lastName}".`)
-        res.redirect(`/e-profile/document/all`);
+        res.redirect(`/e/document/all`);
     } catch (err) {
         next(err);
     }

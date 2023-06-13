@@ -461,7 +461,8 @@ let generateUploadList = (imageVariants, uploadFields) => {
 
     lodash.each(uploadFields, (files, fieldName) => {
         lodash.each(files, (file) => {
-            if (file.mimeType === 'application/pdf') {
+            // TODO: Support all fileTypes
+            if (['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'].includes(file.mimeType)) {
                 forUploads.push({
                     key: file.fileName.replace(localPrefix, ''),
                     filePath: file.filePath
@@ -484,7 +485,8 @@ let generateSaveList = (imageVariants, uploadFields) => {
     lodash.each(uploadFields, (files, fieldName) => {
         saveList[fieldName] = []
         lodash.each(files, (file) => {
-            if (file.mimeType === 'application/pdf') {
+            // TODO: Support all fileTypes
+            if (['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'].includes(file.mimeType)) {
                 saveList[fieldName].push(file.fileName.replace(localPrefix, ''))
             } else {
                 lodash.each(imageVariants, (variant) => {

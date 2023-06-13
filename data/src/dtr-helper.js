@@ -2747,7 +2747,7 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
         const isWeekend = ['Sat', 'Sun'].includes(weekDay)
         const isPast = _moment.clone().startOf('day').isBefore(moment().startOf('day'))
         const isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
-        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
+        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22', '2023-06-01', '2023-06-02'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         const holiday = holidays[date] || null
         const attendance = attendances[date] || null
         const workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)

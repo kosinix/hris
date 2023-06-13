@@ -678,7 +678,7 @@ router.get('/e-profile/dtr/:employmentId/attendance/:date', middlewares.guardRou
         }
         let mDate = moment(date)
 
-        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22'].includes(mDate.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
+        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22', '2023-06-01' , '2023-06-02'].includes(mDate.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         if (!isForCorrection) {
             throw new Error('Not allowed.')
         }

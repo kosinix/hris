@@ -1669,7 +1669,7 @@ router.post('/e/document/create', middlewares.guardRoute(['use_employee_profile'
         })
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
-        flash.ok(req, 'employee', `Uploaded document "${name} ${employee.lastName}".`)
+        flash.ok(req, 'employee', `Uploaded document "${name}".`)
         res.redirect(`/e/document/all`);
     } catch (err) {
         next(err);

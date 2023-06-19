@@ -92,10 +92,9 @@ module.exports = {
         }
 
         const cronFlag = () => {
-            let mDate = moment('2023-06-13')
+            let mDate = moment()
             const cmd = `node cron/flag-raising.js ${mDate.format('YYYY-MM-DD')} false`
             const opt = { cwd: APP_DIR }
-
 
             const child = exec(cmd, opt, (err, stdout, stderr) => {
                 if (err) {

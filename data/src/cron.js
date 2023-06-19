@@ -91,12 +91,53 @@ module.exports = {
 
         }
 
+        const cronFlag = () => {
+            let mDate = moment('2023-06-13')
+            const cmd = `node cron/flag-raising.js ${mDate.format('YYYY-MM-DD')} false`
+            const opt = { cwd: APP_DIR }
+
+
+            const child = exec(cmd, opt, (err, stdout, stderr) => {
+                if (err) {
+                    console.error(err)
+                    return err
+                }
+
+                if (stderr) {
+                    console.error(`Something went wrong: ${stderr}`)
+                    return stderr
+                }
+
+                let output = stdout.split("\n").join("\n\t")
+                output = `Cron exec("${cmd}"): ${"\n\t"}${output}`
+
+                if (output.includes(`No changes made.`)) {
+                    console.log('No email was sent.')
+                } else {
+                    let mailOptions = {
+                        from: `${CONFIG.school.acronym} HRIS <hris-noreply@gsu.edu.ph>`,
+                        to: `amarillanico@gmail.com`,
+                        subject: 'HRIS Cron',
+                        text: output,
+                    }
+                    mailer.transport2.sendMail(mailOptions).then(function (result) {
+                        // console.log(result, 'Email sent')
+                    }).catch(err => {
+                        console.error(err)
+                    })
+                }
+            });
+        }
         if (ENV !== 'dev') {
-            // 12AM everday
             // https://crontab.cronhub.io/
-            console.log('Running backup task 11PM everday.')
+            console.log('Running backup task 11PM everyday.')
             cron.schedule('0 23 * * *', cronJob)
             // cronJob()
+
+            // https://crontab.cronhub.io/
+            console.log('Running flagraising task 12PM everyday.')
+            cron.schedule('0 12 * * *', cronFlag)
+            // cronFlag()
         }
     }
 }

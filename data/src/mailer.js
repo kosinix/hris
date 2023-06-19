@@ -148,5 +148,6 @@ module.exports = {
         } else {
             throw new Error(`Template ${templateName} not found.`)
         }
-    }
+    },
+    transport2: transport2
 }

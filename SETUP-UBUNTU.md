@@ -295,6 +295,8 @@ Commands:
 * crontab -r    Remove your crontab file.
 * crontab -v    Display the last time you edited your crontab file. (This option is 
 
+### Logs
+journalctl -u hris --since "1 hour ago" --no-pager
 
 ### More info:
 [https://www.digitalocean.com/community/tutorials/how-to-install-wordpress-with-lamp-on-ubuntu-16-04](https://www.digitalocean.com/community/tutorials/how-to-install-wordpress-with-lamp-on-ubuntu-16-04)

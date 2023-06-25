@@ -13,12 +13,20 @@ const moment = require('moment')
 
 
 
-
+/**
+ * Get list of employees qualified for a schedule adjustment
+ * @param {*} db DB instance
+ * @param {*} date Date of flag-raising
+ * @param {*} schedule1 The schedule to adjust from
+ * @param {*} schedule2 The schedule to adjust to
+ * @param {boolean} rollback True to rollback
+ * @returns 
+ */
 const getCandidates = async (db, date, schedule1, schedule2, rollback = false) => {
     try {
         let mCalendar = moment(date)
 
-        // 2. Get flag attendances
+        // 1. Get flag attendances
         let flagAttendances = await db.main.AttendanceFlag.aggregate([
             {
                 $match: {
@@ -80,7 +88,7 @@ const getCandidates = async (db, date, schedule1, schedule2, rollback = false) =
 
         const FLAG_EMPLOYEE_IDS = flagAttendances.map(a => a.employeeId)
 
-        // 3. Get staff employments that are active, using the Regular Working Hours, and matched with employees having flag attendances
+        // 2. Get staff employments that are active, using the Regular Working Hours, and matched with employees having flag attendances
         let employments = await db.main.Employment.aggregate([
             {
                 $match: {
@@ -105,7 +113,7 @@ const getCandidates = async (db, date, schedule1, schedule2, rollback = false) =
             }
         }
 
-        // 4. Get employee attendances (not flag attendance)
+        // 3. Get employee attendances (not flag attendance) on the given date
         let attendances = await db.main.Attendance.aggregate([
             {
                 $match: {
@@ -151,6 +159,17 @@ const getCandidates = async (db, date, schedule1, schedule2, rollback = false) =
     }
 }
 
+/**
+ * Adjust schedule1 to schedule2 for qualified employees
+ * 
+ * @param {*} db DB instance
+ * @param {String} username 
+ * @param {Array} attendanceIds 
+ * @param {*} schedule1 The schedule to adjust from
+ * @param {*} schedule2 The schedule to adjust to
+ * @param {boolean} rollback True to rollback
+ * @returns 
+ */
 const adjustCandidates = async (db, username, attendanceIds, schedule1, schedule2, rollback = false) => {
     try {
         const user = await db.main.User.findOne({

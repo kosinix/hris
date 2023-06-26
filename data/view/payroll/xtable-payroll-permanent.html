@@ -20,6 +20,7 @@
                     <th colspan="6"> No. of Days Rendered</th>
                     <th>Gross Amount</th>
                     <th>Late</th>
+                    <th>Grant</th>
                     <th></th>
                 </tr>
             </thead>
@@ -35,18 +36,20 @@
                         <td>${row.sourceOfFund}</td>
                         <td>${row.name}</td>
                         <td>${row.position}</td>
-                        <td>${row.wage}</td>
-                        <td>${row.days|blank}</td>
+                        <td>${row.wage|currency}</td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri`">${row.days|blank}</a></td>
                         <td>days</td>
-                        <td>${row.hours|blank}</td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri`">${row.hours|blank}</a></td>
                         <td>hrs</td>
-                        <td>${row.minutes|blank}</td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri`">${row.minutes|blank}</a></td>
                         <td>mins</td>
-                        <td>${row.gross}</td>
-                        <td></td>
+                        <td>${row.gross|currency}</td>
+                        <td><a v-bind:href="`/attendance/tardy/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri&undertime=1`">${row.tardy|currency}</a></td>
+                        <td>${row.grant|currency}</td>
                     </template>
                     <template v-else-if="row.rtype === 2">
                         <td>${row.name}</td>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -74,6 +77,7 @@
 {{ super() }}
 <script src="{{app.url}}/js/axios.min.js"></script>
 <script src="{{app.url}}/js/script-axios-extend.js"></script>
+<script src="{{app.url}}/js/vue-money.js"></script>
 <script src="{{app.url}}/js/Sortable.min.js"></script>
 <script>
     Vue.config.errorHandler = function (err, vm, info) {
@@ -89,6 +93,8 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
+            window.vuelidateExtendMixin,
+            VueMoney.mixin,
         ],
         components: {
         },

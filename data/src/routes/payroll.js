@@ -285,7 +285,7 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
             template: patch.template,
             status: 1
         }
-        return res.send(payroll)
+        // return res.send(payroll)
 
         payroll = await req.app.locals.db.main.Payroll.create(payroll)
         // return res.send(payroll)
@@ -576,7 +576,7 @@ router.post('/payroll/x/create', middlewares.guardRoute(['read_payroll']), async
             // console.log(member)
 
             let { days, stats, compute } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, member.employeeId, member.employmentId, startMoment, endMoment, options)
-
+            //throw 'aaa'
             let employments = await req.app.locals.db.main.Employment.aggregate([
                 {
                     $match: {
@@ -618,6 +618,11 @@ router.post('/payroll/x/create', middlewares.guardRoute(['read_payroll']), async
                 let employee = employment?.employee
                 let perMinute = 0
                 let totalWorkDays = 22
+                let perMonth = 0
+
+                let gross = 0.0
+                let tardy = 0.0
+                let grant = 0.0
                 if (employment?.salaryType === 'monthly') {
                     perMinute = precisionRound((employment.salary / totalWorkDays / 8 / 60), 9)
                 } else if (employment?.salaryType === 'daily') {
@@ -626,6 +631,16 @@ router.post('/payroll/x/create', middlewares.guardRoute(['read_payroll']), async
                     perMinute = precisionRound((employment.salary / 60), 9)
                 }
 
+                gross = precisionRound(perMinute * stats.weekdays.totalMinutes, 9)
+                tardy = precisionRound(perMinute * stats.weekdays.underTimeTotalMinutes, 9)
+                grant = gross - tardy
+
+                if (employment.employmentType === 'permanent') {
+                    if (employment.salaryType === 'monthly') {
+                        perMonth = employment.salary
+                    }
+                    gross = perMonth - tardy
+                }
                 rows.push({
                     uid: employment?._id,
                     rtype: 1,
@@ -636,15 +651,16 @@ router.post('/payroll/x/create', middlewares.guardRoute(['read_payroll']), async
                     days: stats.weekdays.renderedDays,
                     hours: stats.weekdays.renderedHours,
                     minutes: stats.weekdays.renderedMinutes,
-                    gross: parseFloat(precisionRound(perMinute * stats.weekdays.totalMinutes, 9).toFixed(2)),
-                    tardy: parseFloat(precisionRound(perMinute * stats.weekdays.underTimeTotalMinutes, 9).toFixed(2)),
+                    gross: gross,
+                    tardy: tardy,
+                    grant: grant,
                     // stats: stats,
                     // compute: compute,
                 })
             }
         }
 
-        return res.send(rows)
+        // return res.send(rows)
         let payroll2 = await req.app.locals.db.main.Payroll2.create({
             name: name,
             template: template,

@@ -2383,7 +2383,7 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
     }
     let timeWorked = countWork(timeSegments, logSegments, options)
 
-    // console.dir(timeWorked, { depth: null })
+    console.dir(timeWorked, { depth: null })
 
     let dtr = {
         totalMinutes: 0,
@@ -2714,6 +2714,7 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
             $lte: endMoment.clone().endOf('day').toDate(),
         }
     }).lean()
+
     // Turn array of holidays into an object with date as keys: "2020-12-31"
     holidays = lodash.mapKeys(holidays, (h) => {
         return moment(h.date).format('YYYY-MM-DD')
@@ -2742,7 +2743,7 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
             excessMinutes: 0,
             underTimeTotalMinutes: 0,
         }
-        if ((holiday && employment.employmentType === 'permanent')) {
+        if (holiday && employment.employmentType === 'permanent') {
             dtr.totalMinutes = 480
         } else if (attendance) {
             dtr = attendanceToTimeWorked(attendance, employment, workSchedule)

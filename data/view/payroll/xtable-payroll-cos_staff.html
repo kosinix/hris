@@ -10,16 +10,46 @@
     <div class="table-responsive">
         <table class="table-payroll-sim">
             <thead>
-                <tr>
-                    <th></th>
-                    <th>NO.</th>
-                    <th>Source of Fund</th>
-                    <th>Name</th>
-                    <th>Position</th>
-                    <th>DAILY/ MONTHLY WAGE</th>
-                    <th colspan="6"> No. of Days Rendered</th>
-                    <th>Gross Amount</th>
-                    <th></th>
+                <tr class="text-center">
+                    <th rowspan="3"></th>
+                    <th rowspan="3">No.</th>
+                    <th rowspan="3">Source of Fund</th>
+                    <th rowspan="3">Name</th>
+                    <th rowspan="3">Position</th>
+                    <th rowspan="3">Daily/Monthly Wage</th>
+                    <th rowspan="3" colspan="6">No. of Days Rendered</th>
+                    <th rowspan="3">Gross Amount</th>
+                    <th rowspan="3">5% Premium</th>
+
+                    <th colspan="8">Deductions</th>
+
+                    <th rowspan="3">Net Amount</th>
+                    <th rowspan="3">No.</th>
+                    <th rowspan="3">Signature</th>
+                    <th rowspan="3">Remarks</th>
+
+                    <th rowspan="3"></th>
+
+
+                </tr>
+                <tr class="text-center">
+                    
+
+                    <th colspan="3">Tax</th>
+                    <th colspan="3">SSS</th>
+                    <th rowspan="2">IGP</th>
+                    <th rowspan="2">Total</th>
+                </tr>
+                <tr class="text-center">
+
+                    <th>1%</th>
+                    <th>10%</th>
+                    <th>Total</th>
+
+                    <th>Contribution</th>
+                    <th>EC</th>
+                    <th>Total</th>
+
                 </tr>
             </thead>
             <tbody id="sortMe">
@@ -34,14 +64,32 @@
                         <td>${row.sourceOfFund}</td>
                         <td>${row.name}</td>
                         <td>${row.position}</td>
-                        <td>${row.wage}</td>
-                        <td>${row.days|blank}</td>
+                        <td>${row.wage|currency}</td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri`">${row.days|blank}</a></td>
                         <td>days</td>
-                        <td>${row.hours|blank}</td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri`">${row.hours|blank}</a></td>
                         <td>hrs</td>
-                        <td>${row.minutes|blank}</td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri`">${row.minutes|blank}</a></td>
                         <td>mins</td>
-                        <td>${row.gross}</td>
+                        <td>${row.gross|currency}</td>
+                        <td>5%</td>
+
+                        <td>1%</td>
+                        <td>10%</td>
+                        <td>Total</td>
+
+                        <td>C</td>
+                        <td>EC%</td>
+                        <td>Total</td>
+
+                        <td></td>
+                        <td></td>
+
+                        <td></td>
+                        <td>${row.count}</td>
+                        <td></td>
+                        <td></td>
+
                     </template>
                     <template v-else-if="row.rtype === 2">
                         <td>${row.name}</td>
@@ -55,6 +103,24 @@
                         <td></td>
                         <td></td>
                         <td></td>
+                        <td></td>
+
+                        <td></td>
+                        <td></td>
+                        <td></td>
+
+                        <td></td>
+                        <td></td>
+                        <td></td>
+
+                        <td></td>
+                        <td></td>
+
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        
                         <td></td>
                     </template>
                     <td>
@@ -71,6 +137,7 @@
 {{ super() }}
 <script src="{{app.url}}/js/axios.min.js"></script>
 <script src="{{app.url}}/js/script-axios-extend.js"></script>
+<script src="{{app.url}}/js/vue-money.js"></script>
 <script src="{{app.url}}/js/Sortable.min.js"></script>
 <script>
     Vue.config.errorHandler = function (err, vm, info) {
@@ -86,6 +153,8 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
+            window.vuelidateExtendMixin,
+            VueMoney.mixin,
         ],
         components: {
         },

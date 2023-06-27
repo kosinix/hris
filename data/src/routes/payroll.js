@@ -92,6 +92,76 @@ router.get('/payroll/all', middlewares.guardRoute(['read_all_payroll', 'read_pay
     }
 });
 
+router.get('/payroll/x/all', middlewares.guardRoute(['read_all_payroll', 'read_payroll']), async (req, res, next) => {
+    try {
+        let page = parseInt(lodash.get(req, 'query.page', 1))
+        let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
+        let sortBy = lodash.get(req, 'query.sortBy', '_id')
+        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', 1))
+        let customSort = parseInt(lodash.get(req, 'query.customSort'))
+        lodash.set(req, 'session.pagination.perPage', perPage)
+
+        let query = {}
+        let projection = {}
+
+        if (res.user.roles.includes('hrmo')) {
+            query = {
+                status: 1
+            }
+        } else if (res.user.roles.includes('accountant')) {
+            query = {
+                status: 2
+            }
+        } else if (res.user.roles.includes('cashier')) {
+            query = {
+                status: {
+                    $in: [3, 4]
+                }
+            }
+        }
+        // Pagination
+        let totalDocs = await req.app.locals.db.main.Payroll2.countDocuments(query)
+        let pagination = paginator.paginate(
+            page,
+            totalDocs,
+            perPage,
+            '/payroll/x/all',
+            req.query
+        )
+
+        let options = { skip: (page - 1) * perPage, limit: perPage };
+        let sort = {}
+        sort = lodash.set(sort, sortBy, sortOrder)
+
+        // console.log(query, projection, options, sort)
+
+        let payrolls = await req.app.locals.db.main.Payroll2.find(query, projection, options).sort(sort).lean()
+
+        let assignedUsers = []
+        payrolls.forEach((payroll) => {
+            assignedUsers.push(req.app.locals.db.main.User.findOne({ _id: payroll.assignedTo }))
+        })
+        assignedUsers = await Promise.all(assignedUsers)
+        // payrolls.forEach((payroll, i) => {
+        //     payroll.scanners = scanners[i]
+        // })
+        payrolls = payrolls.map((payroll, i) => {
+            payroll.count = payroll.rows.filter(r => r.type === 1).length
+            payroll.assignedUser = assignedUsers[i]
+            return payroll
+        })
+
+        res.render('payroll/all.html', {
+            flash: flash.get(req, 'payroll'),
+            payrolls: payrolls,
+            pagination: pagination,
+            query: req.query,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/payroll/create', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
     try {
         // return res.redirect('/payroll/x/create')

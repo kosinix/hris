@@ -538,20 +538,20 @@ h4, h5, h6 {
 }
 
 /*  */
-.table-payroll-sim  {
+.table-payroll  {
     font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
     font-size: 12px;
 }
 
-.table-payroll-sim th,
-.table-payroll-sim td {
+.table-payroll th,
+.table-payroll td {
     padding: 3px;
 }
 
-.table-payroll-sim th {
+.table-payroll th {
     border: 1px solid #111;
 }
-.table-payroll-sim td {
+.table-payroll td {
     border: 1px solid #ccc;
 }
 
@@ -567,6 +567,9 @@ h4, h5, h6 {
 .table-payroll td input {
     visibility: hidden;
     position: absolute;
+    top: 50%;
+    left: 5%;
+    transform: translateY(-50%);
     width: 90%;
 }
 .table-payroll td span {

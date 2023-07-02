@@ -753,6 +753,7 @@ router.get('/payroll/x/view/:payrollId', middlewares.guardRoute(['read_payroll']
         payroll.rows = payroll.rows.map((row) => {
             if (row.rtype === 1) {
                 row.count = ++counter
+                row.tax1 = 0
             }
             return row
         })

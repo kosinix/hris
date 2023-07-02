@@ -8,7 +8,7 @@
         <a href="/payroll/x/{{payroll._id}}/add-row2" class="btn btn-sm btn-outline-secondary">Add Row2</a>
     </div>
     <div class="table-responsive">
-        <table class="table-payroll-sim">
+        <table class="table-payroll table-payroll-sim">
             <thead>
                 <tr class="text-center">
                     <th rowspan="3"></th>
@@ -21,34 +21,33 @@
                     <th rowspan="3">Gross Amount</th>
                     <th rowspan="3">5% Premium</th>
 
-                    <th colspan="8">Deductions</th>
+                    <th colspan="9">Deductions</th>
 
                     <th rowspan="3">Net Amount</th>
                     <th rowspan="3">No.</th>
                     <th rowspan="3">Signature</th>
                     <th rowspan="3">Remarks</th>
-
                     <th rowspan="3"></th>
-
 
                 </tr>
                 <tr class="text-center">
-                    
-
-                    <th colspan="3">Tax</th>
+                    <th colspan="4">Tax</th>
                     <th colspan="3">SSS</th>
-                    <th rowspan="2">IGP</th>
+                    <th>IGP</th>
                     <th rowspan="2">Total</th>
                 </tr>
                 <tr class="text-center">
 
                     <th>1%</th>
+                    <th>5%</th>
                     <th>10%</th>
                     <th>Total</th>
 
                     <th>Contribution</th>
                     <th>EC</th>
                     <th>Total</th>
+
+                    <th>Multi-crop</th>
 
                 </tr>
             </thead>
@@ -74,7 +73,11 @@
                         <td>${row.gross|currency}</td>
                         <td>5%</td>
 
-                        <td>1%</td>
+                        <td>
+                            <input v-on:blur="lockInput($event)" type="text" v-bind:value="row.tax1" v-on:input="row.tax1 = $event.target.value">
+                            <span class="text-success" v-on:dblclick="editInput($event)">${row.tax1|defVal(0)|currency}</span>
+                        </td>
+                        <td>5%</td>
                         <td>10%</td>
                         <td>Total</td>
 
@@ -93,6 +96,7 @@
                     </template>
                     <template v-else-if="row.rtype === 2">
                         <td>${row.name}</td>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -169,6 +173,9 @@
         filters: {
             blank: function(value){
                 return (value) ? value : ''
+            },
+            defVal: function(value, def){
+                return (!value) ? def : value
             }
         },
         mounted: function() {
@@ -237,7 +244,24 @@
         methods: {
             setActiveDrag: function(){
                 this.activeDrag = !this.activeDrag
-            }
+            },
+            editInput: function(e) {
+                // if(this.payroll.status === 1 || this.payroll.status === 2){
+                    
+                // } else {
+                //     return false
+                // }
+                var el = jQuery(e.target)
+                var elInput = el.siblings('input')
+                elInput.data('orig', elInput.val())
+                el.parents('td').addClass('editable')
+                elInput.focus()
+            },
+            lockInput: function(e) { // onBlur
+                var el = jQuery(e.target)
+                el.parents('td').removeClass('editable')
+                e.target.value = e.target.value
+            },
         }
     });
 </script>

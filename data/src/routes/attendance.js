@@ -1551,6 +1551,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
             compatibilityUrl: compatibilityUrl,
         }
+        
         // return res.send(days)
         res.render('attendance/employment6.html', data);
     } catch (err) {
@@ -1790,20 +1791,31 @@ router.get('/attendance/employment/:employmentId/move', middlewares.guardRoute([
 });
 router.post('/attendance/employment/:employmentId/move', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
     try {
+        let employment = res.employment.toObject()
+        // let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
+
+        let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+        let showWeekDays = lodash.get(req, 'query.showWeekDays', 'Mon|Tue|Wed|Thu|Fri|Sat|Sun')
+        // let showTotalAs = lodash.get(req, 'query.undertime') == 1 ? 'undertime' : 'time'
+
+        let startMoment = moment(start).startOf('day')
+        let endMoment = moment(end).endOf('day')
+
+        if (!startMoment.isValid()) {
+            throw new Error(`Invalid start date.`)
+        }
+        if (!endMoment.isValid()) {
+            throw new Error(`Invalid end date.`)
+        }
+
+        if (endMoment.isBefore(startMoment)) {
+            throw new Error(`Invalid end date. Must not be less than the start date.`)
+        }
+
         let attendanceIds = req.body.attendanceIds.split(',').map((a) => {
             return req.app.locals.db.mongoose.Types.ObjectId(a)
         })
-        // ATTENDANCES
-        // let attendances = await req.app.locals.db.main.Attendance.aggregate([
-        //     {
-        //         $match: {
-        //             _id: {
-        //                 $in: attendanceIds
-        //             }
-        //         }
-        //     },
-        // ])
-
         await req.app.locals.db.main.Attendance.update(
             {
                 _id: {
@@ -1820,7 +1832,9 @@ router.post('/attendance/employment/:employmentId/move', middlewares.guardRoute(
             }
         )
 
-        res.send('changed')
+        flash.ok(req, 'attendance', `Changed schedule of attendance(s).`)
+        res.redirect(`/attendance/employment/${employment._id}?start=${startMoment.clone().format('YYYY-MM-DD')}&end=${endMoment.clone().format('YYYY-MM-DD')}&showWeekDays=${showWeekDays}`)
+
     } catch (err) {
         next(err);
     }

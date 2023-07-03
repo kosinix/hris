@@ -28,130 +28,29 @@
                 to {{endMoment|format_date('MMM DD, YYYY')}}
             {% endif %}
         </h2>
-        <div class="mb-3">
-            <form action="" ref="form" v-on:submit.prevent="reloado">
-            <div class="form-row align-items-center">
-                <label for="startDate" class="mb-0 mr-1">From</label>
-                <input v-model="startDate" id="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}" class="col-md-2 col-4 form-control form-control-sm">
-                <label for="endDate" class="m-1">to</label>
-                <input v-model="endDate" id="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}" class="form-control form-control-sm col-4 col-md-2">
-                <select v-model="showWeekDays" name="showWeekDays" id="showWeekDays" class="form-control form-control-sm ml-md-1 col-md-2 col-6 mt-2 mt-md-0">
-                    <option value="Mon|Tue|Wed|Thu|Fri">Mon-Fri</option>
-                    <option value="Sat|Sun">Sat,Sun</option>
-                    <option value="Mon|Tue|Wed|Thu|Fri|Sat|Sun">All days</option>
-                </select>
-                <button class="ml-md-1 btn btn-sm btn-primary col-6 col-md-1 mt-2 mt-md-0">Change</button>
-            </div>
-            </form>
-        </div>
-        <div class="btn-toolbar justify-content-end mb-3">
-            <div class="btn-group mr-2">
-                <a href="/attendance/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm">Insert Attendance</a>
-                <a href="/attendance/employment/{{employment._id}}/print?{{compatibilityUrl}}" class="btn btn-light btn-sm" target="_blank">Print DTR</a>
-            </div>
-        </div>
-
+       
         <form action="/attendance/employment/{{employment._id}}/move?start={{startMoment|format_date('YYYY-MM-DD')}}&end={{endMoment|format_date('YYYY-MM-DD')}}&showWeekDays={{showWeekDays}}" method="post">
-            <select name="workScheduleId" id="workScheduleId">
-                {% for workSchedule in workSchedules %}
-                <option value="{{workSchedule._id}}">{{workSchedule.name}}</option>
-                {% endfor %}
-            </select>
-            <textarea name="attendanceIds" id="attendanceIds" class="form-control">{{attendanceIds|safe}}</textarea>
-            <button>Change Sched</button>
+            <div class="alert alert-info">Change schedule for {{attendances.length}} attendance(s)?</div>
+            <div class="form-group">
+                <label for="workScheduleId">New Schedule</label>
+                <div class="form-row">
+                    <div class="col-6">
+                        <select class="form-control" name="workScheduleId" id="workScheduleId">
+                            {% for workSchedule in workSchedules %}
+                            <option value="{{workSchedule._id}}">{{workSchedule.name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6 d-flex">
+                        <button class="btn btn-primary">Change Sched</button>
+                        <a href="/attendance/employment/{{employment._id}}?start={{startMoment|format_date('YYYY-MM-DD')}}&end={{endMoment|format_date('YYYY-MM-DD')}}&showWeekDays={{showWeekDays}}" class="btn btn-light">Cancel</a>
+                    </div>
+                </div>
+            </div>
+            <textarea style="visibility: hidden;" name="attendanceIds" id="attendanceIds" class="form-control">{{attendanceIds|safe}}</textarea>
+
         </form>
-        <div class="table-responsive">
-            <table class="table table-dtr">
-                <tr>
-                    <th width="10%" class="text-center" rowspan="2" colspan="2">Day</th>
-                    <th width="22%" class="text-center" colspan="2">AM</th>
-                    <th width="22%" class="text-center" colspan="2">PM</th>
-                    <th width="22%" class="text-center" colspan="2">
-                        a
-                    </th>
-                </tr>
-                <tr>
-                    <th>Arrival</th>
-                    <th>Departure</th>
-                    
-                    <th>Arrival</th>
-                    <th>Departure</th>
-
-                    <th>Days</th>
-                </tr>
-                {% for attendance in attendances %}
-
-                <tr>
-                    <td class="text-left">
-                        {{attendance.createdAt|format_date('MMM')}} {{attendance.createdAt|format_date('DD')}}
-                    </td>
-                    <td class="text-center">{{attendance.createdAt|format_date('ddd')}}</td>
-                    {% if attendance.type == 'normal' %}
-                        <td>{{attendance.logs[0].dateTime|format_date('hh:mm A')}}</td>
-                        <td>{{attendance.logs[1].dateTime|format_date('hh:mm A')}}</td>
-                        <td>{{attendance.logs[2].dateTime|format_date('hh:mm A')}}</td>
-                        <td>{{attendance.logs[3].dateTime|format_date('hh:mm A')}}</td>
-                    {% elif  attendance.type == 'travel' %}
-                        {% if attendance.logs.length === 4 and attendance.logs[0].type === 'travel' %}
-                            <td class="text-center" colspan="2">
-                                Travel
-                            </td>
-                            <td></td>
-                            <td></td>
-                        {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'travel' %}
-                            <td></td>
-                            <td></td>
-                            <td class="text-center" colspan="2">
-                                Travel
-                            </td>
-                        {% else %}
-                            <td class="text-center" colspan="4">
-                                Travel
-                            </td>
-                        {% endif %}
-                    {% elif  attendance.type == 'wfh' %}
-                        {% if attendance.logs.length === 4 and attendance.logs[0].type === 'wfh' %}
-                            <td class="text-center" colspan="2">
-                                Work From Home
-                            </td>
-                            <td></td>
-                            <td></td>
-                        {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'wfh' %}
-                            <td></td>
-                            <td></td>
-                            <td class="text-center" colspan="2">
-                                Work From Home
-                            </td>
-                        {% else %}
-                            <td class="text-center" colspan="4">
-                                Work From Home
-                            </td>
-                        {% endif %}
-                    {% elif attendance.type === 'pass'%}
-                        <td>{{day.display.inAM}}</td>
-                        <td class="text-center" colspan="2">
-                            Pass Slip
-                        </td>
-                        <td>{{day.display.outPM}}</td>
-                    {% else %}
-                        <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')}}</td>
-                    {% endif %}
-                    <td>
-                        
-                    </td>
-                   
-                    
-                </tr>
-                {% endfor %}
-                <tr>
-                    <td colspan="6"><h5 class="m-0">Total</h5></td>
-                    <td>
-                       
-                    </td>
-                   
-                </tr>
-            </table>
-        </div>
+        
     </div>
 </div>
 {% endblock %}

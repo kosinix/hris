@@ -1,13 +1,13 @@
 {% extends "document.html" %}
 
 {% block body %}
-<div class="p-3" id="vApp" v-cloak>
-    <h1 class="h6 mb-2">{{payroll.name}}</h1>
+<div class="col-12" id="vApp" v-bind:data-pending="pending" v-cloak>
+    <h1 class="h6 mb-2 pt-3">{{payroll.name}}</h1>
     <div class="btn-group mb-2">
-        <a href="/payroll/x/{{payroll._id}}/add-row?index=0&title=Subtotal" class="btn btn-sm btn-outline-secondary">Add Row</a>
-        <a href="/payroll/x/{{payroll._id}}/add-row2" class="btn btn-sm btn-outline-secondary">Add Row2</a>
+        <a href="/payroll/x/{{payroll._id}}/add-row?rtype=2&index=0&title=Subtotal" class="btn btn-sm btn-outline-secondary">Add Subtotal Row</a>
+        <a href="/payroll/x/{{payroll._id}}/add-row?rtype=3&index=0&title=Title" class="btn btn-sm btn-outline-secondary">Add Title Row</a>
     </div>
-    <div class="table-responsive">
+    <div class="table-responsive mb-3">
         <table class="table-payroll table-payroll-sim">
             <thead>
                 <tr class="text-center">
@@ -25,8 +25,8 @@
 
                     <th rowspan="3">Net Amount</th>
                     <th rowspan="3">No.</th>
-                    <th rowspan="3">Signature</th>
-                    <th rowspan="3">Remarks</th>
+                    <!-- <th rowspan="3">Signature</th> -->
+                    <!-- <th rowspan="3">Remarks</th> -->
                     <th rowspan="3"></th>
 
                 </tr>
@@ -71,31 +71,100 @@
                         <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri`">${row.minutes|blank}</a></td>
                         <td>mins</td>
                         <td>${row.gross|currency}</td>
-                        <td>5%</td>
+                        <td>
+                            {% set fieldName = 'premium5' %}
+                            {% include 'payroll/xfield.html' %}
+                            {% set fieldName = '' %}
+                        </td>
 
                         <td>
-                            <input v-on:blur="lockInput($event)" type="text" v-bind:value="row.tax1" v-on:input="row.tax1 = $event.target.value">
-                            <span class="text-success" v-on:dblclick="editInput($event)">${row.tax1|defVal(0)|currency}</span>
+                            {% set fieldName = 'tax1' %}
+                            {% include 'payroll/xfield.html' %}
+                            {% set fieldName = '' %}
                         </td>
-                        <td>5%</td>
-                        <td>10%</td>
-                        <td>Total</td>
+                        <td>
+                            {% set fieldName = 'tax5' %}
+                            {% include 'payroll/xfield.html' %}
+                            {% set fieldName = '' %}
+                        </td>
+                        <td>
+                            {% set fieldName = 'tax10' %}
+                            {% include 'payroll/xfield.html' %}
+                            {% set fieldName = '' %}
+                        </td>
+                        <!--  total tax -->
+                        <td>${totalTax(row)|currency}</td>
 
-                        <td>C</td>
-                        <td>EC%</td>
-                        <td>Total</td>
+                        <td>
+                            {% set fieldName = 'sss' %}
+                            {% include 'payroll/xfield.html' %}
+                            {% set fieldName = '' %}
+                        </td>
+                        <td>
+                            {% set fieldName = 'sssEC' %}
+                            {% include 'payroll/xfield.html' %}
+                            {% set fieldName = '' %}
+                        </td>
+                        <!--  -->
+                        <td>${totalSSS(row)|currency}</td>
 
-                        <td></td>
-                        <td></td>
+                        <td>
+                            {% set fieldName = 'igp' %}
+                            {% include 'payroll/xfield.html' %}
+                            {% set fieldName = '' %}
+                        </td>
+                        <!--  -->
+                        <td>${totalDeductions(row)|currency}</td>
 
-                        <td></td>
+                        <td>${netAmount(row)|currency}</td>
                         <td>${row.count}</td>
-                        <td></td>
-                        <td></td>
+                        <!-- <td></td> -->
+                        <!-- <td></td> -->
 
                     </template>
                     <template v-else-if="row.rtype === 2">
                         <td>${row.name}</td>
+                        <td><!-- Source of fund --></td>
+                        <td><!-- Name --></td>
+                        <td><!-- Position --></td>
+                        <td><!-- Wage --></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>${subTotalGross(row, index, 'gross')|currency}</td>
+                        <td></td>
+
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>${subTotalTax(row, index)|currency}</td>
+
+                        <td></td>
+                        <td></td>
+                        <td>${subTotalSSS(row, index)|currency}</td>
+
+                        <td></td>
+                        <td>${subTotalDeductions(row, index)|currency}</td>
+                        <td>${subTotalNetAmount(row, index)|currency}</td>
+
+                        <!-- <td></td> -->
+                        <!-- <td></td> -->
+                        
+                        <td></td>
+                    </template>
+                    <template v-else-if="row.rtype === 3">
+                        <td>
+                            {% set fieldName = 'name' %}
+                            {% include 'payroll/xfield-string.html' %}
+                            {% set fieldName = '' %}
+                        </td>
+                        <td><!-- Source of fund --></td>
+                        <td><!-- Name --></td>
+                        <td><!-- Position --></td>
+                        <td><!-- Wage --></td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -104,6 +173,7 @@
                         <td></td>
                         <td></td>
                         <td></td>
+
                         <td></td>
                         <td></td>
                         <td></td>
@@ -117,13 +187,8 @@
                         <td></td>
                         <td></td>
 
-                        <td></td>
-                        <td></td>
-
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                        <!-- <td></td> -->
+                        <!-- <td></td> -->
                         
                         <td></td>
                     </template>
@@ -133,6 +198,7 @@
                 </tr>
             </tbody>
         </table>
+        <button type="button" v-on:click="saveMe" class="btn btn-primary btn-sm">Save</button>
 
     </div> 
 </div>
@@ -178,6 +244,7 @@
                 return (!value) ? def : value
             }
         },
+        
         mounted: function() {
             var me = this;
             me.$nextTick(function () {
@@ -242,6 +309,87 @@
             })
         },
         methods: {
+            totalTax: function(row){
+                return row.tax1 + row.tax5 + row.tax10
+            },
+            totalSSS: function(row){
+                return row.sss + row.sssEC
+            },
+            totalIGP: function(row){
+                return row.igp
+            },
+            totalDeductions: function(row){
+                return this.totalTax(row) + this.totalSSS(row) + this.totalIGP(row)
+            },
+            netAmount: function(row){
+                return row.gross - this.totalDeductions(row)
+            },
+            subTotalGross: function(row, index, key) {
+                let totalGross = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentRow?.rtype === 1 && currentIndex >= 0){
+
+                    totalGross += currentRow[key]
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return totalGross
+            },
+            subTotalTax: function(row, index) {
+                let totalGross = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentRow?.rtype === 1 && currentIndex >= 0){
+
+                    totalGross += this.totalTax(currentRow)
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return totalGross
+            },
+            
+            subTotalSSS: function(row, index) {
+                let totalGross = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentRow?.rtype === 1 && currentIndex >= 0){
+
+                    totalGross += this.totalSSS(currentRow)
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return totalGross
+            },
+            subTotalDeductions: function(row, index) {
+                let totalGross = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentRow?.rtype === 1 && currentIndex >= 0){
+
+                    totalGross += this.totalDeductions(currentRow)
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return totalGross
+            },
+            subTotalNetAmount: function(row, index) {
+                let totalGross = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentRow?.rtype === 1 && currentIndex >= 0){
+
+                    totalGross += this.netAmount(currentRow)
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return totalGross
+            },
             setActiveDrag: function(){
                 this.activeDrag = !this.activeDrag
             },
@@ -260,7 +408,31 @@
             lockInput: function(e) { // onBlur
                 var el = jQuery(e.target)
                 el.parents('td').removeClass('editable')
+                e.target.value = parseFloat(e.target.value)
+                this.saveMe()
+            },
+            lockInput2: function(e) { // onBlur
+                var el = jQuery(e.target)
+                el.parents('td').removeClass('editable')
                 e.target.value = e.target.value
+                this.saveMe()
+            },
+            toMoney: function(val){
+                if(isNaN(val)){
+                    val = 0
+                }
+                return parseFloat(val)
+            },
+            saveMe: function() {
+                var me = this;
+                me.pending = true
+                axios.post(`/payroll/x/${me.payroll._id}/save`, {rows: JSON.parse(JSON.stringify(me.payroll.rows))}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
+                    console.log(response.data);
+                }).catch(function(error){
+                    alert("Something went wrong.");
+                }).then(function(){
+                    me.pending = false
+                });
             },
         }
     });

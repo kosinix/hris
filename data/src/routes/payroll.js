@@ -307,8 +307,16 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
                 })
             }
 
-            let timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, hoursPerDay)
 
+            // let timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, hoursPerDay)
+            let options = {
+                padded: true,
+                showTotalAs: 'time',
+                showWeekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                periodWeekDays: 'All'
+            }
+            let { days, stats, compute } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, moment(patch.dateStart), moment(patch.dateEnd), options)
+            let timeRecord = stats.weekdays
             return {
                 uid: uid.gen(),
                 type: 1,
@@ -753,7 +761,17 @@ router.get('/payroll/x/view/:payrollId', middlewares.guardRoute(['read_payroll']
         payroll.rows = payroll.rows.map((row) => {
             if (row.rtype === 1) {
                 row.count = ++counter
-                row.tax1 = 0
+
+                row.premium5 = row.premium5 ?? 0
+
+                row.tax1 = row.tax1 ?? 0
+                row.tax5 = row.tax5 ?? 0
+                row.tax10 = row.tax10 ?? 0
+
+                row.sss = row.sss ?? 0
+                row.sssEC = row.sssEC ?? 0
+
+                row.igp = row.igp ?? 0
             }
             return row
         })
@@ -772,7 +790,7 @@ router.get('/payroll/x/:payrollId/add-row', middlewares.guardRoute(['read_payrol
         }
         payroll.rows.splice(req?.query?.index, 0, {
             uid: req.app.locals.db.mongoose.Types.ObjectId(),
-            rtype: 2,
+            rtype: parseInt(req?.query?.rtype),
             name: req?.query?.title
         })
         await payroll.save()
@@ -819,6 +837,26 @@ router.post('/payroll/x/:payrollId/sort-rows', middlewares.guardRoute(['update_p
     }
 });
 
+router.post('/payroll/x/:payrollId/save', middlewares.guardRoute(['read_payroll']), async (req, res, next) => {
+    try {
+        let payroll = await req.app.locals.db.main.Payroll2.findById(req?.params?.payrollId).lean()
+        if (!payroll) {
+            return res.render('error.html', { error: "Sorry, payroll not found." })
+        }
+        let body = lodash.get(req, 'body')
+        let patch = {
+            rows: lodash.get(body, 'rows')
+        }
+
+        let r = await req.app.locals.db.main.Payroll2.updateOne({ _id: payroll._id }, patch)
+console.log(r)
+        res.send(`Payroll saved.`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+// asasas
 router.get('/payroll/:payrollId/unlock', middlewares.guardRoute(['read_payroll', 'update_payroll']), middlewares.getPayroll, async (req, res, next) => {
     try {
         let payroll = res.payroll.toObject()

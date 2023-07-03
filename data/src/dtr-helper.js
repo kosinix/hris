@@ -2383,7 +2383,7 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
     }
     let timeWorked = countWork(timeSegments, logSegments, options)
 
-    console.dir(timeWorked, { depth: null })
+    // console.dir(timeWorked, { depth: null })
 
     let dtr = {
         totalMinutes: 0,

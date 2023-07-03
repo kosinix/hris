@@ -2742,9 +2742,26 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
             totalMinutes: 0,
             excessMinutes: 0,
             underTimeTotalMinutes: 0,
+            time: {
+                days: 0,
+                hoursDays: 0,
+                hours: 0,
+                minutes: 0,
+                total: 0
+            },
+            undertime: {
+                days: 0,
+                hoursDays: 0,
+                hours: 0,
+                minutes: 0,
+                total: 0
+            }
         }
         if (holiday && employment.employmentType === 'permanent') {
-            dtr.totalMinutes = 480
+            dtr.totalMinutes = 480 // @deprecated use total
+            dtr.time.total = 480
+            dtr.time.days = 1
+            dtr.time.hoursDays = 8
         } else if (attendance) {
             dtr = attendanceToTimeWorked(attendance, employment, workSchedule)
         }
@@ -2802,6 +2819,14 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
     let restDaysTotalMinutes = restDays.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
     let restDaysTotalMinutesUnderTime = restDays.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
 
+
+    let _holidays = days.filter((day) => {
+        return day.holiday
+    })
+    let _holidaysTotalMinutes = _holidays.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
+    let _holidaysTotalMinutesUnderTime = _holidays.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
+
+
     let daysTotalMinutes = days.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
     let daysTotalMinutesUnderTime = days.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
 
@@ -2812,6 +2837,7 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
         weekdaysTotal: weekdays.length,
         weekends: getTimeBreakdown(weekendsTotalMinutes, weekendsTotalMinutesUnderTime, hoursPerDay),
         restDays: getTimeBreakdown(restDaysTotalMinutes, restDaysTotalMinutesUnderTime, hoursPerDay),
+        holidays: getTimeBreakdown(_holidaysTotalMinutes, _holidaysTotalMinutesUnderTime, hoursPerDay),
     }
 
     return {

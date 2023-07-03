@@ -2657,14 +2657,14 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
 
     const employment = await db.main.Employment.findOne(employmentId);
     if(!employment){
-        throw new Error(`Employment not found for employee with ID "${employeeId}"`)
+        throw new Error(`Employment not found with ID "${employmentId}"`)
     }
 
     // ATTENDANCES
     let attendances = await db.main.Attendance.aggregate([
         {
             $match: {
-                employeeId: employeeId,
+                // employeeId: employeeId,
                 employmentId: employmentId,
                 createdAt: {
                     $gte: startMoment.clone().startOf('day').toDate(),

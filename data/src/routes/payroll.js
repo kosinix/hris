@@ -709,6 +709,13 @@ router.post('/payroll/x/create', middlewares.guardRoute(['read_payroll']), async
                     perMinute = precisionRound((employment.salary / 60), 9)
                 }
 
+                if (employment.employmentType === 'permanent') {
+                    stats.weekdays.renderedDays += stats.holidays.renderedDays
+                    stats.weekdays.renderedHours += stats.holidays.renderedHours
+                    stats.weekdays.renderedMinutes += stats.holidays.renderedMinutes
+                    stats.weekdays.totalMinutes += stats.holidays.totalMinutes
+                    stats.weekdays.underTimeTotalMinutes += stats.holidays.underTimeTotalMinutes
+                }
                 gross = precisionRound(perMinute * stats.weekdays.totalMinutes, 9)
                 tardy = precisionRound(perMinute * stats.weekdays.underTimeTotalMinutes, 9)
                 grant = gross - tardy
@@ -744,6 +751,7 @@ router.post('/payroll/x/create', middlewares.guardRoute(['read_payroll']), async
             template: template,
             dateStart: dateStart,
             dateEnd: dateEnd,
+            employeeListId: employeeListId,
             rows: rows,
         })
         res.redirect(`/payroll/x/view/${payroll2._id}`)
@@ -778,6 +786,130 @@ router.get('/payroll/x/view/:payrollId', middlewares.guardRoute(['read_payroll']
         res.render(`payroll/xtable-payroll-${payroll.template}.html`, {
             payroll: payroll
         })
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/payroll/x/regen/:payrollId', middlewares.guardRoute(['read_payroll']), async (req, res, next) => {
+    try {
+        let payroll = await req.app.locals.db.main.Payroll2.findById(req?.params?.payrollId).lean()
+        if (!payroll) {
+            throw new Error(`Payroll not found.`)
+        }
+
+        let startMoment = moment(payroll.dateStart)
+        let endMoment = moment(payroll.dateEnd)
+
+        let options = {
+            padded: true,
+            showTotalAs: 'time',
+            showWeekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            periodWeekDays: 'All'
+        }
+        for (let x = 0; x < payroll.rows.length; x++) {
+            let row = payroll.rows[x]
+
+            if (row.rtype === 1) {
+                // console.log(member)
+
+                let { days, stats, compute } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, null, row.uid, startMoment, endMoment, options)
+                //throw 'aaa'
+                let employments = await req.app.locals.db.main.Employment.aggregate([
+                    {
+                        $match: {
+                            _id: row.uid
+                        }
+                    },
+                    {
+                        $lookup: {
+                            localField: 'employeeId',
+                            foreignField: '_id',
+                            from: 'employees',
+                            as: 'employees'
+                        }
+                    },
+                    {
+                        $addFields: {
+                            "employee": {
+                                $arrayElemAt: ["$employees", 0]
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            employees: 0,
+                            employee: {
+                                personal: 0,
+                                employments: 0,
+                                addresses: 0,
+                            }
+                        }
+                    }
+                ])
+                const precisionRound = (number, precision) => {
+                    var factor = Math.pow(10, precision);
+                    return Math.round(number * factor) / factor;
+                }
+                let employment = employments.at(-1)
+                if (employment) {
+                    let employee = employment?.employee
+                    let perMinute = 0
+                    let totalWorkDays = 22
+                    let perMonth = 0
+
+                    let gross = 0.0
+                    let tardy = 0.0
+                    let grant = 0.0
+                    if (employment?.salaryType === 'monthly') {
+                        perMinute = precisionRound((employment.salary / totalWorkDays / 8 / 60), 9)
+                    } else if (employment?.salaryType === 'daily') {
+                        perMinute = precisionRound((employment.salary / 8 / 60), 9)
+                    } else if (employment?.salaryType === 'hourly') {
+                        perMinute = precisionRound((employment.salary / 60), 9)
+                    }
+
+                    if (employment.employmentType === 'permanent') {
+                        stats.weekdays.renderedDays += stats.holidays.renderedDays
+                        stats.weekdays.renderedHours += stats.holidays.renderedHours
+                        stats.weekdays.renderedMinutes += stats.holidays.renderedMinutes
+                        stats.weekdays.totalMinutes += stats.holidays.totalMinutes
+                        stats.weekdays.underTimeTotalMinutes += stats.holidays.underTimeTotalMinutes
+                    }
+                    gross = precisionRound(perMinute * stats.weekdays.totalMinutes, 9)
+                    tardy = precisionRound(perMinute * stats.weekdays.underTimeTotalMinutes, 9)
+                    grant = gross - tardy
+
+                    if (employment.employmentType === 'permanent') {
+                        if (employment.salaryType === 'monthly') {
+                            perMonth = employment.salary
+                        }
+                        gross = perMonth - tardy
+                    }
+
+                    payroll.rows[x].sourceOfFund = employment?.department
+                    payroll.rows[x].name = `${employee.lastName}, ${employee.firstName}`
+                    payroll.rows[x].position = employment?.position
+                    payroll.rows[x].wage = employment?.salary
+                    payroll.rows[x].days = stats.weekdays.renderedDays
+                    payroll.rows[x].hours = stats.weekdays.renderedHours
+                    payroll.rows[x].minutes = stats.weekdays.renderedMinutes
+                    payroll.rows[x].gross = gross
+                    payroll.rows[x].tardy = tardy
+                    payroll.rows[x].grant = grant
+                }
+            }
+        }
+        await req.app.locals.db.main.Payroll2.updateOne({ _id: payroll._id }, payroll)
+
+        // return res.send(rows)
+        // let payroll2 = await req.app.locals.db.main.Payroll2.create({
+        //     name: name,
+        //     template: template,
+        //     dateStart: dateStart,
+        //     dateEnd: dateEnd,
+        //     rows: rows,
+        // })
+        res.redirect(`/payroll/x/view/${payroll._id}`)
     } catch (err) {
         next(err);
     }
@@ -849,7 +981,7 @@ router.post('/payroll/x/:payrollId/save', middlewares.guardRoute(['read_payroll'
         }
 
         let r = await req.app.locals.db.main.Payroll2.updateOne({ _id: payroll._id }, patch)
-console.log(r)
+        console.log(r)
         res.send(`Payroll saved.`)
     } catch (err) {
         next(err);

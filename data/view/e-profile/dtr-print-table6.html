@@ -109,9 +109,13 @@
                 Pass Slip
             </td>
             <td class="text-center">{{day.display.outPM}}</td>
-        {% elif (attendance.type === 'leave') %}
+            {% elif (attendance.type === 'leave') %}
             <td class="text-center" colspan="4">
                 Leave
+            </td>
+        {% elif (attendance.type === 'holiday') %}
+            <td class="text-center" colspan="4">
+                Holiday
             </td>
         {% else %}
             <td>{{day.display.inAM}}</td>

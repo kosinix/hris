@@ -235,7 +235,7 @@
       "weekDay": "Mon",
       "start": {
         "hour": 7,
-        "minute": 45
+        "minute": 0
       },
       "end": {
         "hour": 8,

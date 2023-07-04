@@ -4,8 +4,8 @@
 <div class="col-12" id="vApp" v-bind:data-pending="pending" v-cloak>
     <h1 class="h6 mb-2 pt-3">{{payroll.name}}</h1>
     <div class="btn-group mb-2">
-        <a href="/payroll/x/{{payroll._id}}/add-row?rtype=2&index=0&title=Subtotal" class="btn btn-sm btn-outline-secondary">Add Subtotal Row</a>
-        <a href="/payroll/x/{{payroll._id}}/add-row?rtype=3&index=0&title=Title" class="btn btn-sm btn-outline-secondary">Add Title Row</a>
+        <a href="/payroll2/{{payroll._id}}/add-row?rtype=2&index=0&title=Subtotal" class="btn btn-sm btn-outline-secondary">Add Subtotal Row</a>
+        <a href="/payroll2/{{payroll._id}}/add-row?rtype=3&index=0&title=Title" class="btn btn-sm btn-outline-secondary">Add Title Row</a>
     </div>
     <div class="table-responsive mb-3">
         <table class="table-payroll">
@@ -73,23 +73,23 @@
                         <td>${row.gross|currency}</td>
                         <td>
                             {% set fieldName = 'premium5' %}
-                            {% include 'payroll/xfield.html' %}
+                            {% include 'payroll2/field.html' %}
                             {% set fieldName = '' %}
                         </td>
 
                         <td>
                             {% set fieldName = 'tax1' %}
-                            {% include 'payroll/xfield.html' %}
+                            {% include 'payroll2/field.html' %}
                             {% set fieldName = '' %}
                         </td>
                         <td>
                             {% set fieldName = 'tax5' %}
-                            {% include 'payroll/xfield.html' %}
+                            {% include 'payroll2/field.html' %}
                             {% set fieldName = '' %}
                         </td>
                         <td>
                             {% set fieldName = 'tax10' %}
-                            {% include 'payroll/xfield.html' %}
+                            {% include 'payroll2/field.html' %}
                             {% set fieldName = '' %}
                         </td>
                         <!--  total tax -->
@@ -97,12 +97,12 @@
 
                         <td>
                             {% set fieldName = 'sss' %}
-                            {% include 'payroll/xfield.html' %}
+                            {% include 'payroll2/field.html' %}
                             {% set fieldName = '' %}
                         </td>
                         <td>
                             {% set fieldName = 'sssEC' %}
-                            {% include 'payroll/xfield.html' %}
+                            {% include 'payroll2/field.html' %}
                             {% set fieldName = '' %}
                         </td>
                         <!--  -->
@@ -110,7 +110,7 @@
 
                         <td>
                             {% set fieldName = 'igp' %}
-                            {% include 'payroll/xfield.html' %}
+                            {% include 'payroll2/field.html' %}
                             {% set fieldName = '' %}
                         </td>
                         <!--  -->
@@ -158,7 +158,7 @@
                     <template v-else-if="row.rtype === 3">
                         <td>
                             {% set fieldName = 'name' %}
-                            {% include 'payroll/xfield-string.html' %}
+                            {% include 'payroll2/field-string.html' %}
                             {% set fieldName = '' %}
                         </td>
                         <td><!-- Source of fund --></td>
@@ -193,7 +193,7 @@
                         <td></td>
                     </template>
                     <td>
-                        <a v-bind:href="`/payroll/x/${payroll._id}/del-row?index=${index}`" class="text-danger">X</a>
+                        <a v-bind:href="`/payroll2/${payroll._id}/del-row?index=${index}`" class="text-danger">X</a>
                     </td>
                 </tr>
             </tbody>
@@ -282,7 +282,7 @@
                         })
 
                         me.pending = true;
-                        window.axios.post('/payroll/x/{{payroll._id}}/sort-rows', {oldIndex: evt.oldIndex, newIndex: evt.newIndex}).then(function(response){
+                        window.axios.post('/payroll2/{{payroll._id}}/sort-rows', {oldIndex: evt.oldIndex, newIndex: evt.newIndex}).then(function(response){
                             var data = response.data;
 
                             /*{# https://stackoverflow.com/a/6470794/1594918 #}*/
@@ -426,7 +426,7 @@
             saveMe: function() {
                 var me = this;
                 me.pending = true
-                axios.post(`/payroll/x/${me.payroll._id}/save`, {rows: JSON.parse(JSON.stringify(me.payroll.rows))}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
+                axios.post(`/payroll2/${me.payroll._id}/save`, {rows: JSON.parse(JSON.stringify(me.payroll.rows))}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
                     console.log(response.data);
                 }).catch(function(error){
                     alert("Something went wrong.");

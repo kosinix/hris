@@ -165,7 +165,7 @@
                         {{stats.weekends.underHours|default(0, true)|maybePluralize('hr')}}
                         {{stats.weekends.underMinutes|default(0, true)|maybePluralize('min')}}
                     {% else %}
-                        {{stats.weekends.renderedDays|default(0, true)|maybePluralize('day')}}
+                        {{(stats.weekends.renderedDays+stats.holidays.renderedDays)|default(0, true)|maybePluralize('day')}}
                         {{stats.weekends.renderedHours|default(0, true)|maybePluralize('hr')}}
                         {{stats.weekends.renderedMinutes|default(0, true)|maybePluralize('min')}}
                     {% endif %}

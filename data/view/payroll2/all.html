@@ -1,0 +1,85 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h2">All Payroll</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/payroll2/generate" class="btn btn-sm btn-outline-primary">Generate Payroll</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    
+    {% if payrolls.length <= 0 %}
+        <p>No payroll to show.</p>
+    {% else %}
+
+        <div class="d-flex justify-content-end">
+            <div class=" pb-3">
+                {% set url = '/payroll2/all' %}
+                {% include 'parts/form-per-page.html' %}
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>
+                            {% set thId = 'name' %}
+                            {% include 'parts/sorted-th.html' %}
+                        </th>
+                        <th>Count</th>
+                        <!-- <th width="10%" class="text-center">Status</th> -->
+                        <th width="1%" class="text-center">
+                            Assigned To
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for payroll in payrolls %}
+                    <tr>
+                        <td>
+                            {{payroll.name}}
+                        </td>
+                        <td>{{payroll.rows.length}}</td>
+                        <!-- <td class="text-center">
+                            <div>{{payroll.status|mapValue([{value: 1, text: 'HR Review'}, {value: 2, text: 'Accounting'}, {value: 3, text: 'Cashier'}, {value: 4, text: 'Released'}])}}</div>
+                            <div class="d-flex payroll-status status-{{payroll.status}}">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>    
+                        </td> -->
+                        <td>
+                            <div class="d-flex align-items-end">
+                            {% if payroll.assignedUser %}
+                                <span title="Currently locked and edited by this user.">{% include 'parts/svg-lock.html' %}</span>
+                                <a class="ml-2" href="/payroll2/{{payroll._id}}">{{payroll.assignedUser.username}}</a> 
+                            {% else %}
+                                <a href="/payroll2/view/{{payroll._id}}">Edit</a> 
+                            {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="row">
+
+            <div class="col-md-6 text-center text-md-left">
+
+            </div>
+            <div class="col-md-6 text-center text-md-right">
+                {% include "parts/pagination.html" %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

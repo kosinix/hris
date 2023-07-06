@@ -1866,6 +1866,120 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
         next(err);
     }
 });
+router.get('/attendance/employment/:employmentId/overtime', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
+    try {
+        let employment = res.employment.toObject()
+        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
+        let overrideWorkSched = await req.app.locals.db.main.WorkSchedule.findOne({
+            name: 'Overtime Weekdays'
+        }).lean()
+
+        let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+        let showWeekDays = lodash.get(req, 'query.showWeekDays', 'Mon|Tue|Wed|Thu|Fri|Sat|Sun')
+        let showTotalAs = lodash.get(req, 'query.undertime') == 1 ? 'undertime' : 'time'
+
+        let startMoment = moment(start).startOf('day')
+        let endMoment = moment(end).endOf('day')
+
+        if (!startMoment.isValid()) {
+            throw new Error(`Invalid start date.`)
+        }
+        if (!endMoment.isValid()) {
+            throw new Error(`Invalid end date.`)
+        }
+
+        if (endMoment.isBefore(startMoment)) {
+            throw new Error(`Invalid end date. Must not be less than the start date.`)
+        }
+
+        let momentNow = moment()
+
+        let options = {
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
+            overrideWorkSched: overrideWorkSched
+        }
+        if (!options.showWeekDays.length) {
+            options.showWeekDays = showWeekDays.split('|')
+        }
+        let { stats, days } = await dtrHelper.getDtrByDateRange7(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+
+        // console.log(options)
+        let totalMinutes = 0
+        let totalMinutesUnderTime = 0
+        days.forEach((day) => {
+            totalMinutes += lodash.get(day, 'time.total', 0)
+            totalMinutesUnderTime += lodash.get(day, 'undertime.total', 0)
+        })
+
+        // return res.send(days)
+
+        let timeRecordSummary = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
+
+        // console.log(kalendaryo.getMatrix(momentNow, 0))
+        let months = Array.from(Array(12).keys()).map((e, i) => {
+            return moment.utc().month(i).startOf('month')
+        }); // 1-count
+        // return res.send(days)
+
+        // compat link
+        let periodMonthYear = startMoment.clone().startOf('month').format('YYYY-MM-DD')
+        let periodSlice = 'all'
+        let mQuincena = startMoment.clone().startOf('month').days(15)
+        if (startMoment.isBefore(mQuincena) && endMoment.isAfter(mQuincena)) {
+            periodSlice = 'all'
+        } else if (startMoment.isSameOrBefore(mQuincena) && endMoment.isSameOrBefore(mQuincena)) {
+            periodSlice = '15th'
+        } else if (startMoment.isAfter(mQuincena)) {
+            periodSlice = '30th'
+        }
+        let periodWeekDays = 'All'
+        if (showWeekDays === 'Mon|Tue|Wed|Thu|Fri|Sat|Sun') {
+            periodWeekDays = 'All'
+        } else if (showWeekDays === 'Mon|Tue|Wed|Thu|Fri') {
+            periodWeekDays = 'Mon-Fri'
+        } else if (showWeekDays === 'Sat|Sun') {
+            periodWeekDays = 'Sat-Sun'
+        }
+        showTotalAs = 'time'
+        if (req?.query?.undertime == 1) {
+            showTotalAs = 'undertime'
+        }
+        let countTimeBy = 'all'
+        let compatibilityUrl = [
+            `periodMonthYear=${periodMonthYear}`,
+            `periodSlice=${periodSlice}`,
+            `periodWeekDays=${periodWeekDays}`,
+            `showTotalAs=${showTotalAs}`,
+            `countTimeBy=${countTimeBy}`,
+        ]
+        compatibilityUrl = compatibilityUrl.join('&')
+
+
+        let data = {
+            flash: flash.get(req, 'attendance'),
+            employee: employee,
+            employment: employment,
+            momentNow: momentNow,
+            months: months,
+            days: days,
+            selectedMonth: 'nu',
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
+            timeRecordSummary: timeRecordSummary,
+            startMoment: startMoment,
+            endMoment: endMoment,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+            compatibilityUrl: compatibilityUrl,
+        }
+        // return res.send(stats)
+        
+        res.render('attendance/employment7.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
 
 router.get('/attendance/tardy/:employmentId', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
     try {

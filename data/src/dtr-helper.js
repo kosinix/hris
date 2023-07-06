@@ -2426,8 +2426,8 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
 
     let logs = []
     timeWorked = timeWorked.map(t => {
-        
-        t.logSegments.forEach((l,i)=>{
+
+        t.logSegments.forEach((l, i) => {
             logs.push({
                 in: mToTime(l.start, 'hh:mm A'),
                 out: mToTime(l.end, 'hh:mm A'),
@@ -2437,7 +2437,7 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
                 countedExcess: l.countedExcess,
                 tardiness: l.tardiness,
                 undertime: l.undertime,
-            })  
+            })
         })
         return t
     })
@@ -2557,8 +2557,11 @@ const getDtrByDateRange4 = async (db, employeeId, employmentId, _startMoment, _e
         const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         const holiday = holidays[date] || null
         const attendance = attendances[date] || null
-        const workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
+        let workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
 
+        if (overrideWorkSched) {
+            workSchedule = overrideWorkSched
+        }
         let dtr = {
             totalMinutes: 0,
             excessMinutes: 0,
@@ -2643,20 +2646,21 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
     const defaults = {
         padded: false,
         excludeWeekend: false,
+        overrideWorkSched: null
     }
 
     const startMoment = _startMoment.clone()
     const endMoment = _endMoment.clone()
 
     options = lodash.merge(defaults, options)
-    const { showTotalAs, showWeekDays, padded, excludeWeekend, periodWeekDays } = options;
+    const { showTotalAs, showWeekDays, padded, excludeWeekend, periodWeekDays, overrideWorkSched } = options;
 
     if (!showWeekDays) {
         showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
     }
 
     const employment = await db.main.Employment.findOne(employmentId);
-    if(!employment){
+    if (!employment) {
         throw new Error(`Employment not found with ID "${employmentId}"`)
     }
 
@@ -2736,8 +2740,11 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
         const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         const holiday = holidays[date] || null
         const attendance = attendances[date] || null
-        const workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
+        let workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
 
+        if (overrideWorkSched) {
+            workSchedule = overrideWorkSched
+        }
         let dtr = {
             totalMinutes: 0,
             excessMinutes: 0,
@@ -2800,6 +2807,204 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
         }
         return day
     })
+
+    let weekdays = days.filter((day) => {
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(day.weekDay) && !day.holiday
+    })
+    let weekdaysTotalMinutes = weekdays.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
+    let weekdaysTotalMinutesUnderTime = weekdays.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
+
+    let weekends = days.filter((day) => {
+        return ['Sat', 'Sun'].includes(day.weekDay)
+    })
+    let weekendsTotalMinutes = weekends.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
+    let weekendsTotalMinutesUnderTime = weekends.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
+
+    let restDays = days.filter((day) => {
+        return ['Sat', 'Sun'].includes(day.weekDay) || day.holiday
+    })
+    let restDaysTotalMinutes = restDays.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
+    let restDaysTotalMinutesUnderTime = restDays.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
+
+
+    let _holidays = days.filter((day) => {
+        return day.holiday
+    })
+    let _holidaysTotalMinutes = _holidays.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
+    let _holidaysTotalMinutesUnderTime = _holidays.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
+
+
+    let daysTotalMinutes = days.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
+    let daysTotalMinutesUnderTime = days.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
+
+    let hoursPerDay = 8
+    let stats = {
+        days: getTimeBreakdown(daysTotalMinutes, daysTotalMinutesUnderTime, hoursPerDay),
+        weekdays: getTimeBreakdown(weekdaysTotalMinutes, weekdaysTotalMinutesUnderTime, hoursPerDay),
+        weekdaysTotal: weekdays.length,
+        weekends: getTimeBreakdown(weekendsTotalMinutes, weekendsTotalMinutesUnderTime, hoursPerDay),
+        restDays: getTimeBreakdown(restDaysTotalMinutes, restDaysTotalMinutesUnderTime, hoursPerDay),
+        holidays: getTimeBreakdown(_holidaysTotalMinutes, _holidaysTotalMinutesUnderTime, hoursPerDay),
+    }
+
+    return {
+        days: days,
+        stats: stats,
+    }
+}
+
+const getDtrByDateRange7 = async (db, _, employmentId, _startMoment, _endMoment, options) => {
+
+    const defaults = {
+        excludeWeekend: false,
+        overrideWorkSched: null
+    }
+
+    const startMoment = _startMoment.clone()
+    const endMoment = _endMoment.clone()
+
+    options = lodash.merge(defaults, options)
+    const { showTotalAs, showWeekDays, padded, excludeWeekend, periodWeekDays, overrideWorkSched } = options;
+
+    if (!showWeekDays) {
+        showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+    }
+
+    const employment = await db.main.Employment.findOne(employmentId);
+    if (!employment) {
+        throw new Error(`Employment not found with ID "${employmentId}"`)
+    }
+
+    // 1. Get attendance within date range
+    let attendances = await db.main.Attendance.aggregate([
+        {
+            $match: {
+                // employeeId: employeeId,
+                employmentId: employmentId,
+                createdAt: {
+                    $gte: startMoment.clone().startOf('day').toDate(),
+                    $lte: endMoment.clone().endOf('day').toDate(),
+                }
+            }
+        },
+        {
+            $lookup: {
+                localField: 'workScheduleId',
+                foreignField: '_id',
+                from: 'workschedules',
+                as: 'workSchedules'
+            }
+        },
+        {
+            $addFields: {
+                "workSchedule": {
+                    $arrayElemAt: ["$workSchedules", 0]
+                }
+            }
+        },
+        {
+            $project: {
+                workSchedules: 0,
+            }
+        }
+    ])
+    // Turn array of attendances into an object with date as keys: "2020-12-31"
+    attendances = lodash.mapKeys(attendances, (a) => {
+        return moment(a.createdAt).format('YYYY-MM-DD')
+    })
+    console.dir(attendances, {depth:null})
+
+    // 2. Get all holidays for this date range
+    let holidayList = await db.main.Holiday.find({
+        date: {
+            $gte: startMoment.clone().startOf('day').toDate(),
+            $lte: endMoment.clone().endOf('day').toDate(),
+        }
+    }).lean()
+    holidayList = holidayList.map(h => {
+        h.date = moment(h.date).format('YYYY-MM-DD')
+        return h
+    })
+
+    // WORK SCHED
+    let defaultWorkSched = await db.main.WorkSchedule.findById(employment.workScheduleId).lean()
+
+    // 3. Generate array of days
+    const range = momentExt.range(startMoment, endMoment)
+    let days = Array.from(range.by('days')) // Each element contains an instance of Moment
+
+    days = days.map((_moment) => {
+        const date = _moment.format('YYYY-MM-DD')
+        const year = _moment.format('YYYY')
+        const month = _moment.format('MM')
+        const weekDay = _moment.format('ddd')
+        const day = _moment.format('DD')
+        const isWeekend = ['Sat', 'Sun'].includes(weekDay)
+        const isPast = _moment.clone().startOf('day').isBefore(moment().startOf('day'))
+        const isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
+        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
+        const holidays = holidayList.filter(h => {
+            return h.date === date
+        })
+        const attendance = attendances[date] || null
+        let workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
+
+        if (overrideWorkSched) {
+            workSchedule = overrideWorkSched
+        }
+        let dtr = {
+            totalMinutes: 0,
+            excessMinutes: 0,
+            underTimeTotalMinutes: 0,
+            time: {
+                days: 0,
+                hoursDays: 0,
+                hours: 0,
+                minutes: 0,
+                total: 0
+            },
+            undertime: {
+                days: 0,
+                hoursDays: 0,
+                hours: 0,
+                minutes: 0,
+                total: 0
+            }
+        }
+        if (holidays.length > 0 && employment.employmentType === 'permanent') {
+            dtr.totalMinutes = 480 // @deprecated use total
+            dtr.time.total = 480
+            dtr.time.days = 1
+            dtr.time.hoursDays = 8
+        } else if (attendance) {
+            dtr = attendanceToTimeWorked(attendance, employment, workSchedule)
+        }
+        return {
+            date: date,
+            year: year,
+            month: month,
+            weekDay: weekDay,
+            day: day,
+            isWeekend: isWeekend,
+            isHoliday: (holidays.length > 0) ? true : false,
+            isPast: isPast,
+            isNow: isNow,
+            isForCorrection: isForCorrection,
+            isUndertime: lodash.get(dtr, 'underTimeTotalMinutes', 0) > 0,
+            hasAttendance: (attendance) ? true : false,
+            holidays: holidays,
+            display: fromLogsToDisplayTime(lodash.get(attendance, 'logs', []), isNow),
+            type: lodash.get(attendance, 'type', ''),
+            attendance: {
+                _id: lodash.get(attendance, '_id'),
+                type: lodash.get(attendance, 'type', ''),
+                logs: lodash.get(attendance, 'logs', []), // for half-day travel
+            },
+            ...dtr,
+        }
+    })
+    // console.dir(days, {depth:null})
+
 
     let weekdays = days.filter((day) => {
         return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(day.weekDay) && !day.holiday
@@ -2959,6 +3164,7 @@ module.exports = {
     getDtrByDateRange2: getDtrByDateRange2,
     getDtrByDateRange4: getDtrByDateRange4,
     getDtrByDateRange6: getDtrByDateRange6,
+    getDtrByDateRange7: getDtrByDateRange7,
     editAttendance2: editAttendance2,
     isFlagRaisingDay: isFlagRaisingDay,
     logTravelAndWfh: logTravelAndWfh,

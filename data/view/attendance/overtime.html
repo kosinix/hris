@@ -1,0 +1,454 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'attendance/header.html' %}
+
+    <div id="vApp" v-cloak class="tab-content">
+        <div class="d-flex mb-3">
+            {% if employee.profilePhoto %}
+                <img class="mr-3 privy-photo" width="100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="photo">
+            {% else %}
+                {% if employee.gender === 'M' %}
+                    <svg style="width:100px;height:100px" viewBox="0 0 24 24">    <path fill="currentColor" d="M9,11.75A1.25,1.25 0 0,0 7.75,13A1.25,1.25 0 0,0 9,14.25A1.25,1.25 0 0,0 10.25,13A1.25,1.25 0 0,0 9,11.75M15,11.75A1.25,1.25 0 0,0 13.75,13A1.25,1.25 0 0,0 15,14.25A1.25,1.25 0 0,0 16.25,13A1.25,1.25 0 0,0 15,11.75M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,11.71 4,11.42 4.05,11.14C6.41,10.09 8.28,8.16 9.26,5.77C11.07,8.33 14.05,10 17.42,10C18.2,10 18.95,9.91 19.67,9.74C19.88,10.45 20,11.21 20,12C20,16.41 16.41,20 12,20Z"></path></svg>
+                {% else %}
+                    <svg style="width:100px;height:100px" viewBox="0 0 24 24">    <path fill="#e795a4" d="M13.75 13C13.75 12.31 14.31 11.75 15 11.75S16.25 12.31 16.25 13 15.69 14.25 15 14.25 13.75 13.69 13.75 13M22 12V22H2V12C2 6.5 6.5 2 12 2S22 6.5 22 12M4 12C4 16.41 7.59 20 12 20S20 16.41 20 12C20 11.21 19.88 10.45 19.67 9.74C18.95 9.91 18.2 10 17.42 10C14.05 10 11.07 8.33 9.26 5.77C8.28 8.16 6.41 10.09 4.05 11.14C4 11.42 4 11.71 4 12M9 14.25C9.69 14.25 10.25 13.69 10.25 13S9.69 11.75 9 11.75 7.75 12.31 7.75 13 8.31 14.25 9 14.25Z"></path></svg>
+                {% endif %}
+            {% endif %}
+            <div class="align-self-center">
+                <h1 class="h4 mb-0 privy-name">  
+                    <a href="/employee/{{employee._id}}/personal">
+                        {{employee.lastName}},
+                        {{employee.firstName}}
+                    </a>
+                </h1>
+                <h2 class="h5">
+                    <a class="privy-employment" href="/employee/{{employee._id}}/employment/{{employment._id}}/update">
+                        {{employment.position}} - 
+                        {{employment.employmentType|replace('cos','COS')}}
+                    </a>
+                </h2>
+            </div>
+        </div>
+        <div class="p-3">
+            <form action="" ref="form" v-on:submit.prevent="reloado">
+                <div class="row">
+                    <div class="col-12 col-md-8">
+                        <div class="d-flex">
+                            <select v-model="showDays" name="showDays" id="showDays" class="form-control form-control-sm">
+                                <option value="0">All Days</option>
+                                <option value="1">Working Days</option>
+                                <option value="4">Rest Days</option>
+                                <!-- <option value="2">Weekends</option> -->
+                                <!-- <option value="3">Holidays</option> -->
+                            </select>
+                            <label for="startDate" class="mr-2 ml-2">from</label>
+                            <input v-model="startDate" id="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}" class="form-control form-control-sm">
+                            <label for="endDate" class="mr-2 ml-2"> to </label>
+                            <input v-model="endDate" id="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}" class="form-control form-control-sm">
+                            <div class="btn-toolbar justify-content-end ml-3">
+                                <div class="btn-group mr-2">
+                                    <button class="btn btn-sm btn-outline-secondary">Change</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="btn-toolbar justify-content-end ml-3">
+                            <div class="btn-group mr-2">
+                                <a href="/attendance/employment/{{employment._id}}/overtime-print?start={{startMoment.format('YYYY-MM-DD')}}&end={{endMoment.format('YYYY-MM-DD')}}&showDays={{showDays}}" class="btn btn-sm btn-outline-secondary" target="_blank">Print Overtime</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+            
+        <div class="p-3">
+            <div class="mb-3">
+                <span>Extended Services</span>
+                {{startMoment|format_date('MMM DD, YYYY')}}
+                {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
+                    to {{endMoment|format_date('MMM DD, YYYY')}}
+                {% endif %}
+            </div>
+            <form action="" method="get">
+                <div class="table-responsive mb-5">
+                    <table class="table table-dtr">
+                        <tr class="text-center">
+                            <th rowspan="2">Day</th>
+                            <th rowspan="2">Date</th>
+                            <th rowspan="2">In</th>
+                            <th rowspan="2">Out</th>
+                            <th rowspan="2">In</th>
+                            <th rowspan="2">Out</th>
+                            <th colspan="2">Extended Services</th>
+                            <th rowspan="2" class="text-right">Hrs. Mins.</th>
+                            <th rowspan="2" class="text-right">Rate Per Hour</th>
+                            <th rowspan="2" class="text-right">Total</th>
+                        </tr>
+                        <tr class="text-center">
+                            <th>In</th>
+                            <th>Out</th>
+                        </tr>
+                        {% for day in days2 %}
+                        {% set cssClass = [] %}
+
+                        {% if day.isNow %}
+                            {% set cssClass = (cssClass.push('selected'), cssClass) %}
+                        {% endif %}
+
+                        {% if days[loop.index0].isInvalidOvertime %}
+                            {% set cssClass = (cssClass.push('undertime'), cssClass) %}
+                        {% endif %}
+
+                        {% if day.isHoliday %}
+                            {% set cssClass = (cssClass.push('holiday'), cssClass) %}
+                        {% endif %}
+
+                        <tr class="{{cssClass.join(",")}} text-center">
+                            <td class="text-left">
+                                <div class="form-check">
+                                    <input {%if days[loop.index0].isInvalidOvertime %}disabled{%endif%} class="form-check-input" type="checkbox" value="{{day.attendance._id}}" name="attendance[]" id="day-{{loop.index}}">
+                                    <label class="form-check-label" for="day-{{loop.index}}">
+                                        {{day.date|format_date('MMM DD')}}
+                                    </label>
+                                </div>
+                                
+                            </td>
+                            <td>
+                                {{day.weekDay}}
+                            </td>
+                            {% if day.attendance %}
+
+                                <td class="{{classes}}">{{day.display.inAM}}</td>
+                                <td class="{{classes}}">{{day.display.outAM}}</td>
+                                <td class="{{classes}}">{{day.display.inPM}}</td>
+                                <td class="{{classes}}">{{day.display.outPM}}</td>
+                            {% else %}
+                                <td colspan="4"></td>
+                            {% endif %}
+
+                            <td>
+                                {% if day.attendance %}
+                                    {{day.segments[0].logSegments[0].countedStart|mToTime|default('', true)}}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if day.attendance %}
+                                    {{day.segments[0].logSegments[0].countedEnd|mToTime|default('', true)}}
+                                {% endif %}
+                            </td>
+                            <td class="text-right mono">
+                                <div class=" form-row" onclick="alert('{{day.time.hoursDays}} hrs + ({{day.time.minutes}} / 60) = {{day.time.asHours}}  hours')">
+                                    <div class="col-6 text-pointer">
+                                        {{(day.time.hoursDays)|default('', true)}}
+                                    </div>
+                                    <div class="col-6 text-pointer">
+                                        {{(day.time.minutes)|default('', true)}}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-right mono">
+                                {% if day.time.total %}
+                                    {{day.rate|currency}}
+                                {% endif %}
+                            </td>
+                            <td class="text-right mono">
+                                {% if day.time.total %}
+                                    <div class="text-pointer" onclick="alert(`{{day.time.asHours}} x {{day.rate}} = {{day.time.OTPay|roundOff(9)}}`)">
+                                        {{day.time.OTPay|currency}}
+                                    </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                <button class="btn btn-light">Submit</button>
+            </form>
+            <!--  -->
+            <!--  -->
+            <!--  -->
+            <!--  -->
+            <div class="table-responsive pt-5">
+                <table class="table table-dtr">
+                    <tr>
+                        <th width="10%" class="text-center" rowspan="2" colspan="2">Day</th>
+                        <th width="22%" class="text-center" colspan="2">AM</th>
+                        <th width="22%" class="text-center" colspan="2">PM</th>
+                        <th width="22%" class="text-center" colspan="3">
+                            {% if showTotalAs == 'undertime' %}
+                                <a href="?{{query|query_string({undertime: 0})}}">Undertime</a>
+                            {% else %}
+                                <a href="?{{query|query_string({undertime: 1})}}">Time</a>
+                            {% endif %}
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>Arrival</th>
+                        <th>Departure</th>
+                        
+                        <th>Arrival</th>
+                        <th>Departure</th>
+
+                        <th class="text-center">Days</th>
+                        <th class="text-center">Hours</th>
+                        <th class="text-center">Minutes</th>
+                    </tr>
+                    {% for day in days %}
+                    {% set attendance = day.attendance %}
+                    {% set cssClass = [] %}
+
+                    {% if day.isNow %}
+                        {% set cssClass = (cssClass.push('selected'), cssClass) %}
+                    {% endif %}
+
+                    {% if day.isUndertime %}
+                        {% set cssClass = (cssClass.push('undertime'), cssClass) %}
+                    {% endif %}
+
+                    {% if day.isHoliday %}
+                        {% set cssClass = (cssClass.push('holiday'), cssClass) %}
+                    {% endif %}
+
+                    <tr class="{{cssClass.join(",")}}">
+                        <td class="text-left">
+                            {% if day.hasAttendance %}
+                                <a href="/attendance/{{attendance._id}}/edit">{{day.date|format_date('MMM')}} {{day.day}}</a>
+                            {% else %}
+                                <span class="text-dark">{{day.date|format_date('MMM')}} {{day.day}}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
+                        {% if attendance.type == 'normal' %}
+                            {% set classes = '' %}
+                            {% if day.logs[0].tardy %}
+                                {% set classes = 'text-danger' %}
+                            {% endif %}
+                            <td class="{{classes}}">{{day.display.inAM}}</td>
+                            <td class="{{classes}}">{{day.display.outAM}}</td>
+                            {% set classes = '' %}
+                            {% if day.logs[1].tardy %}
+                                {% set classes = 'text-danger' %}
+                            {% endif %}
+                            <td class="{{classes}}">{{day.display.inPM}}</td>
+                            <td class="{{classes}}">{{day.display.outPM}}</td>
+                        {% elif  attendance.type == 'travel' %}
+                            {% if attendance.logs.length === 4 and attendance.logs[0].type === 'travel' %}
+                                <td class="text-center" colspan="2">
+                                    Travel
+                                </td>
+                                <td>{{day.display.inPM}}</td>
+                                <td>{{day.display.outPM}}</td>
+                            {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'travel' %}
+                                <td>{{day.display.inAM}}</td>
+                                <td>{{day.display.outAM}}</td>
+                                <td class="text-center" colspan="2">
+                                    Travel
+                                </td>
+                            {% else %}
+                                <td class="text-center" colspan="4">
+                                    Travel
+                                </td>
+                            {% endif %}
+                        {% elif  attendance.type == 'wfh' %}
+                            {% if attendance.logs.length === 4 and attendance.logs[0].type === 'wfh' %}
+                                <td class="text-center" colspan="2">
+                                    Work From Home
+                                </td>
+                                <td>{{day.display.inPM}}</td>
+                                <td>{{day.display.outPM}}</td>
+                            {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'wfh' %}
+                                <td>{{day.display.inAM}}</td>
+                                <td>{{day.display.outAM}}</td>
+                                <td class="text-center" colspan="2">
+                                    Work From Home
+                                </td>
+                            {% else %}
+                                <td class="text-center" colspan="4">
+                                    Work From Home
+                                </td>
+                            {% endif %}
+                        {% elif attendance.type === 'pass'%}
+                            <td>{{day.display.inAM}}</td>
+                            <td class="text-center" colspan="2">
+                                Pass Slip
+                            </td>
+                            <td>{{day.display.outPM}}</td>
+                        {% elif attendance.type === 'holiday'%}
+                            <td class="text-center" colspan="4">
+                                Holiday
+                            </td>
+                        {% else %}
+                            <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')}}</td>
+                        {% endif %}
+                        {% set classes = '' %}
+                        {% if day.undertime.total > 0 %}
+                            {% set classes = 'text-danger' %}
+                        {% endif %}
+                        <td class="{{classes}} text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{day.undertime.days|default('', true)}}
+                            {% else %}
+                                {{day.time.days|default('', true)}}
+                            {% endif %}
+                        </td>
+                        <td class="{{classes}} text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{day.undertime.hours|default('', true)}}
+                            {% else %}
+                                {{day.time.hours|default('', true)}}
+                            {% endif %}
+                        </td>
+                        <td class="{{classes}} text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{day.undertime.minutes|default('', true)}}
+                            {% else %}
+                                {{day.time.minutes|default('', true)}}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <tr>
+                        <td colspan="6" class="text-right"><h5 class="m-0">Workdays</h5></td>
+                        <td class="text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{stats.weekdays.undertime.days|default('', true)}}
+                            {% else %}
+                                {{stats.weekdays.time.days|default('', true)}}
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{stats.weekdays.undertime.hours|default('', true)}}
+                            {% else %}
+                                {{stats.weekdays.time.hours|default('', true)}}
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{stats.weekdays.undertime.minutes|default('', true)}}
+                            {% else %}
+                                {{stats.weekdays.time.minutes|default('', true)}}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" class="text-right"><h5 class="m-0">Weekends</h5></td>
+                        <td class="text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{stats.weekends.undertime.days|default('', true)}}
+                            {% else %}
+                                {{stats.weekends.time.days|default('', true)}}
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{stats.weekends.undertime.hours|default('', true)}}
+                            {% else %}
+                                {{stats.weekends.time.hours|default('', true)}}
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{stats.weekends.undertime.minutes|default('', true)}}
+                            {% else %}
+                                {{stats.weekends.time.minutes|default('', true)}}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" class="text-right"><h5 class="m-0">Holidays</h5></td>
+                        <td class="text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{stats.holidays.undertime.days|default('', true)}}
+                            {% else %}
+                                {{stats.holidays.time.days|default('', true)}}
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{stats.holidays.undertime.hours|default('', true)}}
+                            {% else %}
+                                {{stats.holidays.time.hours|default('', true)}}
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{stats.holidays.undertime.minutes|default('', true)}}
+                            {% else %}
+                                {{stats.holidays.time.minutes|default('', true)}}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" class="text-right"><h5 class="m-0">Total</h5></td>
+                        <td class="text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{stats.days.undertime.days|default('', true)}}
+                            {% else %}
+                                {{stats.days.time.days|default('', true)}}
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{stats.days.undertime.hours|default('', true)}}
+                            {% else %}
+                                {{stats.days.time.hours|default('', true)}}
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if showTotalAs == 'undertime' %}
+                                {{stats.days.undertime.minutes|default('', true)}}
+                            {% else %}
+                                {{stats.days.time.minutes|default('', true)}}
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            urlPath: '{{urlPath}}',
+            startDate: '{{startMoment|format_date("YYYY-MM-DD")}}',
+            endDate: '{{endMoment|format_date("YYYY-MM-DD")}}',
+            showDays: '{{showDays}}',
+        },
+        validations: {
+            
+        },
+        methods: {
+            reloado: function(){
+                window.location.href = this.urlPath + '?start=' + this.startDate + '&end=' + this.endDate + '&showDays=' + this.showDays
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

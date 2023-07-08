@@ -375,13 +375,13 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json', '/employ
                 let gender = i.gender || ''
                 let email = i.email || ''
                 let mobileNumber = i.mobileNumber || ''
-                let pwdDetails = lodash.get(i, 'personal.pwdDetails', '')
+                let pwdDetails = lodash.get(i, 'personal.pwdDetails', '') ?? ''
                 let position = lodash.get(i, 'employments[0].position', '')
                 let department = lodash.get(i, 'employments[0].department', '')
                 let employmentType = lodash.capitalize(lodash.get(i, 'employments[0].employmentType', '')).replace(/^jo$/i, 'Job Order').replace(/^cos$/i, 'COS')
                 let group = lodash.capitalize(lodash.get(i, 'employments[0].group', ''))
-
-                return `${index + 1}, ${lastName}, ${firstName}, ${middleName}, ${gender}, ${position}, ${department}, ${employmentType}, ${group}, ${email}, ${mobileNumber}, ${pwdDetails}`
+                mobileNumber = mobileNumber.replace(/^0/, '+63').replace(',', '')
+                return `${index + 1}, ${lastName}, ${firstName}, ${middleName}, ${gender}, ${position}, ${department}, ${employmentType}, ${group}, ${email}, "${mobileNumber}", "${pwdDetails}"`
             })
             csv.unshift(`#, Last Name, First Name, Middle, Gender, Position, Department, Employment Type, Group, Email, Mobile Number, PWD ID`)
             res.set('Content-Type', 'text/csv')

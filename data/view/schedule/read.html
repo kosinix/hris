@@ -311,12 +311,12 @@
                 start = me.timeToM(start);
                 end = me.timeToM(end);
 
-                if(start % 15 > 0) {
-                    errors.push('Start Time must be in 15-minute increments.')
-                }
-                if(end % 15 > 0) {
-                    errors.push('End Time must be in 15-minute increments.')
-                }
+                // if(start % 15 > 0) {
+                //     errors.push('Start Time must be in 15-minute increments.')
+                // }
+                // if(end % 15 > 0) {
+                //     errors.push('End Time must be in 15-minute increments.')
+                // }
 
                 if(end <= start) {
                     errors.push('End Time must be more than Start Time.')

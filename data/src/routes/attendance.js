@@ -1755,7 +1755,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
             compatibilityUrl: compatibilityUrl,
         }
         // return res.send(stats)
-        
+
         res.render('attendance/employment6.html', data);
     } catch (err) {
         next(err);
@@ -1861,12 +1861,12 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
         }
 
         // return res.send(days)
-        return res.render('e-profile/dtr-print6.html', data)
+        return res.render('e-profile/dtr-print7.html', data)
     } catch (err) {
         next(err);
     }
 });
-router.get('/attendance/employment/:employmentId/overtime', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
+router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employment/:employmentId/overtime-print'], middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {
         let employment = res.employment.toObject()
         let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
@@ -1876,8 +1876,8 @@ router.get('/attendance/employment/:employmentId/overtime', middlewares.guardRou
 
         let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
         let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
-        let showWeekDays = lodash.get(req, 'query.showWeekDays', 'Mon|Tue|Wed|Thu|Fri|Sat|Sun')
         let showTotalAs = lodash.get(req, 'query.undertime') == 1 ? 'undertime' : 'time'
+        let showDays = parseInt(lodash.get(req, 'query.showDays', 0))
 
         let startMoment = moment(start).startOf('day')
         let endMoment = moment(end).endOf('day')
@@ -1897,64 +1897,50 @@ router.get('/attendance/employment/:employmentId/overtime', middlewares.guardRou
 
         let options = {
             showTotalAs: showTotalAs,
-            showWeekDays: showWeekDays,
-            overrideWorkSched: overrideWorkSched
+            showDays: showDays, // 0 - all, 1 - workdays (Mon-Fri, excl. holidays), 2 - weekends, 3 - holidays, 4 - weekends + holidays
+            // overrideWorkSched: overrideWorkSched
         }
-        if (!options.showWeekDays.length) {
-            options.showWeekDays = showWeekDays.split('|')
-        }
-        let { stats, days } = await dtrHelper.getDtrByDateRange7(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
-        // console.log(options)
-        let totalMinutes = 0
-        let totalMinutesUnderTime = 0
-        days.forEach((day) => {
-            totalMinutes += lodash.get(day, 'time.total', 0)
-            totalMinutesUnderTime += lodash.get(day, 'undertime.total', 0)
-        })
-
+        let days = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
+        let stats = dtrHelper.getDtrStats(days)
         // return res.send(days)
 
-        let timeRecordSummary = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
+        options = {
+            showTotalAs: showTotalAs,
+            showDays: showDays, // 0 - all, 1 - workdays (Mon-Fri, excl. holidays), 2 - weekends, 3 - holidays, 4 - weekends + holidays
+            overrideWorkSched: overrideWorkSched
+        }
+        let days2 = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
+        let stats2 = dtrHelper.getDtrStats(days2)
+
+        days2 = days2.map(day => {
+            // day.time.asHours = (day?.time?.hoursDays + day?.time?.minutes / 60)
+
+            const perHour = employment.salary / 8
+            day.perHour = perHour
+            day.rate = perHour * 1
+            if (day.isWorkday) {
+                day.rate = perHour * 1.25
+            } else if (day.isRestday) {
+                day.rate = perHour * 1.5
+            }
+            day.rate = parseFloat((day.rate).toFixed(2))
+            lodash.set(day, 'time.OTPay', day.rate * (day?.time?.asHours ?? 0))
+
+            return day
+        })
+        // return res.send(stats)
 
         // console.log(kalendaryo.getMatrix(momentNow, 0))
         let months = Array.from(Array(12).keys()).map((e, i) => {
             return moment.utc().month(i).startOf('month')
         }); // 1-count
-        // return res.send(days)
+        // return res.send(days2)
 
-        // compat link
-        let periodMonthYear = startMoment.clone().startOf('month').format('YYYY-MM-DD')
-        let periodSlice = 'all'
-        let mQuincena = startMoment.clone().startOf('month').days(15)
-        if (startMoment.isBefore(mQuincena) && endMoment.isAfter(mQuincena)) {
-            periodSlice = 'all'
-        } else if (startMoment.isSameOrBefore(mQuincena) && endMoment.isSameOrBefore(mQuincena)) {
-            periodSlice = '15th'
-        } else if (startMoment.isAfter(mQuincena)) {
-            periodSlice = '30th'
-        }
-        let periodWeekDays = 'All'
-        if (showWeekDays === 'Mon|Tue|Wed|Thu|Fri|Sat|Sun') {
-            periodWeekDays = 'All'
-        } else if (showWeekDays === 'Mon|Tue|Wed|Thu|Fri') {
-            periodWeekDays = 'Mon-Fri'
-        } else if (showWeekDays === 'Sat|Sun') {
-            periodWeekDays = 'Sat-Sun'
-        }
         showTotalAs = 'time'
         if (req?.query?.undertime == 1) {
             showTotalAs = 'undertime'
         }
-        let countTimeBy = 'all'
-        let compatibilityUrl = [
-            `periodMonthYear=${periodMonthYear}`,
-            `periodSlice=${periodSlice}`,
-            `periodWeekDays=${periodWeekDays}`,
-            `showTotalAs=${showTotalAs}`,
-            `countTimeBy=${countTimeBy}`,
-        ]
-        compatibilityUrl = compatibilityUrl.join('&')
 
 
         let data = {
@@ -1964,21 +1950,26 @@ router.get('/attendance/employment/:employmentId/overtime', middlewares.guardRou
             momentNow: momentNow,
             months: months,
             days: days,
+            days2: days2,
+            stats: stats,
+            stats2: stats2,
             selectedMonth: 'nu',
             showTotalAs: showTotalAs,
-            showWeekDays: showWeekDays,
-            timeRecordSummary: timeRecordSummary,
+            showDays: showDays,
             startMoment: startMoment,
             endMoment: endMoment,
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
-            compatibilityUrl: compatibilityUrl,
         }
-        // return res.send(stats)
-        
-        res.render('attendance/employment7.html', data);
+        if (req.originalUrl.indexOf('overtime-print') > -1) {
+            return res.render('attendance/overtime-print.html', data);
+        }
+        res.render('attendance/overtime.html', data);
     } catch (err) {
         next(err);
     }
+});
+router.post('/attendance/employment/:employmentId/overtime', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
+    res.send(req.body)
 });
 
 router.get('/attendance/tardy/:employmentId', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
@@ -2085,7 +2076,7 @@ router.get('/attendance/tardy/:employmentId', middlewares.guardRoute(['read_atte
             compatibilityUrl: compatibilityUrl,
         }
         // return res.send(stats)
-        
+
         res.render('attendance/employment6.html', data);
     } catch (err) {
         next(err);

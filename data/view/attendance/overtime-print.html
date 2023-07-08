@@ -1,0 +1,107 @@
+{% extends "document-print.html" %}
+
+{% block body %}
+<div class="col-md-12" >
+    <div class="d-print-none d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="">
+            <h1 class="h3 mb-3">Overtime</h1>
+            <p class="alert alert-warning"><em>Press CTRL + P to open printer options. You must be on a laptop or desktop computer.</em></p>
+        </div>
+        
+    </div>
+
+    <div class="csc-form-dtr d-none d-md-block d-print-block">
+        
+        <div class="row">
+            <div class="col-12">
+                <table class="table">
+                    <tr class="text-center">
+                        <th rowspan="2">Day</th>
+                        <th rowspan="2">Date</th>
+                        <th rowspan="2">In</th>
+                        <th rowspan="2">Out</th>
+                        <th rowspan="2">In</th>
+                        <th rowspan="2">Out</th>
+                        <th colspan="2">Extended Services</th>
+                        <th rowspan="2">No. of Hours</th>
+                        <th rowspan="2" class="text-right">Rate Per Hour</th>
+                        <th rowspan="2" class="text-right">Total</th>
+                    </tr>
+                    <tr class="text-center">
+                        <th>In</th>
+                        <th>Out</th>
+                    </tr>
+                    {% for day in days2 %}
+                    {% set cssClass = [] %}
+    
+                    {% if day.isNow %}
+                        {% set cssClass = (cssClass.push('selected'), cssClass) %}
+                    {% endif %}
+    
+                    {% if days[loop.index0].isUndertime %}
+                        {% set cssClass = (cssClass.push('undertime'), cssClass) %}
+                    {% endif %}
+    
+                    {% if day.isHoliday %}
+                        {% set cssClass = (cssClass.push('holiday'), cssClass) %}
+                    {% endif %}
+    
+                    <tr class="{{cssClass.join(",")}} text-center">
+                        <td class="text-left">
+                            <div class="form-check">
+                                <input {%if days[loop.index0].isUndertime and days[loop.index0].isWorkday %}disabled{%endif%} class="form-check-input" type="checkbox" value="{{day.attendance._id}}" id="day-{{loop.index}}">
+                                <label class="form-check-label" for="day-{{loop.index}}">
+                                    {{day.date|format_date('MMM DD')}}
+                                </label>
+                            </div>
+                            
+                        </td>
+                        <td>
+                            {{day.weekDay}}
+                        </td>
+                        {% if day.attendance %}
+                            <td class="{{classes}}">{{day.display.inAM}}</td>
+                            <td class="{{classes}}">{{day.display.outAM}}</td>
+                            <td class="{{classes}}">{{day.display.inPM}}</td>
+                            <td class="{{classes}}">{{day.display.outPM}}</td>
+                        {% else %}
+                            <td colspan="4"></td>
+                        {% endif %}
+    
+                        <td>
+                            {% if day.attendance %}
+                                {{day.segments[0].logSegments[0].countedStart|mToTime|default('', true)}}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if day.attendance %}
+                                {{day.segments[0].logSegments[0].countedEnd|mToTime|default('', true)}}
+                            {% endif %}
+                        </td>
+                        <td class=" mono">
+                            {{(day.time.asHours)|roundOff(2)|default('', true)}}
+                        </td>
+                        <td class="text-right mono">
+                            {% if day.time.total %}
+                                {{day.rate|currency}}
+                            {% endif %}
+                        </td>
+                        <td class="text-right mono">
+                            {% if day.time.total %}
+                                <div class="text-pointer" onclick="alert(`{{day.time.asHours}} x {{day.rate}} = {{day.time.OTPay|roundOff(9)}}`)">
+                                    {{day.time.OTPay|currency}}
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{% endblock %}
+

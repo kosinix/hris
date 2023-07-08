@@ -1,3 +1,24 @@
+/* courier-prime-regular - latin */
+@font-face {
+    font-display: swap;
+    /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+    font-family: 'Courier Prime';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/courier-prime-v7-latin-regular.woff2') format('woff2');
+    /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+
+/* courier-prime-700 - latin */
+@font-face {
+    font-display: swap;
+    /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+    font-family: 'Courier Prime';
+    font-style: normal;
+    font-weight: 700;
+    src: url('../fonts/courier-prime-v7-latin-700.woff2') format('woff2');
+    /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
 
 a {
     color: #025aa5;
@@ -23,6 +44,7 @@ body, pre {
 .text-mono {
     font-family: "Consolas", "Courier New", mono;
 }
+
 
 /* Vue */
 [v-cloak] {
@@ -933,6 +955,12 @@ div.focusable:focus-within  {
     padding: 0 4px 2px;
 }
 /* DTR */
+.table-dtr td.mono {
+    font-family: 'Courier Prime';
+}
+.table-dtr th {
+    vertical-align: middle;
+}
 .table-dtr tr.selected td{
     background: #b9ffc8;
 }
@@ -955,6 +983,13 @@ div.focusable:focus-within  {
 .table-dtr th,
 .table-dtr td {
     padding: 2px 5px;
+}
+
+.text-underline {
+    text-decoration: underline;
+}
+.text-pointer {
+    cursor: pointer;
 }
 
 .dtr-estimate {

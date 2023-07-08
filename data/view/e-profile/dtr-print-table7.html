@@ -56,7 +56,7 @@
     </tr>
     {% for day in days %}
     {% set attendance = day.attendance %}
-    <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
+    <tr class="position-relative {% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
         <td class="text-center" width="10%">{{day.day}}</td>
         <td class="text-center weekday" width="10%">{{day.weekDay}}</td>
         {% if attendance.type === 'travel'  %}
@@ -149,7 +149,7 @@
         </tr>
     {% else %}
         <tr>
-            <td class="text-right total" colspan="6">Total Weekdays</td>
+            <td class="text-right total" colspan="6">Total Workdays</td>
             <td class="text-center total-num" colspan="2">
                 {% if ['weekdays', 'all']|includes(countTimeBy) %}
                     {% if showTotalAs == 'undertime' %}
@@ -165,17 +165,17 @@
             </td>
         </tr>
         <tr>
-            <td class="text-right total" colspan="6">Total Weekends/Holidays</td>
+            <td class="text-right total" colspan="6">Total Weekends & Holidays</td>
             <td class="text-center total-num" colspan="2">
                 {% if ['weekends', 'all']|includes(countTimeBy) %}
                     {% if showTotalAs == 'undertime' %}
-                        {{stats.weekends.underDays|default(0, true)|maybePluralize('day')}}
-                        {{stats.weekends.underHours|default(0, true)|maybePluralize('hr')}}
-                        {{stats.weekends.underMinutes|default(0, true)|maybePluralize('min')}}
+                        {{stats.restDays.underDays|default(0, true)|maybePluralize('day')}}
+                        {{stats.restDays.underHours|default(0, true)|maybePluralize('hr')}}
+                        {{stats.restDays.underMinutes|default(0, true)|maybePluralize('min')}}
                     {% else %}
-                        {{(stats.weekends.renderedDays+stats.holidays.renderedDays)|default(0, true)|maybePluralize('day')}}
-                        {{stats.weekends.renderedHours|default(0, true)|maybePluralize('hr')}}
-                        {{stats.weekends.renderedMinutes|default(0, true)|maybePluralize('min')}}
+                        {{(stats.restDays.renderedDays+stats.holidays.renderedDays)|default(0, true)|maybePluralize('day')}}
+                        {{stats.restDays.renderedHours|default(0, true)|maybePluralize('hr')}}
+                        {{stats.restDays.renderedMinutes|default(0, true)|maybePluralize('min')}}
                     {% endif %}
                 {% endif %}
             </td>

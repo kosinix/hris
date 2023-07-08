@@ -113,7 +113,7 @@ env.addFilter('to12Hour', function (hour, compact = false) {
 env.addFilter('mobile_num', (mobileNo) => {
     mobileNo = lodash.toString(mobileNo);
     mobileNo = mobileNo.replace(/[^0-9.]/g, ''); // Remove non-numeric chars
-    
+
     mobileNo = lodash.toArray(mobileNo);
     mobileNo.splice(4, 0, ' ');
     mobileNo.splice(8, 0, ' ');
@@ -121,10 +121,22 @@ env.addFilter('mobile_num', (mobileNo) => {
 });
 
 env.addFilter('blank', (num) => {
-    if(!num){
+    if (!num) {
         return ''
     }
     return num
+});
+
+env.addFilter('roundOff', (number, precision) => {
+    number = parseFloat(number)
+    precision = parseInt(precision)
+    let factor = Math.pow(10, precision)
+    let n = precision < 0 ? number : 0.01 / factor + number
+    return Math.round(n * factor) / factor
+});
+
+env.addFilter('toFixed', (number, precision) => {
+    return parseFloat(number).toFixed(precision)
 });
 
 //// Export

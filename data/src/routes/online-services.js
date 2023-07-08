@@ -172,6 +172,24 @@ router.get('/online-services/at/:atId', middlewares.guardRoute(['read_all_attend
         next(err);
     }
 });
+router.post('/online-services/at/:atId/update', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
+    try {
+        let atId = req.params.atId
+        let at = await req.app.locals.db.main.AuthorityToTravel.findById(atId)
+        if (!at) {
+            throw new Error('Not found.')
+        }
+        at.periodOfTravel = moment(req.body.periodOfTravel).toDate()
+        at.periodOfTravelEnd = moment(req.body.periodOfTravelEnd).toDate()
+        await at.save()
+
+        flash.ok(req, 'online-services', `Authority to Travel updated.`)
+        res.redirect(`/online-services/at/${at._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/online-services/at/:atId/delete', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
     try {
         let atId = req.params.atId

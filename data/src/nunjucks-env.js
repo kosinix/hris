@@ -139,5 +139,9 @@ env.addFilter('toFixed', (number, precision) => {
     return parseFloat(number).toFixed(precision)
 });
 
+env.addFilter('uppercase', (val) => {
+    return lodash.upperCase(val)
+});
+
 //// Export
 module.exports = env;

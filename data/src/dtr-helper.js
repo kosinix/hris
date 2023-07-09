@@ -2990,7 +2990,7 @@ const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) =
             dtr = attendanceToTimeWorked(attendance, employment, workSchedule)
         }
         const isUndertime = lodash.get(dtr, 'undertime.total', 0) > 0
-        const isInvalidOvertime = isUndertime && isWorkday
+        const isInvalidOvertime = (isUndertime && isWorkday) || lodash.get(dtr, 'time.total', 0) <= 0
 
         return {
             date: date,

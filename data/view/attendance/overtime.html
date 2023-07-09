@@ -54,13 +54,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-4">
-                        <div class="btn-toolbar justify-content-end ml-3">
-                            <div class="btn-group mr-2">
-                                <a href="/attendance/employment/{{employment._id}}/overtime-print?start={{startMoment.format('YYYY-MM-DD')}}&end={{endMoment.format('YYYY-MM-DD')}}&showDays={{showDays}}" class="btn btn-sm btn-outline-secondary" target="_blank">Print Overtime</a>
-                            </div>
-                        </div>
-                    </div>
+                    
                 </div>
             </form>
         </div>
@@ -73,11 +67,23 @@
                     to {{endMoment|format_date('MMM DD, YYYY')}}
                 {% endif %}
             </div>
-            <form action="" method="get">
-                <div class="table-responsive mb-5">
+            <form action="" method="post">
+                <input type="hidden" name="start" value="{{startMoment|format_date('YYYY-MM-DD')}}">
+                <input type="hidden" name="end" value="{{endMoment|format_date('YYYY-MM-DD')}}">
+                <input type="hidden" name="showDays" value="{{showDays}}">
+
+                <div class="table-responsive mb-2">
                     <table class="table table-dtr">
                         <tr class="text-center">
-                            <th rowspan="2">Day</th>
+                            <th rowspan="2" class="text-left">
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-all">
+                                    <label class="form-check-label" for="check-all">
+                                        <span>Day</span>
+                                    </label>
+                                </div>
+                            </th>
                             <th rowspan="2">Date</th>
                             <th rowspan="2">In</th>
                             <th rowspan="2">Out</th>
@@ -110,7 +116,7 @@
                         <tr class="{{cssClass.join(",")}} text-center">
                             <td class="text-left">
                                 <div class="form-check">
-                                    <input {%if days[loop.index0].isInvalidOvertime %}disabled{%endif%} class="form-check-input" type="checkbox" value="{{day.attendance._id}}" name="attendance[]" id="day-{{loop.index}}">
+                                    <input {%if days[loop.index0].isInvalidOvertime %}disabled{%endif%} class="form-check-input catt" type="checkbox" value="{{day.date}}" name="attendances[]" id="day-{{loop.index}}">
                                     <label class="form-check-label" for="day-{{loop.index}}">
                                         {{day.date|format_date('MMM DD')}}
                                     </label>
@@ -166,249 +172,13 @@
                         {% endfor %}
                     </table>
                 </div>
-                <button class="btn btn-light">Submit</button>
+                <button class="btn btn-light">Print Overtime</button>
             </form>
             <!--  -->
             <!--  -->
             <!--  -->
             <!--  -->
-            <div class="table-responsive pt-5">
-                <table class="table table-dtr">
-                    <tr>
-                        <th width="10%" class="text-center" rowspan="2" colspan="2">Day</th>
-                        <th width="22%" class="text-center" colspan="2">AM</th>
-                        <th width="22%" class="text-center" colspan="2">PM</th>
-                        <th width="22%" class="text-center" colspan="3">
-                            {% if showTotalAs == 'undertime' %}
-                                <a href="?{{query|query_string({undertime: 0})}}">Undertime</a>
-                            {% else %}
-                                <a href="?{{query|query_string({undertime: 1})}}">Time</a>
-                            {% endif %}
-                        </th>
-                    </tr>
-                    <tr>
-                        <th>Arrival</th>
-                        <th>Departure</th>
-                        
-                        <th>Arrival</th>
-                        <th>Departure</th>
-
-                        <th class="text-center">Days</th>
-                        <th class="text-center">Hours</th>
-                        <th class="text-center">Minutes</th>
-                    </tr>
-                    {% for day in days %}
-                    {% set attendance = day.attendance %}
-                    {% set cssClass = [] %}
-
-                    {% if day.isNow %}
-                        {% set cssClass = (cssClass.push('selected'), cssClass) %}
-                    {% endif %}
-
-                    {% if day.isUndertime %}
-                        {% set cssClass = (cssClass.push('undertime'), cssClass) %}
-                    {% endif %}
-
-                    {% if day.isHoliday %}
-                        {% set cssClass = (cssClass.push('holiday'), cssClass) %}
-                    {% endif %}
-
-                    <tr class="{{cssClass.join(",")}}">
-                        <td class="text-left">
-                            {% if day.hasAttendance %}
-                                <a href="/attendance/{{attendance._id}}/edit">{{day.date|format_date('MMM')}} {{day.day}}</a>
-                            {% else %}
-                                <span class="text-dark">{{day.date|format_date('MMM')}} {{day.day}}</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
-                        {% if attendance.type == 'normal' %}
-                            {% set classes = '' %}
-                            {% if day.logs[0].tardy %}
-                                {% set classes = 'text-danger' %}
-                            {% endif %}
-                            <td class="{{classes}}">{{day.display.inAM}}</td>
-                            <td class="{{classes}}">{{day.display.outAM}}</td>
-                            {% set classes = '' %}
-                            {% if day.logs[1].tardy %}
-                                {% set classes = 'text-danger' %}
-                            {% endif %}
-                            <td class="{{classes}}">{{day.display.inPM}}</td>
-                            <td class="{{classes}}">{{day.display.outPM}}</td>
-                        {% elif  attendance.type == 'travel' %}
-                            {% if attendance.logs.length === 4 and attendance.logs[0].type === 'travel' %}
-                                <td class="text-center" colspan="2">
-                                    Travel
-                                </td>
-                                <td>{{day.display.inPM}}</td>
-                                <td>{{day.display.outPM}}</td>
-                            {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'travel' %}
-                                <td>{{day.display.inAM}}</td>
-                                <td>{{day.display.outAM}}</td>
-                                <td class="text-center" colspan="2">
-                                    Travel
-                                </td>
-                            {% else %}
-                                <td class="text-center" colspan="4">
-                                    Travel
-                                </td>
-                            {% endif %}
-                        {% elif  attendance.type == 'wfh' %}
-                            {% if attendance.logs.length === 4 and attendance.logs[0].type === 'wfh' %}
-                                <td class="text-center" colspan="2">
-                                    Work From Home
-                                </td>
-                                <td>{{day.display.inPM}}</td>
-                                <td>{{day.display.outPM}}</td>
-                            {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'wfh' %}
-                                <td>{{day.display.inAM}}</td>
-                                <td>{{day.display.outAM}}</td>
-                                <td class="text-center" colspan="2">
-                                    Work From Home
-                                </td>
-                            {% else %}
-                                <td class="text-center" colspan="4">
-                                    Work From Home
-                                </td>
-                            {% endif %}
-                        {% elif attendance.type === 'pass'%}
-                            <td>{{day.display.inAM}}</td>
-                            <td class="text-center" colspan="2">
-                                Pass Slip
-                            </td>
-                            <td>{{day.display.outPM}}</td>
-                        {% elif attendance.type === 'holiday'%}
-                            <td class="text-center" colspan="4">
-                                Holiday
-                            </td>
-                        {% else %}
-                            <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')}}</td>
-                        {% endif %}
-                        {% set classes = '' %}
-                        {% if day.undertime.total > 0 %}
-                            {% set classes = 'text-danger' %}
-                        {% endif %}
-                        <td class="{{classes}} text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{day.undertime.days|default('', true)}}
-                            {% else %}
-                                {{day.time.days|default('', true)}}
-                            {% endif %}
-                        </td>
-                        <td class="{{classes}} text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{day.undertime.hours|default('', true)}}
-                            {% else %}
-                                {{day.time.hours|default('', true)}}
-                            {% endif %}
-                        </td>
-                        <td class="{{classes}} text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{day.undertime.minutes|default('', true)}}
-                            {% else %}
-                                {{day.time.minutes|default('', true)}}
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    <tr>
-                        <td colspan="6" class="text-right"><h5 class="m-0">Workdays</h5></td>
-                        <td class="text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{stats.weekdays.undertime.days|default('', true)}}
-                            {% else %}
-                                {{stats.weekdays.time.days|default('', true)}}
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{stats.weekdays.undertime.hours|default('', true)}}
-                            {% else %}
-                                {{stats.weekdays.time.hours|default('', true)}}
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{stats.weekdays.undertime.minutes|default('', true)}}
-                            {% else %}
-                                {{stats.weekdays.time.minutes|default('', true)}}
-                            {% endif %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="6" class="text-right"><h5 class="m-0">Weekends</h5></td>
-                        <td class="text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{stats.weekends.undertime.days|default('', true)}}
-                            {% else %}
-                                {{stats.weekends.time.days|default('', true)}}
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{stats.weekends.undertime.hours|default('', true)}}
-                            {% else %}
-                                {{stats.weekends.time.hours|default('', true)}}
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{stats.weekends.undertime.minutes|default('', true)}}
-                            {% else %}
-                                {{stats.weekends.time.minutes|default('', true)}}
-                            {% endif %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="6" class="text-right"><h5 class="m-0">Holidays</h5></td>
-                        <td class="text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{stats.holidays.undertime.days|default('', true)}}
-                            {% else %}
-                                {{stats.holidays.time.days|default('', true)}}
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{stats.holidays.undertime.hours|default('', true)}}
-                            {% else %}
-                                {{stats.holidays.time.hours|default('', true)}}
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{stats.holidays.undertime.minutes|default('', true)}}
-                            {% else %}
-                                {{stats.holidays.time.minutes|default('', true)}}
-                            {% endif %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="6" class="text-right"><h5 class="m-0">Total</h5></td>
-                        <td class="text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{stats.days.undertime.days|default('', true)}}
-                            {% else %}
-                                {{stats.days.time.days|default('', true)}}
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{stats.days.undertime.hours|default('', true)}}
-                            {% else %}
-                                {{stats.days.time.hours|default('', true)}}
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if showTotalAs == 'undertime' %}
-                                {{stats.days.undertime.minutes|default('', true)}}
-                            {% else %}
-                                {{stats.days.time.minutes|default('', true)}}
-                            {% endif %}
-                        </td>
-                    </tr>
-                </table>
-            </div>
+            
         </div>
     </div>
 </div>
@@ -416,6 +186,11 @@
 {% block scripts %}
 {{ super() }}
 <script>
+    jQuery(document).ready(function($){
+        $("#check-all").change(function() {
+            $(document).find('input.catt[type="checkbox"]:not(:disabled)').prop("checked", this.checked);
+        });
+    })
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],

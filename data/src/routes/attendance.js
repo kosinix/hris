@@ -1866,6 +1866,8 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
         next(err);
     }
 });
+
+// Overtime
 router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employment/:employmentId/overtime-print'], middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {
         let employment = res.employment.toObject()
@@ -1895,16 +1897,17 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
 
         let momentNow = moment()
 
+        // Normal days
         let options = {
             showTotalAs: showTotalAs,
             showDays: showDays, // 0 - all, 1 - workdays (Mon-Fri, excl. holidays), 2 - weekends, 3 - holidays, 4 - weekends + holidays
-            // overrideWorkSched: overrideWorkSched
         }
 
         let days = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
         let stats = dtrHelper.getDtrStats(days)
         // return res.send(days)
-
+        
+        // OT Days
         options = {
             showTotalAs: showTotalAs,
             showDays: showDays, // 0 - all, 1 - workdays (Mon-Fri, excl. holidays), 2 - weekends, 3 - holidays, 4 - weekends + holidays
@@ -1913,6 +1916,10 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
         let days2 = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
         let stats2 = dtrHelper.getDtrStats(days2)
 
+        let dailyRate = employment.salary / 8
+        if(employment.employmentType === 'permanent'){
+            dailyRate = employment.salary / 22 / 8
+        }
         days2 = days2.map(day => {
             // day.time.asHours = (day?.time?.hoursDays + day?.time?.minutes / 60)
 
@@ -1931,6 +1938,16 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
         })
         // return res.send(stats)
 
+        if(req?.query?.includes){
+            let includes = req.query.includes.split('_')
+            console.log('includes', includes)
+            days = days.filter(day => {
+                return includes.includes(day.date)
+            })
+            days2 = days2.filter(day => {
+                return includes.includes(day.date)
+            })
+        }
         // console.log(kalendaryo.getMatrix(momentNow, 0))
         let months = Array.from(Array(12).keys()).map((e, i) => {
             return moment.utc().month(i).startOf('month')
@@ -1961,6 +1978,7 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
         }
         if (req.originalUrl.indexOf('overtime-print') > -1) {
+            res.locals.title = 'Extended Services Annex A'
             return res.render('attendance/overtime-print.html', data);
         }
         res.render('attendance/overtime.html', data);
@@ -1969,7 +1987,14 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
     }
 });
 router.post('/attendance/employment/:employmentId/overtime', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
-    res.send(req.body)
+    try {
+        let employment = res.employment.toObject()
+        const attendances = req.body?.attendances ?? []
+
+        res.redirect(`/attendance/employment/${employment._id}/overtime-print?start=${req.body.start}&end=${req.body.end}&showDays=${req.body.showDays}&includes=${attendances.join('_')}`)
+    } catch (err) {
+        next(err);
+    }
 });
 
 router.get('/attendance/tardy/:employmentId', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {

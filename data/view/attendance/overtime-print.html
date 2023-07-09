@@ -1,20 +1,77 @@
 {% extends "document-print.html" %}
 
 {% block body %}
+<style type="text/css" media="print">
+    @page { size: landscape; }
+</style>
 <div class="col-md-12" >
     <div class="d-print-none d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="">
-            <h1 class="h3 mb-3">Overtime</h1>
+            <h1 class="h3 mb-3">Extended Services Annex A</h1>
             <p class="alert alert-warning"><em>Press CTRL + P to open printer options. You must be on a laptop or desktop computer.</em></p>
         </div>
         
     </div>
 
-    <div class="csc-form-dtr d-none d-md-block d-print-block">
-        
-        <div class="row">
+    <div class="gsu-form-extended-annex-a d-none d-md-block d-print-block">
+        <div class="row align-items-start mb-4 text-center">
+            <div class="col-4 text-right"><img src="/images/logo-md.png" width="70px" alt="Logo"></div>
+            <div class="col-4">
+                <p class="mb-0">Republic of the Philippines </p>
+                <p class="mb-0 font-weight-bold">State Universities and Colleges</p>
+                <p class="mb-0 font-weight-bold">GUIMARAS STATE COLLEGE</p>
+                <p class="mb-0">Buenavista, Guimaras</p>
+            </div>
+            <div class="col-4 text-left">
+                <img src="/images/pab.jpg" width="100px" alt="">
+            </div>
+        </div>
+        <div class="row mb-3">
             <div class="col-12">
-                <table class="table">
+                <div class="row align-items-center">
+                    <div class="col-2">For the period covered:</div>
+                    <div class="col-10 font-weight-bold">
+                        {{startMoment|format_date('MMMM DD, YYYY')}}
+                        {% if startMoment|format_date('MMMM DD, YYYY') != endMoment|format_date('MMMM DD, YYYY') %}
+                            to {{endMoment|format_date('MMMM DD, YYYY')}}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-2">Rate:</div>
+                    <div class="col-10 font-weight-bold">
+                        {{employment.salary}}
+
+                        {% if employment.employmentType === 'permanent' %}
+                            Per Month
+                        {% else %}
+                            Per Day
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-2">Name:</div>
+                    <div class="col-10 font-weight-bold">
+                        {{employee.firstName}} {{employee.lastName}}
+                    </div>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-2">Position:</div>
+                    <div class="col-10 font-weight-bold">
+                        {{employment.position}}
+                    </div>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-2">Office Assigned:</div>
+                    <div class="col-10 font-weight-bold">
+                        {{employment.department}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-12">
+                <table class="table table-overtime">
                     <tr class="text-center">
                         <th rowspan="2">Day</th>
                         <th rowspan="2">Date</th>
@@ -31,6 +88,8 @@
                         <th>In</th>
                         <th>Out</th>
                     </tr>
+                    {% set total = 0 %}
+
                     {% for day in days2 %}
                     {% set cssClass = [] %}
     
@@ -47,17 +106,12 @@
                     {% endif %}
     
                     <tr class="{{cssClass.join(",")}} text-center">
-                        <td class="text-left">
-                            <div class="form-check">
-                                <input {%if days[loop.index0].isUndertime and days[loop.index0].isWorkday %}disabled{%endif%} class="form-check-input" type="checkbox" value="{{day.attendance._id}}" id="day-{{loop.index}}">
-                                <label class="form-check-label" for="day-{{loop.index}}">
-                                    {{day.date|format_date('MMM DD')}}
-                                </label>
-                            </div>
-                            
-                        </td>
+                        
                         <td>
                             {{day.weekDay}}
+                        </td>
+                        <td>
+                            {{day.date|format_date('MM/DD/YYYY')}}
                         </td>
                         {% if day.attendance %}
                             <td class="{{classes}}">{{day.display.inAM}}</td>
@@ -93,9 +147,37 @@
                                 </div>
                             {% endif %}
                         </td>
+                        {% set total = total + day.time.OTPay %}
                     </tr>
                     {% endfor %}
+                    <tr class="text-right">
+                        <td colspan="10"></td>
+                        <td><strong>{{total|currency}}</strong></td>
+                    </tr>
                 </table>
+            </div>
+        </div>
+     
+        <div class="row mb-5">
+            <div class="col-6">
+                <div class="row">
+                    <div class="col-2">Prepared by:</div>
+                    <div class="col-4">
+                        <div class="font-weight-bold">{{employee.firstName|uppercase}} <span contenteditable="true">{{employee.middleName|first|uppercase}}.</span> {{employee.lastName|uppercase}}</div>
+                        <div contenteditable="true">{{employment.group|uppercase}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <div class="row">
+                    <div class="col-2">Noted by:</div>
+                    <div class="col-4">
+                        <div class="font-weight-bold" contenteditable="true">{{employment.inCharge|uppercase}}</div>
+                        <div contenteditable="true">Director</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -103,5 +185,8 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
+<script>
+    window.print();  
+</script>
 {% endblock %}
 

@@ -1660,6 +1660,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
         let showWeekDays = lodash.get(req, 'query.showWeekDays', 'Mon|Tue|Wed|Thu|Fri|Sat|Sun')
         let showTotalAs = lodash.get(req, 'query.undertime') == 1 ? 'undertime' : 'time'
+        let showDays = parseInt(lodash.get(req, 'query.showDays', 0))
 
         let startMoment = moment(start).startOf('day')
         let endMoment = moment(end).endOf('day')
@@ -1680,11 +1681,13 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         let options = {
             showTotalAs: showTotalAs,
             showWeekDays: showWeekDays,
+            showDays: showDays,
         }
         if (!options.showWeekDays.length) {
             options.showWeekDays = showWeekDays.split('|')
         }
-        let { stats, days } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+        let days= await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
+        let stats = dtrHelper.getDtrStats(days)
 
         // console.log(options)
         let totalMinutes = 0
@@ -1749,6 +1752,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
             showTotalAs: showTotalAs,
             showWeekDays: showWeekDays,
             timeRecordSummary: timeRecordSummary,
+            showDays: showDays,
             startMoment: startMoment,
             endMoment: endMoment,
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
@@ -1756,7 +1760,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         }
         // return res.send(stats)
 
-        res.render('attendance/employment6.html', data);
+        res.render('attendance/employment7.html', data);
     } catch (err) {
         next(err);
     }

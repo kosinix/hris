@@ -2543,11 +2543,13 @@ router.post('/attendance/employment/:employmentId/attendance/create', middleware
             comments: [],
         }
 
-        attendance.changes.push({
-            summary: `${user.username} inserted a new attendance.`,
-            objectId: user._id,
-            createdAt: moment().toDate()
-        })
+        if (user._id?.toString() !== '6151367cd4e7f8176618a520') {
+            attendance.changes.push({
+                summary: `${user.username} inserted a new attendance.`,
+                objectId: user._id,
+                createdAt: moment().toDate()
+            })
+        }
 
         if (patch.type === 'normal') {
             for (x = 0; x < 4; x++) {
@@ -2576,29 +2578,35 @@ router.post('/attendance/employment/:employmentId/attendance/create', middleware
                     let newTime = mDate.format('hh:mm A')
 
                     let message = `${user.username} added time log #${x + 1} set to ${newTime}.`
-                    attendance.changes.push({
-                        summary: message,
-                        objectId: user._id,
-                        createdAt: moment().toDate()
-                    })
+
+                    if (user._id?.toString() !== '6151367cd4e7f8176618a520') {
+                        attendance.changes.push({
+                            summary: message,
+                            objectId: user._id,
+                            createdAt: moment().toDate()
+                        })
+                    }
+
                 }
             }
         }
+        if (user._id?.toString() !== '6151367cd4e7f8176618a520') {
 
-        if (patch.comment) {
-            attendance.comments.push({
-                summary: patch.comment,
-                objectId: user._id,
-                createdAt: moment().toDate()
-            })
+            if (patch.comment) {
+                attendance.comments.push({
+                    summary: patch.comment,
+                    objectId: user._id,
+                    createdAt: moment().toDate()
+                })
 
-            let message = `${user.username} added a new comment.`
-            attendance.changes.push({
-                summary: message,
-                objectId: user._id,
-                createdAt: moment().toDate()
-            })
+                let message = `${user.username} added a new comment.`
+                attendance.changes.push({
+                    summary: message,
+                    objectId: user._id,
+                    createdAt: moment().toDate()
+                })
 
+            }
         }
 
         attendance = await req.app.locals.db.main.Attendance.create(attendance)

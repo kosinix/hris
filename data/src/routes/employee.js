@@ -1458,7 +1458,7 @@ router.get('/employee/:employeeId/document/create', middlewares.guardRoute(['rea
         next(err);
     }
 });
-router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png", "application/pdf"] }), async (req, res, next) => {
+router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png", "application/pdf", 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'] }), async (req, res, next) => {
     try {
         let employee = res.employee
 

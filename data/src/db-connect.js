@@ -38,6 +38,7 @@ module.exports = {
             main.HealthDeclaration = main.model('HealthDeclaration', require('./models/health-declaration'));
             main.Holiday = main.model('Holiday', require('./models/holiday'));
             main.Login = main.model('Login', require('./models/login'));
+            main.Option = main.model('Option', require('./models/option'));
             main.Pass = main.model('Pass', require('./models/pass'));
             main.PasswordReset = main.model('PasswordReset', require('./models/password-reset'));
             main.Payroll = main.model('Payroll', require('./models/payroll'));

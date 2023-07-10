@@ -123,12 +123,12 @@
                         {% endif %}
     
                         <td>
-                            {% if day.attendance %}
+                            {% if day.attendance and day.isWorkday %}
                                 {{day.segments[0].logSegments[0].countedStart|mToTime|default('', true)}}
                             {% endif %}
                         </td>
                         <td>
-                            {% if day.attendance %}
+                            {% if day.attendance and day.isWorkday %}
                                 {{day.segments[0].logSegments[0].countedEnd|mToTime|default('', true)}}
                             {% endif %}
                         </td>

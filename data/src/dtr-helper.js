@@ -327,11 +327,12 @@ const getTimeBreakdown = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
     return {
         totalInDays: parseFloat(new Decimal(minutes).div(8).div(60)),
         totalMinutes: minutes,
-        totalInHours: parseFloat(new Decimal(minutes).div(60)),
+        totalInHours: roundOff(minutes / 60, 9),
         renderedDays: Math.floor(renderedDays),
         renderedHours: Math.floor(renderedHours),
         renderedMinutes: Math.round(renderedMinutes),
         underTimeTotalMinutes: totalMinutesUnderTime,
+        underTimeTotalInHours: roundOff(totalMinutesUnderTime / 60, 9),
         underDays: Math.floor(underDays),
         underHours: Math.floor(underHours),
         underMinutes: Math.round(underMinutes),
@@ -3119,6 +3120,7 @@ const getDtrStats = (days) => {
                 minutes: r.renderedMinutes,
                 total: r.totalMinutes,
                 hoursDays: r.renderedDays * 8 + r.renderedHours, // hours + days in hours
+                totalInHours: r.totalInHours, // total minutes converted to hours
             },
             undertime: {
                 days: r.underDays,
@@ -3126,12 +3128,23 @@ const getDtrStats = (days) => {
                 minutes: r.underMinutes,
                 total: r.underTimeTotalMinutes,
                 hoursDays: r.underDays * 8 + r.underHours, // hours + days in hours
+                totalInHours: r.underTimeTotalInHours, // total undertime minutes converted to hours
             }
         }
     }
     let hoursPerDay = 8
+
+    let workdays = days.filter((day) => {
+        return day.isWorkday
+    })
+    let workdaysTotalMinutes = workdays.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
+    let workdaysTotalMinutesUnderTime = workdays.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
+
+    workdays = mapReturn(getTimeBreakdown(workdaysTotalMinutes, workdaysTotalMinutesUnderTime, hoursPerDay))
     return {
         days: mapReturn(getTimeBreakdown(daysTotalMinutes, daysTotalMinutesUnderTime, hoursPerDay)),
+        workdays: workdays,
+        workDays: workdays, // @alias to workdays
         weekdays: mapReturn(getTimeBreakdown(weekdaysTotalMinutes, weekdaysTotalMinutesUnderTime, hoursPerDay)),
         weekends: mapReturn(getTimeBreakdown(weekendsTotalMinutes, weekendsTotalMinutesUnderTime, hoursPerDay)),
         restDays: mapReturn(getTimeBreakdown(restDaysTotalMinutes, restDaysTotalMinutesUnderTime, hoursPerDay)),

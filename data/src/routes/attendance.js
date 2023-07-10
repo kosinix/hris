@@ -1497,7 +1497,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
             totalMinutesUnderTime += lodash.get(day, 'undertime.total', 0)
         })
 
-        // return res.send(days)
+        // return res.send(stats)
 
         let timeRecordSummary = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
 
@@ -1540,6 +1540,16 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         ]
         compatibilityUrl = compatibilityUrl.join('&')
 
+        let dailyRate = employment?.salary ?? 0
+        if(employment.employmentType === 'permanent'){
+            dailyRate = dtrHelper.roundOff(employment.salary / 22, 9)
+        }
+        let hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
+
+        const perMinute = dtrHelper.roundOff(hourlyRate / 60, 9)
+        const totalHours = stats.workdays.time.hoursDays + (stats.workdays.time.minutes / 60)
+        const netAmount = hourlyRate * totalHours
+
 
         let data = {
             flash: flash.get(req, 'attendance'),
@@ -1551,12 +1561,18 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
             selectedMonth: 'nu',
             showTotalAs: showTotalAs,
             showWeekDays: showWeekDays,
-            timeRecordSummary: timeRecordSummary,
+            // timeRecordSummary: timeRecordSummary,
             showDays: showDays,
             startMoment: startMoment,
             endMoment: endMoment,
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
             compatibilityUrl: compatibilityUrl,
+            dailyRate: dailyRate,
+            hourlyRate: hourlyRate,
+            perMinute: perMinute,
+            totalHours: totalHours,
+            netAmount: netAmount,
+            stats: stats,
         }
         // return res.send(stats)
 

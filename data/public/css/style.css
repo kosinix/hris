@@ -1689,6 +1689,9 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     .table-dtr {
         font-size: 10px;
     }
+    .text-mono {
+        font-size: 12px;
+    }
 }
 
 /* <576px Extra Small */

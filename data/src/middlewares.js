@@ -981,8 +981,15 @@ module.exports = {
             //     throw new Error(`There is no flag raising ceremony today (${momentDate.format('dddd, MMMM D')}).`)
             // }
 
+            let flagRaisingStart = CONFIG.hros.flagRaising.start
+            let momentFlagStart = momentDate.clone().startOf('day').hours(flagRaisingStart.hour).minutes(flagRaisingStart.minute).seconds(0)
+            // console.log(momentDate.format('MMMM-DD hh:mm A'), momentFlagEnd.format('MMMM-DD hh:mm A'))
+            if (momentDate.isBefore(momentFlagStart)) {
+                throw new Error(`Flag raising attendance starts at ${momentFlagStart.format('hh:mm A')}.`)
+            }
+
             let { hour, minute } = CONFIG.hros.flagRaising.end
-            let momentFlagEnd = momentDate.clone().startOf('day').hours(hour).minutes(minute)
+            let momentFlagEnd = momentDate.clone().startOf('day').hours(hour).minutes(minute).seconds(59)
             // console.log(momentDate.format('MMMM-DD hh:mm A'), momentFlagEnd.format('MMMM-DD hh:mm A'))
             if (momentDate.isAfter(momentFlagEnd)) {
                 throw new Error(`Flag raising attendance is only until ${momentFlagEnd.format('hh:mm A')}.`)

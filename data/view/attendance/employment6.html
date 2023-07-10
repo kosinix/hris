@@ -46,8 +46,9 @@
         </div>
         <div class="btn-toolbar justify-content-end mb-3">
             <div class="btn-group mr-2">
-                <a href="/attendance/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm">Insert Attendance</a>
-                <a href="/attendance/employment/{{employment._id}}/print?{{compatibilityUrl}}" class="btn btn-light btn-sm" target="_blank">Print DTR</a>
+                <a href="/attendance/employment/{{employment._id}}/attendance/create" class="btn btn-outline-primary btn-sm">Insert Attendance</a>
+                <a href="/attendance/employment/{{employment._id}}/print?{{compatibilityUrl}}" class="btn btn-outline-primary btn-sm" target="_blank">Print DTR</a>
+                <a href="/attendance/employment/{{employment._id}}/move?{{query|query_string|safe}}" class="btn btn-outline-primary btn-sm">Change Schedule</a>
             </div>
         </div>
 

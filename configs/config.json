@@ -233,9 +233,13 @@
   "hros": {
     "flagRaising": {
       "weekDay": "Mon",
-      "end": {
+      "start": {
         "hour": 7,
-        "minute": 40
+        "minute": 0
+      },
+      "end": {
+        "hour": 8,
+        "minute": 10
       }
     },
     "flagLowering": {

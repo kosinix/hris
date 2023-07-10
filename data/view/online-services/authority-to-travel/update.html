@@ -15,7 +15,7 @@
     </div>
     <div class="mb-5">
         {% include 'parts/flash.html' %}
-        <form ref="form" v-on:submit.prevent="onSubmit" action="/online-services/at/update/{{at._id}}" method="POST" class="form-default">
+        <form ref="form" v-on:submit.prevent="onSubmit" action="/online-services/at/{{at._id}}/update" method="POST" class="form-default">
             <div class="form-row">
                 <div class="col-md-12">
                     <label for="periodOfTravel" class="font-weight-bold">Period of Travel <span class="text-danger">*</span></label>

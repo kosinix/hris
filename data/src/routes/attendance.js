@@ -15,6 +15,7 @@ const excelGen = require('../excel-gen')
 const middlewares = require('../middlewares')
 const s3 = require('../aws-s3');
 const workScheduler = require('../work-scheduler')
+const flagRaising = require('../flag-raising')
 
 
 // Router
@@ -805,130 +806,7 @@ router.get('/attendance/flag/adjust', middlewares.guardRoute(['read_all_attendan
         }).lean()
         if (!schedule2) throw new Error('Could not find schedule 2')
 
-        // 2. Get flag attendances
-        let flagAttendances = await req.app.locals.db.main.AttendanceFlag.aggregate([
-            {
-                $match: {
-                    // Get flag attendances for these dates
-                    dateTime: {
-                        $gte: mCalendar.clone().startOf('day').toDate(),
-                        $lte: mCalendar.clone().endOf('day').toDate(),
-                    }
-                }
-            },
-            {
-                $lookup: {
-                    localField: 'employeeId',
-                    foreignField: '_id',
-                    from: 'employees',
-                    as: 'employees'
-                }
-            },
-            {
-                $addFields: {
-                    "employee": {
-                        $arrayElemAt: ["$employees", 0]
-                    }
-                }
-            },
-            {
-                $project: {
-                    employees: 0,
-                    employee: {
-                        addresses: 0,
-                        personal: 0,
-                        employments: 0,
-                        mobileNumber: 0,
-                        phoneNumber: 0,
-                        documents: 0,
-                        createdAt: 0,
-                        updatedAt: 0,
-                        uuid: 0,
-                        uid: 0,
-                        group: 0,
-                        __v: 0,
-                        profilePhoto: 0,
-                        acceptedDataPrivacy: 0,
-                        birthDate: 0,
-                        civilStatus: 0,
-                        addressPermanent: 0,
-                        addressPresent: 0,
-                        email: 0,
-                        history: 0,
-                        speechSynthesisName: 0,
-                        address: 0
-                    }
-                }
-            },
-        ])
-        if (flagAttendances.length <= 0) {
-            throw new Error('Nothing to change.')
-        }
-        const FLAG_EMPLOYEE_IDS = flagAttendances.map(a => a.employeeId)
-
-        // 3. Get staff employments that are active, using the Regular Working Hours, and matched with employees having flag attendances
-        let employments = await req.app.locals.db.main.Employment.aggregate([
-            {
-                $match: {
-                    active: true,
-                    group: 'staff',
-                    employmentType: 'cos',
-                    workScheduleId: schedule1._id, // Regular Working Hours
-                    employeeId: {
-                        $in: FLAG_EMPLOYEE_IDS
-                    }
-                },
-            },
-        ])
-        const EMPLOYMENT_IDS = employments.map(e => e._id)
-
-        let workScheduleMatcher = {
-            $ne: schedule2._id,
-        }
-        if (rollback) {
-            workScheduleMatcher = {
-                $ne: schedule1._id,
-            }
-        }
-
-        // 4. Get employee attendances (not flag attendance)
-        let attendances = await req.app.locals.db.main.Attendance.aggregate([
-            {
-                $match: {
-                    workScheduleId: workScheduleMatcher,
-                    // Get attendances for these dates
-                    createdAt: {
-                        $gte: mCalendar.clone().startOf('day').toDate(),
-                        $lte: mCalendar.clone().endOf('day').toDate(),
-                    },
-                    // Must not be later than 7:30 AM to avoid undertime
-                    'logs.0.dateTime': {
-                        $lte: mCalendar.clone().hours(7).minutes(30).toDate(),
-                    },
-                    employmentId: {
-                        $in: EMPLOYMENT_IDS
-                    }
-                },
-            },
-
-        ])
-        // return res.send(attendances)
-
-        flagAttendances = flagAttendances.filter((e, i) => {
-            return employments.find(o => o.employeeId.toString() === e.employeeId.toString())
-        })
-        flagAttendances = flagAttendances.filter((e, i) => {
-            return attendances.find(o => o.employeeId.toString() === e.employeeId.toString())
-        })
-        flagAttendances = flagAttendances.map((e, i) => {
-            e.employment = employments.find(o => o.employeeId.toString() === e.employeeId.toString())
-            let attendance = attendances.find(o => o.employeeId.toString() === e.employeeId.toString())
-            e.attendanceId = attendance?._id
-            e.log0 = attendance?.logs?.at(0)
-            e.log0.time = moment(e.log0.dateTime).format('hh:mm A')
-            e.time = moment(e.dateTime).format('hh:mm A')
-            return e
-        })
+        flagAttendances = await flagRaising.getCandidates(req.app.locals.db, date, schedule1, schedule2, rollback)
         const ATTENDANCE_IDS = flagAttendances.map(a => a.attendanceId)
         // return res.send(ATTENDANCE_IDS)
         // return res.send(flagAttendances)
@@ -956,8 +834,6 @@ router.post('/attendance/flag/change', middlewares.guardRoute(['read_all_attenda
 
         let attendanceIds = (new String(req.body.attendanceIds)).split(',')
 
-        const ATTENDANCE_IDS = attendanceIds.map(e => req.app.locals.db.mongoose.Types.ObjectId(e))
-
         // 1. Schedules
         let schedule1 = await req.app.locals.db.main.WorkSchedule.findOne({
             name: 'Regular Working Hours'
@@ -969,85 +845,9 @@ router.post('/attendance/flag/change', middlewares.guardRoute(['read_all_attenda
         }).lean()
         if (!schedule2) throw new Error('Could not find schedule 2')
 
-        if (rollback) {
-            let criteria = {
-                _id: {
-                    $in: ATTENDANCE_IDS
-                },
-                workScheduleId: {
-                    $ne: schedule1._id,
-                }
-            }
-            let affected = await req.app.locals.db.main.Attendance.find(criteria, { logs: 0 }).lean()
-            let message = `${user.username} rollback schedule from ${schedule2.name} to ${schedule1.name}.`
-            let updated = await req.app.locals.db.main.Attendance.updateMany(
-                criteria,
-                {
-                    $set: {
-                        workScheduleId: schedule1._id,
-                    },
-                    $push: {
-                        changes: {
-                            summary: message,
-                            objectId: user._id,
-                            createdAt: moment().toDate()
-                        }
-                    },
-                },
-                {
-                    multi: true
-                }
-            )
-            // console.log({
-            //     affected: affected,
-            //     updated: updated,
-            // })
-            if (updated.n > 0) {
-                flash.ok(req, 'attendance', `${message} Updated ${updated.n}.`)
-            } else {
-                flash.ok(req, 'attendance', `No changes made.`)
-            }
-            return res.redirect('/attendance/flag/all')
-        }
+        let flashMessage = await flagRaising.adjustCandidates(req.app.locals.db, user.username, attendanceIds, schedule1, schedule2, rollback)
 
-        // 5. Update attendances with EMPLOYMENT_IDS to schedule2
-        let criteria = {
-            _id: {
-                $in: ATTENDANCE_IDS
-            },
-            workScheduleId: {
-                $ne: schedule2._id,
-            }
-        }
-        let affected = await req.app.locals.db.main.Attendance.find(criteria, { logs: 0 }).lean()
-        let message = `${user.username} adjusted schedule from ${schedule1.name} to ${schedule2.name} because of the flag raising attendance.`
-        let updated = await req.app.locals.db.main.Attendance.updateMany(
-            criteria,
-            {
-                $set: {
-                    workScheduleId: schedule2._id
-                },
-                $push: {
-                    changes: {
-                        summary: message,
-                        objectId: user._id,
-                        createdAt: moment().toDate()
-                    }
-                },
-            },
-            {
-                multi: true
-            }
-        )
-        console.log({
-            affected: affected,
-            updated: updated,
-        })
-        if (updated.n > 0) {
-            flash.ok(req, 'attendance', `${message} Updated ${updated.n}.`)
-        } else {
-            flash.ok(req, 'attendance', `No changes made.`)
-        }
+        flash.ok(req, 'attendance', flashMessage)
         res.redirect('/attendance/flag/all')
     } catch (err) {
         next(err);
@@ -2239,20 +2039,31 @@ router.get('/attendance/employment/:employmentId/move', middlewares.guardRoute([
 });
 router.post('/attendance/employment/:employmentId/move', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
     try {
+        let employment = res.employment.toObject()
+        // let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
+
+        let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+        let showWeekDays = lodash.get(req, 'query.showWeekDays', 'Mon|Tue|Wed|Thu|Fri|Sat|Sun')
+        // let showTotalAs = lodash.get(req, 'query.undertime') == 1 ? 'undertime' : 'time'
+
+        let startMoment = moment(start).startOf('day')
+        let endMoment = moment(end).endOf('day')
+
+        if (!startMoment.isValid()) {
+            throw new Error(`Invalid start date.`)
+        }
+        if (!endMoment.isValid()) {
+            throw new Error(`Invalid end date.`)
+        }
+
+        if (endMoment.isBefore(startMoment)) {
+            throw new Error(`Invalid end date. Must not be less than the start date.`)
+        }
+
         let attendanceIds = req.body.attendanceIds.split(',').map((a) => {
             return req.app.locals.db.mongoose.Types.ObjectId(a)
         })
-        // ATTENDANCES
-        // let attendances = await req.app.locals.db.main.Attendance.aggregate([
-        //     {
-        //         $match: {
-        //             _id: {
-        //                 $in: attendanceIds
-        //             }
-        //         }
-        //     },
-        // ])
-
         await req.app.locals.db.main.Attendance.update(
             {
                 _id: {
@@ -2269,7 +2080,9 @@ router.post('/attendance/employment/:employmentId/move', middlewares.guardRoute(
             }
         )
 
-        res.send('changed')
+        flash.ok(req, 'attendance', `Changed schedule of attendance(s).`)
+        res.redirect(`/attendance/employment/${employment._id}?start=${startMoment.clone().format('YYYY-MM-DD')}&end=${endMoment.clone().format('YYYY-MM-DD')}&showWeekDays=${showWeekDays}`)
+
     } catch (err) {
         next(err);
     }

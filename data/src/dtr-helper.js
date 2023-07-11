@@ -1266,6 +1266,252 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
     }
 }
 
+let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
+    let defaults = {
+        _id: null,
+        employeeId: '',
+        employmentId: '',
+        type: 'normal',
+        workScheduleId: '',
+        logs: [],
+        changes: [],
+        comments: [],
+        createdAt: '',
+    }
+    attendance = lodash.merge(defaults, attendance)
+
+    let logs = lodash.get(attendance, 'logs', [])
+
+    let timeZone = -480 // ph -8 hrs
+    if (attendance.type == 'leave') {
+        let start = 450 // 7:30
+        let currentShift = getNextShift(start, workScheduleTimeSegments)
+        let mToTime = (minutes, format, date = null) => {
+            format = format || 'HH:mm'
+            let mDate = {}
+            if (date) {
+                mDate = moment.utc(date)
+            } else {
+                mDate = moment().startOf('year')
+            }
+            return mDate.startOf('day').add(minutes, 'minutes').format(format)
+        }
+        attendance.logs = [
+            {
+                dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                type: 'leave',
+                source: {
+                    id: employee.userId,
+                    type: 'userAccount'
+                }
+            },
+            {
+                dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                type: 'leave',
+                source: {
+                    id: employee.userId,
+                    type: 'userAccount'
+                }
+            }
+        ]
+    } else if (attendance.type == 'wfh') {
+        if (logs.length <= 0) { // no log
+            let start = 420 // 7:00
+            let currentShift = getNextShift(start, workScheduleTimeSegments)
+            let mToTime = (minutes, format, date = null) => {
+                format = format || 'HH:mm'
+                let mDate = {}
+                if (date) {
+                    mDate = moment.utc(date)
+                } else {
+                    mDate = moment().startOf('year')
+                }
+                return mDate.startOf('day').add(minutes, 'minutes').format(format)
+            }
+            attendance.logs = [
+                {
+                    dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                    type: 'wfh',
+                    source: {
+                        id: employee.userId,
+                        type: 'userAccount'
+                    }
+                },
+                {
+                    dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                    type: 'wfh',
+                    source: {
+                        id: employee.userId,
+                        type: 'userAccount'
+                    }
+                }
+            ]
+        }
+    } else if (attendance.type == 'travel') {
+        if (logs.length <= 1) { // all day travel
+
+            let start = 450 // 7:30
+            let currentShift = getNextShift(start, workScheduleTimeSegments)
+            let mToTime = (minutes, format, date = null) => {
+                format = format || 'HH:mm'
+                let mDate = {}
+                if (date) {
+                    mDate = moment.utc(date)
+                } else {
+                    mDate = moment().startOf('year')
+                }
+                return mDate.startOf('day').add(minutes, 'minutes').format(format)
+            }
+            attendance.logs = [
+                {
+                    dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                    type: 'travel',
+                    source: {
+                        id: employee.userId,
+                        type: 'userAccount'
+                    }
+                },
+                {
+                    dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                    type: 'travel',
+                    source: {
+                        id: employee.userId,
+                        type: 'userAccount'
+                    }
+                }
+            ]
+        } else if (logs.length === 3) { // half day travel
+            // travel, !travel, !travel
+            if (logs[0].type === 'travel' && logs[1].type !== 'travel' && logs[2].type !== 'travel') { // Travel must have start and end logs to conform to our API
+                let start = timeToM(moment(logs[0].dateTime).format('HH:mm'))
+                let currentShift = getNextShift(start, workScheduleTimeSegments)
+
+                let adjustedLogs = [
+                    {
+                        dateTime: moment(mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(), // Begin on start of shift
+                        type: 'travel',
+                        source: {
+                            id: employee.userId,
+                            type: 'userAccount'
+                        }
+                    },
+                    // Inserted log
+                    {
+                        dateTime: logs[1].dateTime,
+                        type: 'travel',
+                        source: {
+                            id: employee.userId,
+                            type: 'userAccount'
+                        }
+                    },
+                    logs[1], // As is
+                    logs[2], // As is
+                ]
+                attendance.logs = adjustedLogs
+
+                // !travel, !travel, travel
+            } else if (logs[0].type !== 'travel' && logs[1].type !== 'travel' && logs[2].type === 'travel') { //
+                let start = timeToM(moment(logs[2].dateTime).format('HH:mm'))
+                let nextShift = getNextShift(start, workScheduleTimeSegments)
+
+                let adjustedLogs = [
+                    logs[0], // As is
+                    logs[1], // As is
+                    {
+                        dateTime: moment(mToTime(nextShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(), // Begin on start of shift
+                        type: 'travel',
+                        source: {
+                            id: employee.userId,
+                            type: 'userAccount'
+                        }
+                    },
+                    // Inserted log
+                    {
+                        dateTime: moment(mToTime(nextShift.end + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(),
+                        type: 'travel',
+                        source: {
+                            id: employee.userId,
+                            type: 'userAccount'
+                        }
+                    },
+                ]
+                attendance.logs = adjustedLogs
+            }
+        }
+
+    }
+
+    attendance.logs = attendance.logs.map(log => {
+        let newLog = {
+            // scannerId: null,
+            dateTime: log.dateTime,
+            mode: log.mode,
+            type: log.type,
+            source: {
+                id: null,
+                type: '',
+            }
+        }
+        if (log.scannerId) {
+            // newLog.scannerId = log.scannerId
+            newLog.type = 'normal'
+            newLog.source.id = log.scannerId
+            newLog.source.type = 'scanner'
+        } else {
+            newLog.type = 'normal'
+        }
+        if ('online' === log.type) {
+            newLog.type = 'normal'
+            newLog.source.type = 'userAccount'
+        }
+        if ('scanner' === log.type) {
+            newLog.type = 'normal'
+            newLog.source.type = 'scanner'
+        }
+        if ('travel' === log.type) {
+            newLog.type = 'travel'
+            newLog.source.id = employee.userId
+            newLog.source.type = 'userAccount'
+        }
+        if ('wfh' === log.type) {
+            newLog.type = 'wfh'
+            newLog.source.id = employee.userId
+            newLog.source.type = 'userAccount'
+        }
+        if ('leave' === log.type) {
+            newLog.type = 'leave'
+            newLog.source.id = employee.userId
+            newLog.source.type = 'userAccount'
+        }
+        if (lodash.has(log, 'extra.id')) {
+            newLog.source.id = log.extra.id
+        }
+        if (lodash.has(log, 'extra.type')) {
+            newLog.source.type = log.extra.type
+        }
+        if (lodash.has(log, 'extra.lat')) {
+            newLog.source.lat = log.extra.lat
+        }
+        if (lodash.has(log, 'extra.lon')) {
+            newLog.source.lon = log.extra.lon
+        }
+        if (lodash.has(log, 'extra.photo')) {
+            newLog.source.photo = log.extra.photo
+        }
+        if (lodash.has(log, 'source.id')) {
+            newLog.source.id = log.source.id
+        }
+        if (lodash.has(log, 'source.type')) {
+            newLog.source.type = log.source.type
+        }
+
+        return newLog
+    })
+
+
+    return attendance
+}
+
 const editAttendance2 = async (db, attendance, attendancePatch, user) => {
     if (!attendance) {
         throw new Error('Attendance not found.')
@@ -1824,252 +2070,6 @@ let countWork = (timeSegments, logSegments, options) => {
 
 
     return timeSegments
-}
-
-let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
-    let defaults = {
-        _id: null,
-        employeeId: '',
-        employmentId: '',
-        type: 'normal',
-        workScheduleId: '',
-        logs: [],
-        changes: [],
-        comments: [],
-        createdAt: '',
-    }
-    attendance = lodash.merge(defaults, attendance)
-
-    let logs = lodash.get(attendance, 'logs', [])
-
-    let timeZone = -480 // ph -8 hrs
-    if (attendance.type == 'leave') {
-        let start = 450 // 7:30
-        let currentShift = getNextShift(start, workScheduleTimeSegments)
-        let mToTime = (minutes, format, date = null) => {
-            format = format || 'HH:mm'
-            let mDate = {}
-            if (date) {
-                mDate = moment.utc(date)
-            } else {
-                mDate = moment().startOf('year')
-            }
-            return mDate.startOf('day').add(minutes, 'minutes').format(format)
-        }
-        attendance.logs = [
-            {
-                dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                type: 'leave',
-                source: {
-                    id: employee.userId,
-                    type: 'userAccount'
-                }
-            },
-            {
-                dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                type: 'leave',
-                source: {
-                    id: employee.userId,
-                    type: 'userAccount'
-                }
-            }
-        ]
-    } else if (attendance.type == 'wfh') {
-        if (logs.length <= 0) { // no log
-            let start = 420 // 7:00
-            let currentShift = getNextShift(start, workScheduleTimeSegments)
-            let mToTime = (minutes, format, date = null) => {
-                format = format || 'HH:mm'
-                let mDate = {}
-                if (date) {
-                    mDate = moment.utc(date)
-                } else {
-                    mDate = moment().startOf('year')
-                }
-                return mDate.startOf('day').add(minutes, 'minutes').format(format)
-            }
-            attendance.logs = [
-                {
-                    dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                    type: 'normal',
-                    source: {
-                        id: employee.userId,
-                        type: 'userAccount'
-                    }
-                },
-                {
-                    dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                    type: 'normal',
-                    source: {
-                        id: employee.userId,
-                        type: 'userAccount'
-                    }
-                }
-            ]
-        }
-    } else if (attendance.type == 'travel') {
-        if (logs.length <= 1) { // all day travel
-
-            let start = 450 // 7:30
-            let currentShift = getNextShift(start, workScheduleTimeSegments)
-            let mToTime = (minutes, format, date = null) => {
-                format = format || 'HH:mm'
-                let mDate = {}
-                if (date) {
-                    mDate = moment.utc(date)
-                } else {
-                    mDate = moment().startOf('year')
-                }
-                return mDate.startOf('day').add(minutes, 'minutes').format(format)
-            }
-            attendance.logs = [
-                {
-                    dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                    type: 'travel',
-                    source: {
-                        id: employee.userId,
-                        type: 'userAccount'
-                    }
-                },
-                {
-                    dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                    type: 'travel',
-                    source: {
-                        id: employee.userId,
-                        type: 'userAccount'
-                    }
-                }
-            ]
-        } else if (logs.length === 3) { // half day travel
-            // travel, !travel, !travel
-            if (logs[0].type === 'travel' && logs[1].type !== 'travel' && logs[2].type !== 'travel') { // Travel must have start and end logs to conform to our API
-                let start = timeToM(moment(logs[0].dateTime).format('HH:mm'))
-                let currentShift = getNextShift(start, workScheduleTimeSegments)
-
-                let adjustedLogs = [
-                    {
-                        dateTime: moment(mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(), // Begin on start of shift
-                        type: 'travel',
-                        source: {
-                            id: employee.userId,
-                            type: 'userAccount'
-                        }
-                    },
-                    // Inserted log
-                    {
-                        dateTime: logs[1].dateTime,
-                        type: 'travel',
-                        source: {
-                            id: employee.userId,
-                            type: 'userAccount'
-                        }
-                    },
-                    logs[1], // As is
-                    logs[2], // As is
-                ]
-                attendance.logs = adjustedLogs
-
-                // !travel, !travel, travel
-            } else if (logs[0].type !== 'travel' && logs[1].type !== 'travel' && logs[2].type === 'travel') { //
-                let start = timeToM(moment(logs[2].dateTime).format('HH:mm'))
-                let nextShift = getNextShift(start, workScheduleTimeSegments)
-
-                let adjustedLogs = [
-                    logs[0], // As is
-                    logs[1], // As is
-                    {
-                        dateTime: moment(mToTime(nextShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(), // Begin on start of shift
-                        type: 'travel',
-                        source: {
-                            id: employee.userId,
-                            type: 'userAccount'
-                        }
-                    },
-                    // Inserted log
-                    {
-                        dateTime: moment(mToTime(nextShift.end + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(),
-                        type: 'travel',
-                        source: {
-                            id: employee.userId,
-                            type: 'userAccount'
-                        }
-                    },
-                ]
-                attendance.logs = adjustedLogs
-            }
-        }
-
-    }
-
-    attendance.logs = attendance.logs.map(log => {
-        let newLog = {
-            // scannerId: null,
-            dateTime: log.dateTime,
-            mode: log.mode,
-            type: log.type,
-            source: {
-                id: null,
-                type: '',
-            }
-        }
-        if (log.scannerId) {
-            // newLog.scannerId = log.scannerId
-            newLog.type = 'normal'
-            newLog.source.id = log.scannerId
-            newLog.source.type = 'scanner'
-        } else {
-            newLog.type = 'normal'
-        }
-        if ('online' === log.type) {
-            newLog.type = 'normal'
-            newLog.source.type = 'userAccount'
-        }
-        if ('scanner' === log.type) {
-            newLog.type = 'normal'
-            newLog.source.type = 'scanner'
-        }
-        if ('travel' === log.type) {
-            newLog.type = 'travel'
-            newLog.source.id = employee.userId
-            newLog.source.type = 'userAccount'
-        }
-        if ('wfh' === log.type) {
-            newLog.type = 'wfh'
-            newLog.source.id = employee.userId
-            newLog.source.type = 'userAccount'
-        }
-        if ('leave' === log.type) {
-            newLog.type = 'leave'
-            newLog.source.id = employee.userId
-            newLog.source.type = 'userAccount'
-        }
-        if (lodash.has(log, 'extra.id')) {
-            newLog.source.id = log.extra.id
-        }
-        if (lodash.has(log, 'extra.type')) {
-            newLog.source.type = log.extra.type
-        }
-        if (lodash.has(log, 'extra.lat')) {
-            newLog.source.lat = log.extra.lat
-        }
-        if (lodash.has(log, 'extra.lon')) {
-            newLog.source.lon = log.extra.lon
-        }
-        if (lodash.has(log, 'extra.photo')) {
-            newLog.source.photo = log.extra.photo
-        }
-        if (lodash.has(log, 'source.id')) {
-            newLog.source.id = log.source.id
-        }
-        if (lodash.has(log, 'source.type')) {
-            newLog.source.type = log.source.type
-        }
-
-        return newLog
-    })
-
-
-    return attendance
 }
 
 /**

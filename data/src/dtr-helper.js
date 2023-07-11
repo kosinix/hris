@@ -3113,6 +3113,7 @@ const getDtrStats = (days) => {
     let daysTotalMinutesUnderTime = days.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
 
     let mapReturn = (r) => {
+        // console.log(r.ola)
         return {
             time: {
                 days: r.renderedDays,
@@ -3140,11 +3141,16 @@ const getDtrStats = (days) => {
     let workdaysTotalMinutes = workdays.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
     let workdaysTotalMinutesUnderTime = workdays.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
 
-    workdays = mapReturn(getTimeBreakdown(workdaysTotalMinutes, workdaysTotalMinutesUnderTime, hoursPerDay))
+    let absentDays = days.filter((day) => {
+        return day.isWorkday && !(day?.attendance?.logs?.length ?? 0) && !['travel','leave'].includes(day?.attendance?.type)
+    }) 
     return {
+        count: {
+            workdays: workdays.length,
+            absentDays: absentDays.length,
+        },
         days: mapReturn(getTimeBreakdown(daysTotalMinutes, daysTotalMinutesUnderTime, hoursPerDay)),
-        workdays: workdays,
-        workDays: workdays, // @alias to workdays
+        workdays: mapReturn({ola:'', ...getTimeBreakdown(workdaysTotalMinutes, workdaysTotalMinutesUnderTime, hoursPerDay)}),
         weekdays: mapReturn(getTimeBreakdown(weekdaysTotalMinutes, weekdaysTotalMinutesUnderTime, hoursPerDay)),
         weekends: mapReturn(getTimeBreakdown(weekendsTotalMinutes, weekendsTotalMinutesUnderTime, hoursPerDay)),
         restDays: mapReturn(getTimeBreakdown(restDaysTotalMinutes, restDaysTotalMinutesUnderTime, hoursPerDay)),

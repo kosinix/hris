@@ -68,6 +68,7 @@
                 
             </div>
         </div>
+
         <div class="p-3">
             <form action="" ref="form" v-on:submit.prevent="reloado">
                 <div class="d-flex justify-content-center flex-wrap">
@@ -267,7 +268,42 @@
             <div class="text-mono mb-3">
                 Actual Hourly Rate (AHR): ₱ {{dailyRate}} / 8 = ₱ <span class="text-success">{{hourlyRate}}</span>
             </div>
+            <div class="form-row">
+                <div class="col-md-5 col-xl-6">
+                </div>
+                <div class="col-md-7 col-xl-6">
+                    <div class="form-row">
+                        <div class="col-3 text-mono">
+                            Workdays:
+                        </div>
+                        <div class="col-6 text-right text-mono">
+                            {{stats.count.workdays}} days
+                        </div>
+                        <div class="col-3 text-right text-mono">
+                            <span class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
             {% if employment.employmentType === 'permanent' %}
+            
+            <div class="form-row">
+                <div class="col-md-5 col-xl-6">
+                </div>
+                <div class="col-md-7 col-xl-6">
+                    <div class="form-row">
+                        <div class="col-3 text-mono">
+                            Absences:
+                        </div>
+                        <div class="col-6 text-right text-mono">
+                            {{stats.count.absentDays}} days = {{stats.count.absentDays * 8}} hrs
+                        </div>
+                        <div class="col-3 text-right text-mono">
+                            <span class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
                 <div class="form-row">
                     <div class="col-md-5 col-xl-6">
                     </div>
@@ -277,10 +313,26 @@
                                 Tardy/Undertime:
                             </div>
                             <div class="col-6 text-right text-mono">
-                                AHR x {{stats.workdays.undertime.totalInHours}} hrs
+                                {{stats.workdays.undertime.totalInHours}} hrs
                             </div>
                             <div class="col-3 text-right text-mono">
-                                ₱ <span class="text-danger">{{(hourlyRate * stats.workdays.undertime.totalInHours)|currency}} </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-5 col-xl-6">
+                    </div>
+                    <div class="col-md-7 col-xl-6">
+                        <div class="form-row">
+                            <div class="col-3 text-mono">
+                                Deduction:
+                            </div>
+                            <div class="col-6 text-right text-mono">
+                                AHR x {{stats.workdays.undertime.totalInHours + stats.count.absentDays*8}} hrs
+                            </div>
+                            <div class="col-3 text-right text-mono">
+                                ₱ <span class="text-danger">{{(hourlyRate * (stats.workdays.undertime.totalInHours + (stats.count.absentDays * 8)))|currency}} </span>
                             </div>
                         </div>
                     </div>
@@ -292,7 +344,7 @@
                     <div class="col-md-7 col-xl-6">
                         <div class="form-row">
                             <div class="col-3 text-mono">
-                                Workdays:
+                                Gross Pay:
                             </div>
                             <div class="col-6 text-right text-mono">
                                 AHR x {{stats.workdays.time.totalInHours}} hrs

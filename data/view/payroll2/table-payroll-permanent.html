@@ -54,14 +54,14 @@
                         <td>${row.wage|currency}</td>
                         <td>${row.peraAca|currency}</td>
                         <td>${getTotalAfterAllowance(row)|currency}</td>
-                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri`">${row.days|blank}</a></td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showDays=1`">${row.days|blank}</a></td>
                         <td>days</td>
-                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri`">${row.hours|blank}</a></td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showDays=1`">${row.hours|blank}</a></td>
                         <td>hrs</td>
-                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri`">${row.minutes|blank}</a></td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showDays=1`">${row.minutes|blank}</a></td>
                         <td>mins</td>
 
-                        <td><a v-bind:href="`/attendance/tardy/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri&undertime=1`">${row.tardy|currency}</a></td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showDays=1&undertime=1`">${row.tardy|currency}</a></td>
                         <td>${getGrant(row)|currency}</td>
                         <td>${getRlip(row)|currency}</td>
                         <td>

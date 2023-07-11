@@ -141,7 +141,8 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
             padded: true,
             showTotalAs: 'time',
             showWeekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            periodWeekDays: 'All'
+            periodWeekDays: 'All',
+            showDays: 1
         }
         let rows = []
         for (let x = 0; x < members.length; x++) {
@@ -149,7 +150,9 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
             let member = members[x]
             // console.log(member)
 
-            let { days, stats, compute } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, member.employeeId, member.employmentId, startMoment, endMoment, options)
+            let days= await dtrHelper.getDtrDays(req.app.locals.db, member.employmentId, startMoment, endMoment, options)
+            let stats = dtrHelper.getDtrStats(days)
+
             //throw 'aaa'
             let employments = await req.app.locals.db.main.Employment.aggregate([
                 {
@@ -190,30 +193,36 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
             let employment = employments.at(-1)
             if (employment) {
                 let employee = employment?.employee
+                let dailyRate = 0
+                let hourlyRate = 0
                 let perMinute = 0
                 let totalWorkDays = 22
+                let dailyWorkHours = 8
                 let perMonth = 0
 
                 let gross = 0.0
                 let tardy = 0.0
                 let grant = 0.0
+                
                 if (employment?.salaryType === 'monthly') {
-                    perMinute = precisionRound((employment.salary / totalWorkDays / 8 / 60), 9)
+                    dailyRate = dtrHelper.roundOff(employment.salary / totalWorkDays, 9)
+                    perMinute = dtrHelper.roundOff(dailyRate / 8 / 60, 9)
                 } else if (employment?.salaryType === 'daily') {
+                    dailyRate = employment.salary
                     perMinute = precisionRound((employment.salary / 8 / 60), 9)
                 } else if (employment?.salaryType === 'hourly') {
                     perMinute = precisionRound((employment.salary / 60), 9)
                 }
 
-                if (employment.employmentType === 'permanent') {
-                    stats.weekdays.renderedDays += stats.holidays.renderedDays
-                    stats.weekdays.renderedHours += stats.holidays.renderedHours
-                    stats.weekdays.renderedMinutes += stats.holidays.renderedMinutes
-                    stats.weekdays.totalMinutes += stats.holidays.totalMinutes
-                    stats.weekdays.underTimeTotalMinutes += stats.holidays.underTimeTotalMinutes
-                }
-                gross = precisionRound(perMinute * stats.weekdays.totalMinutes, 9)
-                tardy = precisionRound(perMinute * stats.weekdays.underTimeTotalMinutes, 9)
+                // if (employment.employmentType === 'permanent') {
+                //     stats.workdays.renderedDays += stats.holidays.renderedDays
+                //     stats.weekdays.renderedHours += stats.holidays.renderedHours
+                //     stats.weekdays.renderedMinutes += stats.holidays.renderedMinutes
+                //     stats.weekdays.totalMinutes += stats.holidays.totalMinutes
+                //     stats.weekdays.underTimeTotalMinutes += stats.holidays.underTimeTotalMinutes
+                // }
+                gross = precisionRound(perMinute * stats.workdays.time.total, 9)
+                tardy = precisionRound(perMinute * stats.workdays.undertime.total, 9)
                 grant = gross - tardy
 
                 if (employment.employmentType === 'permanent') {
@@ -229,9 +238,9 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
                     name: `${employee.lastName}, ${employee.firstName}`,
                     position: employment?.position,
                     wage: employment?.salary,
-                    days: stats.weekdays.renderedDays,
-                    hours: stats.weekdays.renderedHours,
-                    minutes: stats.weekdays.renderedMinutes,
+                    days: stats.workdays.time.days,
+                    hours: stats.workdays.time.hours,
+                    minutes: stats.workdays.time.minutes,
                     gross: gross,
                     tardy: tardy,
                     grant: grant,

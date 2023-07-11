@@ -13,7 +13,7 @@
                 <tr class="text-center">
                     <th rowspan="3"></th>
                     <th rowspan="3">No.</th>
-                    <th rowspan="3">Source of Fund</th>
+                    <th rowspan="3" width="1%">Source of Fund</th>
                     <th rowspan="3">Name</th>
                     <th rowspan="3">Position</th>
                     <th rowspan="3">Daily/Monthly Wage</th>
@@ -60,15 +60,15 @@
                     </td>
                     <template v-if="row.rtype === 1">
                         <td>${row.count}</td>
-                        <td>${row.sourceOfFund}</td>
+                        <td><div style="white-space: nowrap; width: 100px; text-overflow: ellipsis; overflow: hidden;">${row.sourceOfFund}</div></td>
                         <td>${row.name}</td>
                         <td>${row.position}</td>
                         <td>${row.wage|currency}</td>
-                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri`">${row.days|blank}</a></td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showDays=1`">${row.days|blank}</a></td>
                         <td>days</td>
-                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri`">${row.hours|blank}</a></td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showDays=1`">${row.hours|blank}</a></td>
                         <td>hrs</td>
-                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showWeekDays=Mon|Tue|Wed|Thu|Fri`">${row.minutes|blank}</a></td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showDays=1`">${row.minutes|blank}</a></td>
                         <td>mins</td>
                         <td>${row.gross|currency}</td>
                         <td>
@@ -156,13 +156,13 @@
                         <td></td>
                     </template>
                     <template v-else-if="row.rtype === 3">
-                        <td>
+                        <td colspan="3">
                             {% set fieldName = 'name' %}
                             {% include 'payroll2/field-string.html' %}
                             {% set fieldName = '' %}
                         </td>
-                        <td><!-- Source of fund --></td>
-                        <td><!-- Name --></td>
+                        <!-- <td>Source of fund</td> -->
+                        <!-- <td>Name</td> -->
                         <td><!-- Position --></td>
                         <td><!-- Wage --></td>
                         <td></td>

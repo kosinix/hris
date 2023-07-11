@@ -1490,16 +1490,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         let stats = dtrHelper.getDtrStats(days)
 
         // console.log(options)
-        let totalMinutes = 0
-        let totalMinutesUnderTime = 0
-        days.forEach((day) => {
-            totalMinutes += lodash.get(day, 'time.total', 0)
-            totalMinutesUnderTime += lodash.get(day, 'undertime.total', 0)
-        })
-
         // return res.send(stats)
-
-        let timeRecordSummary = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, 8)
 
         // console.log(kalendaryo.getMatrix(momentNow, 0))
         let months = Array.from(Array(12).keys()).map((e, i) => {
@@ -1540,14 +1531,29 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         ]
         compatibilityUrl = compatibilityUrl.join('&')
 
-        let dailyRate = employment?.salary ?? 0
-        if(employment.employmentType === 'permanent'){
-            dailyRate = dtrHelper.roundOff(employment.salary / 22, 9)
+        let salary = employment?.salary ?? 0
+        let dailyRate = 0
+        let hourlyRate = 0
+
+        if(employment.salaryType === 'monthly'){
+            dailyRate = dtrHelper.roundOff(salary / 22, 9)
+            hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
+
+        } else if(employment.salaryType === 'daily'){
+            dailyRate = salary
+            hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
+
+        } else if(employment.salaryType === 'hourly'){
+            dailyRate = 0
+            hourlyRate = salary
         }
-        let hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
 
         const perMinute = dtrHelper.roundOff(hourlyRate / 60, 9)
-        const totalHours = stats.workdays.time.hoursDays + (stats.workdays.time.minutes / 60)
+        let totalHours = stats.workdays.time.totalInHours
+
+        if(employment.salaryType === 'hourly'){
+            totalHours = stats.days.time.totalInHours
+        }
         const netAmount = hourlyRate * totalHours
 
 
@@ -1586,6 +1592,13 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
         let employment = res.employment
         let employmentId = employment._id
         let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
+        
+        let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+        let showDays = parseInt(lodash.get(req, 'query.showDays', 0))
+
+        let startMoment = moment(start).startOf('day')
+        let endMoment = moment(end).endOf('day')
 
         let {
             periodMonthYear,
@@ -1593,8 +1606,8 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
             periodWeekDays,
             showTotalAs,
             showWeekDays,
-            startMoment,
-            endMoment,
+            startMoment2,
+            endMoment2,
             countTimeBy,
         } = res
 
@@ -1603,9 +1616,13 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
             padded: true,
             showTotalAs: showTotalAs,
             showWeekDays: showWeekDays,
+            showDays: showDays,
         }
 
-        let { days, stats } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+        console.log(showDays===1)
+        let days= await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
+        let stats = dtrHelper.getDtrStats(days)
+        // return res.send(days)
 
         let periodMonthYearMoment = moment(periodMonthYear)
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
@@ -1646,6 +1663,20 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
             'sat',
             'sun',
         ])
+        
+        let dailyRate = 0
+        let perHour = 0
+        if(employment.salaryType === 'monthly'){
+            dailyRate = employment.salary / 22
+            perHour = dailyRate / 8
+        } else if(employment.salaryType === 'daily'){
+            dailyRate = employment.salary
+            perHour = dailyRate / 8
+        } else if(employment.salaryType === 'hourly'){
+            dailyRate = employment.salary * 8
+            perHour = employment.salary
+        }
+
 
         let data = {
             title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
@@ -1654,6 +1685,7 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
 
             employee: employee,
             employment: employment,
+            perHour: perHour,
 
             // Data that might change
             days: days,
@@ -1695,6 +1727,9 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
         let overrideWorkSched = await req.app.locals.db.main.WorkSchedule.findOne({
             name: 'Overtime Weekdays'
         }).lean()
+        if(!overrideWorkSched){
+            throw new Error('Missing overtime schedule.')
+        }
 
         let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
         let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
@@ -1736,14 +1771,21 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
         let days2 = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
         let stats2 = dtrHelper.getDtrStats(days2)
 
-        let dailyRate = employment.salary / 8
-        if(employment.employmentType === 'permanent'){
-            dailyRate = employment.salary / 22 / 8
+        let dailyRate = 0
+        let perHour = 0
+        if(employment.salaryType === 'monthly'){
+            dailyRate = employment.salary / 22
+            perHour = dailyRate / 8
+        } else if(employment.salaryType === 'daily'){
+            dailyRate = employment.salary
+            perHour = dailyRate / 8
+        } else if(employment.salaryType === 'hourly'){
+            dailyRate = employment.salary * 8
+            perHour = employment.salary
         }
+        
         days2 = days2.map(day => {
-            // day.time.asHours = (day?.time?.hoursDays + day?.time?.minutes / 60)
 
-            const perHour = employment.salary / 8
             day.perHour = perHour
             day.rate = perHour * 1
             if (day.isWorkday) {
@@ -1752,7 +1794,9 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
                 day.rate = perHour * 1.5
             }
             day.rate = parseFloat((day.rate).toFixed(2))
-            lodash.set(day, 'time.OTPay', day.rate * (day?.time?.asHours ?? 0))
+            let numOfHours = dtrHelper.roundOff(day?.time?.asHours ?? 0, 2)
+            lodash.set(day, 'numOfHours', numOfHours)
+            lodash.set(day, 'time.OTPay', day.rate * numOfHours)
 
             return day
         })
@@ -1795,6 +1839,7 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
             showDays: showDays,
             startMoment: startMoment,
             endMoment: endMoment,
+            perHour: perHour,
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
         }
         if (req.originalUrl.indexOf('overtime-print') > -1) {

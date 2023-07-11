@@ -1843,7 +1843,7 @@ let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
     let logs = lodash.get(attendance, 'logs', [])
 
     let timeZone = -480 // ph -8 hrs
-    if (attendance.type == 'holiday') {
+    if (attendance.type == 'leave') {
         let start = 450 // 7:30
         let currentShift = getNextShift(start, workScheduleTimeSegments)
         let mToTime = (minutes, format, date = null) => {
@@ -1859,7 +1859,7 @@ let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
         attendance.logs = [
             {
                 dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                type: 'holiday',
+                type: 'leave',
                 source: {
                     id: employee.userId,
                     type: 'userAccount'
@@ -1867,7 +1867,7 @@ let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
             },
             {
                 dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                type: 'holiday',
+                type: 'leave',
                 source: {
                     id: employee.userId,
                     type: 'userAccount'
@@ -2998,7 +2998,7 @@ const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) =
         const isHoliday = (holidays.length > 0) ? true : false
         const isRestday = isHoliday || isWeekend
         const isWorkday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(weekDay) && !isHoliday
-        const attendance = attendances[date] || null
+        let attendance = attendances[date] || null
         let workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
 
         if (overrideWorkSched && !isHoliday) {
@@ -3006,12 +3006,15 @@ const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) =
         }
         let dtr = DTR_SCHEMA
         if (attendance) {
+            // let workScheduleTimeSegments = getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
+            // attendance = normalizeAttendance(attendance, { userId: attendance.employeeId }, workScheduleTimeSegments)
             dtr = attendanceToTimeWorked(attendance, employment, workSchedule)
         }
         const isUndertime = lodash.get(dtr, 'undertime.total', 0) > 0
         const isInvalidOvertime = (isUndertime && isWorkday) || lodash.get(dtr, 'time.total', 0) <= 0
 
         return {
+            hide: false,
             date: date,
             year: year,
             month: month,
@@ -3047,6 +3050,7 @@ const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) =
             } else {
                 day.time = DTR_SCHEMA.time
                 day.undertime = DTR_SCHEMA.undertime
+                day.hide = true
                 day.attendance = null
             }
         } else if (showDays === 2) {
@@ -3055,6 +3059,7 @@ const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) =
             } else {
                 day.time = DTR_SCHEMA.time
                 day.undertime = DTR_SCHEMA.undertime
+                day.hide = true
                 day.attendance = null
             }
         } else if (showDays === 3) {
@@ -3063,6 +3068,7 @@ const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) =
             } else {
                 day.time = DTR_SCHEMA.time
                 day.undertime = DTR_SCHEMA.undertime
+                day.hide = true
                 day.attendance = null
             }
         } else if (showDays === 4) { // weekends + holidays
@@ -3071,6 +3077,7 @@ const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) =
             } else {
                 day.time = DTR_SCHEMA.time
                 day.undertime = DTR_SCHEMA.undertime
+                day.hide = true
                 day.attendance = null
             }
         }
@@ -3146,8 +3153,11 @@ const getDtrStats = (days) => {
     }) 
     return {
         count: {
+            days: days.length,
             workdays: workdays.length,
             absentDays: absentDays.length,
+            holidays: _holidays.length,
+            weekends: weekends.length,
         },
         days: mapReturn(getTimeBreakdown(daysTotalMinutes, daysTotalMinutesUnderTime, hoursPerDay)),
         workdays: mapReturn({ola:'', ...getTimeBreakdown(workdaysTotalMinutes, workdaysTotalMinutesUnderTime, hoursPerDay)}),

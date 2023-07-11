@@ -985,6 +985,13 @@ div.focusable:focus-within  {
     padding: 2px 5px;
 }
 
+.table-tiny th,
+.table-tiny td{
+    background: #f1f1f1;
+    padding: 1px 5px;
+    border: 1px solid #999
+}
+
 .text-underline {
     text-decoration: underline;
 }

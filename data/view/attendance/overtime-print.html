@@ -133,7 +133,7 @@
                             {% endif %}
                         </td>
                         <td class=" mono">
-                            {{(day.time.asHours)|roundOff(2)|default('', true)}}
+                            {{day.numOfHours|default('', true)}}
                         </td>
                         <td class="text-right mono">
                             {% if day.time.total %}
@@ -142,7 +142,7 @@
                         </td>
                         <td class="text-right mono">
                             {% if day.time.total %}
-                                <div class="text-pointer" onclick="alert(`{{day.time.asHours}} x {{day.rate}} = {{day.time.OTPay|roundOff(9)}}`)">
+                                <div class="text-pointer" onclick="alert(`{{day.numOfHours}} x {{day.rate}} = {{day.time.OTPay|roundOff(9)}}`)">
                                     {{day.time.OTPay|currency}}
                                 </div>
                             {% endif %}

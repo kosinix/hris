@@ -150,7 +150,7 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
             let member = members[x]
             // console.log(member)
 
-            let days= await dtrHelper.getDtrDays(req.app.locals.db, member.employmentId, startMoment, endMoment, options)
+            let days = await dtrHelper.getDtrDays(req.app.locals.db, member.employmentId, startMoment, endMoment, options)
             let stats = dtrHelper.getDtrStats(days)
 
             //throw 'aaa'
@@ -186,50 +186,47 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
                     }
                 }
             ])
-            const precisionRound = (number, precision) => {
-                var factor = Math.pow(10, precision);
-                return Math.round(number * factor) / factor;
-            }
+            
             let employment = employments.at(-1)
             if (employment) {
                 let employee = employment?.employee
+                let salary = employment?.salary ?? 0
                 let dailyRate = 0
                 let hourlyRate = 0
-                let perMinute = 0
-                let totalWorkDays = 22
-                let dailyWorkHours = 8
-                let perMonth = 0
 
-                let gross = 0.0
-                let tardy = 0.0
-                let grant = 0.0
-                
-                if (employment?.salaryType === 'monthly') {
-                    dailyRate = dtrHelper.roundOff(employment.salary / totalWorkDays, 9)
-                    perMinute = dtrHelper.roundOff(dailyRate / 8 / 60, 9)
-                } else if (employment?.salaryType === 'daily') {
-                    dailyRate = employment.salary
-                    perMinute = precisionRound((employment.salary / 8 / 60), 9)
-                } else if (employment?.salaryType === 'hourly') {
-                    perMinute = precisionRound((employment.salary / 60), 9)
+                if (employment.salaryType === 'monthly') {
+                    dailyRate = dtrHelper.roundOff(salary / 22, 9)
+                    hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
+
+                } else if (employment.salaryType === 'daily') {
+                    dailyRate = salary
+                    hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
+
+                } else if (employment.salaryType === 'hourly') {
+                    dailyRate = 0
+                    hourlyRate = salary
                 }
 
-                // if (employment.employmentType === 'permanent') {
-                //     stats.workdays.renderedDays += stats.holidays.renderedDays
-                //     stats.weekdays.renderedHours += stats.holidays.renderedHours
-                //     stats.weekdays.renderedMinutes += stats.holidays.renderedMinutes
-                //     stats.weekdays.totalMinutes += stats.holidays.totalMinutes
-                //     stats.weekdays.underTimeTotalMinutes += stats.holidays.underTimeTotalMinutes
-                // }
-                gross = precisionRound(perMinute * stats.workdays.time.total, 9)
-                tardy = precisionRound(perMinute * stats.workdays.undertime.total, 9)
-                grant = gross - tardy
+                let totalHours = stats.workdays.time.totalInHours
 
-                if (employment.employmentType === 'permanent') {
-                    if (employment.salaryType === 'monthly') {
-                        perMonth = employment.salary
-                    }
-                    gross = perMonth - tardy
+                // Include all days for part-timers they have no OT
+                if (employment.salaryType === 'hourly') {
+                    totalHours = stats.days.time.totalInHours
+                }
+                const gross = hourlyRate * totalHours
+
+                let tardyHours = stats.workdays.undertime.totalInHours + (stats.count.absentDays * 8)
+                let tardy = hourlyRate * tardyHours
+                let grant = gross - tardy
+
+
+                let _days = stats.workdays.time.days
+                let _hours = stats.workdays.time.hours
+                let _minutes = stats.workdays.time.minutes
+                if (employment.salaryType === 'hourly') {
+                    _days = stats.days.time.days
+                    _hours = stats.days.time.hours
+                    _minutes = stats.days.time.minutes
                 }
                 rows.push({
                     uid: employment?._id,
@@ -238,14 +235,12 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
                     name: `${employee.lastName}, ${employee.firstName}`,
                     position: employment?.position,
                     wage: employment?.salary,
-                    days: stats.workdays.time.days,
-                    hours: stats.workdays.time.hours,
-                    minutes: stats.workdays.time.minutes,
+                    days: _days,
+                    hours: _hours,
+                    minutes: _minutes,
                     gross: gross,
                     tardy: tardy,
                     grant: grant,
-                    // stats: stats,
-                    // compute: compute,
                 })
             }
         }
@@ -286,16 +281,16 @@ router.get('/payroll2/view/:payrollId', middlewares.guardRoute(['read_payroll'])
 
                 row.igp = row.igp ?? 0
 
-                if(payroll.template === 'permanent'){
-                    row.peraAca =  row.peraAca ?? 2000
-                    
+                if (payroll.template === 'permanent') {
+                    row.peraAca = row.peraAca ?? 2000
+
                     row.emergencyLoan = row.emergencyLoan ?? 0
                     row.eal = row.eal ?? 0
                     row.conso = row.conso ?? 0
                     row.ouliPremium = row.ouliPremium ?? 0
                     row.ouliPolicy = row.ouliPolicy ?? 0
                     row.regularPolicy = row.regularPolicy ?? 0
-                    
+
                     row.gfal = row.gfal ?? 0
                     row.mpl = row.mpl ?? 0
                     row.cpl = row.cpl ?? 0
@@ -334,7 +329,8 @@ router.get('/payroll2/regen/:payrollId', middlewares.guardRoute(['read_payroll']
             padded: true,
             showTotalAs: 'time',
             showWeekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            periodWeekDays: 'All'
+            periodWeekDays: 'All',
+            showDays: 1,
         }
         for (let x = 0; x < payroll.rows.length; x++) {
             let row = payroll.rows[x]
@@ -342,7 +338,9 @@ router.get('/payroll2/regen/:payrollId', middlewares.guardRoute(['read_payroll']
             if (row.rtype === 1) {
                 // console.log(member)
 
-                let { days, stats, compute } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, null, row.uid, startMoment, endMoment, options)
+                let days = await dtrHelper.getDtrDays(req.app.locals.db, row.uid, startMoment, endMoment, options)
+                let stats = dtrHelper.getDtrStats(days)
+
                 //throw 'aaa'
                 let employments = await req.app.locals.db.main.Employment.aggregate([
                     {
@@ -376,53 +374,47 @@ router.get('/payroll2/regen/:payrollId', middlewares.guardRoute(['read_payroll']
                         }
                     }
                 ])
-                const precisionRound = (number, precision) => {
-                    var factor = Math.pow(10, precision);
-                    return Math.round(number * factor) / factor;
-                }
+
                 let employment = employments.at(-1)
                 if (employment) {
                     let employee = employment?.employee
-                    let perMinute = 0
-                    let totalWorkDays = 22
-                    let perMonth = 0
 
-                    let gross = 0.0
-                    let tardy = 0.0
-                    let grant = 0.0
-                    if (employment?.salaryType === 'monthly') {
-                        perMinute = precisionRound((employment.salary / totalWorkDays / 8 / 60), 9)
-                    } else if (employment?.salaryType === 'daily') {
-                        perMinute = precisionRound((employment.salary / 8 / 60), 9)
-                    } else if (employment?.salaryType === 'hourly') {
-                        perMinute = precisionRound((employment.salary / 60), 9)
+                    let salary = employment?.salary ?? 0
+                    let dailyRate = 0
+                    let hourlyRate = 0
+
+                    if (employment.salaryType === 'monthly') {
+                        dailyRate = dtrHelper.roundOff(salary / 22, 9)
+                        hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
+
+                    } else if (employment.salaryType === 'daily') {
+                        dailyRate = salary
+                        hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
+
+                    } else if (employment.salaryType === 'hourly') {
+                        dailyRate = 0
+                        hourlyRate = salary
                     }
 
-                    if (employment.employmentType === 'permanent') {
-                        stats.weekdays.renderedDays += stats.holidays.renderedDays
-                        stats.weekdays.renderedHours += stats.holidays.renderedHours
-                        stats.weekdays.renderedMinutes += stats.holidays.renderedMinutes
-                        stats.weekdays.totalMinutes += stats.holidays.totalMinutes
-                        stats.weekdays.underTimeTotalMinutes += stats.holidays.underTimeTotalMinutes
-                    }
-                    gross = precisionRound(perMinute * stats.weekdays.totalMinutes, 9)
-                    tardy = precisionRound(perMinute * stats.weekdays.underTimeTotalMinutes, 9)
-                    grant = gross - tardy
+                    let totalHours = stats.workdays.time.totalInHours
 
-                    if (employment.employmentType === 'permanent') {
-                        if (employment.salaryType === 'monthly') {
-                            perMonth = employment.salary
-                        }
-                        gross = perMonth - tardy
+                    // Include all days for part-timers they have no OT
+                    if (employment.salaryType === 'hourly') {
+                        totalHours = stats.days.time.totalInHours
                     }
+                    const gross = hourlyRate * totalHours
+
+                    let tardyHours = stats.workdays.undertime.totalInHours + (stats.count.absentDays * 8)
+                    let tardy = hourlyRate * tardyHours
+                    let grant = gross - tardy
 
                     payroll.rows[x].sourceOfFund = employment?.department
                     payroll.rows[x].name = `${employee.lastName}, ${employee.firstName}`
                     payroll.rows[x].position = employment?.position
                     payroll.rows[x].wage = employment?.salary
-                    payroll.rows[x].days = stats.weekdays.renderedDays
-                    payroll.rows[x].hours = stats.weekdays.renderedHours
-                    payroll.rows[x].minutes = stats.weekdays.renderedMinutes
+                    payroll.rows[x].days = stats.workdays.time.days
+                    payroll.rows[x].hours = stats.workdays.time.hours
+                    payroll.rows[x].minutes = stats.workdays.time.minutes
                     payroll.rows[x].gross = gross
                     payroll.rows[x].tardy = tardy
                     payroll.rows[x].grant = grant
@@ -430,15 +422,6 @@ router.get('/payroll2/regen/:payrollId', middlewares.guardRoute(['read_payroll']
             }
         }
         await req.app.locals.db.main.Payroll2.updateOne({ _id: payroll._id }, payroll)
-
-        // return res.send(rows)
-        // let payroll2 = await req.app.locals.db.main.Payroll2.create({
-        //     name: name,
-        //     template: template,
-        //     dateStart: dateStart,
-        //     dateEnd: dateEnd,
-        //     rows: rows,
-        // })
         res.redirect(`/payroll2/view/${payroll._id}`)
     } catch (err) {
         next(err);

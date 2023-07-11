@@ -2,10 +2,11 @@
 
 {% block body %}
 <div class="p-3" id="vApp" v-cloak>
-    <h1 class="h6 mb-2">{{payroll.name}}</h1>
+    <h1 class="h6 mb-2">{{payroll.name}} - <em>{{payroll.dateStart|format_date('MMM DD, YYYY')}} to {{payroll.dateEnd|format_date('MMM DD, YYYY')}}</em></h1>
     <div class="btn-group mb-2">
-        <a href="/payroll2/{{payroll._id}}/add-row?rtype=2&index=0&title=Subtotal" class="btn btn-sm btn-outline-secondary">Add Subtotal Row</a>
-        <a href="/payroll2/{{payroll._id}}/add-row?rtype=3&index=0&title=Title" class="btn btn-sm btn-outline-secondary">Add Title Row</a>
+        <a href="/payroll2/{{payroll._id}}/add-row?rtype=2&index=0&title=Subtotal" class="btn btn-sm btn-light">Add Subtotal Row</a>
+        <a href="/payroll2/{{payroll._id}}/add-row?rtype=3&index=0&title=Title" class="btn btn-sm btn-light">Add Title Row</a>
+        <a href="/payroll2/regen/{{payroll._id}}" class="btn btn-sm btn-primary">Regenerate Payroll</a>
     </div>
     <div class="table-responsive mb-3">
         <table class="table-payroll">

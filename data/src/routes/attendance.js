@@ -1532,21 +1532,8 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         compatibilityUrl = compatibilityUrl.join('&')
 
         let salary = employment?.salary ?? 0
-        let dailyRate = 0
-        let hourlyRate = 0
-
-        if (employment.salaryType === 'monthly') {
-            dailyRate = dtrHelper.roundOff(salary / 22, 9)
-            hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
-
-        } else if (employment.salaryType === 'daily') {
-            dailyRate = salary
-            hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
-
-        } else if (employment.salaryType === 'hourly') {
-            dailyRate = 0
-            hourlyRate = salary
-        }
+        let dailyRate = dtrHelper.getDailyRate(salary, employment.salaryType) // Unified computation for daily
+        let hourlyRate = dtrHelper.getHourlyRate(salary, employment.salaryType) // Unified computation for hourly
 
         const perMinute = dtrHelper.roundOff(hourlyRate / 60, 9)
         let totalHours = stats.workdays.time.totalInHours
@@ -1633,19 +1620,9 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
             'sun',
         ])
 
-
-        let dailyRate = 0
-        let perHour = 0
-        if (employment.salaryType === 'monthly') {
-            dailyRate = employment.salary / 22
-            perHour = dailyRate / 8
-        } else if (employment.salaryType === 'daily') {
-            dailyRate = employment.salary
-            perHour = dailyRate / 8
-        } else if (employment.salaryType === 'hourly') {
-            dailyRate = employment.salary * 8
-            perHour = employment.salary
-        }
+        let salary = employment?.salary ?? 0
+        // let dailyRate = dtrHelper.getDailyRate(salary, employment.salaryType) // Unified computation for daily
+        let hourlyRate = dtrHelper.getHourlyRate(salary, employment.salaryType) // Unified computation for hourly
 
 
         let data = {
@@ -1655,7 +1632,7 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
 
             employee: employee,
             employment: employment,
-            perHour: perHour,
+            hourlyRate: hourlyRate,
 
             // Data that might change
             days: days,
@@ -1731,27 +1708,19 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
         let days2 = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
         let stats2 = dtrHelper.getDtrStats(days2)
 
-        let dailyRate = 0
-        let perHour = 0
-        if (employment.salaryType === 'monthly') {
-            dailyRate = employment.salary / 22
-            perHour = dailyRate / 8
-        } else if (employment.salaryType === 'daily') {
-            dailyRate = employment.salary
-            perHour = dailyRate / 8
-        } else if (employment.salaryType === 'hourly') {
-            dailyRate = employment.salary * 8
-            perHour = employment.salary
-        }
+        let salary = employment?.salary ?? 0
+        // let dailyRate = dtrHelper.getDailyRate(salary, employment.salaryType) // Unified computation for daily
+        let hourlyRate = dtrHelper.getHourlyRate(salary, employment.salaryType) // Unified computation for hourly
+
 
         days2 = days2.map(day => {
 
-            day.perHour = perHour
-            day.rate = perHour * 1
+            day.hourlyRate = hourlyRate
+            day.rate = hourlyRate * 1
             if (day.isWorkday) {
-                day.rate = perHour * 1.25
+                day.rate = hourlyRate * 1.25
             } else if (day.isRestday) {
-                day.rate = perHour * 1.5
+                day.rate = hourlyRate * 1.5
             }
             day.rate = parseFloat((day.rate).toFixed(2))
             let numOfHours = dtrHelper.roundOff(day?.time?.asHours ?? 0, 2)
@@ -1799,7 +1768,7 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
             showDays: showDays,
             startMoment: startMoment,
             endMoment: endMoment,
-            perHour: perHour,
+            hourlyRate: hourlyRate,
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
         }
         if (req.originalUrl.indexOf('overtime-print') > -1) {

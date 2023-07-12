@@ -364,8 +364,8 @@
                                 <div class="col-6" style="font-size: 12px; color: gray;">Deduction</div>
                             </div>
                             <div class="form-row">
-                                <div class="col-6 text-right" style="font-size: 12px; color: gray;">₱ ${perHour|currency} x ${stats.workdays.undertime.totalInHours + stats.count.absentDays * 8} hrs</div>
-                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${(perHour * (stats.workdays.undertime.totalInHours + (stats.count.absentDays * 8)))|currency}</span></div>
+                                <div class="col-6 text-right" style="font-size: 12px; color: gray;">₱ ${hourlyRate|currency} x ${stats.workdays.undertime.totalInHours + stats.count.absentDays * 8} hrs</div>
+                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${(hourlyRate * (stats.workdays.undertime.totalInHours + (stats.count.absentDays * 8)))|currency}</span></div>
                             </div>
                         </div>
 
@@ -378,8 +378,8 @@
                                 <div class="col-6">Weekdays</div>
                             </div>
                             <div class="form-row">
-                                <div class="col-6 text-right">₱ ${perHour} x <span v-on:click="alert(stats.workdays.time.days + ' days '+stats.workdays.time.hours + ' hours ' + stats.workdays.time.minutes + ' minutes')" class="expand-details">${roundOff(stats.workdays.time.totalInHours, 9)} hours</span></div>
-                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(perHour * roundOff(stats.days.time.totalInHours, 9), 2) | currency}</span></div>
+                                <div class="col-6 text-right">₱ ${hourlyRate} x <span v-on:click="alert(stats.workdays.time.days + ' days '+stats.workdays.time.hours + ' hours ' + stats.workdays.time.minutes + ' minutes')" class="expand-details">${roundOff(stats.workdays.time.totalInHours, 9)} hours</span></div>
+                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(hourlyRate * roundOff(stats.days.time.totalInHours, 9), 2) | currency}</span></div>
                             </div>
                         </div>
                     {% endif %}
@@ -434,7 +434,7 @@
             lon: null,
             timeZone: 0 - (new Date().getTimezoneOffset() / 60),
 
-            perHour: {{perHour|default(0, true)}},
+            hourlyRate: {{hourlyRate|default(0, true)}},
 
             salary: {{employment.salary|default(0, true)}},
         },

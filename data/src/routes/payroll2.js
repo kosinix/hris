@@ -191,21 +191,7 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
             if (employment) {
                 let employee = employment?.employee
                 let salary = employment?.salary ?? 0
-                let dailyRate = 0
-                let hourlyRate = 0
-
-                if (employment.salaryType === 'monthly') {
-                    dailyRate = dtrHelper.roundOff(salary / 22, 9)
-                    hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
-
-                } else if (employment.salaryType === 'daily') {
-                    dailyRate = salary
-                    hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
-
-                } else if (employment.salaryType === 'hourly') {
-                    dailyRate = 0
-                    hourlyRate = salary
-                }
+                let hourlyRate = dtrHelper.getHourlyRate(salary, employment.salaryType) // Unified computation for hourly
 
                 let totalHours = stats.workdays.time.totalInHours
 
@@ -380,21 +366,7 @@ router.get('/payroll2/regen/:payrollId', middlewares.guardRoute(['read_payroll']
                     let employee = employment?.employee
 
                     let salary = employment?.salary ?? 0
-                    let dailyRate = 0
-                    let hourlyRate = 0
-
-                    if (employment.salaryType === 'monthly') {
-                        dailyRate = dtrHelper.roundOff(salary / 22, 9)
-                        hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
-
-                    } else if (employment.salaryType === 'daily') {
-                        dailyRate = salary
-                        hourlyRate = dtrHelper.roundOff(dailyRate / 8, 9)
-
-                    } else if (employment.salaryType === 'hourly') {
-                        dailyRate = 0
-                        hourlyRate = salary
-                    }
+                    let hourlyRate = dtrHelper.getHourlyRate(salary, employment.salaryType) // Unified computation for hourly
 
                     let totalHours = stats.workdays.time.totalInHours
 

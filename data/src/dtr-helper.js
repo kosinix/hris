@@ -55,6 +55,37 @@ const roundOff = (number, precision) => {
     return Math.round( n * factor) / factor
 }
 
+const getDailyRate = (salary, salaryType, precision = 7) => {
+    let dailyRate = 0
+    if (salaryType === 'monthly') {
+        dailyRate = roundOff(salary / 22, precision)
+
+    } else if (salaryType === 'daily') {
+        dailyRate = salary
+
+    } else if (salaryType === 'hourly') {
+        dailyRate = 0 // Does not make sense to multiply this by 8 for part-timers. Set to 0 instead.
+
+    }
+    return dailyRate
+}
+
+const getHourlyRate = (salary, salaryType, precision = 7) => {
+    let dailyRate = getDailyRate(salary, salaryType, precision)
+
+    let hourlyRate = 0
+    if (salaryType === 'monthly') {
+        hourlyRate = roundOff(dailyRate / 8, precision)
+
+    } else if (salaryType === 'daily') {
+        hourlyRate = roundOff(dailyRate / 8, precision)
+
+    } else if (salaryType === 'hourly') {
+        hourlyRate = salary
+    }
+    return hourlyRate
+}
+
 /**
  * Convert attendance.logs into an object.
  * 
@@ -3299,5 +3330,7 @@ module.exports = {
     workScheduleDisplay: workScheduleDisplay,
     readableSchedule: readableSchedule,
     roundOff: roundOff,
+    getDailyRate: getDailyRate,
+    getHourlyRate: getHourlyRate,
 }
 

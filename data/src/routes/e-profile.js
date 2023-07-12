@@ -305,18 +305,9 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             'sun',
         ])
 
-        let dailyRate = 0
-        let perHour = 0
-        if (employment.salaryType === 'monthly') {
-            dailyRate = employment.salary / 22
-            perHour = dailyRate / 8
-        } else if (employment.salaryType === 'daily') {
-            dailyRate = employment.salary
-            perHour = dailyRate / 8
-        } else if (employment.salaryType === 'hourly') {
-            dailyRate = employment.salary * 8
-            perHour = employment.salary
-        }
+        let salary = employment?.salary ?? 0
+        // let dailyRate = dtrHelper.getDailyRate(salary, employment.salaryType) // Unified computation for daily
+        let hourlyRate = dtrHelper.getHourlyRate(salary, employment.salaryType) // Unified computation for hourly
 
         let data = {
             title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
@@ -325,7 +316,7 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
 
             employee: employee,
             employment: employment,
-            perHour: perHour,
+            hourlyRate: hourlyRate,
 
             // Data that might change
             days: days,

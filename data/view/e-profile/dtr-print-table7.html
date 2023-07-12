@@ -12,7 +12,7 @@
             <td style="width:20%">For the month of</td>
             <td colspan="3">
                 <div class="underline text-left pl-3 font-weight-bold name">
-                {{periodMonthYear|format_date('MMMM, YYYY')}}
+                {{startDate|format_date('MMMM, YYYY')}}
                 </div>
             </td>
         </tr>
@@ -113,7 +113,7 @@
             <td class="text-center" colspan="4">
                 Leave
             </td>
-        {% elif (attendance.type === 'holiday') %}
+        {% elif (day.isHoliday) %}
             <td class="text-center" colspan="4">
                 Holiday
             </td>
@@ -153,38 +153,6 @@
             </td>
         </tr>
     {% else %}
-        <!-- <tr>
-            <td class="text-right total" colspan="6">Total Workdays</td>
-            <td class="text-center total-num" colspan="2">
-                {% if ['weekdays', 'all']|includes(countTimeBy) %}
-                    {% if showTotalAs == 'undertime' %}
-                        {{stats.workdays.undertime.days|default(0, true)|maybePluralize('day')}}
-                        {{stats.workdays.undertime.hours|default(0, true)|maybePluralize('hr')}}
-                        {{stats.workdays.undertime.minutes|default(0, true)|maybePluralize('min')}}
-                    {% else %}
-                        {{stats.workdays.time.days|default(0, true)|maybePluralize('day')}}
-                        {{stats.workdays.time.hours|default(0, true)|maybePluralize('hr')}}
-                        {{stats.workdays.time.minutes|default(0, true)|maybePluralize('min')}}
-                    {% endif %}
-                {% endif %}
-            </td>
-        </tr> -->
-        <!-- <tr>
-            <td class="text-right total" colspan="6">Total Weekends & Holidays</td>
-            <td class="text-center total-num" colspan="2">
-                {% if ['weekends', 'all']|includes(countTimeBy) %}
-                    {% if showTotalAs == 'undertime' %}
-                        {{stats.restDays.undertime.days|default(0, true)|maybePluralize('day')}}
-                        {{stats.restDays.undertime.hours|default(0, true)|maybePluralize('hr')}}
-                        {{stats.restDays.undertime.minutes|default(0, true)|maybePluralize('min')}}
-                    {% else %}
-                        {{stats.restDays.time.days|default(0, true)|maybePluralize('day')}}
-                        {{stats.restDays.time.hours|default(0, true)|maybePluralize('hr')}}
-                        {{stats.restDays.time.minutes|default(0, true)|maybePluralize('min')}}
-                    {% endif %}
-                {% endif %}
-            </td>
-        </tr> -->
         <tr>
             <td class="text-right total" colspan="6" style="vertical-align:bottom;">Total</td>
             <td class="text-center total-num" colspan="2" style="vertical-align:bottom;">

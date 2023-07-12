@@ -200,20 +200,39 @@
                         </td>
                         <td class="text-center">${day.display.outPM}</td>
                     </template>
+                    <template v-else-if="day.isHoliday">
+                        <td colspan="4" class="text-center">
+                            Holiday
+                        </td>
+                    </template>
                     <template v-else>
                         <td colspan="4" class="text-center">
                             ${showLogType(_.get(day, 'attendance.type'))}
                         </td>
                     </template>
-                    <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
-                        ${day?.time?.days||''}
-                    </td>
-                    <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
-                        ${day?.time?.hours||''}
-                    </td>
-                    <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
-                        ${day?.time?.minutes||''}
-                    </td>
+                    {# Counts #}
+                    <template v-if="showTotalAs==='time'">
+                        <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                            ${day?.time?.days||''}
+                        </td>
+                        <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                            ${day?.time?.hours||''}
+                        </td>
+                        <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                            ${day?.time?.minutes||''}
+                        </td>
+                    </template>
+                    <template v-if="showTotalAs==='undertime'">
+                        <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                            ${day?.undertime?.days||''}
+                        </td>
+                        <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                            ${day?.undertime?.hours||''}
+                        </td>
+                        <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                            ${day?.undertime?.minutes||''}
+                        </td>
+                    </template>
                 </tr>
                 {# end v-for #}
                 <template v-if="countTimeBy == 'none'">
@@ -228,41 +247,78 @@
                     </tr>
                 </template>
                 <template v-else>
-                    <tr v-if="['weekdays', 'all'].includes(countTimeBy)">
-                        <td colspan="6"><h5 class="m-0">Total Weekdays</h5></td>
-                        <td class="text-center">
-                            ${totalDays(stats.weekdays)}
-                        </td>
-                        <td class="text-center">
-                            ${totalHours(stats.weekdays)}
-                        </td>
-                        <td class="text-center">
-                            ${totalMinutes(stats.weekdays)}
-                        </td>
-                    </tr>
-                    <tr v-if="['restDays', 'weekends', 'all'].includes(countTimeBy)">
-                        <td colspan="6"><h5 class="m-0">Total Weekends/Holidays</h5></td>
-                        <td class="text-center">
-                            ${totalDays(stats.restDays)}
-                        </td>
-                        <td class="text-center">
-                            ${totalHours(stats.restDays)}
-                        </td>
-                        <td class="text-center">
-                            ${totalMinutes(stats.restDays)}
-                        </td>
-                    </tr>
-                    <tr v-if="countTimeBy=='all'">
-                        <td colspan="6"><h5 class="m-0">Total </h5></td>
-                        <td class="text-center">
-                            ${totalDays(stats.days)}
-                        </td>
-                        <td class="text-center">
-                            ${totalHours(stats.days)}
-                        </td>
-                        <td class="text-center">
-                            ${totalMinutes(stats.days)}
-                        </td>
+                    <tr>
+                        <td colspan="6" class="text-right"><strong>Total</strong></td>
+                        <template v-if="showTotalAs === 'time'">
+                            <template v-if="showDays === '0'">
+                                <td class="text-center">
+                                    ${stats.days.time.days||''}
+                                </td>
+                                <td class="text-center">
+                                    ${stats.days.time.hours||''}
+                                </td>
+                                <td class="text-center">
+                                    ${stats.days.time.minutes||''}
+                                </td>
+                            </template>
+                            <template v-if="showDays === '1'">
+                                <td class="text-center">
+                                    ${stats.workdays.time.days||''}
+                                </td>
+                                <td class="text-center">
+                                    ${stats.workdays.time.hours||''}
+                                </td>
+                                <td class="text-center">
+                                    ${stats.workdays.time.minutes||''}
+                                </td>
+                            </template>
+                            <template v-if="showDays === '2'">
+                                <td class="text-center">
+                                    ${stats.restDays.time.days||''}
+                                </td>
+                                <td class="text-center">
+                                    ${stats.restDays.time.hours||''}
+                                </td>
+                                <td class="text-center">
+                                    ${stats.restDays.time.minutes||''}
+                                </td>
+                            </template>
+                        </template>
+                        <template v-if="showTotalAs === 'undertime'">
+                            <template v-if="showDays === '0'">
+                                <td class="text-center">
+                                    ${stats.days.undertime.days||''}
+                                </td>
+                                <td class="text-center">
+                                    ${stats.days.undertime.hours||''}
+                                </td>
+                                <td class="text-center">
+                                    ${stats.days.undertime.minutes||''}
+                                </td>
+                            </template>
+                            <template v-if="showDays === '1'">
+                                <td class="text-center">
+                                    ${stats.workdays.undertime.days||''}
+                                </td>
+                                <td class="text-center">
+                                    ${stats.workdays.undertime.hours||''}
+                                </td>
+                                <td class="text-center">
+                                    ${stats.workdays.undertime.minutes||''}
+                                </td>
+                            </template>
+                            <template v-if="showDays === '2'">
+                                <td class="text-center">
+                                    ${stats.restDays.undertime.days||''}
+                                </td>
+                                <td class="text-center">
+                                    ${stats.restDays.undertime.hours||''}
+                                </td>
+                                <td class="text-center">
+                                    ${stats.restDays.undertime.minutes||''}
+                                </td>
+                            </template>
+                        </template>
                     </tr>
                 </template>
             </table>
@@ -286,9 +342,35 @@
                 </div>
             </div>
             <div class="col-md-7">
-                {% if employment.salaryType === 'daily' %}
-                    {% if countTimeBy == 'all' %}
+                {% if showDays === 1 %}
+                    {% if employment.employmentType === 'permanent' %}
                         <div class=" dtr-estimate" style="">
+                            <div class="form-row">
+                                <div class="col-12 text-center">Gross Pay Computation</div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col-6">Absences</div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col-6 text-right">${stats.count.absentDays} days = ${roundOff(stats.count.absentDays * 8, 9)} hrs</div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col-6">Tardy/Undertime:</div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col-6 text-right">${stats.workdays.undertime.totalInHours} hrs</div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col-6" style="font-size: 12px; color: gray;">Deduction</div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col-6 text-right" style="font-size: 12px; color: gray;">₱ ${perHour|currency} x ${stats.workdays.undertime.totalInHours + stats.count.absentDays * 8} hrs</div>
+                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${(perHour * (stats.workdays.undertime.totalInHours + (stats.count.absentDays * 8)))|currency}</span></div>
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <div class=" dtr-estimate">
                             <div class="form-row">
                                 <div class="col-12 text-center">Gross Pay Computation</div>
                             </div>
@@ -296,96 +378,14 @@
                                 <div class="col-6">Weekdays</div>
                             </div>
                             <div class="form-row">
-                                <div class="col-6 text-right">₱ ${salary} x <span v-on:click="alert(stats.weekdays.renderedDays + ' days '+stats.weekdays.renderedHours + ' hours ' + stats.weekdays.renderedMinutes + ' minutes')" class="expand-details">${roundOff(stats.weekdays.totalInDays, 9)} days</span></div>
-                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(salary * roundOff(stats.weekdays.totalInDays, 9), 2) | currency}</span></div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6" style="font-size: 12px; color: gray;">Weekends/Holidays</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6 text-right" style="font-size: 12px; color: gray;">₱ ${salary} x 1.5 x ${roundOff(stats.restDays.totalInDays, 9)} days</span></div>
-                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(salary * 1.5 * roundOff(stats.restDays.totalInDays, 9), 2) | currency}</span></div>
-                            </div>
-                        </div>
-                    {% elif countTimeBy == 'weekdays' %}
-                        <div class=" dtr-estimate" style="">
-                            <div class="form-row">
-                                <div class="col-12 text-center">Gross Pay Computation</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6">Weekdays</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6 text-right">₱ ${salary} x <span v-on:click="alert(stats.weekdays.renderedDays + ' days '+stats.weekdays.renderedHours + ' hours ' + stats.weekdays.renderedMinutes + ' minutes')" class="expand-details">${roundOff(stats.weekdays.totalInDays, 9)} days</span></div>
-                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(salary * roundOff(stats.weekdays.totalInDays, 9), 2) | currency}</span></div>
-                            </div>
-                        </div>
-                    {% elif countTimeBy == 'weekends' %}
-                        {# <div class="col-md-6" style="padding: 10px 15px; border-radius: 5px; border: 1px solid gray; background: white">
-                            <div class="form-row">
-                                <div class="col-6 text-right" style="font-size: 12px; color: gray;">${salary} x ${totalDays(stats.weekends)} days</span></div>
-                                <div class="col-6 text-right" style="font-size: 14px;">${toFixed(salary * totalDays(stats.weekends))}</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perHour()} x ${totalHours(stats.weekends)} hours</span></div>
-                                <div class="col-6 text-right" style="font-size: 14px;">${perHour() * totalHours(stats.weekends)}</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6 text-right" style="font-size: 12px; color: gray;">${perMinute()} x ${totalMinutes(stats.weekends)} minutes</span></div>
-                                <div class="col-6 text-right" style="font-size: 14px;">${perMinute() * totalMinutes(stats.weekends)}</div>
-                            </div>
-                            <div class="form-row align-items-center">
-                                <div class="col-6 text-right" style="font-size: 12px; color: gray;">Gross Pay</span></div>
-                                <div class="col-6 text-right" style="font-size: 18px;">₱ <span class="text-success">${netPay(stats.weekends.totalMinutes) | currency}</span></div>
-                            </div>
-                        </div> #}
-                    {% endif %}
-                {% elif employment.salaryType === 'hourly' %}
-                    {% if countTimeBy == 'all' %}
-                        <div class=" dtr-estimate" style="">
-                            <div class="form-row">
-                                <div class="col-12 text-center">Gross Pay Computation</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6">Weekdays</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6 text-right">₱ ${salary} x <span v-on:click="alert(stats.days.renderedDays + ' days '+stats.days.renderedHours + ' hours ' + stats.days.renderedMinutes + ' minutes')" class="expand-details">${roundOff(stats.days.totalInHours, 9)} hours</span></div>
-                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(salary * roundOff(stats.days.totalInHours, 9), 2) | currency}</span></div>
-                            </div>
-                        </div>
-                    {% elif countTimeBy == 'weekdays' %}
-                        <div class=" dtr-estimate" style="">
-                            <div class="form-row">
-                                <div class="col-12 text-center">Gross Pay Computation</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6">Weekdays</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6 text-right">₱ ${salary} x <span v-on:click="alert(stats.weekdays.renderedDays + ' days '+stats.weekdays.renderedHours + ' hours ' + stats.weekdays.renderedMinutes + ' minutes')" class="expand-details">${roundOff(stats.weekdays.totalInHours, 9)} hours</span></div>
-                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(salary * roundOff(stats.weekdays.totalInHours, 9), 2) | currency}</span></div>
-                            </div>
-                        </div>
-                    {% elif countTimeBy == 'weekends' %}
-                        <div class=" dtr-estimate" style="">
-                            <div class="form-row">
-                                <div class="col-12 text-center">Gross Pay Computation</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6">Weekends</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6 text-right">₱ ${salary} x <span v-on:click="alert(stats.weekends.renderedDays + ' days '+stats.weekends.renderedHours + ' hours ' + stats.weekends.renderedMinutes + ' minutes')" class="expand-details">${roundOff(stats.weekends.totalInHours, 9)} days</span></div>
-                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(salary * roundOff(stats.weekends.totalInHours, 9), 2) | currency}</span></div>
+                                <div class="col-6 text-right">₱ ${perHour} x <span v-on:click="alert(stats.workdays.time.days + ' days '+stats.workdays.time.hours + ' hours ' + stats.workdays.time.minutes + ' minutes')" class="expand-details">${roundOff(stats.workdays.time.totalInHours, 9)} hours</span></div>
+                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(perHour * roundOff(stats.days.time.totalInHours, 9), 2) | currency}</span></div>
                             </div>
                         </div>
                     {% endif %}
                 {% endif %}
             </div>
         </div>
-        
-        
     </div>
 </div>
 {% include "parts/modal-consent-eprofile.html" %}
@@ -425,13 +425,18 @@
             inChargeOrig: '{{inCharge}}',
             inCharge: '{{inCharge}}',
 
+            showDays: '{{showDays}}',
+
             startDate: '{{startDate}}',
             endDate: '{{endDate}}',
             countTimeBy: '{{countTimeBy}}',
             lat: null,
             lon: null,
             timeZone: 0 - (new Date().getTimezoneOffset() / 60),
-            salary: {{employment.salary|default(0, true)}}
+
+            perHour: {{perHour|default(0, true)}},
+
+            salary: {{employment.salary|default(0, true)}},
         },
         validations: {},
         computed: {
@@ -531,42 +536,42 @@
                 return this.precisionRound((this.salary / 8 / 60) * minutes, 9).toFixed(2)
             },
             subTotalDays: function(day) {
-                var x = _.get(day, 'dtr.renderedDays', '');
+                var x = _.get(day, 'dtr.time.days', '');
                 if(this.showTotalAs === 'undertime'){
                     x = _.get(day, 'dtr.underDays', '');
                 }
                 return (x === 0) ? '' : x;
             },
             subTotalHours: function(day) {
-                var x = _.get(day, 'dtr.renderedHours', '');
+                var x = _.get(day, 'dtr.time.hours', '');
                 if(this.showTotalAs === 'undertime'){
                     x = _.get(day, 'dtr.underHours', '');
                 }
                 return (x === 0) ? '' : x;
             },
             subTotalMinutes: function(day) {
-                var x = _.get(day, 'dtr.renderedMinutes', '');
+                var x = _.get(day, 'dtr.time.minutes', '');
                 if(this.showTotalAs === 'undertime'){
                     x = _.get(day, 'dtr.underMinutes', '');
                 }
                 return (x === 0) ? '' : x;
             },
             totalDays: function(timeRecordSummary) {
-                var x = _.get(timeRecordSummary, 'renderedDays', '')
+                var x = _.get(timeRecordSummary, 'time.days', '')
                 if(this.showTotalAs === 'undertime'){
                     x = _.get(timeRecordSummary, 'underDays', '')
                 }
                 return (x === 0) ? '' : x;
             },
             totalHours: function(timeRecordSummary) {
-                var x = _.get(timeRecordSummary, 'renderedHours', '')
+                var x = _.get(timeRecordSummary, 'time.hours', '')
                 if(this.showTotalAs === 'undertime'){
                     x = _.get(timeRecordSummary, 'underHours', '')
                 }
                 return (x === 0) ? '' : x;
             },
             totalMinutes: function(timeRecordSummary) {
-                var x = _.get(timeRecordSummary, 'renderedMinutes', '')
+                var x = _.get(timeRecordSummary, 'time.minutes', '')
                 if(this.showTotalAs === 'undertime'){
                     x = _.get(timeRecordSummary, 'underMinutes', '')
                 }

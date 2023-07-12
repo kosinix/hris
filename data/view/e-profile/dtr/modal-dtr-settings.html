@@ -27,8 +27,8 @@
                                 <option v-for="option in periodMonthYearList" v-bind:value="option.value">${option.text}</option>
                             </select>
                             <select v-model="periodWeekDays" name="periodWeekDays" id="periodWeekDays" class="form-control form-control-sm">
-                                <option value="Mon-Fri">Mon-Fri Only</option>
-                                <option value="Sat-Sun">Sat-Sun Only</option>
+                                <option value="Mon-Fri">Workdays</option>
+                                <option value="Sat-Sun">Rest days (Holiday/Weekends)</option>
                                 <option value="All">All days</option>
                             </select>
                         </div>

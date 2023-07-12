@@ -248,15 +248,23 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
         } = res
 
 
+        let showDays = 0
+        if (periodWeekDays === 'Mon-Fri') {
+            showDays = 1
+        } else if (periodWeekDays === 'Sat-Sun') {
+            showDays = 2
+        }
         let options = {
             padded: true,
             showTotalAs: showTotalAs,
             showWeekDays: showWeekDays,
-            periodWeekDays: periodWeekDays
+            periodWeekDays: periodWeekDays,
+            showDays: showDays,
         }
 
-        let { days, stats, compute } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
-        // return res.send({ days: days[2], stats, compute })
+        let days = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
+        let stats = dtrHelper.getDtrStats(days)
+
         let periodMonthYearMoment = moment(periodMonthYear)
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
         let months = Array.from(range1.by('months')).reverse()
@@ -297,6 +305,19 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             'sun',
         ])
 
+        let dailyRate = 0
+        let perHour = 0
+        if (employment.salaryType === 'monthly') {
+            dailyRate = employment.salary / 22
+            perHour = dailyRate / 8
+        } else if (employment.salaryType === 'daily') {
+            dailyRate = employment.salary
+            perHour = dailyRate / 8
+        } else if (employment.salaryType === 'hourly') {
+            dailyRate = employment.salary * 8
+            perHour = employment.salary
+        }
+
         let data = {
             title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
 
@@ -304,11 +325,11 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
 
             employee: employee,
             employment: employment,
+            perHour: perHour,
 
             // Data that might change
             days: days,
             stats: stats,
-            compute: compute,
 
             showTotalAs: showTotalAs,
             workSchedules: workSchedules,
@@ -318,6 +339,8 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             periodSlice: periodSlice,
             inCharge: employment.inCharge,
             countTimeBy: countTimeBy,
+
+            showDays: showDays,
 
             startDate: startMoment.format('YYYY-MM-DD'),
             endDate: endMoment.format('YYYY-MM-DD'),
@@ -341,9 +364,9 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
         // return res.send(days)
 
         if (/^\/e-profile\/dtr\/print/.test(req.path)) {
-            return res.render('e-profile/dtr-print6.html', data)
+            return res.render('e-profile/dtr-print7.html', data)
         }
-        res.render('e-profile/dtr6.html', data)
+        res.render('e-profile/dtr7.html', data)
     } catch (err) {
         next(err);
     }
@@ -1637,7 +1660,7 @@ router.get('/e/document/create', middlewares.guardRoute(['use_employee_profile']
         let e201Types = await req.app.locals.db.main.Option.findOne({
             key: 'e201Types'
         })
-        if(!e201Types){
+        if (!e201Types) {
             throw new Error('Missing e201Types from options.')
         }
         let data = {

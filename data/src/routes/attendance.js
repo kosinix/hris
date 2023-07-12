@@ -1590,7 +1590,6 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
 router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {
         let employment = res.employment
-        let employmentId = employment._id
         let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
 
         let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
@@ -1601,13 +1600,8 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
         let endMoment = moment(end).endOf('day')
 
         let {
-            periodMonthYear,
-            periodSlice,
-            periodWeekDays,
             showTotalAs,
             showWeekDays,
-            startMoment2,
-            endMoment2,
             countTimeBy,
         } = res
 
@@ -1619,25 +1613,10 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
             showDays: showDays,
         }
 
-        console.log(showDays === 1)
         let days = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
         let stats = dtrHelper.getDtrStats(days)
         // return res.send(days)
 
-        let periodMonthYearMoment = moment(periodMonthYear)
-        const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
-        let months = Array.from(range1.by('months')).reverse()
-
-        let periodMonthYearList = months.map((_moment) => {
-            let date = _moment.startOf('month')
-
-            return {
-                value: date.format('YYYY-MM-DD'),
-                text: date.format('MMM YYYY'),
-            }
-        })
-
-        let workSchedules = await workScheduler.getEmploymentWorkSchedule(req.app.locals.db, employmentId)
 
         let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(employment.workScheduleId)
 
@@ -1654,15 +1633,6 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
             'sun',
         ])
 
-        let workScheduleWeek = dtrHelper.workScheduleDisplay(workSchedule, [
-            'mon',
-            'tue',
-            'wed',
-            'thu',
-            'fri',
-            'sat',
-            'sun',
-        ])
 
         let dailyRate = 0
         let perHour = 0
@@ -1692,24 +1662,14 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
             stats: stats,
 
             showTotalAs: showTotalAs,
-            workSchedules: workSchedules,
-            periodMonthYearList: periodMonthYearList,
-            periodMonthYear: periodMonthYearMoment.format('YYYY-MM-DD'),
-            periodWeekDays: periodWeekDays,
-            periodSlice: periodSlice,
             inCharge: employment.inCharge,
             countTimeBy: countTimeBy,
 
             startDate: startMoment.format('YYYY-MM-DD'),
             endDate: endMoment.format('YYYY-MM-DD'),
 
-            workSchedule: workSchedule,
-            shared: true,
-
-            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
             workScheduleWeekDays: workScheduleWeekDays,
             workScheduleWeekEnd: workScheduleWeekEnd,
-            workScheduleWeek: workScheduleWeek,
         }
 
         // return res.send(days)

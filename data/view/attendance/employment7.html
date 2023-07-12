@@ -147,7 +147,7 @@
                     <tr class="{{cssClass.join(",")}}">
                         <td class="text-mono">#{{loop.index}}</td>
                         <td class="text-left">
-                            {% if not day.hide %}
+                            {% if day.attendance._id %}
                                 <a href="/attendance/{{attendance._id}}/edit">{{day.date|format_date('MMM')}} {{day.day}}</a>
                             {% else %}
                                 <span class="text-dark">{{day.date|format_date('MMM')}} {{day.day}}</span>
@@ -155,69 +155,71 @@
                         </td>
                         <td class="text-center {% if ['Sun','Sat'].includes(day.weekDay) %} bg-light {% endif %}">{{day.weekDay}}</td>
                         {% if day.hide %}
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         {% else %}
-                        {% if attendance.type == 'normal' %}
-                            {% set classes = '' %}
-                            {% if day.logs[0].tardy %}
-                                {% set classes = 'text-danger' %}
-                            {% endif %}
-                            <td class="{{classes}}">{{day.display.inAM}}</td>
-                            <td class="{{classes}}">{{day.display.outAM}}</td>
-                            {% set classes = '' %}
-                            {% if day.logs[1].tardy %}
-                                {% set classes = 'text-danger' %}
-                            {% endif %}
-                            <td class="{{classes}}">{{day.display.inPM}}</td>
-                            <td class="{{classes}}">{{day.display.outPM}}</td>
-                        {% elif  attendance.type == 'travel' %}
-                            {% if attendance.logs.length === 4 and attendance.logs[0].type === 'travel' %}
-                                <td class="text-center" colspan="2">
-                                    Travel
-                                </td>
-                                <td>{{day.display.inPM}}</td>
-                                <td>{{day.display.outPM}}</td>
-                            {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'travel' %}
+                            {% if attendance.type == 'normal' %}
+                                {% set classes = '' %}
+                                {% if day.logs[0].tardy %}
+                                    {% set classes = 'text-danger' %}
+                                {% endif %}
+                                <td class="{{classes}}">{{day.display.inAM}}</td>
+                                <td class="{{classes}}">{{day.display.outAM}}</td>
+                                {% set classes = '' %}
+                                {% if day.logs[1].tardy %}
+                                    {% set classes = 'text-danger' %}
+                                {% endif %}
+                                <td class="{{classes}}">{{day.display.inPM}}</td>
+                                <td class="{{classes}}">{{day.display.outPM}}</td>
+                            {% elif  attendance.type == 'travel' %}
+                                {% if attendance.logs.length === 4 and attendance.logs[0].type === 'travel' %}
+                                    <td class="text-center" colspan="2">
+                                        Travel
+                                    </td>
+                                    <td>{{day.display.inPM}}</td>
+                                    <td>{{day.display.outPM}}</td>
+                                {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'travel' %}
+                                    <td>{{day.display.inAM}}</td>
+                                    <td>{{day.display.outAM}}</td>
+                                    <td class="text-center" colspan="2">
+                                        Travel
+                                    </td>
+                                {% else %}
+                                    <td class="text-center" colspan="4">
+                                        Travel
+                                    </td>
+                                {% endif %}
+                            {% elif  attendance.type == 'wfh' %}
+                                {% if attendance.logs.length === 4 and attendance.logs[0].type === 'wfh' %}
+                                    <td class="text-center" colspan="2">
+                                        Work From Home
+                                    </td>
+                                    <td>{{day.display.inPM}}</td>
+                                    <td>{{day.display.outPM}}</td>
+                                {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'wfh' %}
+                                    <td>{{day.display.inAM}}</td>
+                                    <td>{{day.display.outAM}}</td>
+                                    <td class="text-center" colspan="2">
+                                        Work From Home
+                                    </td>
+                                {% else %}
+                                    <td class="text-center" colspan="4">
+                                        Work From Home
+                                    </td>
+                                {% endif %}
+                            {% elif attendance.type === 'pass'%}
                                 <td>{{day.display.inAM}}</td>
-                                <td>{{day.display.outAM}}</td>
                                 <td class="text-center" colspan="2">
-                                    Travel
+                                    Pass Slip
                                 </td>
-                            {% else %}
-                                <td class="text-center" colspan="4">
-                                    Travel
-                                </td>
-                            {% endif %}
-                        {% elif  attendance.type == 'wfh' %}
-                            {% if attendance.logs.length === 4 and attendance.logs[0].type === 'wfh' %}
-                                <td class="text-center" colspan="2">
-                                    Work From Home
-                                </td>
-                                <td>{{day.display.inPM}}</td>
                                 <td>{{day.display.outPM}}</td>
-                            {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'wfh' %}
-                                <td>{{day.display.inAM}}</td>
-                                <td>{{day.display.outAM}}</td>
-                                <td class="text-center" colspan="2">
-                                    Work From Home
-                                </td>
+                            {% elif day.isHoliday %}
+                                <td colspan="4" class="text-center">Holiday</td>
                             {% else %}
-                                <td class="text-center" colspan="4">
-                                    Work From Home
-                                </td>
+                                <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')}}</td>
                             {% endif %}
-                        {% elif attendance.type === 'pass'%}
-                            <td>{{day.display.inAM}}</td>
-                            <td class="text-center" colspan="2">
-                                Pass Slip
-                            </td>
-                            <td>{{day.display.outPM}}</td>
-                        {% else %}
-                            <td colspan="4" class="text-center">{{attendance.type|capitalize|replace('Pass', 'Pass Slip')}}</td>
-                        {% endif %}
                         {% endif %}
                         {% set classes = '' %}
                         {% if day.undertime.total > 0 %}
@@ -356,19 +358,31 @@
                         </div>
 
                     {% else %}
-
-                        <div class="form-row">
-                            <div class="col-3 text-mono">
-                                Gross Pay:
+                        {% if employment.salaryType === 'hourly' %}
+                            <div class="form-row">
+                                <div class="col-3 text-mono">
+                                    Gross Pay:
+                                </div>
+                                <div class="col-6 text-right text-mono">
+                                    AHR x {{totalHours}} hrs
+                                </div>
+                                <div class="col-3 text-right text-mono">
+                                    ₱ <span class="text-success">{{(hourlyRate * stats.days.time.totalInHours)|currency}} </span>
+                                </div>
                             </div>
-                            <div class="col-6 text-right text-mono">
-                                AHR x {{totalHours}} hrs
+                        {% else %}
+                            <div class="form-row">
+                                <div class="col-3 text-mono">
+                                    Gross Pay:
+                                </div>
+                                <div class="col-6 text-right text-mono">
+                                    AHR x {{totalHours}} hrs
+                                </div>
+                                <div class="col-3 text-right text-mono">
+                                    ₱ <span class="text-success">{{(hourlyRate * stats.workdays.time.totalInHours)|currency}} </span>
+                                </div>
                             </div>
-                            <div class="col-3 text-right text-mono">
-                                ₱ <span class="text-success">{{(hourlyRate * stats.workdays.time.totalInHours)|currency}} </span>
-                            </div>
-                        </div>
-
+                        {% endif %}
                     {% endif %}
 
                 </div>

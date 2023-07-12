@@ -2887,6 +2887,7 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
 const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) => {
 
     const defaults = {
+        padded: true,
         showDays: 0,
         overrideWorkSched: null,
     }
@@ -2895,7 +2896,11 @@ const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) =
     const endMoment = _endMoment.clone()
 
     options = lodash.merge(defaults, options)
-    const { showDays, overrideWorkSched } = options;
+    const { 
+        padded,
+        showDays, 
+        overrideWorkSched 
+    } = options;
  
 
     const employment = await db.main.Employment.findOne(employmentId);
@@ -2958,6 +2963,10 @@ const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) =
     let defaultWorkSched = await db.main.WorkSchedule.findById(employment.workScheduleId).lean()
 
     // 3. Generate array of days
+    if (padded) {
+        startMoment.startOf('month')
+        endMoment.endOf('month')
+    }
     const range = momentExt.range(startMoment, endMoment)
     let days = Array.from(range.by('days')) // Each element contains an instance of Moment
 

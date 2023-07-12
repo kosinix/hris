@@ -2934,7 +2934,7 @@ const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) =
     } = options;
  
 
-    const employment = await db.main.Employment.findOne(employmentId);
+    const employment = await db.main.Employment.findById(employmentId);
     if (!employment) {
         throw new Error(`Employment not found with ID "${employmentId}"`)
     }

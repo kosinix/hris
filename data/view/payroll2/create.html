@@ -31,7 +31,11 @@
 
             {% set name = 'template' %}
             {% set label = 'Template *' %}
-            {% set options = [{value:'', text:''}, {value:'permanent', text:'Permanent'}, {value:'cos_faculty', text:'COS Faculty'}, {value:'cos_staff', text:'COS Staff'}] %}
+            {% set options = [
+                {value:'', text:''}, 
+                {value:'permanent', text:'Permanent'}, 
+                {value:'cos_staff', text:'COS Staff'}
+            ] %}
             {% include 'parts/form-group-select.html' %}
             {% set label = '' %}
 

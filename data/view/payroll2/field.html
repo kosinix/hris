@@ -1,2 +1,2 @@
-<input v-on:blur="lockInput($event)" type="text" v-bind:value="row.{{fieldName}}" v-on:input="row.{{fieldName}} = toMoney($event.target.value)">
-<span class="text-success" v-on:dblclick="editInput($event)">${row.{{fieldName}}|defVal(0)|currency}</span>
+<input v-on:blur="lockInput($event)" type="text" v-bind:value="row.{{fieldName}}" v-on:input="row.{{fieldName}} = roundOff($event.target.value,2)">
+<span class="text-success" v-on:dblclick="editInput($event)">${row.{{fieldName}}|defVal(0)}</span>

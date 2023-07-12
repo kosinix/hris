@@ -20,6 +20,34 @@ const { AppError } = require('../errors');
 // Router
 let router = express.Router()
 
+const mandatoryDeductions = [
+    // GSIS
+    'getRlip',
+    'emergencyLoan',
+    'eal',
+    'conso',
+    'ouliPremium',
+    'ouliPolicy',
+    'regularPolicy',
+    'gfal',
+    'mpl',
+    'cpl',
+    'help',
+    // Philhealth
+    'medicare',
+    // Pagibig
+    'pagibig',
+    'mplLoan',
+    'calamity',
+    // BIR
+    'withTax',
+]
+const nonMandatoryDeductions = [
+    'teachers',
+    'ffa',
+    'citySavings',
+]
+
 router.use('/payroll2', middlewares.requireAuthUser)
 
 router.get('/payroll2/all', middlewares.guardRoute(['read_all_payroll', 'read_payroll']), async (req, res, next) => {
@@ -214,6 +242,52 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
                     _hours = stats.days.time.hours
                     _minutes = stats.days.time.minutes
                 }
+
+                let customF = () => {
+                    let row = {}
+                    row.peraAca = 2000
+    
+                    //// MANDATORY
+                    // GSIS
+                    // rlip
+                    row.emergencyLoan = row.emergencyLoan ?? 0
+                    row.eal = row.eal ?? 0
+                    row.conso = row.conso ?? 0
+                    row.ouliPremium = row.ouliPremium ?? 0
+                    row.ouliPolicy = row.ouliPolicy ?? 0
+                    row.regularPolicy = row.regularPolicy ?? 0
+                    row.gfal = row.gfal ?? 0
+                    row.mpl = row.mpl ?? 0
+                    row.cpl = row.cpl ?? 0
+                    row.help = row.help ?? 0
+
+                    // Philhealth
+                    row.medicare = row.medicare ?? 0
+
+                    // Pagibig
+                    row.pagibig = row.pagibig ?? 0
+                    row.mplLoan = row.mplLoan ?? 0
+                    row.calamity = row.calamity ?? 0
+
+                    // BIR
+                    row.withTax = row.withTax ?? 0
+
+                    //// NON MANDATORY
+                    row.teachers = row.teachers ?? 0
+                    row.ffa = row.ffa ?? 0
+                    row.citySavings = row.citySavings ?? 0
+                    return row
+                }
+
+                if (template === 'permanent') {
+                    let customCols = {}
+                    mandatoryDeductions.forEach((name)=>{
+                        lodash.set(customCols, name, 0)
+                    })
+                    nonMandatoryDeductions.forEach((name)=>{
+                        lodash.set(customCols, name, 0)
+                    })
+                }
                 rows.push({
                     uid: employment?._id,
                     rtype: 1,
@@ -227,6 +301,7 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
                     gross: gross,
                     tardy: tardy,
                     grant: grant,
+                    ...customCols
                 })
             }
         }
@@ -239,6 +314,8 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
             dateEnd: dateEnd,
             employeeListId: employeeListId,
             rows: rows,
+            mandatoryDeductions: mandatoryDeductions,
+            nonMandatoryDeductions: nonMandatoryDeductions,
         })
         res.redirect(`/payroll2/view/${payroll2._id}`)
     } catch (err) {
@@ -267,35 +344,17 @@ router.get('/payroll2/view/:payrollId', middlewares.guardRoute(['read_payroll'])
 
                 row.igp = row.igp ?? 0
 
-                if (payroll.template === 'permanent') {
-                    row.peraAca = row.peraAca ?? 2000
-
-                    row.emergencyLoan = row.emergencyLoan ?? 0
-                    row.eal = row.eal ?? 0
-                    row.conso = row.conso ?? 0
-                    row.ouliPremium = row.ouliPremium ?? 0
-                    row.ouliPolicy = row.ouliPolicy ?? 0
-                    row.regularPolicy = row.regularPolicy ?? 0
-
-                    row.gfal = row.gfal ?? 0
-                    row.mpl = row.mpl ?? 0
-                    row.cpl = row.cpl ?? 0
-                    row.help = row.help ?? 0
-                    row.medicare = row.medicare ?? 0
-                    row.pagibig = row.pagibig ?? 0
-                    row.mplLoan = row.mplLoan ?? 0
-                    row.calamity = row.calamity ?? 0
-                    row.withTax = row.withTax ?? 0
-
-                    row.teachers = row.teachers ?? 0
-                    row.ffa = row.ffa ?? 0
-                    row.citySavings = row.citySavings ?? 0
-                }
             }
             return row
         })
+        lodash.each(payroll.rows[0], (_,k)=>{
+            console.log(k)
+        })
+
         res.render(`payroll2/table-payroll-${payroll.template}.html`, {
-            payroll: payroll
+            payroll: payroll,
+            mandatoryDeductions: mandatoryDeductions,
+            nonMandatoryDeductions: nonMandatoryDeductions,
         })
     } catch (err) {
         next(err);
@@ -322,8 +381,9 @@ router.get('/payroll2/regen/:payrollId', middlewares.guardRoute(['read_payroll']
             let row = payroll.rows[x]
 
             if (row.rtype === 1) {
-                // console.log(member)
+                // console.log(x)
 
+                row.uid = req.app.locals.db.mongoose.Types.ObjectId(row.uid)
                 let days = await dtrHelper.getDtrDays(req.app.locals.db, row.uid, startMoment, endMoment, options)
                 let stats = dtrHelper.getDtrStats(days)
 
@@ -363,6 +423,7 @@ router.get('/payroll2/regen/:payrollId', middlewares.guardRoute(['read_payroll']
 
                 let employment = employments.at(-1)
                 if (employment) {
+
                     let employee = employment?.employee
 
                     let salary = employment?.salary ?? 0
@@ -374,12 +435,14 @@ router.get('/payroll2/regen/:payrollId', middlewares.guardRoute(['read_payroll']
                     if (employment.salaryType === 'hourly') {
                         totalHours = stats.days.time.totalInHours
                     }
-                    const gross = hourlyRate * totalHours
+                    const gross = dtrHelper.roundOff(hourlyRate * totalHours, 2)
 
                     let tardyHours = stats.workdays.undertime.totalInHours + (stats.count.absentDays * 8)
-                    let tardy = hourlyRate * tardyHours
+                    let tardy = dtrHelper.roundOff(hourlyRate * tardyHours, 2)
                     let grant = gross - tardy
-
+                    // console.log(employee.lastName, 'grant', grant, '=', gross,'-',  tardy)
+                    // console.log(employee.lastName, 'tardy', tardy, '=', hourlyRate,'*',  tardyHours)
+                    // console.log(employee.lastName, 'gross', '=', hourlyRate,'*',  totalHours)
                     payroll.rows[x].sourceOfFund = employment?.department
                     payroll.rows[x].name = `${employee.lastName}, ${employee.firstName}`
                     payroll.rows[x].position = employment?.position
@@ -390,6 +453,8 @@ router.get('/payroll2/regen/:payrollId', middlewares.guardRoute(['read_payroll']
                     payroll.rows[x].gross = gross
                     payroll.rows[x].tardy = tardy
                     payroll.rows[x].grant = grant
+                } else {
+                    console.log(x, 'no emp')
                 }
             }
         }

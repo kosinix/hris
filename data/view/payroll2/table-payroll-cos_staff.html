@@ -2,10 +2,11 @@
 
 {% block body %}
 <div class="col-12" id="vApp" v-bind:data-pending="pending" v-cloak>
-    <h1 class="h6 mb-2 pt-3">{{payroll.name}}</h1>
+    <h1 class="h6 mb-2">{{payroll.name}} - <em>{{payroll.dateStart|format_date('MMM DD, YYYY')}} to {{payroll.dateEnd|format_date('MMM DD, YYYY')}}</em></h1>
     <div class="btn-group mb-2">
-        <a href="/payroll2/{{payroll._id}}/add-row?rtype=2&index=0&title=Subtotal" class="btn btn-sm btn-outline-secondary">Add Subtotal Row</a>
-        <a href="/payroll2/{{payroll._id}}/add-row?rtype=3&index=0&title=Title" class="btn btn-sm btn-outline-secondary">Add Title Row</a>
+        <a href="/payroll2/{{payroll._id}}/add-row?rtype=2&index=0&title=Subtotal" class="btn btn-sm btn-light">Add Subtotal Row</a>
+        <a href="/payroll2/{{payroll._id}}/add-row?rtype=3&index=0&title=Title" class="btn btn-sm btn-light">Add Title Row</a>
+        <a href="/payroll2/regen/{{payroll._id}}" class="btn btn-sm btn-primary">Regenerate Payroll</a>
     </div>
     <div class="table-responsive mb-3">
         <table class="table-payroll">
@@ -19,7 +20,7 @@
                     <th rowspan="3">Daily/Monthly Wage</th>
                     <th rowspan="3" colspan="6">No. of Days Rendered</th>
                     <th rowspan="3">Gross Amount</th>
-                    <th rowspan="3">5% Premium</th>
+                    <!-- <th rowspan="3">5% Premium</th> -->
 
                     <th colspan="9">Deductions</th>
 
@@ -71,11 +72,11 @@
                         <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showDays=1`">${row.minutes|blank}</a></td>
                         <td>mins</td>
                         <td>${row.gross|currency}</td>
-                        <td>
+                        <!-- <td>
                             {% set fieldName = 'premium5' %}
                             {% include 'payroll2/field.html' %}
                             {% set fieldName = '' %}
-                        </td>
+                        </td> -->
 
                         <td>
                             {% set fieldName = 'tax1' %}
@@ -135,7 +136,6 @@
                         <td></td>
                         <td></td>
                         <td>${subTotalGross(row, index, 'gross')|currency}</td>
-                        <td></td>
 
                         <td></td>
                         <td></td>
@@ -165,7 +165,7 @@
                         <!-- <td>Name</td> -->
                         <td><!-- Position --></td>
                         <td><!-- Wage --></td>
-                        <td></td>
+                        <!-- <td></td> -->
                         <td></td>
                         <td></td>
                         <td></td>
@@ -422,6 +422,13 @@
                     val = 0
                 }
                 return parseFloat(val)
+            },
+            roundOff: function(number, precision = 2) {
+                number = parseFloat(number)
+                precision = parseInt(precision)
+                let factor = Math.pow(10, precision)
+                let n = precision < 0 ? number : 0.01 / factor + number
+                return Math.round( n * factor) / factor
             },
             saveMe: function() {
                 var me = this;

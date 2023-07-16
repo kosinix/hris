@@ -1,0 +1,31 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex align-items-end">
+        <h1 class="h2 mb-0">{{payroll.name}}</h1>
+        
+        <div class="btn-group mr-2 ml-3">
+            {% if payroll.status === 1 %} {# HR #}
+                <a href="/payroll/{{payroll._id}}/status?status=2" class="btn btn-sm btn-primary">Forward To Accounting</a>
+            {% elif payroll.status === 2 %} {# Accounting #}
+                <a href="/payroll/{{payroll._id}}/status?status=1" class="btn btn-sm btn-outline-primary">Back to HR</a>
+                <a href="/payroll/{{payroll._id}}/status?status=3" class="btn btn-sm btn-primary">Forward To Cashier</a>
+            {% elif payroll.status === 3 %} {# Cashier #}
+                <a href="/payroll/{{payroll._id}}/status?status=2" class="btn btn-sm btn-outline-primary">Back to Accounting</a>
+                <a href="/payroll/{{payroll._id}}/status?status=4" class="btn btn-sm btn-primary">Set to Disbursed</a>
+            {% elif payroll.status === 4 %} {# Released #}
+            {% endif %}
+            
+
+            <a href="/payroll/{{payroll._id}}/unlock" onclick="return confirm('Unlock payroll?')" class="btn btn-sm btn-outline-primary" title="Payroll is currently assigned to you. Unlock to allow others to edit.">
+                <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M10 17C11.1 17 12 16.1 12 15C12 13.9 11.1 13 10 13C8.9 13 8 13.9 8 15S8.9 17 10 17M16 8C17.1 8 18 8.9 18 10V20C18 21.1 17.1 22 16 22H4C2.9 22 2 21.1 2 20V10C2 8.9 2.9 8 4 8H5V6C5 3.2 7.2 1 10 1S15 3.2 15 6V8H16M10 3C8.3 3 7 4.3 7 6V8H13V6C13 4.3 11.7 3 10 3M22 13H20V7H22V13M22 17H20V15H22V17Z" />
+                </svg>
+            </a>
+            <a href="/payroll/all" class="btn btn-sm btn-outline-primary">Back</a>
+        </div>
+    </div>
+    {# <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group mr-2">
+            <a href="/payroll/all" class="btn btn-sm btn-outline-primary">Back</a>
+        </div>
+    </div> #}
+</div>

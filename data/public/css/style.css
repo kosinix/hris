@@ -1,3 +1,24 @@
+/* courier-prime-regular - latin */
+@font-face {
+    font-display: swap;
+    /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+    font-family: 'Courier Prime';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/courier-prime-v7-latin-regular.woff2') format('woff2');
+    /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+
+/* courier-prime-700 - latin */
+@font-face {
+    font-display: swap;
+    /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+    font-family: 'Courier Prime';
+    font-style: normal;
+    font-weight: 700;
+    src: url('../fonts/courier-prime-v7-latin-700.woff2') format('woff2');
+    /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
 
 a {
     color: #025aa5;
@@ -23,6 +44,7 @@ body, pre {
 .text-mono {
     font-family: "Consolas", "Courier New", mono;
 }
+
 
 /* Vue */
 [v-cloak] {
@@ -538,20 +560,21 @@ h4, h5, h6 {
 }
 
 /*  */
-.table-payroll-sim  {
+.table-payroll  {
+    width: 100%;
     font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
     font-size: 12px;
 }
 
-.table-payroll-sim th,
-.table-payroll-sim td {
+.table-payroll th,
+.table-payroll td {
     padding: 3px;
 }
 
-.table-payroll-sim th {
+.table-payroll th {
     border: 1px solid #111;
 }
-.table-payroll-sim td {
+.table-payroll td {
     border: 1px solid #ccc;
 }
 
@@ -567,6 +590,9 @@ h4, h5, h6 {
 .table-payroll td input {
     visibility: hidden;
     position: absolute;
+    top: 50%;
+    left: 5%;
+    transform: translateY(-50%);
     width: 90%;
 }
 .table-payroll td span {
@@ -929,6 +955,12 @@ div.focusable:focus-within  {
     padding: 0 4px 2px;
 }
 /* DTR */
+.table-dtr td.mono {
+    font-family: 'Courier Prime';
+}
+.table-dtr th {
+    vertical-align: middle;
+}
 .table-dtr tr.selected td{
     background: #b9ffc8;
 }
@@ -951,6 +983,20 @@ div.focusable:focus-within  {
 .table-dtr th,
 .table-dtr td {
     padding: 2px 5px;
+}
+
+.table-tiny th,
+.table-tiny td{
+    background: #f1f1f1;
+    padding: 1px 5px;
+    border: 1px solid #999
+}
+
+.text-underline {
+    text-decoration: underline;
+}
+.text-pointer {
+    cursor: pointer;
 }
 
 .dtr-estimate {
@@ -1649,6 +1695,9 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
 @media (max-width:576px){
     .table-dtr {
         font-size: 10px;
+    }
+    .text-mono {
+        font-size: 12px;
     }
 }
 

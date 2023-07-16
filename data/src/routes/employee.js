@@ -253,11 +253,28 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json', '/employ
             }
         }
 
+        if (req?.query?.letter) {
+            let letter = req?.query?.letter
+            if (!query['$and']) {
+                query['$and'] = []
+            }
+            query['$and'].push({
+                lastName: RegExp(`^${letter.at(0)}`, "i")
+            })
+            perPage = 1000
+        }
+
         let options = { skip: (page - 1) * perPage, limit: perPage };
         let sort = {}
         sort = lodash.set(sort, sortBy, sortOrder)
         if (['department', 'employmentType', 'group', 'position', 'campus'].includes(sortBy)) {
             sort[`employments.0.${sortBy}`] = sortOrder
+        }
+
+        if (req?.query?.letter) {
+            sort = {}
+
+            sort['lastName'] = 1
         }
 
         // console.log(query, projection, options, sort)
@@ -358,13 +375,13 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json', '/employ
                 let gender = i.gender || ''
                 let email = i.email || ''
                 let mobileNumber = i.mobileNumber || ''
-                let pwdDetails = lodash.get(i, 'personal.pwdDetails', '')
+                let pwdDetails = lodash.get(i, 'personal.pwdDetails', '') ?? ''
                 let position = lodash.get(i, 'employments[0].position', '')
                 let department = lodash.get(i, 'employments[0].department', '')
                 let employmentType = lodash.capitalize(lodash.get(i, 'employments[0].employmentType', '')).replace(/^jo$/i, 'Job Order').replace(/^cos$/i, 'COS')
                 let group = lodash.capitalize(lodash.get(i, 'employments[0].group', ''))
-
-                return `${index + 1}, ${lastName}, ${firstName}, ${middleName}, ${gender}, ${position}, ${department}, ${employmentType}, ${group}, ${email}, ${mobileNumber}, ${pwdDetails}`
+                mobileNumber = mobileNumber.replace(/^0/, '+63').replace(',', '')
+                return `${index + 1}, ${lastName}, ${firstName}, ${middleName}, ${gender}, ${position}, ${department}, ${employmentType}, ${group}, ${email}, "${mobileNumber}", "${pwdDetails}"`
             })
             csv.unshift(`#, Last Name, First Name, Middle, Gender, Position, Department, Employment Type, Group, Email, Mobile Number, PWD ID`)
             res.set('Content-Type', 'text/csv')
@@ -1441,7 +1458,7 @@ router.get('/employee/:employeeId/document/create', middlewares.guardRoute(['rea
         next(err);
     }
 });
-router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png", "application/pdf"] }), async (req, res, next) => {
+router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png", "application/pdf", 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'] }), async (req, res, next) => {
     try {
         let employee = res.employee
 

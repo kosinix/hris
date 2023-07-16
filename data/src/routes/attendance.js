@@ -1460,6 +1460,346 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
         let showWeekDays = lodash.get(req, 'query.showWeekDays', 'Mon|Tue|Wed|Thu|Fri|Sat|Sun')
         let showTotalAs = lodash.get(req, 'query.undertime') == 1 ? 'undertime' : 'time'
+        let showDays = parseInt(lodash.get(req, 'query.showDays', 0))
+
+        let startMoment = moment(start).startOf('day')
+        let endMoment = moment(end).endOf('day')
+
+        if (!startMoment.isValid()) {
+            throw new Error(`Invalid start date.`)
+        }
+        if (!endMoment.isValid()) {
+            throw new Error(`Invalid end date.`)
+        }
+
+        if (endMoment.isBefore(startMoment)) {
+            throw new Error(`Invalid end date. Must not be less than the start date.`)
+        }
+
+        let momentNow = moment()
+
+        let options = {
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
+            showDays: showDays,
+        }
+        if (!options.showWeekDays.length) {
+            options.showWeekDays = showWeekDays.split('|')
+        }
+        let days = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
+        let stats = dtrHelper.getDtrStats(days)
+
+        // console.log(options)
+        // return res.send(stats)
+
+        // console.log(kalendaryo.getMatrix(momentNow, 0))
+        let months = Array.from(Array(12).keys()).map((e, i) => {
+            return moment.utc().month(i).startOf('month')
+        }); // 1-count
+        // return res.send(days)
+
+        // compat link
+        let periodMonthYear = startMoment.clone().startOf('month').format('YYYY-MM-DD')
+        let periodSlice = 'all'
+        let mQuincena = startMoment.clone().startOf('month').days(15)
+        if (startMoment.isBefore(mQuincena) && endMoment.isAfter(mQuincena)) {
+            periodSlice = 'all'
+        } else if (startMoment.isSameOrBefore(mQuincena) && endMoment.isSameOrBefore(mQuincena)) {
+            periodSlice = '15th'
+        } else if (startMoment.isAfter(mQuincena)) {
+            periodSlice = '30th'
+        }
+        let periodWeekDays = 'All'
+        if (showWeekDays === 'Mon|Tue|Wed|Thu|Fri|Sat|Sun') {
+            periodWeekDays = 'All'
+        } else if (showWeekDays === 'Mon|Tue|Wed|Thu|Fri') {
+            periodWeekDays = 'Mon-Fri'
+        } else if (showWeekDays === 'Sat|Sun') {
+            periodWeekDays = 'Sat-Sun'
+        }
+        showTotalAs = 'time'
+        if (req?.query?.undertime == 1) {
+            showTotalAs = 'undertime'
+        }
+        let countTimeBy = 'all'
+        let compatibilityUrl = [
+            `periodMonthYear=${periodMonthYear}`,
+            `periodSlice=${periodSlice}`,
+            `periodWeekDays=${periodWeekDays}`,
+            `showTotalAs=${showTotalAs}`,
+            `countTimeBy=${countTimeBy}`,
+        ]
+        compatibilityUrl = compatibilityUrl.join('&')
+
+        let salary = employment?.salary ?? 0
+        let dailyRate = dtrHelper.getDailyRate(salary, employment.salaryType) // Unified computation for daily
+        let hourlyRate = dtrHelper.getHourlyRate(salary, employment.salaryType) // Unified computation for hourly
+
+        const perMinute = dtrHelper.roundOff(hourlyRate / 60, 9)
+        let totalHours = stats.workdays.time.totalInHours
+
+        if (employment.salaryType === 'hourly') {
+            totalHours = stats.days.time.totalInHours
+        }
+        const netAmount = hourlyRate * totalHours
+
+
+        let data = {
+            flash: flash.get(req, 'attendance'),
+            employee: employee,
+            employment: employment,
+            momentNow: momentNow,
+            months: months,
+            days: days,
+            selectedMonth: 'nu',
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
+            // timeRecordSummary: timeRecordSummary,
+            showDays: showDays,
+            startMoment: startMoment,
+            endMoment: endMoment,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+            compatibilityUrl: compatibilityUrl,
+            dailyRate: dailyRate,
+            hourlyRate: hourlyRate,
+            perMinute: perMinute,
+            totalHours: totalHours,
+            netAmount: netAmount,
+            stats: stats,
+        }
+        // return res.send(stats)
+
+        res.render('attendance/employment7.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
+    try {
+        let employment = res.employment
+        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
+
+        let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+        let showDays = parseInt(lodash.get(req, 'query.showDays', 0))
+
+        let startMoment = moment(start).startOf('day')
+        let endMoment = moment(end).endOf('day')
+
+        let {
+            showTotalAs,
+            showWeekDays,
+            countTimeBy,
+        } = res
+
+
+        let options = {
+            padded: true,
+            showTotalAs: showTotalAs,
+            showWeekDays: showWeekDays,
+            showDays: showDays,
+        }
+
+        let days = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
+        let stats = dtrHelper.getDtrStats(days)
+        // return res.send(days)
+
+
+        let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(employment.workScheduleId)
+
+        let workScheduleWeekDays = dtrHelper.workScheduleDisplay(workSchedule, [
+            'mon',
+            'tue',
+            'wed',
+            'thu',
+            'fri',
+        ])
+
+        let workScheduleWeekEnd = dtrHelper.workScheduleDisplay(workSchedule, [
+            'sat',
+            'sun',
+        ])
+
+        let salary = employment?.salary ?? 0
+        // let dailyRate = dtrHelper.getDailyRate(salary, employment.salaryType) // Unified computation for daily
+        let hourlyRate = dtrHelper.getHourlyRate(salary, employment.salaryType) // Unified computation for hourly
+
+
+        let data = {
+            title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
+
+            flash: flash.get(req, 'employee'),
+
+            employee: employee,
+            employment: employment,
+            hourlyRate: hourlyRate,
+
+            // Data that might change
+            days: days,
+            stats: stats,
+
+            showTotalAs: showTotalAs,
+            inCharge: employment.inCharge,
+            countTimeBy: countTimeBy,
+
+            startDate: startMoment.format('YYYY-MM-DD'),
+            endDate: endMoment.format('YYYY-MM-DD'),
+
+            workScheduleWeekDays: workScheduleWeekDays,
+            workScheduleWeekEnd: workScheduleWeekEnd,
+        }
+
+        // return res.send(days)
+        return res.render('e-profile/dtr-print7.html', data)
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Overtime
+router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employment/:employmentId/overtime-print'], middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
+    try {
+        let employment = res.employment.toObject()
+        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
+        let overrideWorkSched = await req.app.locals.db.main.WorkSchedule.findOne({
+            name: 'Overtime Weekdays'
+        }).lean()
+        if (!overrideWorkSched) {
+            throw new Error('Missing overtime schedule.')
+        }
+
+        let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+        let showTotalAs = lodash.get(req, 'query.undertime') == 1 ? 'undertime' : 'time'
+        let showDays = parseInt(lodash.get(req, 'query.showDays', 0))
+
+        let startMoment = moment(start).startOf('day')
+        let endMoment = moment(end).endOf('day')
+
+        if (!startMoment.isValid()) {
+            throw new Error(`Invalid start date.`)
+        }
+        if (!endMoment.isValid()) {
+            throw new Error(`Invalid end date.`)
+        }
+
+        if (endMoment.isBefore(startMoment)) {
+            throw new Error(`Invalid end date. Must not be less than the start date.`)
+        }
+
+        let momentNow = moment()
+
+        // Normal days
+        let options = {
+            showTotalAs: showTotalAs,
+            showDays: showDays, // 0 - all, 1 - workdays (Mon-Fri, excl. holidays), 2 - weekends, 3 - holidays, 4 - weekends + holidays
+        }
+
+        let days = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
+        let stats = dtrHelper.getDtrStats(days)
+        // return res.send(days)
+
+        // OT Days
+        options = {
+            showTotalAs: showTotalAs,
+            showDays: showDays, // 0 - all, 1 - workdays (Mon-Fri, excl. holidays), 2 - weekends, 3 - holidays, 4 - weekends + holidays
+            overrideWorkSched: overrideWorkSched
+        }
+        let days2 = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
+        let stats2 = dtrHelper.getDtrStats(days2)
+
+        let salary = employment?.salary ?? 0
+        // let dailyRate = dtrHelper.getDailyRate(salary, employment.salaryType) // Unified computation for daily
+        let hourlyRate = dtrHelper.getHourlyRate(salary, employment.salaryType) // Unified computation for hourly
+
+
+        days2 = days2.map(day => {
+
+            day.hourlyRate = hourlyRate
+            day.rate = hourlyRate * 1
+            if (day.isWorkday) {
+                day.rate = hourlyRate * 1.25
+            } else if (day.isRestday) {
+                day.rate = hourlyRate * 1.5
+            }
+            day.rate = parseFloat((day.rate).toFixed(2))
+            let numOfHours = dtrHelper.roundOff(day?.time?.asHours ?? 0, 2)
+            lodash.set(day, 'numOfHours', numOfHours)
+            lodash.set(day, 'time.OTPay', day.rate * numOfHours)
+
+            return day
+        })
+        // return res.send(stats)
+
+        if (req?.query?.includes) {
+            let includes = req.query.includes.split('_')
+            console.log('includes', includes)
+            days = days.filter(day => {
+                return includes.includes(day.date)
+            })
+            days2 = days2.filter(day => {
+                return includes.includes(day.date)
+            })
+        }
+        // console.log(kalendaryo.getMatrix(momentNow, 0))
+        let months = Array.from(Array(12).keys()).map((e, i) => {
+            return moment.utc().month(i).startOf('month')
+        }); // 1-count
+        // return res.send(days2)
+
+        showTotalAs = 'time'
+        if (req?.query?.undertime == 1) {
+            showTotalAs = 'undertime'
+        }
+
+
+        let data = {
+            flash: flash.get(req, 'attendance'),
+            employee: employee,
+            employment: employment,
+            momentNow: momentNow,
+            months: months,
+            days: days,
+            days2: days2,
+            stats: stats,
+            stats2: stats2,
+            selectedMonth: 'nu',
+            showTotalAs: showTotalAs,
+            showDays: showDays,
+            startMoment: startMoment,
+            endMoment: endMoment,
+            hourlyRate: hourlyRate,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+        }
+        if (req.originalUrl.indexOf('overtime-print') > -1) {
+            res.locals.title = 'Extended Services Annex A'
+            return res.render('attendance/overtime-print.html', data);
+        }
+        res.render('attendance/overtime.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/attendance/employment/:employmentId/overtime', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
+    try {
+        let employment = res.employment.toObject()
+        const attendances = req.body?.attendances ?? []
+
+        res.redirect(`/attendance/employment/${employment._id}/overtime-print?start=${req.body.start}&end=${req.body.end}&showDays=${req.body.showDays}&includes=${attendances.join('_')}`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/attendance/tardy/:employmentId', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
+    try {
+        let employment = res.employment.toObject()
+        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
+
+        let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+        let showWeekDays = lodash.get(req, 'query.showWeekDays', 'Mon|Tue|Wed|Thu|Fri|Sat|Sun')
+        let showTotalAs = lodash.get(req, 'query.undertime') == 1 ? 'undertime' : 'time'
 
         let startMoment = moment(start).startOf('day')
         let endMoment = moment(end).endOf('day')
@@ -1484,7 +1824,7 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
         if (!options.showWeekDays.length) {
             options.showWeekDays = showWeekDays.split('|')
         }
-        let { days } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
+        let { stats, days } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
 
         // console.log(options)
         let totalMinutes = 0
@@ -1524,6 +1864,9 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
             periodWeekDays = 'Sat-Sun'
         }
         showTotalAs = 'time'
+        if (req?.query?.undertime == 1) {
+            showTotalAs = 'undertime'
+        }
         let countTimeBy = 'all'
         let compatibilityUrl = [
             `periodMonthYear=${periodMonthYear}`,
@@ -1551,114 +1894,9 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
             compatibilityUrl: compatibilityUrl,
         }
-        
-        // return res.send(days)
+        // return res.send(stats)
+
         res.render('attendance/employment6.html', data);
-    } catch (err) {
-        next(err);
-    }
-});
-router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
-    try {
-        let employment = res.employment
-        let employmentId = employment._id
-        let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
-
-        let {
-            periodMonthYear,
-            periodSlice,
-            periodWeekDays,
-            showTotalAs,
-            showWeekDays,
-            startMoment,
-            endMoment,
-            countTimeBy,
-        } = res
-
-
-        let options = {
-            padded: true,
-            showTotalAs: showTotalAs,
-            showWeekDays: showWeekDays,
-        }
-
-        let { days, stats } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
-
-        let periodMonthYearMoment = moment(periodMonthYear)
-        const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
-        let months = Array.from(range1.by('months')).reverse()
-
-        let periodMonthYearList = months.map((_moment) => {
-            let date = _moment.startOf('month')
-
-            return {
-                value: date.format('YYYY-MM-DD'),
-                text: date.format('MMM YYYY'),
-            }
-        })
-
-        let workSchedules = await workScheduler.getEmploymentWorkSchedule(req.app.locals.db, employmentId)
-
-        let workSchedule = await req.app.locals.db.main.WorkSchedule.findById(employment.workScheduleId)
-
-        let workScheduleWeekDays = dtrHelper.workScheduleDisplay(workSchedule, [
-            'mon',
-            'tue',
-            'wed',
-            'thu',
-            'fri',
-        ])
-
-        let workScheduleWeekEnd = dtrHelper.workScheduleDisplay(workSchedule, [
-            'sat',
-            'sun',
-        ])
-
-        let workScheduleWeek = dtrHelper.workScheduleDisplay(workSchedule, [
-            'mon',
-            'tue',
-            'wed',
-            'thu',
-            'fri',
-            'sat',
-            'sun',
-        ])
-
-        let data = {
-            title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
-
-            flash: flash.get(req, 'employee'),
-
-            employee: employee,
-            employment: employment,
-
-            // Data that might change
-            days: days,
-            stats: stats,
-
-            showTotalAs: showTotalAs,
-            workSchedules: workSchedules,
-            periodMonthYearList: periodMonthYearList,
-            periodMonthYear: periodMonthYearMoment.format('YYYY-MM-DD'),
-            periodWeekDays: periodWeekDays,
-            periodSlice: periodSlice,
-            inCharge: employment.inCharge,
-            countTimeBy: countTimeBy,
-
-            startDate: startMoment.format('YYYY-MM-DD'),
-            endDate: endMoment.format('YYYY-MM-DD'),
-
-            workSchedule: workSchedule,
-            shared: true,
-
-            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
-            workScheduleWeekDays: workScheduleWeekDays,
-            workScheduleWeekEnd: workScheduleWeekEnd,
-            workScheduleWeek: workScheduleWeek,
-        }
-
-        // return res.send(days)
-        return res.render('e-profile/dtr-print6.html', data)
     } catch (err) {
         next(err);
     }
@@ -1858,7 +2096,7 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
         // return res.send(workScheduleTimeSegments)
 
         // Normalize schema
-        attendance = dtrHelper.normalizeAttendance(attendance, employee, workScheduleTimeSegments)
+        // attendance = dtrHelper.normalizeAttendance(attendance, employee, workScheduleTimeSegments)
 
         // Schedule segments
         let timeSegments = dtrHelper.buildTimeSegments(workScheduleTimeSegments)
@@ -1962,8 +2200,11 @@ router.post('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_at
         let noChanges = []
 
         let { changeLogs, att } = await dtrHelper.editAttendance2(req.app.locals.db, attendance1, patch, res.user)
-
-        // return res.send(att)
+        if (attendance.type === 'wfh') {
+            let attendance2 = await dtrHelper.normalizeAttendance(attendance1, employee, workScheduleTimeSegments)
+            await req.app.locals.db.main.Attendance.updateOne({ _id: attendance._id }, attendance2)
+        }
+        // return res.send(attendance1)
         if (changeLogs.length) {
             flash.ok(req, 'attendance', `${changeLogs.join(' ')}`)
         }

@@ -47,6 +47,45 @@ const dateTimeStringToTime = (dateTime, format = 'hh:mm A') => {
     return moment(dateTime).format(format)
 }
 
+const roundOff = (number, precision) => {
+    number = parseFloat(number)
+    precision = parseInt(precision)
+    let factor = Math.pow(10, precision)
+    let n = precision < 0 ? number : 0.01 / factor + number
+    return Math.round( n * factor) / factor
+}
+
+const getDailyRate = (salary, salaryType, precision = 7) => {
+    let dailyRate = 0
+    if (salaryType === 'monthly') {
+        dailyRate = roundOff(salary / 22, precision)
+
+    } else if (salaryType === 'daily') {
+        dailyRate = salary
+
+    } else if (salaryType === 'hourly') {
+        dailyRate = 0 // Does not make sense to multiply this by 8 for part-timers. Set to 0 instead.
+
+    }
+    return dailyRate
+}
+
+const getHourlyRate = (salary, salaryType, precision = 7) => {
+    let dailyRate = getDailyRate(salary, salaryType, precision)
+
+    let hourlyRate = 0
+    if (salaryType === 'monthly') {
+        hourlyRate = roundOff(dailyRate / 8, precision)
+
+    } else if (salaryType === 'daily') {
+        hourlyRate = roundOff(dailyRate / 8, precision)
+
+    } else if (salaryType === 'hourly') {
+        hourlyRate = salary
+    }
+    return hourlyRate
+}
+
 /**
  * Convert attendance.logs into an object.
  * 
@@ -319,11 +358,12 @@ const getTimeBreakdown = (minutes, totalMinutesUnderTime, hoursPerDay = 8) => {
     return {
         totalInDays: parseFloat(new Decimal(minutes).div(8).div(60)),
         totalMinutes: minutes,
-        totalInHours: parseFloat(new Decimal(minutes).div(60)),
+        totalInHours: roundOff(minutes / 60, 9),
         renderedDays: Math.floor(renderedDays),
         renderedHours: Math.floor(renderedHours),
         renderedMinutes: Math.round(renderedMinutes),
         underTimeTotalMinutes: totalMinutesUnderTime,
+        underTimeTotalInHours: roundOff(totalMinutesUnderTime / 60, 9),
         underDays: Math.floor(underDays),
         underHours: Math.floor(underHours),
         underMinutes: Math.round(underMinutes),
@@ -1257,6 +1297,252 @@ const editAttendance = async (db, attendanceId, attendancePatch, user) => {
     }
 }
 
+let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
+    let defaults = {
+        _id: null,
+        employeeId: '',
+        employmentId: '',
+        type: 'normal',
+        workScheduleId: '',
+        logs: [],
+        changes: [],
+        comments: [],
+        createdAt: '',
+    }
+    attendance = lodash.merge(defaults, attendance)
+
+    let logs = lodash.get(attendance, 'logs', [])
+
+    let timeZone = -480 // ph -8 hrs
+    if (attendance.type == 'leave') {
+        let start = 450 // 7:30
+        let currentShift = getNextShift(start, workScheduleTimeSegments)
+        let mToTime = (minutes, format, date = null) => {
+            format = format || 'HH:mm'
+            let mDate = {}
+            if (date) {
+                mDate = moment.utc(date)
+            } else {
+                mDate = moment().startOf('year')
+            }
+            return mDate.startOf('day').add(minutes, 'minutes').format(format)
+        }
+        attendance.logs = [
+            {
+                dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                type: 'leave',
+                source: {
+                    id: employee.userId,
+                    type: 'userAccount'
+                }
+            },
+            {
+                dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                type: 'leave',
+                source: {
+                    id: employee.userId,
+                    type: 'userAccount'
+                }
+            }
+        ]
+    } else if (attendance.type == 'wfh') {
+        if (logs.length <= 0) { // no log
+            let start = 420 // 7:00
+            let currentShift = getNextShift(start, workScheduleTimeSegments)
+            let mToTime = (minutes, format, date = null) => {
+                format = format || 'HH:mm'
+                let mDate = {}
+                if (date) {
+                    mDate = moment.utc(date)
+                } else {
+                    mDate = moment().startOf('year')
+                }
+                return mDate.startOf('day').add(minutes, 'minutes').format(format)
+            }
+            attendance.logs = [
+                {
+                    dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                    type: 'wfh',
+                    source: {
+                        id: employee.userId,
+                        type: 'userAccount'
+                    }
+                },
+                {
+                    dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                    type: 'wfh',
+                    source: {
+                        id: employee.userId,
+                        type: 'userAccount'
+                    }
+                }
+            ]
+        }
+    } else if (attendance.type == 'travel') {
+        if (logs.length <= 1) { // all day travel
+
+            let start = 450 // 7:30
+            let currentShift = getNextShift(start, workScheduleTimeSegments)
+            let mToTime = (minutes, format, date = null) => {
+                format = format || 'HH:mm'
+                let mDate = {}
+                if (date) {
+                    mDate = moment.utc(date)
+                } else {
+                    mDate = moment().startOf('year')
+                }
+                return mDate.startOf('day').add(minutes, 'minutes').format(format)
+            }
+            attendance.logs = [
+                {
+                    dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                    type: 'travel',
+                    source: {
+                        id: employee.userId,
+                        type: 'userAccount'
+                    }
+                },
+                {
+                    dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
+                    type: 'travel',
+                    source: {
+                        id: employee.userId,
+                        type: 'userAccount'
+                    }
+                }
+            ]
+        } else if (logs.length === 3) { // half day travel
+            // travel, !travel, !travel
+            if (logs[0].type === 'travel' && logs[1].type !== 'travel' && logs[2].type !== 'travel') { // Travel must have start and end logs to conform to our API
+                let start = timeToM(moment(logs[0].dateTime).format('HH:mm'))
+                let currentShift = getNextShift(start, workScheduleTimeSegments)
+
+                let adjustedLogs = [
+                    {
+                        dateTime: moment(mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(), // Begin on start of shift
+                        type: 'travel',
+                        source: {
+                            id: employee.userId,
+                            type: 'userAccount'
+                        }
+                    },
+                    // Inserted log
+                    {
+                        dateTime: logs[1].dateTime,
+                        type: 'travel',
+                        source: {
+                            id: employee.userId,
+                            type: 'userAccount'
+                        }
+                    },
+                    logs[1], // As is
+                    logs[2], // As is
+                ]
+                attendance.logs = adjustedLogs
+
+                // !travel, !travel, travel
+            } else if (logs[0].type !== 'travel' && logs[1].type !== 'travel' && logs[2].type === 'travel') { //
+                let start = timeToM(moment(logs[2].dateTime).format('HH:mm'))
+                let nextShift = getNextShift(start, workScheduleTimeSegments)
+
+                let adjustedLogs = [
+                    logs[0], // As is
+                    logs[1], // As is
+                    {
+                        dateTime: moment(mToTime(nextShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(), // Begin on start of shift
+                        type: 'travel',
+                        source: {
+                            id: employee.userId,
+                            type: 'userAccount'
+                        }
+                    },
+                    // Inserted log
+                    {
+                        dateTime: moment(mToTime(nextShift.end + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(),
+                        type: 'travel',
+                        source: {
+                            id: employee.userId,
+                            type: 'userAccount'
+                        }
+                    },
+                ]
+                attendance.logs = adjustedLogs
+            }
+        }
+
+    }
+
+    attendance.logs = attendance.logs.map(log => {
+        let newLog = {
+            // scannerId: null,
+            dateTime: log.dateTime,
+            mode: log.mode,
+            type: log.type,
+            source: {
+                id: null,
+                type: '',
+            }
+        }
+        if (log.scannerId) {
+            // newLog.scannerId = log.scannerId
+            newLog.type = 'normal'
+            newLog.source.id = log.scannerId
+            newLog.source.type = 'scanner'
+        } else {
+            newLog.type = 'normal'
+        }
+        if ('online' === log.type) {
+            newLog.type = 'normal'
+            newLog.source.type = 'userAccount'
+        }
+        if ('scanner' === log.type) {
+            newLog.type = 'normal'
+            newLog.source.type = 'scanner'
+        }
+        if ('travel' === log.type) {
+            newLog.type = 'travel'
+            newLog.source.id = employee.userId
+            newLog.source.type = 'userAccount'
+        }
+        if ('wfh' === log.type) {
+            newLog.type = 'wfh'
+            newLog.source.id = employee.userId
+            newLog.source.type = 'userAccount'
+        }
+        if ('leave' === log.type) {
+            newLog.type = 'leave'
+            newLog.source.id = employee.userId
+            newLog.source.type = 'userAccount'
+        }
+        if (lodash.has(log, 'extra.id')) {
+            newLog.source.id = log.extra.id
+        }
+        if (lodash.has(log, 'extra.type')) {
+            newLog.source.type = log.extra.type
+        }
+        if (lodash.has(log, 'extra.lat')) {
+            newLog.source.lat = log.extra.lat
+        }
+        if (lodash.has(log, 'extra.lon')) {
+            newLog.source.lon = log.extra.lon
+        }
+        if (lodash.has(log, 'extra.photo')) {
+            newLog.source.photo = log.extra.photo
+        }
+        if (lodash.has(log, 'source.id')) {
+            newLog.source.id = log.source.id
+        }
+        if (lodash.has(log, 'source.type')) {
+            newLog.source.type = log.source.type
+        }
+
+        return newLog
+    })
+
+
+    return attendance
+}
+
 const editAttendance2 = async (db, attendance, attendancePatch, user) => {
     if (!attendance) {
         throw new Error('Attendance not found.')
@@ -1817,252 +2103,6 @@ let countWork = (timeSegments, logSegments, options) => {
     return timeSegments
 }
 
-let normalizeAttendance = (attendance, employee, workScheduleTimeSegments) => {
-    let defaults = {
-        _id: null,
-        employeeId: '',
-        employmentId: '',
-        type: 'normal',
-        workScheduleId: '',
-        logs: [],
-        changes: [],
-        comments: [],
-        createdAt: '',
-    }
-    attendance = lodash.merge(defaults, attendance)
-
-    let logs = lodash.get(attendance, 'logs', [])
-
-    let timeZone = -480 // ph -8 hrs
-    if (attendance.type == 'holiday') {
-        let start = 450 // 7:30
-        let currentShift = getNextShift(start, workScheduleTimeSegments)
-        let mToTime = (minutes, format, date = null) => {
-            format = format || 'HH:mm'
-            let mDate = {}
-            if (date) {
-                mDate = moment.utc(date)
-            } else {
-                mDate = moment().startOf('year')
-            }
-            return mDate.startOf('day').add(minutes, 'minutes').format(format)
-        }
-        attendance.logs = [
-            {
-                dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                type: 'holiday',
-                source: {
-                    id: employee.userId,
-                    type: 'userAccount'
-                }
-            },
-            {
-                dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                type: 'holiday',
-                source: {
-                    id: employee.userId,
-                    type: 'userAccount'
-                }
-            }
-        ]
-    } else if (attendance.type == 'wfh') {
-        if (logs.length <= 0) { // no log
-            let start = 420 // 7:00
-            let currentShift = getNextShift(start, workScheduleTimeSegments)
-            let mToTime = (minutes, format, date = null) => {
-                format = format || 'HH:mm'
-                let mDate = {}
-                if (date) {
-                    mDate = moment.utc(date)
-                } else {
-                    mDate = moment().startOf('year')
-                }
-                return mDate.startOf('day').add(minutes, 'minutes').format(format)
-            }
-            attendance.logs = [
-                {
-                    dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                    type: 'normal',
-                    source: {
-                        id: employee.userId,
-                        type: 'userAccount'
-                    }
-                },
-                {
-                    dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                    type: 'normal',
-                    source: {
-                        id: employee.userId,
-                        type: 'userAccount'
-                    }
-                }
-            ]
-        }
-    } else if (attendance.type == 'travel') {
-        if (logs.length <= 1) { // all day travel
-
-            let start = 450 // 7:30
-            let currentShift = getNextShift(start, workScheduleTimeSegments)
-            let mToTime = (minutes, format, date = null) => {
-                format = format || 'HH:mm'
-                let mDate = {}
-                if (date) {
-                    mDate = moment.utc(date)
-                } else {
-                    mDate = moment().startOf('year')
-                }
-                return mDate.startOf('day').add(minutes, 'minutes').format(format)
-            }
-            attendance.logs = [
-                {
-                    dateTime: mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                    type: 'travel',
-                    source: {
-                        id: employee.userId,
-                        type: 'userAccount'
-                    }
-                },
-                {
-                    dateTime: mToTime(1020 + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt),
-                    type: 'travel',
-                    source: {
-                        id: employee.userId,
-                        type: 'userAccount'
-                    }
-                }
-            ]
-        } else if (logs.length === 3) { // half day travel
-            // travel, !travel, !travel
-            if (logs[0].type === 'travel' && logs[1].type !== 'travel' && logs[2].type !== 'travel') { // Travel must have start and end logs to conform to our API
-                let start = timeToM(moment(logs[0].dateTime).format('HH:mm'))
-                let currentShift = getNextShift(start, workScheduleTimeSegments)
-
-                let adjustedLogs = [
-                    {
-                        dateTime: moment(mToTime(currentShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(), // Begin on start of shift
-                        type: 'travel',
-                        source: {
-                            id: employee.userId,
-                            type: 'userAccount'
-                        }
-                    },
-                    // Inserted log
-                    {
-                        dateTime: logs[1].dateTime,
-                        type: 'travel',
-                        source: {
-                            id: employee.userId,
-                            type: 'userAccount'
-                        }
-                    },
-                    logs[1], // As is
-                    logs[2], // As is
-                ]
-                attendance.logs = adjustedLogs
-
-                // !travel, !travel, travel
-            } else if (logs[0].type !== 'travel' && logs[1].type !== 'travel' && logs[2].type === 'travel') { //
-                let start = timeToM(moment(logs[2].dateTime).format('HH:mm'))
-                let nextShift = getNextShift(start, workScheduleTimeSegments)
-
-                let adjustedLogs = [
-                    logs[0], // As is
-                    logs[1], // As is
-                    {
-                        dateTime: moment(mToTime(nextShift.start + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(), // Begin on start of shift
-                        type: 'travel',
-                        source: {
-                            id: employee.userId,
-                            type: 'userAccount'
-                        }
-                    },
-                    // Inserted log
-                    {
-                        dateTime: moment(mToTime(nextShift.end + timeZone, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]', attendance.createdAt)).toDate(),
-                        type: 'travel',
-                        source: {
-                            id: employee.userId,
-                            type: 'userAccount'
-                        }
-                    },
-                ]
-                attendance.logs = adjustedLogs
-            }
-        }
-
-    }
-
-    attendance.logs = attendance.logs.map(log => {
-        let newLog = {
-            // scannerId: null,
-            dateTime: log.dateTime,
-            mode: log.mode,
-            type: log.type,
-            source: {
-                id: null,
-                type: '',
-            }
-        }
-        if (log.scannerId) {
-            // newLog.scannerId = log.scannerId
-            newLog.type = 'normal'
-            newLog.source.id = log.scannerId
-            newLog.source.type = 'scanner'
-        } else {
-            newLog.type = 'normal'
-        }
-        if ('online' === log.type) {
-            newLog.type = 'normal'
-            newLog.source.type = 'userAccount'
-        }
-        if ('scanner' === log.type) {
-            newLog.type = 'normal'
-            newLog.source.type = 'scanner'
-        }
-        if ('travel' === log.type) {
-            newLog.type = 'travel'
-            newLog.source.id = employee.userId
-            newLog.source.type = 'userAccount'
-        }
-        if ('wfh' === log.type) {
-            newLog.type = 'wfh'
-            newLog.source.id = employee.userId
-            newLog.source.type = 'userAccount'
-        }
-        if ('leave' === log.type) {
-            newLog.type = 'leave'
-            newLog.source.id = employee.userId
-            newLog.source.type = 'userAccount'
-        }
-        if (lodash.has(log, 'extra.id')) {
-            newLog.source.id = log.extra.id
-        }
-        if (lodash.has(log, 'extra.type')) {
-            newLog.source.type = log.extra.type
-        }
-        if (lodash.has(log, 'extra.lat')) {
-            newLog.source.lat = log.extra.lat
-        }
-        if (lodash.has(log, 'extra.lon')) {
-            newLog.source.lon = log.extra.lon
-        }
-        if (lodash.has(log, 'extra.photo')) {
-            newLog.source.photo = log.extra.photo
-        }
-        if (lodash.has(log, 'source.id')) {
-            newLog.source.id = log.source.id
-        }
-        if (lodash.has(log, 'source.type')) {
-            newLog.source.type = log.source.type
-        }
-
-        return newLog
-    })
-
-
-    return attendance
-}
-
 /**
 * Format for DTR display
 */
@@ -2399,6 +2439,9 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
     if (employment.employmentType === 'part-time' || attendance.type !== 'normal') {
         options.noSpill = false
     }
+    if (attendance.type === 'holiday') {
+        options.noSpill = false
+    }
     let timeWorked = countWork(timeSegments, logSegments, options)
 
     // console.dir(timeWorked, { depth: null })
@@ -2443,8 +2486,7 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
     dtr.underMinutes = Math.round(dtr.underMinutes)
 
     let logs = []
-    timeWorked = timeWorked.map(t => {
-
+    timeWorked.forEach(t => {
         t.logSegments.forEach((l, i) => {
             logs.push({
                 in: mToTime(l.start, 'hh:mm A'),
@@ -2457,16 +2499,17 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
                 undertime: l.undertime,
             })
         })
-        return t
     })
     dtr.timeWorked = timeWorked
 
+    roundOff
     return {
         logs: logs,
         segments: timeWorked,
         time: {
             days: dtr.renderedDays,
             hoursDays: dtr.renderedDays * 8 + dtr.renderedHours, // hours + days in hours
+            asHours: (dtr.renderedDays * 8 + dtr.renderedHours) + roundOff(dtr.renderedMinutes / 60, 9), // hours + days in hours
             hours: dtr.renderedHours,
             minutes: dtr.renderedMinutes,
             total: dtr.totalMinutes
@@ -2474,6 +2517,7 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
         undertime: {
             days: dtr.underDays,
             hoursDays: dtr.underDays * 8 + dtr.underHours,
+            asHours: (dtr.underDays * 8 + dtr.underHours) + roundOff(dtr.underMinutes / 60, 9),
             hours: dtr.underHours,
             minutes: dtr.underMinutes,
             total: dtr.underTimeTotalMinutes
@@ -2575,8 +2619,11 @@ const getDtrByDateRange4 = async (db, employeeId, employmentId, _startMoment, _e
         const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         const holiday = holidays[date] || null
         const attendance = attendances[date] || null
-        const workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
+        let workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
 
+        if (overrideWorkSched) {
+            workSchedule = overrideWorkSched
+        }
         let dtr = {
             totalMinutes: 0,
             excessMinutes: 0,
@@ -2661,25 +2708,29 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
     const defaults = {
         padded: false,
         excludeWeekend: false,
+        overrideWorkSched: null
     }
 
     const startMoment = _startMoment.clone()
     const endMoment = _endMoment.clone()
 
     options = lodash.merge(defaults, options)
-    const { showTotalAs, showWeekDays, padded, excludeWeekend, periodWeekDays } = options;
+    const { showTotalAs, showWeekDays, padded, excludeWeekend, periodWeekDays, overrideWorkSched } = options;
 
     if (!showWeekDays) {
         showWeekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
     }
 
     const employment = await db.main.Employment.findOne(employmentId);
+    if (!employment) {
+        throw new Error(`Employment not found with ID "${employmentId}"`)
+    }
 
     // ATTENDANCES
     let attendances = await db.main.Attendance.aggregate([
         {
             $match: {
-                employeeId: employeeId,
+                // employeeId: employeeId,
                 employmentId: employmentId,
                 createdAt: {
                     $gte: startMoment.clone().startOf('day').toDate(),
@@ -2729,6 +2780,7 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
             $lte: endMoment.clone().endOf('day').toDate(),
         }
     }).lean()
+
     // Turn array of holidays into an object with date as keys: "2020-12-31"
     holidays = lodash.mapKeys(holidays, (h) => {
         return moment(h.date).format('YYYY-MM-DD')
@@ -2750,8 +2802,11 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
         const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22', '2023-06-01', '2023-06-02'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         const holiday = holidays[date] || null
         const attendance = attendances[date] || null
-        const workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
+        let workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
 
+        if (overrideWorkSched) {
+            workSchedule = overrideWorkSched
+        }
         let dtr = {
             totalMinutes: 0,
             excessMinutes: 0,
@@ -2848,6 +2903,7 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
     let stats = {
         days: getTimeBreakdown(daysTotalMinutes, daysTotalMinutesUnderTime, hoursPerDay),
         weekdays: getTimeBreakdown(weekdaysTotalMinutes, weekdaysTotalMinutesUnderTime, hoursPerDay),
+        weekdaysTotal: weekdays.length,
         weekends: getTimeBreakdown(weekendsTotalMinutes, weekendsTotalMinutesUnderTime, hoursPerDay),
         restDays: getTimeBreakdown(restDaysTotalMinutes, restDaysTotalMinutesUnderTime, hoursPerDay),
         holidays: getTimeBreakdown(_holidaysTotalMinutes, _holidaysTotalMinutesUnderTime, hoursPerDay),
@@ -2856,6 +2912,299 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
     return {
         days: days,
         stats: stats,
+    }
+}
+
+const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) => {
+
+    const defaults = {
+        padded: true,
+        showDays: 0,
+        overrideWorkSched: null,
+    }
+
+    const startMoment = _startMoment.clone()
+    const endMoment = _endMoment.clone()
+
+    options = lodash.merge(defaults, options)
+    const { 
+        padded,
+        showDays, 
+        overrideWorkSched 
+    } = options;
+ 
+
+    const employment = await db.main.Employment.findById(employmentId);
+    if (!employment) {
+        throw new Error(`Employment not found with ID "${employmentId}"`)
+    }
+
+    // 1. Get attendance within date range
+    let attendances = await db.main.Attendance.aggregate([
+        {
+            $match: {
+                // employeeId: employeeId,
+                employmentId: employmentId,
+                createdAt: {
+                    $gte: startMoment.clone().startOf('day').toDate(),
+                    $lte: endMoment.clone().endOf('day').toDate(),
+                }
+            }
+        },
+        {
+            $lookup: {
+                localField: 'workScheduleId',
+                foreignField: '_id',
+                from: 'workschedules',
+                as: 'workSchedules'
+            }
+        },
+        {
+            $addFields: {
+                "workSchedule": {
+                    $arrayElemAt: ["$workSchedules", 0]
+                }
+            }
+        },
+        {
+            $project: {
+                workSchedules: 0,
+            }
+        }
+    ])
+    // Turn array of attendances into an object with date as keys: "2020-12-31"
+    attendances = lodash.mapKeys(attendances, (a) => {
+        return moment(a.createdAt).format('YYYY-MM-DD')
+    })
+    // console.dir(attendances, {depth:null})
+
+    // 2. Get all holidays for this date range
+    let holidayList = await db.main.Holiday.find({
+        date: {
+            $gte: startMoment.clone().startOf('day').toDate(),
+            $lte: endMoment.clone().endOf('day').toDate(),
+        }
+    }).lean()
+    holidayList = holidayList.map(h => {
+        h.date = moment(h.date).format('YYYY-MM-DD')
+        return h
+    })
+
+    // WORK SCHED
+    let defaultWorkSched = await db.main.WorkSchedule.findById(employment.workScheduleId).lean()
+
+    // 3. Generate array of days
+    if (padded) {
+        startMoment.startOf('month')
+        endMoment.endOf('month')
+    }
+    const range = momentExt.range(startMoment, endMoment)
+    let days = Array.from(range.by('days')) // Each element contains an instance of Moment
+
+    const DTR_SCHEMA = {
+        totalMinutes: 0,
+        excessMinutes: 0,
+        underTimeTotalMinutes: 0,
+        time: {
+            days: 0,
+            hoursDays: 0,
+            asHours: 0,
+            hours: 0,
+            minutes: 0,
+            total: 0
+        },
+        undertime: {
+            days: 0,
+            hoursDays: 0,
+            asHours: 0,
+            hours: 0,
+            minutes: 0,
+            total: 0
+        }
+    }
+    days = days.map((_moment) => {
+        const date = _moment.format('YYYY-MM-DD')
+        const year = _moment.format('YYYY')
+        const month = _moment.format('MM')
+        const weekDay = _moment.format('ddd')
+        const day = _moment.format('DD')
+        const isWeekend = ['Sat', 'Sun'].includes(weekDay)
+        const isPast = _moment.clone().startOf('day').isBefore(moment().startOf('day'))
+        const isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
+        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
+        const holidays = holidayList.filter(h => {
+            return h.date === date
+        })
+        const isHoliday = (holidays.length > 0) ? true : false
+        const isRestday = isHoliday || isWeekend
+        const isWorkday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(weekDay) && !isHoliday
+        let attendance = attendances[date] || null
+        let workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
+
+        if (overrideWorkSched && !isHoliday) {
+            workSchedule = overrideWorkSched
+        }
+        let dtr = DTR_SCHEMA
+        if (attendance) {
+            // let workScheduleTimeSegments = getWorkScheduleTimeSegments(workSchedule, attendance.createdAt)
+            // attendance = normalizeAttendance(attendance, { userId: attendance.employeeId }, workScheduleTimeSegments)
+            dtr = attendanceToTimeWorked(attendance, employment, workSchedule)
+        }
+        const isUndertime = lodash.get(dtr, 'undertime.total', 0) > 0
+        const isInvalidOvertime = (isUndertime && isWorkday) || lodash.get(dtr, 'time.total', 0) <= 0
+
+        return {
+            hide: false,
+            date: date,
+            year: year,
+            month: month,
+            weekDay: weekDay,
+            day: day,
+            isWeekend: isWeekend,
+            isHoliday: isHoliday,
+            isRestday: isRestday,
+            isWorkday: isWorkday,
+            isPast: isPast,
+            isNow: isNow,
+            isForCorrection: isForCorrection,
+            isUndertime: isUndertime,
+            isInvalidOvertime: isInvalidOvertime,
+            hasAttendance: (attendance) ? true : false,
+            holidays: holidays,
+            display: fromLogsToDisplayTime(lodash.get(attendance, 'logs', []), isNow),
+            type: lodash.get(attendance, 'type', ''),
+            attendance: {
+                _id: lodash.get(attendance, '_id'),
+                type: lodash.get(attendance, 'type', ''),
+                logs: lodash.get(attendance, 'logs', []), // for half-day travel
+            },
+            ...dtr,
+        }
+    })
+
+    days = days.map((day) => {
+        // Workdays
+        if (showDays === 1) {
+            if(['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(day.weekDay) && !day.isHoliday){
+
+            } else {
+                day.time = DTR_SCHEMA.time
+                day.undertime = DTR_SCHEMA.undertime
+                day.hide = true
+                day.attendance = null
+            }
+        } else if (showDays === 2) {
+            if(['Sat', 'Sun'].includes(day.weekDay)){
+
+            } else {
+                day.time = DTR_SCHEMA.time
+                day.undertime = DTR_SCHEMA.undertime
+                day.hide = true
+                day.attendance = null
+            }
+        } else if (showDays === 3) {
+            if(day.isHoliday){
+
+            } else {
+                day.time = DTR_SCHEMA.time
+                day.undertime = DTR_SCHEMA.undertime
+                day.hide = true
+                day.attendance = null
+            }
+        } else if (showDays === 4) { // weekends + holidays
+            if(['Sat', 'Sun'].includes(day.weekDay) || day.isHoliday){
+
+            } else {
+                day.time = DTR_SCHEMA.time
+                day.undertime = DTR_SCHEMA.undertime
+                day.hide = true
+                day.attendance = null
+            }
+        }
+        
+        return day
+    })
+
+    return days
+}
+const getDtrStats = (days) => {
+
+    // Mon - Fri except Holidays
+    let weekdays = days.filter((day) => {
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(day.weekDay) && !day.isHoliday
+    })
+    let weekdaysTotalMinutes = weekdays.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
+    let weekdaysTotalMinutesUnderTime = weekdays.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
+
+    let weekends = days.filter((day) => {
+        return ['Sat', 'Sun'].includes(day.weekDay)
+    })
+    let weekendsTotalMinutes = weekends.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
+    let weekendsTotalMinutesUnderTime = weekends.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
+
+    let restDays = days.filter((day) => {
+        return ['Sat', 'Sun'].includes(day.weekDay) || day.isHoliday
+    })
+    let restDaysTotalMinutes = restDays.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
+    let restDaysTotalMinutesUnderTime = restDays.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
+
+
+    let _holidays = days.filter((day) => {
+        return day.isHoliday
+    })
+    let _holidaysTotalMinutes = _holidays.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
+    let _holidaysTotalMinutesUnderTime = _holidays.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
+
+
+    let daysTotalMinutes = days.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
+    let daysTotalMinutesUnderTime = days.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
+
+    let mapReturn = (r) => {
+        // console.log(r.ola)
+        return {
+            time: {
+                days: r.renderedDays,
+                hours: r.renderedHours,
+                minutes: r.renderedMinutes,
+                total: r.totalMinutes,
+                hoursDays: r.renderedDays * 8 + r.renderedHours, // hours + days in hours
+                totalInHours: r.totalInHours, // total minutes converted to hours
+            },
+            undertime: {
+                days: r.underDays,
+                hours: r.underHours,
+                minutes: r.underMinutes,
+                total: r.underTimeTotalMinutes,
+                hoursDays: r.underDays * 8 + r.underHours, // hours + days in hours
+                totalInHours: r.underTimeTotalInHours, // total undertime minutes converted to hours
+            }
+        }
+    }
+    let hoursPerDay = 8
+
+    let workdays = days.filter((day) => {
+        return day.isWorkday
+    })
+    let workdaysTotalMinutes = workdays.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
+    let workdaysTotalMinutesUnderTime = workdays.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
+
+    let absentDays = days.filter((day) => {
+        return day.isWorkday && !(day?.attendance?.logs?.length ?? 0) && !['travel','leave'].includes(day?.attendance?.type)
+    }) 
+    return {
+        count: {
+            days: days.length,
+            workdays: workdays.length,
+            absentDays: absentDays.length,
+            holidays: _holidays.length,
+            weekends: weekends.length,
+        },
+        days: mapReturn(getTimeBreakdown(daysTotalMinutes, daysTotalMinutesUnderTime, hoursPerDay)),
+        workdays: mapReturn({ola:'', ...getTimeBreakdown(workdaysTotalMinutes, workdaysTotalMinutesUnderTime, hoursPerDay)}),
+        weekdays: mapReturn(getTimeBreakdown(weekdaysTotalMinutes, weekdaysTotalMinutesUnderTime, hoursPerDay)),
+        weekends: mapReturn(getTimeBreakdown(weekendsTotalMinutes, weekendsTotalMinutesUnderTime, hoursPerDay)),
+        restDays: mapReturn(getTimeBreakdown(restDaysTotalMinutes, restDaysTotalMinutesUnderTime, hoursPerDay)),
+        holidays: mapReturn(getTimeBreakdown(_holidaysTotalMinutes, _holidaysTotalMinutesUnderTime, hoursPerDay)),
     }
 }
 
@@ -2972,11 +3321,16 @@ module.exports = {
     getDtrByDateRange2: getDtrByDateRange2,
     getDtrByDateRange4: getDtrByDateRange4,
     getDtrByDateRange6: getDtrByDateRange6,
+    getDtrDays: getDtrDays,
+    getDtrStats: getDtrStats,
     editAttendance2: editAttendance2,
     isFlagRaisingDay: isFlagRaisingDay,
     logTravelAndWfh: logTravelAndWfh,
     logNormal: logNormal,
     workScheduleDisplay: workScheduleDisplay,
     readableSchedule: readableSchedule,
+    roundOff: roundOff,
+    getDailyRate: getDailyRate,
+    getHourlyRate: getHourlyRate,
 }
 

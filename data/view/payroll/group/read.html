@@ -24,19 +24,31 @@
         <p v-if="employeeList.members.length <= 0">No employees in list.</p>
         <div v-else class="table-responsive">
             <p class="h6">${employeeList.members.length} employees</p>
+            <div class="form-group p-3 mb-0">
+                <div class="custom-control custom-switch">
+                    <input v-model="activeDrag" type="checkbox" class="custom-control-input" id="activeDrag">
+                    <label class="custom-control-label" for="activeDrag">Re-order</label>
+                </div>
+            </div>
             <table class="table table-sm table-striped">
                 <thead>
                     <tr>
-                        <th width="1%"></th>
+                        <th v-if="activeDrag" width="1%"></th>
+                        <th v-if="!activeDrag" width="1%"></th>
                         <th>Name</th>
                         <th>Fund Source</th>
                         <th>Position</th>
                         <th width="1%"></th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr v-for="(member, index) in employeeList.members">
-                        <td>${index+1}</td>
+                <tbody id="sortMe">
+                    <tr v-for="(member, index) in employeeList.members" v-bind:data-ruid="member._id">
+                        <td v-if="activeDrag" style="padding:0; text-align:center; vertical-align: middle;">
+                            <svg class="dragMe" style="cursor: move; width:24px;height:24px; opacity: 0.4" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
+                            </svg>
+                        </td>
+                        <td v-if="!activeDrag">${index+1}</td>
                         <td><a v-bind:href="`/employee/${member.employeeId}/employment`">${member.lastName}, ${member.firstName} ${member.suffix}</a></td>
                         <td>${member.fundSource}</td>
                         <td>${member.position}</td>
@@ -78,7 +90,10 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
+<script src="{{app.url}}/js/script-axios-extend.js"></script>
 <script src="{{app.url}}/js/vue-ph-address.js"></script>
+<script src="{{app.url}}/js/Sortable.min.js"></script>
 <script>
     Vue.config.errorHandler = function (err, vm, info) {
         console.error(err)
@@ -102,6 +117,7 @@
             employmentId: '',
             pending: false,
             employeeList: {{employeeList|default(true, [])|stringify|safe}},
+            activeDrag: false,
         },
         validations: {
             employmentId: {
@@ -110,8 +126,65 @@
         },
         mounted: function() {
             var me = this;
+            me.$nextTick(function () {
+                if(!document.getElementById('sortMe')) return
+                var sortable = Sortable.create(document.getElementById('sortMe'), {
+                    handle: '.dragMe',
+                    dataIdAttr: 'data-ruid',
+                    onSort: function (evt) {
+                        /* Undo HTML sort since vue will auto sort based on vm.data */
+                        /* {# https://github.com/SortableJS/Sortable/issues/264#issuecomment-224127048 #} */ 
+                        var oldId = evt.oldIndex,
+                            newId = evt.newIndex,
+                            reArrange = sortable.toArray(),
+                            oldSort = sortable.toArray();
+
+                        if (oldId < newId) {
+                            for (var i = oldId; i < newId; i++)
+                                reArrange[i+1] = oldSort[i];
+                        } else {
+                            for (var i = newId + 1; i <= oldId; i++)
+                                reArrange[i-1] = oldSort[i];
+                        }
+
+                        reArrange[oldId] = oldSort[newId];
+                        sortable.sort(reArrange);
+
+                    },
+                    onEnd: function (evt) {
+                        if(evt.newIndex === evt.oldIndex) return false;
+
+                        jQuery('.cover').addClass('wait')
+                        var rowsIdsArray = []
+                        jQuery('.drag-employment').each(function(i, e){
+                            rowsIdsArray.push(String(jQuery(e).data('ruid'))) // Row UID
+                        })
+
+                        me.pending = true;
+                        window.axios.post('/payroll/group/{{employeeList._id}}/update', {oldIndex: evt.oldIndex, newIndex: evt.newIndex}).then(function(response){
+                            var data = response.data;
+
+                            /*{# https://stackoverflow.com/a/6470794/1594918 #}*/
+                            /* Move array element from old to new index */
+                            var element = me.employeeList.members[evt.oldIndex];
+                            me.employeeList.members.splice(evt.oldIndex, 1);
+                            me.employeeList.members.splice(evt.newIndex, 0, element);
+
+                            console.log('Changes saved.');
+                        }).catch(function(error){
+                            handleAxiosError(error);
+                        }).then(function(){
+                            me.pending = false;
+                            jQuery('.cover').removeClass('wait');
+                        });
+                    },
+                });
+            })
         },
         methods: {
+            setActiveDrag: function(){
+                this.activeDrag = !this.activeDrag
+            },
             dataSource: function(input) {
                 return '/employee?s=' + input
             },

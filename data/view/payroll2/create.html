@@ -8,12 +8,12 @@
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                <a href="/payroll/all" class="btn btn-sm btn-outline-primary">Back</a>
+                <a href="/payroll2/all" class="btn btn-sm btn-outline-primary">Back</a>
             </div>
         </div>
     </div>
     <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-2">
-        <form ref="form" v-on:submit.prevent="onSubmit" action="/payroll/x/viewer" method="GET" class="form-default">
+        <form ref="form" v-on:submit.prevent="onSubmit" action="/payroll2/create" method="POST" class="form-default">
             <div class="form-group">
                 <label for="dateStart">Period *</label>
                 <div class="d-flex">
@@ -29,6 +29,15 @@
                 </div>
             </div>
 
+            {% set name = 'template' %}
+            {% set label = 'Template *' %}
+            {% set options = [
+                {value:'', text:''}, 
+                {value:'permanent', text:'Permanent'}, 
+                {value:'cos_staff', text:'COS Staff'}
+            ] %}
+            {% include 'parts/form-group-select.html' %}
+            {% set label = '' %}
 
             {% set name = 'employeeList' %}
             {% set label = 'Employee List *' %}
@@ -59,7 +68,7 @@
 
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
-                    <button class="btn btn-primary">View</button>
+                    <button class="btn btn-primary">Generate</button>
                 </div>
             </div>
         </form>

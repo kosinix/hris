@@ -248,15 +248,23 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
         } = res
 
 
+        let showDays = 0
+        if (periodWeekDays === 'Mon-Fri') {
+            showDays = 1
+        } else if (periodWeekDays === 'Sat-Sun') {
+            showDays = 2
+        }
         let options = {
             padded: true,
             showTotalAs: showTotalAs,
             showWeekDays: showWeekDays,
-            periodWeekDays: periodWeekDays
+            periodWeekDays: periodWeekDays,
+            showDays: showDays,
         }
 
-        let { days, stats, compute } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, startMoment, endMoment, options)
-// return res.send({ days: days[1], stats, compute })
+        let days = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
+        let stats = dtrHelper.getDtrStats(days)
+
         let periodMonthYearMoment = moment(periodMonthYear)
         const range1 = momentExt.range(periodMonthYearMoment.clone().subtract(6, 'months'), periodMonthYearMoment.clone().add(6, 'months'))
         let months = Array.from(range1.by('months')).reverse()
@@ -297,6 +305,10 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             'sun',
         ])
 
+        let salary = employment?.salary ?? 0
+        // let dailyRate = dtrHelper.getDailyRate(salary, employment.salaryType) // Unified computation for daily
+        let hourlyRate = dtrHelper.getHourlyRate(salary, employment.salaryType) // Unified computation for hourly
+
         let data = {
             title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
 
@@ -304,11 +316,11 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
 
             employee: employee,
             employment: employment,
+            hourlyRate: hourlyRate,
 
             // Data that might change
             days: days,
             stats: stats,
-            compute: compute,
 
             showTotalAs: showTotalAs,
             workSchedules: workSchedules,
@@ -318,6 +330,8 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
             periodSlice: periodSlice,
             inCharge: employment.inCharge,
             countTimeBy: countTimeBy,
+
+            showDays: showDays,
 
             startDate: startMoment.format('YYYY-MM-DD'),
             endDate: endMoment.format('YYYY-MM-DD'),
@@ -341,9 +355,9 @@ router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'
         // return res.send(days)
 
         if (/^\/e-profile\/dtr\/print/.test(req.path)) {
-            return res.render('e-profile/dtr-print6.html', data)
+            return res.render('e-profile/dtr-print7.html', data)
         }
-        res.render('e-profile/dtr6.html', data)
+        res.render('e-profile/dtr7.html', data)
     } catch (err) {
         next(err);
     }
@@ -678,7 +692,7 @@ router.get('/e-profile/dtr/:employmentId/attendance/:date', middlewares.guardRou
         }
         let mDate = moment(date)
 
-        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22', '2023-06-01' , '2023-06-02'].includes(mDate.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
+        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22', '2023-06-01', '2023-06-02'].includes(mDate.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         if (!isForCorrection) {
             throw new Error('Not allowed.')
         }
@@ -1279,7 +1293,7 @@ router.post('/e-profile/dtr/:employmentId/logs', middlewares.guardRoute(['use_em
         let room = moment().format('YYYY-MM-DD')
         req.app.locals.io.of("/monitoring").to(room).emit('added', payload)
         // End for monitoring page
-        
+
         flash.ok(req, 'employee', 'Attendance saved.')
         res.send(attendance)
     } catch (err) {
@@ -1623,6 +1637,7 @@ router.get('/e/document/all', middlewares.guardRoute(['use_employee_profile']), 
             flash: flash.get(req, 'employee'),
             employee: employee,
             momentNow: moment(),
+            title: '201 Files'
         }
         res.render('e-profile/document/all.html', data);
     } catch (err) {
@@ -1633,21 +1648,30 @@ router.get('/e/document/create', middlewares.guardRoute(['use_employee_profile']
     try {
         let employee = res.employee.toObject()
 
+        let e201Types = await req.app.locals.db.main.Option.findOne({
+            key: 'e201Types'
+        })
+        if (!e201Types) {
+            throw new Error('Missing e201Types from options.')
+        }
         let data = {
             flash: flash.get(req, 'employee'),
             employee: employee,
             momentNow: moment(),
+            title: 'Add 201 File',
+            e201Types: e201Types?.value
         }
         res.render('e-profile/document/create.html', data);
     } catch (err) {
         next(err);
     }
 });
-router.post('/e/document/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png", "application/pdf"] }), async (req, res, next) => {
+router.post('/e/document/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png", "application/pdf", 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'] }), async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
 
         let name = lodash.get(req, 'body.name')
+        let docType = lodash.get(req, 'body.docType')
         let patch = {
             documents: lodash.get(employee, 'documents', [])
         }
@@ -1655,11 +1679,12 @@ router.post('/e/document/create', middlewares.guardRoute(['use_employee_profile'
             name: name,
             key: lodash.get(req, 'saveList.document[0]'),
             mimeType: '',
+            docType: docType
         })
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
-        flash.ok(req, 'employee', `Uploaded document "${name} ${employee.lastName}".`)
-        res.redirect(`/e-profile/document/all`);
+        flash.ok(req, 'employee', `Uploaded document "${name}".`)
+        res.redirect(`/e/document/all`);
     } catch (err) {
         next(err);
     }

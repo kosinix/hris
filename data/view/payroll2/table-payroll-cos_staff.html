@@ -1,0 +1,447 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-12" id="vApp" v-bind:data-pending="pending" v-cloak>
+    <h1 class="h6 mb-2">{{payroll.name}} - <em>{{payroll.dateStart|format_date('MMM DD, YYYY')}} to {{payroll.dateEnd|format_date('MMM DD, YYYY')}}</em></h1>
+    <div class="btn-group mb-2">
+        <a href="/payroll2/{{payroll._id}}/add-row?rtype=2&index=0&title=Subtotal" class="btn btn-sm btn-light">Add Subtotal Row</a>
+        <a href="/payroll2/{{payroll._id}}/add-row?rtype=3&index=0&title=Title" class="btn btn-sm btn-light">Add Title Row</a>
+        <a href="/payroll2/regen/{{payroll._id}}" class="btn btn-sm btn-primary">Regenerate Payroll</a>
+    </div>
+    <div class="table-responsive mb-3">
+        <table class="table-payroll">
+            <thead>
+                <tr class="text-center">
+                    <th rowspan="3"></th>
+                    <th rowspan="3">No.</th>
+                    <th rowspan="3" width="1%">Source of Fund</th>
+                    <th rowspan="3">Name</th>
+                    <th rowspan="3">Position</th>
+                    <th rowspan="3">Daily/Monthly Wage</th>
+                    <th rowspan="3" colspan="6">No. of Days Rendered</th>
+                    <th rowspan="3">Gross Amount</th>
+                    <!-- <th rowspan="3">5% Premium</th> -->
+
+                    <th colspan="9">Deductions</th>
+
+                    <th rowspan="3">Net Amount</th>
+                    <th rowspan="3">No.</th>
+                    <!-- <th rowspan="3">Signature</th> -->
+                    <!-- <th rowspan="3">Remarks</th> -->
+                    <th rowspan="3"></th>
+
+                </tr>
+                <tr class="text-center">
+                    <th colspan="4">Tax</th>
+                    <th colspan="3">SSS</th>
+                    <th>IGP</th>
+                    <th rowspan="2">Total</th>
+                </tr>
+                <tr class="text-center">
+
+                    <th>1%</th>
+                    <th>5%</th>
+                    <th>10%</th>
+                    <th>Total</th>
+
+                    <th>Contribution</th>
+                    <th>EC</th>
+                    <th>Total</th>
+
+                    <th>Multi-crop</th>
+
+                </tr>
+            </thead>
+            <tbody id="sortMe">
+                <tr v-for="(row, index) in payroll.rows" v-bind:data-ruid="row.uid">
+                    <td style="padding:0; text-align:center; vertical-align: middle;">
+                        <svg class="dragMe" style="cursor: move; width:24px;height:24px; opacity: 0.4" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z" />
+                        </svg>
+                    </td>
+                    <template v-if="row.rtype === 1">
+                        <td>${row.count}</td>
+                        <td><div style="white-space: nowrap; width: 100px; text-overflow: ellipsis; overflow: hidden;">${row.sourceOfFund}</div></td>
+                        <td>${row.name}</td>
+                        <td>${row.position}</td>
+                        <td>${row.wage|currency}</td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showDays=1`">${row.days|blank}</a></td>
+                        <td>days</td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showDays=1`">${row.hours|blank}</a></td>
+                        <td>hrs</td>
+                        <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showDays=1`">${row.minutes|blank}</a></td>
+                        <td>mins</td>
+                        <td>${row.gross|currency}</td>
+                        <!-- <td>
+                            {% set fieldName = 'premium5' %}
+                            {% include 'payroll2/field.html' %}
+                            {% set fieldName = '' %}
+                        </td> -->
+
+                        <td>
+                            {% set fieldName = 'tax1' %}
+                            {% include 'payroll2/field.html' %}
+                            {% set fieldName = '' %}
+                        </td>
+                        <td>
+                            {% set fieldName = 'tax5' %}
+                            {% include 'payroll2/field.html' %}
+                            {% set fieldName = '' %}
+                        </td>
+                        <td>
+                            {% set fieldName = 'tax10' %}
+                            {% include 'payroll2/field.html' %}
+                            {% set fieldName = '' %}
+                        </td>
+                        <!--  total tax -->
+                        <td>${totalTax(row)|currency}</td>
+
+                        <td>
+                            {% set fieldName = 'sss' %}
+                            {% include 'payroll2/field.html' %}
+                            {% set fieldName = '' %}
+                        </td>
+                        <td>
+                            {% set fieldName = 'sssEC' %}
+                            {% include 'payroll2/field.html' %}
+                            {% set fieldName = '' %}
+                        </td>
+                        <!--  -->
+                        <td>${totalSSS(row)|currency}</td>
+
+                        <td>
+                            {% set fieldName = 'igp' %}
+                            {% include 'payroll2/field.html' %}
+                            {% set fieldName = '' %}
+                        </td>
+                        <!--  -->
+                        <td>${totalDeductions(row)|currency}</td>
+
+                        <td>${netAmount(row)|currency}</td>
+                        <td>${row.count}</td>
+                        <!-- <td></td> -->
+                        <!-- <td></td> -->
+
+                    </template>
+                    <template v-else-if="row.rtype === 2">
+                        <td>${row.name}</td>
+                        <td><!-- Source of fund --></td>
+                        <td><!-- Name --></td>
+                        <td><!-- Position --></td>
+                        <td><!-- Wage --></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>${subTotalGross(row, index, 'gross')|currency}</td>
+
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>${subTotalTax(row, index)|currency}</td>
+
+                        <td></td>
+                        <td></td>
+                        <td>${subTotalSSS(row, index)|currency}</td>
+
+                        <td></td>
+                        <td>${subTotalDeductions(row, index)|currency}</td>
+                        <td>${subTotalNetAmount(row, index)|currency}</td>
+
+                        <!-- <td></td> -->
+                        <!-- <td></td> -->
+                        
+                        <td></td>
+                    </template>
+                    <template v-else-if="row.rtype === 3">
+                        <td colspan="3">
+                            {% set fieldName = 'name' %}
+                            {% include 'payroll2/field-string.html' %}
+                            {% set fieldName = '' %}
+                        </td>
+                        <!-- <td>Source of fund</td> -->
+                        <!-- <td>Name</td> -->
+                        <td><!-- Position --></td>
+                        <td><!-- Wage --></td>
+                        <!-- <td></td> -->
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+
+                        <td></td>
+                        <td></td>
+                        <td></td>
+
+                        <td></td>
+                        <td></td>
+                        <td></td>
+
+                        <!-- <td></td> -->
+                        <!-- <td></td> -->
+                        
+                        <td></td>
+                    </template>
+                    <td>
+                        <a v-bind:href="`/payroll2/${payroll._id}/del-row?index=${index}`" class="text-danger">X</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="button" v-on:click="saveMe" class="btn btn-primary btn-sm">Save</button>
+
+    </div> 
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
+<script src="{{app.url}}/js/script-axios-extend.js"></script>
+<script src="{{app.url}}/js/vue-money.js"></script>
+<script src="{{app.url}}/js/Sortable.min.js"></script>
+<script>
+    Vue.config.errorHandler = function (err, vm, info) {
+        console.error(err)
+        console.log(info)
+    // handle error
+    // `info` is a Vue-specific error info, e.g. which lifecycle hook
+    // the error was found in. Only available in 2.2.0+
+    }
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            window.vuelidateExtendMixin,
+            VueMoney.mixin,
+        ],
+        components: {
+        },
+        data: {
+            pending: false,
+            activeDrag: false,
+            payroll: {{payroll|default(true, [])|stringify|safe}},
+        },
+        validations: {
+            
+        },
+        filters: {
+            blank: function(value){
+                return (value) ? value : ''
+            },
+            defVal: function(value, def){
+                return (!value) ? def : value
+            }
+        },
+        
+        mounted: function() {
+            var me = this;
+            me.$nextTick(function () {
+                if(!document.getElementById('sortMe')) return
+                var sortable = Sortable.create(document.getElementById('sortMe'), {
+                    handle: '.dragMe',
+                    dataIdAttr: 'data-ruid',
+                    onSort: function (evt) {
+                        /* Undo HTML sort since vue will auto sort based on vm.data */
+                        /* {# https://github.com/SortableJS/Sortable/issues/264#issuecomment-224127048 #} */ 
+                        var oldId = evt.oldIndex,
+                            newId = evt.newIndex,
+                            reArrange = sortable.toArray(),
+                            oldSort = sortable.toArray();
+
+                        if (oldId < newId) {
+                            for (var i = oldId; i < newId; i++)
+                                reArrange[i+1] = oldSort[i];
+                        } else {
+                            for (var i = newId + 1; i <= oldId; i++)
+                                reArrange[i-1] = oldSort[i];
+                        }
+
+                        reArrange[oldId] = oldSort[newId];
+                        sortable.sort(reArrange);
+
+                    },
+                    onEnd: function (evt) {
+                        if(evt.newIndex === evt.oldIndex) return false;
+
+                        jQuery('.cover').addClass('wait')
+                        var rowsIdsArray = []
+                        jQuery('.drag-employment').each(function(i, e){
+                            rowsIdsArray.push(String(jQuery(e).data('ruid'))) // Row UID
+                        })
+
+                        me.pending = true;
+                        window.axios.post('/payroll2/{{payroll._id}}/sort-rows', {oldIndex: evt.oldIndex, newIndex: evt.newIndex}).then(function(response){
+                            var data = response.data;
+
+                            /*{# https://stackoverflow.com/a/6470794/1594918 #}*/
+                            /* Move array element from old to new index */
+                            var element = me.payroll.rows[evt.oldIndex];
+                            me.payroll.rows.splice(evt.oldIndex, 1);
+                            me.payroll.rows.splice(evt.newIndex, 0, element);
+                            let counter = 0
+                            me.payroll.rows = me.payroll.rows.map((row)=>{
+                                if(row.rtype === 1){
+                                    row.count = ++counter
+                                }
+                                return row
+                            }) 
+                            console.log('Changes saved.');
+                        }).catch(function(error){
+                            handleAxiosError(error);
+                        }).then(function(){
+                            me.pending = false;
+                            jQuery('.cover').removeClass('wait');
+                        });
+                    },
+                });
+            })
+        },
+        methods: {
+            totalTax: function(row){
+                return row.tax1 + row.tax5 + row.tax10
+            },
+            totalSSS: function(row){
+                return row.sss + row.sssEC
+            },
+            totalIGP: function(row){
+                return row.igp
+            },
+            totalDeductions: function(row){
+                return this.totalTax(row) + this.totalSSS(row) + this.totalIGP(row)
+            },
+            netAmount: function(row){
+                return row.gross - this.totalDeductions(row)
+            },
+            subTotalGross: function(row, index, key) {
+                let totalGross = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentRow?.rtype === 1 && currentIndex >= 0){
+
+                    totalGross += currentRow[key]
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return totalGross
+            },
+            subTotalTax: function(row, index) {
+                let totalGross = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentRow?.rtype === 1 && currentIndex >= 0){
+
+                    totalGross += this.totalTax(currentRow)
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return totalGross
+            },
+            
+            subTotalSSS: function(row, index) {
+                let totalGross = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentRow?.rtype === 1 && currentIndex >= 0){
+
+                    totalGross += this.totalSSS(currentRow)
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return totalGross
+            },
+            subTotalDeductions: function(row, index) {
+                let totalGross = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentRow?.rtype === 1 && currentIndex >= 0){
+
+                    totalGross += this.totalDeductions(currentRow)
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return totalGross
+            },
+            subTotalNetAmount: function(row, index) {
+                let totalGross = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentRow?.rtype === 1 && currentIndex >= 0){
+
+                    totalGross += this.netAmount(currentRow)
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return totalGross
+            },
+            setActiveDrag: function(){
+                this.activeDrag = !this.activeDrag
+            },
+            editInput: function(e) {
+                // if(this.payroll.status === 1 || this.payroll.status === 2){
+                    
+                // } else {
+                //     return false
+                // }
+                var el = jQuery(e.target)
+                var elInput = el.siblings('input')
+                elInput.data('orig', elInput.val())
+                el.parents('td').addClass('editable')
+                elInput.focus()
+            },
+            lockInput: function(e) { // onBlur
+                var el = jQuery(e.target)
+                el.parents('td').removeClass('editable')
+                e.target.value = parseFloat(e.target.value)
+                this.saveMe()
+            },
+            lockInput2: function(e) { // onBlur
+                var el = jQuery(e.target)
+                el.parents('td').removeClass('editable')
+                e.target.value = e.target.value
+                this.saveMe()
+            },
+            toMoney: function(val){
+                if(isNaN(val)){
+                    val = 0
+                }
+                return parseFloat(val)
+            },
+            roundOff: function(number, precision = 2) {
+                number = parseFloat(number)
+                precision = parseInt(precision)
+                let factor = Math.pow(10, precision)
+                let n = precision < 0 ? number : 0.01 / factor + number
+                return Math.round( n * factor) / factor
+            },
+            saveMe: function() {
+                var me = this;
+                me.pending = true
+                axios.post(`/payroll2/${me.payroll._id}/save`, {rows: JSON.parse(JSON.stringify(me.payroll.rows))}, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function(response){
+                    console.log(response.data);
+                }).catch(function(error){
+                    alert("Something went wrong.");
+                }).then(function(){
+                    me.pending = false
+                });
+            },
+        }
+    });
+</script>
+{% endblock %}

@@ -94,6 +94,7 @@ router.get('/payroll/all', middlewares.guardRoute(['read_all_payroll', 'read_pay
 
 router.get('/payroll/create', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
     try {
+        // return res.redirect('/payroll/x/create')
 
         let employeeLists = await req.app.locals.db.main.EmployeeList.find()
 
@@ -111,7 +112,6 @@ router.get('/payroll/create', middlewares.guardRoute(['create_payroll']), async 
 });
 router.get('/payroll/generate', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
     try {
-
         let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
         let data = {
             workSchedules: workSchedules
@@ -236,8 +236,16 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
                 })
             }
 
-            let timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, hoursPerDay)
 
+            // let timeRecord = dtrHelper.getTimeBreakdown(totalMinutes, totalMinutesUnderTime, hoursPerDay)
+            let options = {
+                padded: true,
+                showTotalAs: 'time',
+                showWeekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                periodWeekDays: 'All'
+            }
+            let { days, stats, compute } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, employee._id, employment._id, moment(patch.dateStart), moment(patch.dateEnd), options)
+            let timeRecord = stats.weekdays
             return {
                 uid: uid.gen(),
                 type: 1,
@@ -284,6 +292,7 @@ router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async
             template: patch.template,
             status: 1
         }
+        // return res.send(payroll)
 
         payroll = await req.app.locals.db.main.Payroll.create(payroll)
         // return res.send(payroll)
@@ -524,113 +533,6 @@ router.get(['/payroll/:payrollId', `/payroll/:payrollId/payroll.xlsx`], middlewa
             payrollJs: payrollJs.formulas[payroll.template],
             dtrHelper: dtrHelper,
         });
-    } catch (err) {
-        next(err);
-    }
-});
-
-router.get('/payroll/x/view', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
-    try {
-
-        let employeeLists = await req.app.locals.db.main.EmployeeList.find()
-
-        res.render('payroll/viewer.html', {
-            employeeLists: employeeLists.filter(o => o.tags.includes('Fund Source')).map((o) => {
-                return {
-                    value: o._id,
-                    text: o.name
-                }
-            })
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-router.get('/payroll/x/viewer', middlewares.guardRoute(['read_payroll']), async (req, res, next) => {
-    try {
-        let dateStart = req.query?.dateStart
-        let dateEnd = req.query?.dateEnd
-        let employeeListId = req.query?.employeeList
-
-        let employeeList = await req.app.locals.db.main.EmployeeList.findById(employeeListId).lean();
-        if (!employeeList) {
-            throw new Error(`Employee list not found.`)
-        }
-        let members = employeeList.members
-
-        let startMoment = moment(dateStart)
-        let endMoment = moment(dateEnd)
-        console.log(startMoment)
-        let options = {
-            padded: true,
-            showTotalAs: 'time',
-            showWeekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            periodWeekDays: 'All'
-        }
-        let rows = []
-        for (let x = 0; x < members.length; x++) {
-            // for (let x = 0; x < 20; x++) {
-            let member = members[x]
-            // console.log(member)
-
-            let { days, stats, compute } = await dtrHelper.getDtrByDateRange6(req.app.locals.db, member.employeeId, member.employmentId, startMoment, endMoment, options)
-
-            let employments = await req.app.locals.db.main.Employment.aggregate([
-                {
-                    $match: {
-                        _id: member.employmentId
-                    }
-                },
-                {
-                    $lookup: {
-                        localField: 'employeeId',
-                        foreignField: '_id',
-                        from: 'employees',
-                        as: 'employees'
-                    }
-                },
-                {
-                    $addFields: {
-                        "employee": {
-                            $arrayElemAt: ["$employees", 0]
-                        }
-                    }
-                },
-                {
-                    $project: {
-                        employees: 0,
-                        employee: {
-                            personal: 0,
-                            employments: 0,
-                            addresses: 0,
-                        }
-                    }
-                }
-            ])
-            const precisionRound = (number, precision) => {
-                var factor = Math.pow(10, precision);
-                return Math.round(number * factor) / factor;
-            }
-            let employment = employments?.pop()
-            let employee = employment.employee
-            rows.push({
-                sourceOfFund: employment.department,
-                name: `${employee.lastName}, ${employee.firstName}`,
-                position: employment.position,
-                wage: employment.salary,
-                days: stats.weekdays.renderedDays,
-                hours: stats.weekdays.renderedHours,
-                minutes: stats.weekdays.renderedMinutes,
-                gross: precisionRound((employment.salary / 8 / 60) * stats.weekdays.totalMinutes, 9).toFixed(2)
-                // stats: stats,
-                // compute: compute,
-            })
-        }
-        // return res.send(rows)
-
-        res.render('payroll/table-xxx.html', {
-            rows: rows
-        })
     } catch (err) {
         next(err);
     }
@@ -1075,29 +977,56 @@ router.get('/payroll/group/:employeeListId', middlewares.guardRoute(['read_all_e
         let refresh = lodash.get(req, 'query.refresh', false)
         if (refresh) { // Rebuild list
 
-            let promises = []
-            promises = employeeList.members.map((m) => {
-                return req.app.locals.db.main.Employment.findById(m.employmentId).lean()
-            })
-            employeeList.members = await Promise.all(promises)
+            let employmentIds = employeeList.members.map(m => m.employmentId)
+            let employments = await req.app.locals.db.main.Employment.aggregate([
+                {
+                    $match: {
+                        _id: {
+                            $in: employmentIds
+                        }
+                    }
+                },
+                {
+                    $lookup: {
+                        localField: 'employeeId',
+                        foreignField: '_id',
+                        from: 'employees',
+                        as: 'employees'
+                    }
+                },
+                {
+                    $addFields: {
+                        "employee": {
+                            $arrayElemAt: ["$employees", 0]
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        employees: 0,
+                        employee: {
+                            personal: 0,
+                            employments: 0,
+                            addresses: 0,
+                        }
+                    }
+                }
+            ])
 
-            promises = []
-            promises = employeeList.members.map((m) => {
-                return req.app.locals.db.main.Employee.findById(m.employeeId).lean()
-            })
-            let employees = await Promise.all(promises)
-            employeeList.members = employeeList.members.map((m, i) => {
+            employments = employments.map((m, i) => {
                 return {
                     employeeId: m.employeeId,
                     employmentId: m._id,
                     fundSource: m.fundSource,
-                    firstName: employees[i].firstName,
-                    middleName: employees[i].middleName,
-                    lastName: employees[i].lastName,
-                    suffix: employees[i].suffix,
+                    firstName: m.employee.firstName,
+                    middleName: m.employee.middleName,
+                    lastName: m.employee.lastName,
+                    suffix: m.employee.suffix,
                     position: m.position,
                 }
             })
+
+            employeeList.members = employments
             await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
             return res.redirect(`/payroll/group/${employeeList._id}`)
         }
@@ -1115,7 +1044,27 @@ router.get('/payroll/group/:employeeListId', middlewares.guardRoute(['read_all_e
         next(err);
     }
 });
+router.post('/payroll/group/:employeeListId/update', middlewares.guardRoute(['update_employee']), middlewares.getEmployeeList, async (req, res, next) => {
+    try {
+        let employeeList = res.employeeList.toObject()
 
+        let body = req.body
+        let oldIndex = lodash.get(body, 'oldIndex')
+        let newIndex = lodash.get(body, 'newIndex')
+
+        /*{# https://stackoverflow.com/a/6470794/1594918 #}*/
+        /* Move array element from old to new index */
+        let element = employeeList.members[oldIndex];
+        employeeList.members.splice(oldIndex, 1);
+        employeeList.members.splice(newIndex, 0, element);
+
+        await req.app.locals.db.main.EmployeeList.updateOne({ _id: employeeList._id }, employeeList)
+
+        res.send('Sorting saved.')
+    } catch (err) {
+        next(err);
+    }
+});
 // D
 router.delete('/payroll/group/:employeeListId', middlewares.guardRoute(['delete_employee']), middlewares.getEmployeeList, async (req, res, next) => {
     try {

@@ -1,0 +1,2 @@
+<input v-on:blur="lockInput2($event)" type="text" v-bind:value="row.{{fieldName}}" v-on:input="row.{{fieldName}} = $event.target.value">
+<span class="text-success" v-on:dblclick="editInput($event)">${row.{{fieldName}}|defVal(0)|currency}</span>

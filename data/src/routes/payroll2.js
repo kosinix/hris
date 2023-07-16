@@ -243,44 +243,10 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
                     _minutes = stats.days.time.minutes
                 }
 
-                let customF = () => {
-                    let row = {}
-                    row.peraAca = 2000
-    
-                    //// MANDATORY
-                    // GSIS
-                    // rlip
-                    row.emergencyLoan = row.emergencyLoan ?? 0
-                    row.eal = row.eal ?? 0
-                    row.conso = row.conso ?? 0
-                    row.ouliPremium = row.ouliPremium ?? 0
-                    row.ouliPolicy = row.ouliPolicy ?? 0
-                    row.regularPolicy = row.regularPolicy ?? 0
-                    row.gfal = row.gfal ?? 0
-                    row.mpl = row.mpl ?? 0
-                    row.cpl = row.cpl ?? 0
-                    row.help = row.help ?? 0
-
-                    // Philhealth
-                    row.medicare = row.medicare ?? 0
-
-                    // Pagibig
-                    row.pagibig = row.pagibig ?? 0
-                    row.mplLoan = row.mplLoan ?? 0
-                    row.calamity = row.calamity ?? 0
-
-                    // BIR
-                    row.withTax = row.withTax ?? 0
-
-                    //// NON MANDATORY
-                    row.teachers = row.teachers ?? 0
-                    row.ffa = row.ffa ?? 0
-                    row.citySavings = row.citySavings ?? 0
-                    return row
-                }
-
+                
+                let customCols = {}
                 if (template === 'permanent') {
-                    let customCols = {}
+                    customCols['peraAca'] = 2000
                     mandatoryDeductions.forEach((name)=>{
                         lodash.set(customCols, name, 0)
                     })

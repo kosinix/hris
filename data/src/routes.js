@@ -14,6 +14,7 @@ router.use(require('./routes/register'));
 router.use(require('./routes/registration'));
 router.use(require('./routes/protected'));
 router.use(require('./routes/hdf'));
+router.use(require('./routes/clinic'));
 router.use(require('./routes/e-profile'));
 router.use(require('./routes/hros'));
 router.use(require('./routes/online-services'));

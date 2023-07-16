@@ -18,6 +18,7 @@ router.use(require('./routes/e-profile'));
 router.use(require('./routes/hros'));
 router.use(require('./routes/online-services'));
 router.use(require('./routes/employee'));
+router.use(require('./routes/department'));
 router.use(require('./routes/memo'));
 router.use(require('./routes/payroll'));
 router.use(require('./routes/payroll2'));

@@ -1,0 +1,114 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12 pt-3">
+    {% include 'parts/flash.html' %}
+
+    <div id="vApp" v-cloak data-pending="pending" class="tab-content p-3 mb-5">
+        <div class="d-flex align-items-center mb-4">
+            <h1 class="h4 mr-3 mb-0">Departments</h1>
+            <a href="/department/create" class="btn btn-sm btn-success">Add</a>
+        </div>
+        <div v-if="departments.length > 0" class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Acronym</th>
+                        <th>Members</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="department in departments">
+                        <td></td>
+                        <td><a :href="`/department/read/${department._id}`">${department.name}</a></td>
+                        <td>${department.acronym}</td>
+                        <td>${department.members.length}</td>
+                        <td>
+                            <button v-on:click.prevent="deleteDepartment(department._id)" class="btn btn-sm btn-none text-danger">X</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div v-else class="alert alert-info">None added yet.</div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
+<script>
+   
+    let vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            pending: false,
+            departments: {{departments|default([], true)|stringify|safe}},
+        },
+        filters: {
+            s3_url: function (value, sizePrefix = "") {
+                if (!value) {
+                    return ''
+                }
+                if (sizePrefix) {
+                    sizePrefix += "-";
+                }
+                return `/file-getter/{{CONFIG.aws.bucket1.name}}/{{CONFIG.aws.bucket1.prefix}}/${sizePrefix}${value}`
+            },
+            capitalize: (value) => {
+                return _.capitalize(value);
+            },
+            replace: (value,a,b) => {
+                return value.replace(a,b)
+            },
+            query_string: function(defs, params){
+                return this.query_string(defs, params)
+            }
+        },
+        methods: {
+            deleteDepartment: function (departmentId) {
+                var me = this;
+
+                if (!confirm('Delete department?')) return false
+
+                me.pending = true
+
+                fetch(`/department/delete/${departmentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        return response.text();
+                    }
+                    throw new Error(await response.text())
+                    
+                }).then(function(responseJson){
+                    let index = _.findIndex(me.departments, (o,i)=>{
+                        return o._id === departmentId
+                    })
+                    if(index !== -1){
+                        me.departments.splice(index, 1)
+                    }
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
+                }).then(function(){
+                    me.pending = false
+                });
+
+            },
+        },
+        mounted: function(){
+           
+        }
+    })
+</script>
+{% endblock %}

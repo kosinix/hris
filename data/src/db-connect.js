@@ -29,6 +29,7 @@ module.exports = {
             main.AttendanceReview = main.model('AttendanceReview', require('./models/attendance-review'));
             main.AuthorityToTravel = main.model('AuthorityToTravel', require('./models/authority-to-travel'));
             main.App = main.model('App', require('./models/app'));
+            main.Department = main.model('Department', require('./models/department'));
             main.Employee = main.model('Employee', require('./models/employee'));
             main.EmployeeHistory = main.model('EmployeeHistory', require('./models/employee-history'));
             main.EmployeeList = main.model('EmployeeList', require('./models/employee-list'));

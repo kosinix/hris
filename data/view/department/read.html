@@ -1,0 +1,188 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12 pt-3">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+        <div>
+            <h1 class="h5 mb-0">
+                Department: {{department.name}}
+            </h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/department/update/{{department._id}}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                <a href="/department/refresh/{{department._id}}" class="btn btn-sm btn-primary">
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor"
+                            d="M18 14.5C19.11 14.5 20.11 14.95 20.83 15.67L22 14.5V18.5H18L19.77 16.73C19.32 16.28 18.69 16 18 16C16.62 16 15.5 17.12 15.5 18.5C15.5 19.88 16.62 21 18 21C18.82 21 19.55 20.61 20 20H21.71C21.12 21.47 19.68 22.5 18 22.5C15.79 22.5 14 20.71 14 18.5C14 16.29 15.79 14.5 18 14.5M4 3H18C19.11 3 20 3.9 20 5V12.17C19.5 12.06 19 12 18.5 12C17.23 12 16.04 12.37 15.04 13H12V17H12.18C12.06 17.5 12 18 12 18.5L12 19H4C2.9 19 2 18.11 2 17V5C2 3.9 2.9 3 4 3M4 7V11H10V7H4M12 7V11H18V7H12M4 13V17H10V13H4Z" />
+                    </svg>
+                </a>
+                <a href="/department/all" class="btn btn-sm btn-outline-secondary">Back</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+
+    <div id="vApp" v-cloak class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+        <div v-if="department.members.length > 0" class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th width="1%"></th>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Position</th>
+                        <th width="1%"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(member, i) in department.members">
+                        <td>${i+1}</td>
+                        <td>
+                            <a :href="`/employee/{{member.employeeId}}/employment`">${member.lastName}, ${member.firstName}</a>
+                        </td>
+                        <td>${member.role}</td>
+                        <td>${member.position}</td>
+                        <td class="text-center">
+                            <button v-on:click.prevent="deleteMember(member._id, i)" class="btn btn-sm btn-none text-danger">X</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div v-else class="alert alert-info">No employees added in department yet.</div>
+
+        <hr>
+        <form ref="form" v-on:submit.prevent="onSubmit" action="/department/members/{{department._id}}/add"
+            method="POST" class="form-default pt-2">
+            <div class="form-group">
+                <label for="employmentId">Employee <span class="text-danger">*</span></label>
+                <div>
+                    <autocomplete ref="autocomplete" v-model="employmentId" name="employmentId" initial-value="{{''}}"
+                        initial-display="{{''}}" placeholder="Type employee name..." :source="dataSource"
+                        input-class="form-control" :request-headers="headers" v-on:selected="onSelect">
+                    </autocomplete>
+                    <small class="invalid-feedback">${getError('employmentId')}</small>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="role">Department Role</label>
+                <div>
+                    <select v-model="role" name="role" id="role" class="form-control">
+                        <option></option>
+                        <option>Staff</option>
+                        <option>Director</option>
+                        <option>Secretary</option>
+                    </select>
+                    <small class="invalid-feedback">${getError('role')}</small>
+                </div>
+            </div>
+            <div class="form-row pb-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary">Add To Department</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vue-ph-address.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            VuePhAddress.mixin
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        data: {
+            pending: false,
+            employmentId: '',
+            role: '',
+            department: {{department|default([], true)|stringify|safe}},
+        },
+        validations: {
+            employmentId: {
+                required: window.validators.required
+            },
+        },
+        mounted: function () {
+            var me = this;
+        },
+        methods: {
+            dataSource: function (input) {
+                return '/employee?s=' + input
+            },
+            deleteMember: function (memberId, index) {
+                var me = this;
+
+                if (!confirm('Remove member?')) return false
+
+                me.pending = true
+
+                fetch(`/department/members/{{department._id}}/delete/${memberId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        me.department.members.splice(index, 1)
+                    } else {
+                        throw new Error(await response.text())
+                    }
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
+                }).then(function(){
+                    me.pending = false
+                });
+
+            },
+            onSubmit: function () {
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function () {
+                        fetch(`/department/members/{{department._id}}/add`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                employmentId: me.employmentId,
+                                role: me.role,
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(async function(response){
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error(await response.text())
+                            
+                        }).then(function(responseJson){
+                            me.department.members.push(responseJson)
+                            me.$refs.autocomplete.clear()
+                        }).catch(async function(error){
+                            console.error(error)
+                            alert(error);
+                        }).then(function(){
+                            me.pending = false
+                        });
+                        //me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -13,7 +13,7 @@
     <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width:900px; margin:0 auto;">
         {% include 'parts/flash.html' %}
         <div v-if="timeZone != 8" class="alert alert-warning"><strong>Warning:</strong> Your time zone is currently not set to Philippine time. Your time will be displayed incorrectly. Please set your device's timezone to UTC+8:00. <a href="/help/timezone-correction">See help instructions</a></div>
-        {% include "e-profile/dtr/modal-dtr-settings.html" %}
+        {% include "e/dtr/modal-dtr-settings.html" %}
         <div class="row mb-4">
             <div class="col-md-4 col-xl-3 mb-1">
                 <div class="e-profile-photo ml-auto mr-auto">
@@ -83,10 +83,10 @@
         <div class="table-responsive">
             <table class="table table-dtr bg-white">
                 <tr>
-                    <th class="text-center align-middle border-right" rowspan="2" colspan="2">{{periodMonthYear|format_date('MMM')}}</th>
+                    <th class="text-center align-middle border-right" rowspan="2" colspan="2">{{periodMonthYear|format_date('MMMM')}}</th>
                     <th class="text-center" colspan="2">AM</th>
                     <th class="text-center" colspan="2">PM</th>
-                    <th class="text-center text-capitalize" colspan="3">${showTotalAs}</th>
+                    <th class="text-center text-capitalize" colspan="2">${showTotalAs}</th>
                 </tr>
                 <tr class="text-center">
                     <th>Arrival</th>
@@ -95,9 +95,9 @@
                     <th>Arrival</th>
                     <th>Departure</th>
 
-                    <th>Days</th>
+                    <!-- <th>Days</th> -->
                     <th>Hours</th>
-                    <th>Mins.</th>
+                    <th>Min</th>
                 </tr>
                 <tr v-for="day in days" v-bind:class="dayCssClasses(day)">
                     <td class="text-center">
@@ -212,22 +212,22 @@
                     </template>
                     {# Counts #}
                     <template v-if="showTotalAs==='time'">
+                        <!-- <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                            ${day?.time?.daysxxxxxx||''}
+                        </td> -->
                         <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
-                            ${day?.time?.days||''}
-                        </td>
-                        <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
-                            ${day?.time?.hours||''}
+                            ${day?.time?.hoursDays||''}
                         </td>
                         <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
                             ${day?.time?.minutes||''}
                         </td>
                     </template>
                     <template v-if="showTotalAs==='undertime'">
+                        <!-- <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                            ${day?.undertime?.daysxxxx||''}
+                        </td> -->
                         <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
-                            ${day?.undertime?.days||''}
-                        </td>
-                        <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
-                            ${day?.undertime?.hours||''}
+                            ${day?.undertime?.hoursDays||''}
                         </td>
                         <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
                             ${day?.undertime?.minutes||''}
@@ -238,8 +238,8 @@
                 <template v-if="countTimeBy == 'none'">
                     <tr class="text-center">
                         <td colspan="6"><h5 class="m-0">Total</h5></td>
-                        <td>
-                        </td>
+                        <!-- <td>
+                        </td> -->
                         <td>
                         </td>
                         <td>
@@ -251,33 +251,33 @@
                         <td colspan="6" class="text-right"><strong>Total</strong></td>
                         <template v-if="showTotalAs === 'time'">
                             <template v-if="showDays === '0'">
-                                <td class="text-center">
+                                <!-- <td class="text-center">
                                     ${stats.days.time.days||''}
-                                </td>
+                                </td> -->
                                 <td class="text-center">
-                                    ${stats.days.time.hours||''}
+                                    ${stats.days.time.hoursDays||''}
                                 </td>
                                 <td class="text-center">
                                     ${stats.days.time.minutes||''}
                                 </td>
                             </template>
                             <template v-if="showDays === '1'">
-                                <td class="text-center">
+                                <!-- <td class="text-center">
                                     ${stats.workdays.time.days||''}
-                                </td>
+                                </td> -->
                                 <td class="text-center">
-                                    ${stats.workdays.time.hours||''}
+                                    ${stats.workdays.time.hoursDays||''}
                                 </td>
                                 <td class="text-center">
                                     ${stats.workdays.time.minutes||''}
                                 </td>
                             </template>
                             <template v-if="showDays === '2'">
-                                <td class="text-center">
+                                <!-- <td class="text-center">
                                     ${stats.restDays.time.days||''}
-                                </td>
+                                </td> -->
                                 <td class="text-center">
-                                    ${stats.restDays.time.hours||''}
+                                    ${stats.restDays.time.hoursDays||''}
                                 </td>
                                 <td class="text-center">
                                     ${stats.restDays.time.minutes||''}
@@ -286,33 +286,33 @@
                         </template>
                         <template v-if="showTotalAs === 'undertime'">
                             <template v-if="showDays === '0'">
-                                <td class="text-center">
+                                <!-- <td class="text-center">
                                     ${stats.days.undertime.days||''}
-                                </td>
+                                </td> -->
                                 <td class="text-center">
-                                    ${stats.days.undertime.hours||''}
+                                    ${stats.days.undertime.hoursDays||''}
                                 </td>
                                 <td class="text-center">
                                     ${stats.days.undertime.minutes||''}
                                 </td>
                             </template>
                             <template v-if="showDays === '1'">
-                                <td class="text-center">
+                                <!-- <td class="text-center">
                                     ${stats.workdays.undertime.days||''}
-                                </td>
+                                </td> -->
                                 <td class="text-center">
-                                    ${stats.workdays.undertime.hours||''}
+                                    ${stats.workdays.undertime.hoursDays||''}
                                 </td>
                                 <td class="text-center">
                                     ${stats.workdays.undertime.minutes||''}
                                 </td>
                             </template>
                             <template v-if="showDays === '2'">
-                                <td class="text-center">
+                                <!-- <td class="text-center">
                                     ${stats.restDays.undertime.days||''}
-                                </td>
+                                </td> -->
                                 <td class="text-center">
-                                    ${stats.restDays.undertime.hours||''}
+                                    ${stats.restDays.undertime.hoursDays||''}
                                 </td>
                                 <td class="text-center">
                                     ${stats.restDays.undertime.minutes||''}

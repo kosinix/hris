@@ -1,0 +1,41 @@
+<div id="modal-select-action" class="modal fade" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form ref="form" method="GET">
+                <div class="modal-header">
+                    <h5 class="modal-title">What do you want to do?</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pl-4 pr-4">
+                    <div class="row">
+                        <div class="col-md-12 text-center p-md-4">
+                            <div class="btn-toolbar justify-content-center">
+                                <div class="btn-group flex-wrap">
+                                    <template v-if="mode==='create'">
+                                        <a :href="urlTravel" class="btn btn-light border">Travel</a>
+                                        <a :href="urlWfh" class="btn btn-light border">WFH</a>
+                                        {% if employment.employmentType === 'permanent' %}
+                                            <a :href="urlLeave" class="btn btn-light border">Leave</a>
+                                        {% endif %}
+                                    </template>
+                                    <template v-else>
+                                        <a :href="urlCorrection" class="btn btn-light border">Apply for Correction</a>
+                                        <a :href="urlTravel" class="btn btn-light border">Travel</a>
+                                        <a :href="urlWfh" class="btn btn-light border">WFH</a>
+                                        {% if employment.employmentType === 'permanent' %}
+                                            <a :href="urlLeave" class="btn btn-light border">Leave</a>
+                                        {% endif %}
+                                        <a :href="urlAnal" class="btn btn-light border">Analyze</a>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </form>
+        </div>
+    </div>
+</div>

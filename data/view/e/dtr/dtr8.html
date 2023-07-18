@@ -16,11 +16,7 @@
                 <li class="nav-item">
                     <a class="nav-link active" href="?date=">Daily Time Record</a>
                 </li>
-                {% if employment.employmentType === 'cos' %}
-                <li class="nav-item">
-                    <a class="nav-link" :href="otUrl">Extended Services</a>
-                </li>
-                {% endif %}
+                
             </ul>
         </div>
         <div class="tab-content bg-white">
@@ -61,6 +57,9 @@
                                         <button v-on:click="showSettings" type="button" class="btn btn-sm btn-secondary">Settings</button>
                                         <a v-bind:href="printUrl" class="btn btn-sm btn-outline-secondary">Print</a>
                                         <!-- <a v-bind:href="shareUrl" class="btn btn-sm btn-outline-secondary">Share</a> -->
+                                        {% if employment.employmentType === 'cos' %}
+                                            <a v-bind:href="otUrl" class="btn btn-sm btn-outline-secondary">Extended Services</a>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>

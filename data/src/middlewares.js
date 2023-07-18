@@ -722,7 +722,7 @@ module.exports = {
             let employment = res.employment
 
             let periodMonthYear = lodash.get(req, 'query.periodMonthYear', moment().startOf('month').format('YYYY-MM-DD'))
-            let periodSlice = lodash.get(req, 'query.periodSlice')
+            let periodSlice = lodash.get(req, 'query.periodSlice', 'all')
             let periodWeekDays = lodash.get(req, 'query.periodWeekDays', 'Mon-Fri')
             let showTotalAs = lodash.get(req, 'query.showTotalAs', 'time')
             let countTimeBy = lodash.get(req, 'query.countTimeBy', 'all')

@@ -84,6 +84,12 @@ router.post('/e-profile/accept', middlewares.guardRoute(['use_employee_profile']
 
 router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'], middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {
+
+        if (/^\/e-profile\/dtr\/print/.test(req.path)) {
+            return res.redirect(`/e/dtr/print/${req.params.employmentId}`)
+        }
+        return res.redirect(`/e/dtr/${req.params.employmentId}`)
+
         let employee = res.employee.toObject()
         let employment = res.employment
         let employmentId = employment._id

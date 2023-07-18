@@ -4,14 +4,13 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-center">
-            <h1 class="h5 mb-0">Daily Time Record</h1>
+            <h1 class="h5 mb-0">Attendance</h1>
         </div>
     </div>
     <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width:900px; margin:0 auto;">
         {% include 'parts/flash.html' %}
         <div v-if="timeZone != 8" class="alert alert-warning"><strong>Warning:</strong> Your time zone is currently not set to Philippine time. Your time will be displayed incorrectly. Please set your device's timezone to UTC+8:00. <a href="/help/timezone-correction">See help instructions</a></div>
         {% include "e/dtr/modal-dtr-settings.html" %}
-        
         <div>
             <ul class="nav nav-tabs">
                 <li class="nav-item">
@@ -27,7 +26,7 @@
         <div class="tab-content bg-white">
             <div class="p-3">
                 <div class="row mb-4">
-                    <div class="col-md-4 col-xl-3 mb-1">
+                    <div class="col-md-4 col-xl-3 mb-1 d-flex align-items-center">
                         <div class="e-profile-photo ml-auto mr-auto">
                             {% if employee.profilePhoto %}
                                 <div class="actual-pic">
@@ -54,37 +53,36 @@
                     <div class="col-md-8 col-xl-9">
                         <div class="row mb-2">
                             <div class="col-sm-6 text-center text-sm-left">
-                                <h4 class="h5 mb-3 privy-name">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
+                                <h4 class="h5 mb-3 privy-name">{{employee.firstName}} {{employee.lastName}}</h4>
                             </div>
                             <div class="col-sm-6 text-center text-sm-right">
                                 <div class="btn-toolbar justify-content-center justify-content-sm-end">
                                     <div class="btn-group">
-                                        {# <button v-on:click="settingsEditable = true" type="button" class="btn btn-sm btn-primary">Settings</button> #}
                                         <button v-on:click="showSettings" type="button" class="btn btn-sm btn-secondary">Settings</button>
                                         <a v-bind:href="printUrl" class="btn btn-sm btn-outline-secondary">Print</a>
-                                        <a v-bind:href="shareUrl" class="btn btn-sm btn-outline-secondary">Share</a>
+                                        <!-- <a v-bind:href="shareUrl" class="btn btn-sm btn-outline-secondary">Share</a> -->
                                     </div>
                                 </div>
-                                {# <a href="#" class="btn btn-sm btn-outline-primary" title="DTR Settings">Settings</a> #}
                             </div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-sm-3">Employment:</div>
-                            <div class="col-sm-9" style="font-family:Consolas, 'Courier New', mono"><strong>{{employment.position}}</strong></div>
+                            <div class="col-sm-9" style="font-family:Consolas, 'Courier New', mono"><strong>${employment.position}</strong></div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-sm-3">Period:</div>
-                            <div class="col-sm-9" style="font-family:Consolas, 'Courier New', mono"><strong>${period}</strong></div>
+                            <div class="col-sm-9" style="font-family:Consolas, 'Courier New', mono"><strong>${period}</strong> </div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-sm-3">Schedule:</div>
-                            <div class="col-sm-9 d-flex align-items-center">
-                                <div class="font-weight-bold" style="white-space: pre; font-family:Consolas, 'Courier New', mono">{{workScheduleWeek|default('', true)|replace('Mon,Tue,Wed,Thu,Fri,Sat,Sun: ','')}}</div>
+                            <div class="col-sm-9 d-flex flex-wrap align-items-center">
+                                <div class="font-weight-bold" style="white-space: pre; font-family:Consolas, 'Courier New', mono">{{workScheduleWeek|default('', true)|replace('Mon,Tue,Wed,Thu,Fri,Sat,Sun: ','')}} </div>
+                                
                             </div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-sm-3">In Charge:</div>
-                            <div class="col-sm-9" style="font-family:Consolas, 'Courier New', mono"><strong>${inCharge}</strong></div>
+                            <div class="col-sm-9" style="font-family:Consolas, 'Courier New', mono"><strong>${inCharge}</strong> </div>
                         </div>
                         {# <div class="row mb-2">
                             <div class="col-sm-3">Show Total:</div>
@@ -93,10 +91,21 @@
                     </div>
                 </div>
             </div>
+            <div class="p-3">
+                <div class="d-flex align-items-center justify-content-center">
+                    <a v-bind:href="prevMonth" class="btn btn-light btn-sm d-flex align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><title>Prev. Month</title><path fill="dark" d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z" /></svg>
+                    </a>
+                    <span class="ml-2 mr-2 h5 mb-0">${monthYear}</span>
+                    <a v-bind:href="nextMonth" class="btn btn-light btn-sm d-flex align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><title>Next Month</title><path fill="dark" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+                    </a>
+                </div>
+            </div>
             <div class="table-responsive">
                 <table class="table table-bordered table-dtr bg-white">
                     <tr>
-                        <th class="text-center align-middle border-right" rowspan="2" colspan="2">{{periodMonthYear|format_date('MMMM')}}</th>
+                        <th class="text-center align-middle border-right" rowspan="2" colspan="2">${month}</th>
                         <th class="text-center" colspan="2">AM</th>
                         <th class="text-center" colspan="2">PM</th>
                         <th class="text-center text-capitalize" colspan="2">
@@ -376,8 +385,8 @@
                     </div>
                 </div>
                 <div class="col-md-7">
-                    {% if showDays === 1 %}
-                        {% if employment.employmentType === 'permanent' %}
+                    <template v-if="showDays === '1'">
+                        <template v-if="employment.employmentType === 'permanent'">
                             <div class=" dtr-estimate" style="">
                                 <div class="form-row">
                                     <div class="col-12 text-center">Gross Pay Computation</div>
@@ -402,9 +411,9 @@
                                     <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${(hourlyRate * (stats.workdays.undertime.totalInHours + (stats.count.absentDays * 8)))|currency}</span></div>
                                 </div>
                             </div>
-                        {% else %}
-                            {% if showTotalAs === 'time' %}
-                            <div class=" dtr-estimate">
+                        </template>
+                        <template v-else>
+                            <div v-if="showTotalAs === 'time'" class="dtr-estimate">
                                 <div class="form-row">
                                     <div class="col-12 text-center">Gross Pay Computation</div>
                                 </div>
@@ -416,8 +425,7 @@
                                     <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(hourlyRate * roundOff(stats.days.time.totalInHours, 9), 2) | currency}</span></div>
                                 </div>
                             </div>
-                            {% else %}
-                            <div class=" dtr-estimate">
+                            <div v-else class="dtr-estimate">
                                 <div class="form-row">
                                     <div class="col-12 text-center">Loss to Tardiness</div>
                                 </div>
@@ -429,23 +437,22 @@
                                     <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-danger">${roundOff(hourlyRate * roundOff(stats.days.undertime.totalInHours, 9), 2) | currency}</span></div>
                                 </div>
                             </div>
-                            {% endif %}
-                        {% endif %}
-                    {% endif %}
+                        </template>
+                    </template>
                 </div>
             </div>
         </div>
     </div>
 </div>
 {% include "parts/modal-consent-eprofile.html" %}
-{% include "e-profile/dtr/modal-select-action.html" %}
+{% include "e/dtr/modal-select-action.html" %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
 <script src="{{app.url}}/js/axios.min.js"></script>
 <script src="{{app.url}}/js/vue-money.js"></script>
 {% include "parts/modal-consent-eprofile-script.html" %}
-{% include "e-profile/dtr/script-select-action.html" %}
+{% include "e/dtr/script-select-action.html" %}
 <script>
     const roundOff =  function(number, precision = 0) {
         number = parseFloat(number)
@@ -467,7 +474,6 @@
             settingsEditable: false,
 
             periodMonthYearList: {{periodMonthYearList|default([], true)|stringify|safe}},
-            workSchedules: {{workSchedules|default([], true)|stringify|safe}},
             days: {{days|default([], true)|stringify|safe}},
             stats: {{stats|default({}, true)|stringify|safe}},
 
@@ -482,10 +488,8 @@
             inChargeOrig: '{{inCharge}}',
             inCharge: '{{inCharge}}',
 
-            showDays: '{{showDays}}',
+            showDays: '{{showDays}}', // 0 - All, 1 - workdays, 2 - weekends, 3 - holidays, 4 - rest days (weekends+holidays) //
 
-            startDate: '{{startDate}}',
-            endDate: '{{endDate}}',
             countTimeBy: '{{countTimeBy}}',
             lat: null,
             lon: null,
@@ -493,11 +497,10 @@
 
             hourlyRate: {{hourlyRate|default(0, true)}},
 
-            salary: {{employment.salary|default(0, true)}},
+            employment: {{employment|default(null, true)|stringify|safe}},
         },
         validations: {},
         computed: {
-            
             period: function(){
                 return this.periodSliceString + ' ' + this.periodMonthYearString + ' (' + this.periodWeekDaysString + ')';
             },
@@ -539,16 +542,40 @@
             patchUrl: function(){
                 return '/e-profile/dtr/{{employment._id}}' + '?' + this.urlQuery
             },
-            workScheduleString: function(){
-                var me = this;
-                var f = _.find(me.workSchedules, function(o){
-                    return o._id === me.workScheduleId;
-                })
-                if(f){
-                    return f.times;
-                }
-                return ''
-            }
+            prevMonth: function(){
+                var queries = [];
+                let mDate = moment(this.periodMonthYear)
+                mDate.subtract(1, 'month').startOf('month')
+                queries.push('periodMonthYear=' + mDate.format('YYYY-MM-DD'));
+                queries.push('periodSlice=' + this.periodSlice);
+                queries.push('periodWeekDays=' + this.periodWeekDays);
+                queries.push('showTotalAs=' + this.showTotalAs);
+                queries.push('countTimeBy=' + this.countTimeBy);
+
+                return '/e/dtr/{{employment._id}}' + '?' + queries.join('&');
+            },
+            nextMonth: function(){
+                var queries = [];
+                let mDate = moment(this.periodMonthYear)
+                mDate.add(1, 'month').startOf('month')
+                queries.push('periodMonthYear=' + mDate.format('YYYY-MM-DD'));
+                queries.push('periodSlice=' + this.periodSlice);
+                queries.push('periodWeekDays=' + this.periodWeekDays);
+                queries.push('showTotalAs=' + this.showTotalAs);
+                queries.push('countTimeBy=' + this.countTimeBy);
+
+                return '/e/dtr/{{employment._id}}' + '?' + queries.join('&')
+            },
+            monthYear: function(){
+                var queries = [];
+                let mDate = moment(this.periodMonthYear)
+                return mDate.format('MMMM YYYY')
+            },
+            month: function(){
+                var queries = [];
+                let mDate = moment(this.periodMonthYear)
+                return mDate.format('MMMM')
+            },
         },
         created: function(){
             var me = this;

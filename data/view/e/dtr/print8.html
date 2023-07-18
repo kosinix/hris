@@ -1,0 +1,38 @@
+{% extends "document-print2.html" %}
+
+{% block body %}
+<div class="col-md-12" >
+    <div class="d-print-none d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="">
+            <h1 class="h3 mb-3">Daily Time Record (DTR)</h1>
+            <p class="alert alert-warning"><em>Press CTRL + P to open printer options. You must be on a laptop or desktop computer.</em></p>
+        </div>
+        {% if shared == false %}
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/e/dtr/{{employment._id}}?{{query|query_string}}" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="csc-form-dtr d-none d-md-block d-print-block">
+        <div class="row">
+            <div class="col-6" style="border-right: 1px dashed #ddd">
+                <div class="pr-3">
+                    {% include 'e/dtr/print-table8.html' %}
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="pl-3">
+                    {% include 'e/dtr/print-table8.html' %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{% endblock %}
+

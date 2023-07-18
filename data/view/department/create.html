@@ -1,0 +1,114 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h3">Add Department</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/department/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <div>
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">Department</a>
+            </li>
+        </ul>
+    </div>
+    <div class="tab-content p-3">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/department/create" method="POST" class="form-default">
+            <div class="form-group">
+                <label for="name"> Name <span class="text-danger">*</span></label>
+                <div>
+                    <input name="name" id="name" v-model="name" @keyup="onName" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('name')}</small>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="acronym">Acronym</label>
+                <div>
+                    <input name="acronym" id="acronym" v-model="acronym" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('acronym')}</small>
+                </div>
+            </div>
+            <div class="form-row pt-3">
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between">
+                        <a href="/department/all" class="btn btn-light">Cancel</a>
+                        <button class="btn btn-primary">Add Department</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var voices = []
+    var synth = window.speechSynthesis;
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            name: '',
+            acronym: '',
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+            acronym: {
+                required: window.validators.required
+            },
+           
+        },
+        computed: {
+            
+        },
+        mounted: function(){
+            var me = this;
+            
+        },
+        methods: {
+            toAcronym: function(val){
+                val = new String(val)
+                val = val.replace(/(\s)+/,' ').split(' ')
+                val = val.map(word => {
+                    first = word.at(0)
+                    if (first === first.toUpperCase()){
+                        return first
+                    }
+                    return ''
+                })
+                return val.join('')
+            },
+            onName: function(val){
+                const me = this 
+                
+                me.acronym = me.toAcronym(me.name)
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

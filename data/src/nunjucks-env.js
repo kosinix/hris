@@ -143,5 +143,18 @@ env.addFilter('uppercase', (val) => {
     return lodash.upperCase(val)
 });
 
+env.addFilter('acronym', (val) => {
+    val = new String(val)
+    val = val.replace(/(\s)+/,' ').split(' ')
+    val = val.map(word => {
+        first = word.at(0)
+        if (first === first.toUpperCase()){
+            return first
+        }
+        return ''
+    })
+    return val.join('')
+});
+
 //// Export
 module.exports = env;

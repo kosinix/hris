@@ -1,0 +1,113 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-center">
+            <h1 class="h5 mb-0">Attendance</h1>
+        </div>
+    </div>
+    <div id="vApp" v-cloak v-bind:data-pending="pending" style="max-width:900px; margin:0 auto;">
+        {% include 'parts/flash.html' %}
+        <div>
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link" href="/e/dtr/{{employment._id}}">Daily Time Record</a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link active" href="/e/dtr/{{employment._id}}/overtime">Extended Services</a>
+                </li>
+            </ul>
+        </div>
+        <div class="tab-content bg-white">
+            <div class="p-3">
+                <div class="row mb-4">
+                    <div class="col-md-4 col-xl-3 mb-1">
+                        <div class="e-profile-photo ml-auto mr-auto">
+                            {% if employee.profilePhoto %}
+                                <div class="actual-pic">
+                                    <a href="/e-profile/photo">   
+                                        <img style="min-height: 100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="{{employee.firstName|first}}. {{employee.lastName|first}}.">
+                                    </a>
+                                </div>
+                            {% else %}
+                                <a href="/e-profile/photo">  
+                                    {% if employee.gender == 'F' %}
+                                        <svg viewBox="0 0 24 24">
+                                            <path fill="#4bb29d" d="M13.75 13C13.75 12.31 14.31 11.75 15 11.75S16.25 12.31 16.25 13 15.69 14.25 15 14.25 13.75 13.69 13.75 13M22 12V22H2V12C2 6.5 6.5 2 12 2S22 6.5 22 12M4 12C4 16.41 7.59 20 12 20S20 16.41 20 12C20 11.21 19.88 10.45 19.67 9.74C18.95 9.91 18.2 10 17.42 10C14.05 10 11.07 8.33 9.26 5.77C8.28 8.16 6.41 10.09 4.05 11.14C4 11.42 4 11.71 4 12M9 14.25C9.69 14.25 10.25 13.69 10.25 13S9.69 11.75 9 11.75 7.75 12.31 7.75 13 8.31 14.25 9 14.25Z" />
+                                        </svg>
+                                    {% else %}
+                                        <svg viewBox="0 0 24 24">
+                                            <path fill="#115195" d="M9,11.75A1.25,1.25 0 0,0 7.75,13A1.25,1.25 0 0,0 9,14.25A1.25,1.25 0 0,0 10.25,13A1.25,1.25 0 0,0 9,11.75M15,11.75A1.25,1.25 0 0,0 13.75,13A1.25,1.25 0 0,0 15,14.25A1.25,1.25 0 0,0 16.25,13A1.25,1.25 0 0,0 15,11.75M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,11.71 4,11.42 4.05,11.14C6.41,10.09 8.28,8.16 9.26,5.77C11.07,8.33 14.05,10 17.42,10C18.2,10 18.95,9.91 19.67,9.74C19.88,10.45 20,11.21 20,12C20,16.41 16.41,20 12,20Z" />
+                                        </svg>
+                                    {% endif %}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {#  #}
+                    <div class="col-md-8 col-xl-9">
+                        <div class="row mb-2">
+                            <div class="col-sm-6 text-center text-sm-left">
+                                <h4 class="h5 mb-3 privy-name">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
+                            </div>
+                            
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-3">Employment:</div>
+                            <div class="col-sm-9" style="font-family:Consolas, 'Courier New', mono"><strong>{{employment.position}}</strong></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-info"><strong>Tip:</strong> Use the checkbox below to select the dates you want to add to your Annex A.</div>
+            </div>
+            {% include 'attendance/overtime-forms.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    jQuery(document).ready(function($){
+        $("#check-all").change(function() {
+            $(document).find('input.catt[type="checkbox"]:not(:disabled)').prop("checked", this.checked);
+        });
+    })
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            urlPath: '{{urlPath}}',
+            startDate: '{{startMoment|format_date("YYYY-MM-DD")}}',
+            endDate: '{{endMoment|format_date("YYYY-MM-DD")}}',
+            showDays: '{{showDays}}',
+        },
+        validations: {
+            
+        },
+        methods: {
+            reloado: function(){
+                window.location.href = this.urlPath + '?start=' + this.startDate + '&end=' + this.endDate + '&showDays=' + this.showDays
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

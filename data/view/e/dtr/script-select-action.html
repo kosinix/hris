@@ -1,0 +1,37 @@
+<script>
+    var vModalSelectAction = new Vue({
+        el: '#modal-select-action',
+        delimiters: ["${", "}"],
+        mixins: [
+        ],
+        data: {
+            mode: 'create', // or edit
+            employmentId: '',
+            attendanceId: '',
+            date: '',
+        },
+        computed: {
+            urlCorrection: function() {
+                if(this.attendanceId) {
+                    return '/e-profile/attendance/' + this.attendanceId + '/apply'
+                }
+                return '#'
+            },
+            urlTravel: function() {
+                return `/e-profile/dtr/${this.employmentId}/attendance-set?date=${this.date}&type=travel`
+            },
+            urlWfh: function() {
+                return `/e-profile/dtr/${this.employmentId}/attendance-set?date=${this.date}&type=wfh`
+            },
+            urlAnal: function() {
+                if(this.attendanceId) {
+                    return '/e-profile/attendance/' + this.attendanceId + '/analyze'
+                }
+                return '#'
+            },
+            urlLeave: function() {
+                return `/e-profile/dtr/${this.employmentId}/attendance-set?date=${this.date}&type=leave`
+            },
+        }
+    });
+</script>

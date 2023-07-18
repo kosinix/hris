@@ -67,155 +67,7 @@ router.get('/e-profile/home', middlewares.guardRoute(['use_employee_profile']), 
         next(err);
     }
 });
-router.get('/e-profile/hdf', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
 
-        // Today attendance
-        let hd = await req.app.locals.db.main.HealthDeclaration.findOne({
-            employeeId: employee._id,
-            createdAt: {
-                $gte: moment().startOf('day').toDate(),
-                $lt: moment().endOf('day').toDate(),
-            }
-        })
-
-        let optionsSymptoms1 = [
-            'fever',
-            'cough',
-            'loss of smell/taste',
-            'headache',
-            'sore throat',
-        ]
-        let optionsSymptoms2 = [
-            'diarrhea',
-            'runny nose',
-            'vomitting',
-            'others'
-        ]
-        let visitedMedicalFacilityPurposes = [
-            'Patient',
-            'Employee',
-            'Others'
-        ]
-        res.render('e-profile/hdf.html', {
-            employee: employee,
-            hd: hd,
-            optionsSymptoms1: optionsSymptoms1,
-            optionsSymptoms2: optionsSymptoms2,
-            visitedMedicalFacilityPurposes: visitedMedicalFacilityPurposes,
-            momentNow: moment(),
-        });
-
-    } catch (err) {
-        next(err);
-    }
-});
-router.post('/e-profile/hdf', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        // return res.send(req.body)
-        let body = lodash.get(req, 'body')
-        let def = { "temperature": "", "lastName": "", "firstName": "", "middleName": "", "age": "", "sex": "", "civilStatus": "", "address": "", "contactNumber": "", "department": "", "symptoms": [], "visitedMedicalFacility": "", "visitedMedicalFacilityPurposes": [], "suspectedCovidPatient": "", "suspectedCovidPatientDetails": "", "sickFamilyMembers": "", "sickFamilyMembersDetails": "" }
-        body = lodash.merge(def, body)
-        body = lodash.mapKeys(body, (v, key) => {
-            if (key === 'temperature') {
-                return 'tmp'
-            }
-            if (key === 'lastName') {
-                return 'ln'
-            }
-            if (key === 'firstName') {
-                return 'fn'
-            }
-            if (key === 'middleName') {
-                return 'mn'
-            }
-            if (key === 'civilStatus') {
-                return 'cs'
-            }
-            if (key === 'address') {
-                return 'adr'
-            }
-            if (key === 'contactNumber') {
-                return 'cnt'
-            }
-            if (key === 'department') {
-                return 'dep'
-            }
-            if (key === 'symptoms') {
-                return 'sym'
-            }
-            if (key === 'visitedMedicalFacility') {
-                return 'vmf'
-            }
-            if (key === 'visitedMedicalFacilityPurposes') {
-                return 'vmp'
-            }
-            if (key === 'suspectedCovidPatient') {
-                return 'sus'
-            }
-            if (key === 'suspectedCovidPatientDetails') {
-                return 'sud'
-            }
-            if (key === 'sickFamilyMembers') {
-                return 'sfm'
-            }
-            if (key === 'sickFamilyMembersDetails') {
-                return 'sfd'
-            }
-            return key
-        })
-        let qrCodes = []
-        //HDF
-        let qrData = {
-            type: 3,
-            employeeId: employee._id,
-            frm: body
-        }
-
-        let check = false
-        if (!check) {
-            // Today attendance
-            let hd = await req.app.locals.db.main.HealthDeclaration.findOne({
-                employeeId: employee._id,
-                createdAt: {
-                    $gte: moment().startOf('day').toDate(),
-                    $lt: moment().endOf('day').toDate(),
-                }
-            })
-            if (hd) {
-                throw new Error('You have already submitted a health declaration today.')
-            } else {
-
-                hd = new req.app.locals.db.main.HealthDeclaration({
-                    employeeId: employee._id,
-                    data: body
-                })
-                await hd.save()
-                flash.ok(req, 'employee', 'Health declaration submitted.')
-                return res.redirect('/e-profile/home');
-            }
-        }
-
-        qrData = Buffer.from(JSON.stringify(qrData)).toString('base64')
-
-        qrData = qr.imageSync(qrData, { size: 5, type: 'png' }).toString('base64')
-        qrCodes.push({
-            data: qrData,
-            employment: '',
-            title: 'Health Declaration Form',
-        })
-
-        res.render('e-profile/hdf-qr.html', {
-            momentNow: moment(),
-            employee: employee,
-            qrCodes: qrCodes,
-        });
-    } catch (err) {
-        next(err);
-    }
-});
 
 router.post('/e-profile/accept', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
@@ -232,6 +84,12 @@ router.post('/e-profile/accept', middlewares.guardRoute(['use_employee_profile']
 
 router.get(['/e-profile/dtr/:employmentId', '/e-profile/dtr/print/:employmentId'], middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {
+
+        if (/^\/e-profile\/dtr\/print/.test(req.path)) {
+            return res.redirect(`/e/dtr/print/${req.params.employmentId}`)
+        }
+        return res.redirect(`/e/dtr/${req.params.employmentId}`)
+
         let employee = res.employee.toObject()
         let employment = res.employment
         let employmentId = employment._id

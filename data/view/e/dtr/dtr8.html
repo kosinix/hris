@@ -18,7 +18,7 @@
                 </li>
                 {% if employment.employmentType === 'cos' %}
                 <li class="nav-item">
-                    <a class="nav-link" href="/e/dtr/{{employment._id}}/overtime">Extended Services</a>
+                    <a class="nav-link" :href="otUrl">Extended Services</a>
                 </li>
                 {% endif %}
             </ul>
@@ -541,6 +541,9 @@
             },
             patchUrl: function(){
                 return '/e-profile/dtr/{{employment._id}}' + '?' + this.urlQuery
+            },
+            otUrl: function(){
+                return '/e/dtr/{{employment._id}}/overtime' + '?' + this.urlQuery
             },
             prevMonth: function(){
                 var queries = [];

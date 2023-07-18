@@ -1,5 +1,5 @@
 <div id="vAppDtrSettings" v-cloak class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title d-flex">
@@ -10,12 +10,9 @@
                 </h5>
             </div>
             <div class="modal-body pl-4 pr-4">
+                
                 <div class="row mb-2">
-                    <div class="col-sm-3">Employment:</div>
-                    <div class="col-sm-9"><strong>{{employment.position}}</strong></div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-sm-3">Show:</div>
+                    <div class="col-sm-3">Period:</div>
                     <div class="col-sm-9">
                         <div class="d-flex">
                             <select v-model="periodSlice" name="periodSlice" id="periodSlice" class="form-control form-control-sm mr-1">
@@ -28,7 +25,7 @@
                             </select>
                             <select v-model="periodWeekDays" name="periodWeekDays" id="periodWeekDays" class="form-control form-control-sm">
                                 <option value="Mon-Fri">Workdays</option>
-                                <option value="Sat-Sun">Rest days (Holiday/Weekends)</option>
+                                <option value="Sat-Sun">Rest days</option>
                                 <option value="All">All days</option>
                             </select>
                         </div>
@@ -50,23 +47,7 @@
                         <input v-model="inCharge" name="inCharge" id="inCharge" type="text" class="form-control form-control-sm">
                     </div>
                 </div>
-                <div class="row mb-2">
-                    <div class="col-sm-3">Count:</div>
-                    <div class="col-sm-9">
-                        <div class="d-flex">
-                            <select v-model="showTotalAs" name="showTotalAs" id="showTotalAs" class="form-control form-control-sm mr-1">
-                                <option value="time">Time</option>
-                                <option value="undertime">Undertime</option>
-                            </select>
-                            <select v-model="countTimeBy" name="countTimeBy" id="countTimeBy" class="form-control form-control-sm">
-                                <option value="weekdays">On Weekdays Only</option>
-                                <option value="weekends">On Weekends Only</option>
-                                <option value="all">All Week</option>
-                                <option value="none">Don't Show</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                
             </div>
             <div class="modal-footer justify-content-center">
                 <button v-on:click="reloado" id="btn-consent" class="ml-2 btn btn-success align-items-center d-flex" >

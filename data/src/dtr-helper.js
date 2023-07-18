@@ -2502,14 +2502,13 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
     })
     dtr.timeWorked = timeWorked
 
-    roundOff
     return {
         logs: logs,
         segments: timeWorked,
         time: {
             days: dtr.renderedDays,
             hoursDays: dtr.renderedDays * 8 + dtr.renderedHours, // hours + days in hours
-            asHours: (dtr.renderedDays * 8 + dtr.renderedHours) + roundOff(dtr.renderedMinutes / 60, 9), // hours + days in hours
+            asHours: roundOff(dtr.totalMinutes / 60, 9), // convert total minutes to hours
             hours: dtr.renderedHours,
             minutes: dtr.renderedMinutes,
             total: dtr.totalMinutes
@@ -2517,7 +2516,7 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
         undertime: {
             days: dtr.underDays,
             hoursDays: dtr.underDays * 8 + dtr.underHours,
-            asHours: (dtr.underDays * 8 + dtr.underHours) + roundOff(dtr.underMinutes / 60, 9),
+            asHours: roundOff(dtr.underTimeTotalMinutes / 60, 9), // convert total minutes to hours
             hours: dtr.underHours,
             minutes: dtr.underMinutes,
             total: dtr.underTimeTotalMinutes
@@ -3188,6 +3187,8 @@ const getDtrStats = (days) => {
     let workdaysTotalMinutes = workdays.map(day => lodash.get(day, 'time.total', 0)).reduce((a, b) => a + b, 0)
     let workdaysTotalMinutesUnderTime = workdays.map(day => lodash.get(day, 'undertime.total', 0)).reduce((a, b) => a + b, 0)
 
+    // May ara pa gd tani reduce of time.minutes and time.hours
+    
     let absentDays = days.filter((day) => {
         return day.isWorkday && !(day?.attendance?.logs?.length ?? 0) && !['travel','leave'].includes(day?.attendance?.type)
     }) 

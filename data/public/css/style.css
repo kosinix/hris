@@ -984,6 +984,9 @@ div.focusable:focus-within  {
 .table-dtr td {
     padding: 2px 5px;
 }
+.table-dtr td {
+    white-space: nowrap;
+}
 
 .table-tiny th,
 .table-tiny td{
@@ -1721,5 +1724,12 @@ button.btn-eye[data-state="text"] svg:nth-child(2) {
     .log-sheets {
         width: 100px;
         height: 100px;
+    }
+    
+}
+
+@media (max-width:375px){
+    .table-dtr {
+        font-size: 9px;
     }
 }

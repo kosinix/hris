@@ -4,9 +4,6 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-center">
-            {# <svg class="mr-1" style="width:26px;height:26px" viewBox="0 0 24 24">
-                <path fill="#0e4682" d="M14,12H15.5V14.82L17.94,16.23L17.19,17.53L14,15.69V12M4,2H18A2,2 0 0,1 20,4V10.1C21.24,11.36 22,13.09 22,15A7,7 0 0,1 15,22C13.09,22 11.36,21.24 10.1,20H4A2,2 0 0,1 2,18V4A2,2 0 0,1 4,2M4,15V18H8.67C8.24,17.09 8,16.07 8,15H4M4,8H10V5H4V8M18,8V5H12V8H18M4,13H8.29C8.63,11.85 9.26,10.82 10.1,10H4V13M15,10.15A4.85,4.85 0 0,0 10.15,15C10.15,17.68 12.32,19.85 15,19.85A4.85,4.85 0 0,0 19.85,15C19.85,12.32 17.68,10.15 15,10.15Z" />
-            </svg> #}
             <h1 class="h5 mb-0">Daily Time Record</h1>
         </div>
     </div>
@@ -14,376 +11,428 @@
         {% include 'parts/flash.html' %}
         <div v-if="timeZone != 8" class="alert alert-warning"><strong>Warning:</strong> Your time zone is currently not set to Philippine time. Your time will be displayed incorrectly. Please set your device's timezone to UTC+8:00. <a href="/help/timezone-correction">See help instructions</a></div>
         {% include "e/dtr/modal-dtr-settings.html" %}
-        <div class="row mb-4">
-            <div class="col-md-4 col-xl-3 mb-1">
-                <div class="e-profile-photo ml-auto mr-auto">
-                    {% if employee.profilePhoto %}
-                        <div class="actual-pic">
-                            <a href="/e-profile/photo">   
-                                <img style="min-height: 100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="{{employee.firstName|first}}. {{employee.lastName|first}}.">
-                            </a>
-                        </div>
-                    {% else %}
-                        <a href="/e-profile/photo">  
-                            {% if employee.gender == 'F' %}
-                                <svg viewBox="0 0 24 24">
-                                    <path fill="#4bb29d" d="M13.75 13C13.75 12.31 14.31 11.75 15 11.75S16.25 12.31 16.25 13 15.69 14.25 15 14.25 13.75 13.69 13.75 13M22 12V22H2V12C2 6.5 6.5 2 12 2S22 6.5 22 12M4 12C4 16.41 7.59 20 12 20S20 16.41 20 12C20 11.21 19.88 10.45 19.67 9.74C18.95 9.91 18.2 10 17.42 10C14.05 10 11.07 8.33 9.26 5.77C8.28 8.16 6.41 10.09 4.05 11.14C4 11.42 4 11.71 4 12M9 14.25C9.69 14.25 10.25 13.69 10.25 13S9.69 11.75 9 11.75 7.75 12.31 7.75 13 8.31 14.25 9 14.25Z" />
-                                </svg>
+        
+        <div>
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active" href="?date=">Daily Time Record</a>
+                </li>
+                {% if employment.employmentType === 'cos' %}
+                <li class="nav-item">
+                    <a class="nav-link" href="/e/dtr/{{employment._id}}/overtime">Extended Services</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        <div class="tab-content bg-white">
+            <div class="p-3">
+                <div class="row mb-4">
+                    <div class="col-md-4 col-xl-3 mb-1">
+                        <div class="e-profile-photo ml-auto mr-auto">
+                            {% if employee.profilePhoto %}
+                                <div class="actual-pic">
+                                    <a href="/e-profile/photo">   
+                                        <img style="min-height: 100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="{{employee.firstName|first}}. {{employee.lastName|first}}.">
+                                    </a>
+                                </div>
                             {% else %}
-                                <svg viewBox="0 0 24 24">
-                                    <path fill="#115195" d="M9,11.75A1.25,1.25 0 0,0 7.75,13A1.25,1.25 0 0,0 9,14.25A1.25,1.25 0 0,0 10.25,13A1.25,1.25 0 0,0 9,11.75M15,11.75A1.25,1.25 0 0,0 13.75,13A1.25,1.25 0 0,0 15,14.25A1.25,1.25 0 0,0 16.25,13A1.25,1.25 0 0,0 15,11.75M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,11.71 4,11.42 4.05,11.14C6.41,10.09 8.28,8.16 9.26,5.77C11.07,8.33 14.05,10 17.42,10C18.2,10 18.95,9.91 19.67,9.74C19.88,10.45 20,11.21 20,12C20,16.41 16.41,20 12,20Z" />
-                                </svg>
+                                <a href="/e-profile/photo">  
+                                    {% if employee.gender == 'F' %}
+                                        <svg viewBox="0 0 24 24">
+                                            <path fill="#4bb29d" d="M13.75 13C13.75 12.31 14.31 11.75 15 11.75S16.25 12.31 16.25 13 15.69 14.25 15 14.25 13.75 13.69 13.75 13M22 12V22H2V12C2 6.5 6.5 2 12 2S22 6.5 22 12M4 12C4 16.41 7.59 20 12 20S20 16.41 20 12C20 11.21 19.88 10.45 19.67 9.74C18.95 9.91 18.2 10 17.42 10C14.05 10 11.07 8.33 9.26 5.77C8.28 8.16 6.41 10.09 4.05 11.14C4 11.42 4 11.71 4 12M9 14.25C9.69 14.25 10.25 13.69 10.25 13S9.69 11.75 9 11.75 7.75 12.31 7.75 13 8.31 14.25 9 14.25Z" />
+                                        </svg>
+                                    {% else %}
+                                        <svg viewBox="0 0 24 24">
+                                            <path fill="#115195" d="M9,11.75A1.25,1.25 0 0,0 7.75,13A1.25,1.25 0 0,0 9,14.25A1.25,1.25 0 0,0 10.25,13A1.25,1.25 0 0,0 9,11.75M15,11.75A1.25,1.25 0 0,0 13.75,13A1.25,1.25 0 0,0 15,14.25A1.25,1.25 0 0,0 16.25,13A1.25,1.25 0 0,0 15,11.75M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,11.71 4,11.42 4.05,11.14C6.41,10.09 8.28,8.16 9.26,5.77C11.07,8.33 14.05,10 17.42,10C18.2,10 18.95,9.91 19.67,9.74C19.88,10.45 20,11.21 20,12C20,16.41 16.41,20 12,20Z" />
+                                        </svg>
+                                    {% endif %}
+                                </a>
                             {% endif %}
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-            {#  #}
-            <div class="col-md-8 col-xl-9">
-                <div class="row mb-2">
-                    <div class="col-sm-6 text-center text-sm-left">
-                        <h4 class="h5 mb-3 privy-name">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
+                        </div>
                     </div>
-                    <div class="col-sm-6 text-center text-sm-right">
-                        <div class="btn-toolbar justify-content-center justify-content-sm-end">
-                            <div class="btn-group">
-                                {# <button v-on:click="settingsEditable = true" type="button" class="btn btn-sm btn-primary">Settings</button> #}
-                                <button v-on:click="showSettings" type="button" class="btn btn-sm btn-secondary">Settings</button>
-                                <a v-bind:href="printUrl" class="btn btn-sm btn-outline-secondary">Print</a>
-                                <a v-bind:href="shareUrl" class="btn btn-sm btn-outline-secondary">Share</a>
+                    {#  #}
+                    <div class="col-md-8 col-xl-9">
+                        <div class="row mb-2">
+                            <div class="col-sm-6 text-center text-sm-left">
+                                <h4 class="h5 mb-3 privy-name">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>
+                            </div>
+                            <div class="col-sm-6 text-center text-sm-right">
+                                <div class="btn-toolbar justify-content-center justify-content-sm-end">
+                                    <div class="btn-group">
+                                        {# <button v-on:click="settingsEditable = true" type="button" class="btn btn-sm btn-primary">Settings</button> #}
+                                        <button v-on:click="showSettings" type="button" class="btn btn-sm btn-secondary">Settings</button>
+                                        <a v-bind:href="printUrl" class="btn btn-sm btn-outline-secondary">Print</a>
+                                        <a v-bind:href="shareUrl" class="btn btn-sm btn-outline-secondary">Share</a>
+                                    </div>
+                                </div>
+                                {# <a href="#" class="btn btn-sm btn-outline-primary" title="DTR Settings">Settings</a> #}
                             </div>
                         </div>
-                        {# <a href="#" class="btn btn-sm btn-outline-primary" title="DTR Settings">Settings</a> #}
+                        <div class="row mb-2">
+                            <div class="col-sm-3">Employment:</div>
+                            <div class="col-sm-9" style="font-family:Consolas, 'Courier New', mono"><strong>{{employment.position}}</strong></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-3">Period:</div>
+                            <div class="col-sm-9" style="font-family:Consolas, 'Courier New', mono"><strong>${period}</strong></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-3">Schedule:</div>
+                            <div class="col-sm-9 d-flex align-items-center">
+                                <div class="font-weight-bold" style="white-space: pre; font-family:Consolas, 'Courier New', mono">{{workScheduleWeek|default('', true)|replace('Mon,Tue,Wed,Thu,Fri,Sat,Sun: ','')}}</div>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-3">In Charge:</div>
+                            <div class="col-sm-9" style="font-family:Consolas, 'Courier New', mono"><strong>${inCharge}</strong></div>
+                        </div>
+                        {# <div class="row mb-2">
+                            <div class="col-sm-3">Show Total:</div>
+                            <div class="col-sm-9"><strong class="text-capitalize">${showTotalAs}</strong></div>
+                        </div> #}
                     </div>
                 </div>
-                <div class="row mb-2">
-                    <div class="col-sm-3">Employment:</div>
-                    <div class="col-sm-9" style="font-family:Consolas, 'Courier New', mono"><strong>{{employment.position}}</strong></div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-sm-3">Period:</div>
-                    <div class="col-sm-9" style="font-family:Consolas, 'Courier New', mono"><strong>${period}</strong></div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-sm-3">Schedule:</div>
-                    <div class="col-sm-9 d-flex align-items-center">
-                        <div class="font-weight-bold" style="white-space: pre; font-family:Consolas, 'Courier New', mono">{{workScheduleWeek|default('', true)|replace('Mon,Tue,Wed,Thu,Fri,Sat,Sun: ','')}}</div>
-                    </div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-sm-3">In Charge:</div>
-                    <div class="col-sm-9" style="font-family:Consolas, 'Courier New', mono"><strong>${inCharge}</strong></div>
-                </div>
-                {# <div class="row mb-2">
-                    <div class="col-sm-3">Show Total:</div>
-                    <div class="col-sm-9"><strong class="text-capitalize">${showTotalAs}</strong></div>
-                </div> #}
             </div>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-dtr bg-white">
-                <tr>
-                    <th class="text-center align-middle border-right" rowspan="2" colspan="2">{{periodMonthYear|format_date('MMMM')}}</th>
-                    <th class="text-center" colspan="2">AM</th>
-                    <th class="text-center" colspan="2">PM</th>
-                    <th class="text-center text-capitalize" colspan="2">${showTotalAs}</th>
-                </tr>
-                <tr class="text-center">
-                    <th>Arrival</th>
-                    <th>Departure</th>
-                    
-                    <th>Arrival</th>
-                    <th>Departure</th>
+            <div class="table-responsive">
+                <table class="table table-bordered table-dtr bg-white">
+                    <tr>
+                        <th class="text-center align-middle border-right" rowspan="2" colspan="2">{{periodMonthYear|format_date('MMMM')}}</th>
+                        <th class="text-center" colspan="2">AM</th>
+                        <th class="text-center" colspan="2">PM</th>
+                        <th class="text-center text-capitalize" colspan="2">
+                            <select v-model="showTotalAs" name="" id="">
+                                <option value="time">Time</option>
+                                <option value="undertime">Undertime</option>
+                            </select>
+                        </th>
+                    </tr>
+                    <tr class="text-center">
+                        <th>Arrival</th>
+                        <th>Departure</th>
+                        
+                        <th>Arrival</th>
+                        <th>Departure</th>
 
-                    <!-- <th>Days</th> -->
-                    <th>Hours</th>
-                    <th>Min</th>
-                </tr>
-                <tr v-for="day in days" v-bind:class="dayCssClasses(day)">
-                    <td class="text-center">
-                        <template v-if="day.isNow">
-                            <button v-on:click="showModalSelect('create', '{{employment._id}}', '', day.date)">${day.day}</button>
-                        </template>
-                        <template v-else-if="day.isPast">
-                            <template v-if="day.isForCorrection">
-                                <button v-if="day.hasAttendance" v-on:click="showModalSelect('edit', '{{employment._id}}', day.attendance._id, day.date)">${day.day}</button>
-                                <a v-else class="btn-square-link btn-square-link-danger" v-bind:href="`/e-profile/dtr/{{employment._id}}/attendance/${day.date}`">${day.day}</a>
+                        <!-- <th>Days</th> -->
+                        <th width="8%">
+                            <span class="d-none d-md-inline">Hours</span>
+                            <span class="d-md-none">Hrs</span>
+                        </th>
+                        <th width="8%">
+                            <span class="d-none d-md-inline">Minutes</span>
+                            <span class="d-md-none">Min</span>
+                        </th>
+                    </tr>
+                    <tr v-for="day in days" v-bind:class="dayCssClasses(day)">
+                        <td class="text-center">
+                            <template v-if="day.isNow">
+                                <button v-on:click="showModalSelect('create', '{{employment._id}}', '', day.date)">${day.day}</button>
+                            </template>
+                            <template v-else-if="day.isPast">
+                                <template v-if="day.isForCorrection">
+                                    <button v-if="day.hasAttendance" v-on:click="showModalSelect('edit', '{{employment._id}}', day.attendance._id, day.date)">${day.day}</button>
+                                    <a v-else class="btn-square-link btn-square-link-danger" v-bind:href="`/e-profile/dtr/{{employment._id}}/attendance/${day.date}`">${day.day}</a>
+                                </template>
+                                <template v-else>
+                                    <button v-if="day.hasAttendance" v-on:click="showModalSelect('edit', '{{employment._id}}', day.attendance._id, day.date)">${day.day}</button>
+                                    <button v-else v-on:click="showModalSelect('create', '{{employment._id}}', '', day.date)">${day.day}</button>
+                                </template>
                             </template>
                             <template v-else>
-                                <button v-if="day.hasAttendance" v-on:click="showModalSelect('edit', '{{employment._id}}', day.attendance._id, day.date)">${day.day}</button>
-                                <button v-else v-on:click="showModalSelect('create', '{{employment._id}}', '', day.date)">${day.day}</button>
+                                <span class="text-dark">${day.day}</span>
+                            </template>
+                        </td>
+                        <td :class="weekDayCssClasses(day)">${day.weekDay}</td>
+                        
+                        <template v-if="_.get(day, 'attendance.type') === 'normal'">
+                            <td v-bind:class="isUnderTime(_.get(day, 'segments[0].countedUndertime', 0), _.get(day, 'attendance.logs.length', 0) > 1)">${day.display.inAM}</td>
+                            <td v-bind:class="isUnderTime(_.get(day, 'segments[0].countedUndertime', 0), _.get(day, 'attendance.logs.length', 0) > 1)">
+                                ${day.display.outAM}
+                                <div v-if="isTimeOutShown(day)">
+                                    <a v-on:click="onlineLog" href="/e-profile/dtr/{{employment._id}}/online" class="btn-square-link">Out</a>
+                                    {# <button v-on:click="logTime(0)" class="btn-sm" style="font-size:10px">OUT</button> #}
+                                </div>
+                            </td>
+                            
+                            <td v-bind:class="isUnderTime(_.get(day, 'segments[1].countedUndertime', 0), _.get(day, 'attendance.logs.length', 0) > 3)">
+                                ${day.display.inPM}
+                                <div v-if="isTimeInShown(day)">
+                                    <a v-on:click="onlineLog" href="/e-profile/dtr/{{employment._id}}/online" class="btn-square-link">In</a>
+                                    {# <button v-on:click="logTime(1)" class="btn-sm" style="font-size:10px">IN</button> #}
+                                </div>
+                            </td>
+                            <td v-bind:class="isUnderTime(_.get(day, 'segments[1].countedUndertime', 0), _.get(day, 'attendance.logs.length', 0) > 3)">${day.display.outPM}</td>
+                        </template>
+                        <template v-else-if="_.get(day, 'attendance.type') === 'travel'">
+                            <template v-if="_.get(day, 'attendance.logs.length') == 2 && _.get(day, 'attendance.logs[0].type') === 'travel'">
+                                <td class="text-center" colspan="4">
+                                    Travel
+                                </td>
+                            </template>
+                            <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[0].type') === 'travel'">
+                                <td class="text-center" colspan="2">
+                                    Travel
+                                </td>
+                                <td class="text-center">${day.display.inPM}</td>
+                                <td class="text-center">${day.display.outPM}</td>
+                            </template>
+                            <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[2].type') === 'travel'">
+                                <td class="text-center">${day.display.inAM}</td>
+                                <td class="text-center">${day.display.outAM}</td>
+                                <td class="text-center" colspan="2">
+                                    Travel
+                                </td>
+                            </template>
+                            <template v-else>
+                                <td class="text-center" colspan="4">
+                                    Travel
+                                </td>
                             </template>
                         </template>
-                        <template v-else>
-                            <span class="text-dark">${day.day}</span>
-                        </template>
-                    </td>
-                    <td :class="weekDayCssClasses(day)">${day.weekDay}</td>
-                    
-                    <template v-if="_.get(day, 'attendance.type') === 'normal'">
-                        <td v-bind:class="isUnderTime(_.get(day, 'segments[0].countedUndertime', 0), _.get(day, 'attendance.logs.length', 0) > 1)">${day.display.inAM}</td>
-                        <td v-bind:class="isUnderTime(_.get(day, 'segments[0].countedUndertime', 0), _.get(day, 'attendance.logs.length', 0) > 1)">
-                            ${day.display.outAM}
-                            <div v-if="isTimeOutShown(day)">
-                                <a v-on:click="onlineLog" href="/e-profile/dtr/{{employment._id}}/online" class="btn-square-link">Out</a>
-                                {# <button v-on:click="logTime(0)" class="btn-sm" style="font-size:10px">OUT</button> #}
-                            </div>
-                        </td>
-                        
-                        <td v-bind:class="isUnderTime(_.get(day, 'segments[1].countedUndertime', 0), _.get(day, 'attendance.logs.length', 0) > 3)">
-                            ${day.display.inPM}
-                            <div v-if="isTimeInShown(day)">
-                                <a v-on:click="onlineLog" href="/e-profile/dtr/{{employment._id}}/online" class="btn-square-link">In</a>
-                                {# <button v-on:click="logTime(1)" class="btn-sm" style="font-size:10px">IN</button> #}
-                            </div>
-                        </td>
-                        <td v-bind:class="isUnderTime(_.get(day, 'segments[1].countedUndertime', 0), _.get(day, 'attendance.logs.length', 0) > 3)">${day.display.outPM}</td>
-                    </template>
-                    <template v-else-if="_.get(day, 'attendance.type') === 'travel'">
-                        <template v-if="_.get(day, 'attendance.logs.length') == 2 && _.get(day, 'attendance.logs[0].type') === 'travel'">
-                            <td class="text-center" colspan="4">
-                                Travel
-                            </td>
-                        </template>
-                        <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[0].type') === 'travel'">
-                            <td class="text-center" colspan="2">
-                                Travel
-                            </td>
-                            <td class="text-center">${day.display.inPM}</td>
-                            <td class="text-center">${day.display.outPM}</td>
-                        </template>
-                        <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[2].type') === 'travel'">
-                            <td class="text-center">${day.display.inAM}</td>
-                            <td class="text-center">${day.display.outAM}</td>
-                            <td class="text-center" colspan="2">
-                                Travel
-                            </td>
-                        </template>
-                        <template v-else>
-                            <td class="text-center" colspan="4">
-                                Travel
-                            </td>
-                        </template>
-                    </template>
-                    <template v-else-if="_.get(day, 'attendance.type') === 'wfh'">
-                        <template v-if="_.get(day, 'attendance.logs.length') == 2 && _.get(day, 'attendance.logs[0].type') === 'wfh'">
-                            <td class="text-center" colspan="4">
-                                Work from Home
-                            </td>
-                        </template>
-                        <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[0].type') === 'wfh'">
-                            <td class="text-center" colspan="2">
-                                Work from Home
-                            </td>
-                            <td class="text-center">${day.display.inPM}</td>
-                            <td class="text-center">${day.display.outPM}</td>
-                        </template>
-                        <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[2].type') === 'wfh'">
+                        <template v-else-if="_.get(day, 'attendance.type') === 'wfh'">
+                            <template v-if="_.get(day, 'attendance.logs.length') == 2 && _.get(day, 'attendance.logs[0].type') === 'wfh'">
+                                <td class="text-center" colspan="4">
+                                    Work from Home
+                                </td>
+                            </template>
+                            <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[0].type') === 'wfh'">
+                                <td class="text-center" colspan="2">
+                                    Work from Home
+                                </td>
+                                <td class="text-center">${day.display.inPM}</td>
+                                <td class="text-center">${day.display.outPM}</td>
+                            </template>
+                            <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[2].type') === 'wfh'">
+                                
+                                <td class="text-center">${day.display.inAM}</td>
+                                <td class="text-center">${day.display.outAM}</td>
+                                <td class="text-center" colspan="2">
+                                    Work from Home
+                                </td>
+                            </template>
+                            <template v-else>
+                                <td class="text-center" colspan="4">
+                                    Work from Home
+                                </td>
+                            </template>
                             
+                        </template>
+                        <template v-else-if="_.get(day, 'attendance.type') === 'pass'">
                             <td class="text-center">${day.display.inAM}</td>
-                            <td class="text-center">${day.display.outAM}</td>
-                            <td class="text-center" colspan="2">
-                                Work from Home
+                            <td colspan="2" class="text-center">
+                                ${showLogType(_.get(day, 'attendance.type'))}
+                            </td>
+                            <td class="text-center">${day.display.outPM}</td>
+                        </template>
+                        <template v-else-if="day.isHoliday">
+                            <td colspan="4" class="text-center">
+                                Holiday
                             </td>
                         </template>
                         <template v-else>
-                            <td class="text-center" colspan="4">
-                                Work from Home
+                            <td colspan="4" class="text-center">
+                                ${showLogType(_.get(day, 'attendance.type'))}
                             </td>
                         </template>
-                        
-                    </template>
-                    <template v-else-if="_.get(day, 'attendance.type') === 'pass'">
-                        <td class="text-center">${day.display.inAM}</td>
-                        <td colspan="2" class="text-center">
-                            ${showLogType(_.get(day, 'attendance.type'))}
-                        </td>
-                        <td class="text-center">${day.display.outPM}</td>
-                    </template>
-                    <template v-else-if="day.isHoliday">
-                        <td colspan="4" class="text-center">
-                            Holiday
-                        </td>
+                        {# Counts #}
+                        <template v-if="showTotalAs==='time'">
+                            <!-- <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                                ${day?.time?.days||''}
+                            </td> -->
+                            <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                                ${sliceAsHour(day?.time?.total, 'hour')||''}
+                            </td>
+                            <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                                ${sliceAsHour(day?.time?.total, 'minute')||''}
+                            </td>
+                        </template>
+                        <template v-if="showTotalAs==='undertime'">
+                            <!-- <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                                ${day?.undertime?.days||''}
+                            </td> -->
+                            <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                                ${day?.undertime?.hoursDays||''}
+                            </td>
+                            <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
+                                ${day?.undertime?.minutes||''}
+                            </td>
+                        </template>
+                    </tr>
+                    {# end v-for #}
+                    <template v-if="countTimeBy == 'none'">
+                        <tr class="text-center">
+                            <td colspan="6"><h5 class="m-0">Total</h5></td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                        </tr>
                     </template>
                     <template v-else>
-                        <td colspan="4" class="text-center">
-                            ${showLogType(_.get(day, 'attendance.type'))}
-                        </td>
+                        <tr>
+                            <td colspan="6" class="text-right"><strong>Total</strong></td>
+                            <td class="text-center">
+                                ${getTotalHours(days, showTotalAs)||''}
+                            </td>
+                            <td class="text-center">
+                                ${getTotalMinutes(days, showTotalAs)||''}
+                            </td>
+                        </tr>
+                        <!-- <tr>
+                            <td colspan="6" class="text-right"><strong>Total in Hours</strong></td>
+                            <td class="text-center" colspan="2">
+                                ${roundOff(stats.workdays.time.totalInHours, 9)||''}
+                            </td>
+                        </tr> -->
+                        <tr>
+                            <td colspan="6" class="text-right"><strong>Total in Days</strong></td>
+                            <template v-if="showTotalAs === 'time'">
+                                <template v-if="showDays === '0'">
+                                    <!-- <td class="text-center">
+                                        ${stats.days.time.days||''}
+                                    </td> -->
+                                    <td class="text-center" colspan="2">
+                                        ${stats.days.time.days||''} days
+                                        ${stats.days.time.hours||''} hrs
+                                        ${stats.days.time.minutes||''} mins
+                                    </td>
+                                </template>
+                                <template v-if="showDays === '1'">
+                                    <!-- <td class="text-center">
+                                        ${stats.workdays.time.days||''}
+                                    </td> -->
+                                    <td class="text-center" colspan="2" style="white-space: normal;">
+                                        ${stats.workdays.time.days||'0'} days
+                                        ${stats.workdays.time.hours||'0'} hrs
+                                        ${stats.workdays.time.minutes||'0'} mins
+                                    </td>
+                                </template>
+                                <template v-if="showDays === '4'">
+                                    <!-- <td class="text-center">
+                                        ${stats.restDays.time.days||''}
+                                    </td> -->
+                                    <td class="text-center" colspan="2" style="white-space: normal;">
+                                        ${stats.restDays.time.days||'0'} days
+                                        ${stats.restDays.time.hours||'0'} hrs
+                                        ${stats.restDays.time.minutes||'0'} mins
+                                    </td>
+                                </template>
+                            </template>
+                            <template v-if="showTotalAs === 'undertime'">
+                                <template v-if="showDays === '0'">
+                                    <!-- <td class="text-center">
+                                        ${stats.days.undertime.days||''}
+                                    </td> -->
+                                    <td class="text-center" colspan="2">
+                                        ${stats.days.undertime.days||'0'} days
+                                        ${stats.days.undertime.hours||'0'} hrs
+                                        ${stats.days.undertime.minutes||'0'} mins
+                                    </td>
+                                </template>
+                                <template v-if="showDays === '1'">
+                                    <!-- <td class="text-center">
+                                        ${stats.workdays.undertime.days||''}
+                                    </td> -->
+                                    <td class="text-center" colspan="2">
+                                        ${stats.workdays.undertime.days||'0'} days
+                                        ${stats.workdays.undertime.hours||'0'} hrs
+                                        ${stats.workdays.undertime.minutes||'0'} mins
+                                    </td>
+                                </template>
+                                <template v-if="showDays === '4'">
+                                    <!-- <td class="text-center">
+                                        ${stats.restDays.undertime.days||''}
+                                    </td> -->
+                                    <td class="text-center" colspan="2">
+                                        ${stats.restDays.undertime.days||'0'} days
+                                        ${stats.restDays.undertime.hours||'0'} hrs
+                                        ${stats.restDays.undertime.minutes||'0'} mins
+                                    </td>
+                                </template>
+                            </template>
+                        </tr>
+                        
                     </template>
-                    {# Counts #}
-                    <template v-if="showTotalAs==='time'">
-                        <!-- <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
-                            ${day?.time?.daysxxxxxx||''}
-                        </td> -->
-                        <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
-                            ${day?.time?.hoursDays||''}
-                        </td>
-                        <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
-                            ${day?.time?.minutes||''}
-                        </td>
-                    </template>
-                    <template v-if="showTotalAs==='undertime'">
-                        <!-- <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
-                            ${day?.undertime?.daysxxxx||''}
-                        </td> -->
-                        <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
-                            ${day?.undertime?.hoursDays||''}
-                        </td>
-                        <td v-bind:class="(day?.undertime?.total) ? 'text-center text-danger' : 'text-center'">
-                            ${day?.undertime?.minutes||''}
-                        </td>
-                    </template>
-                </tr>
-                {# end v-for #}
-                <template v-if="countTimeBy == 'none'">
-                    <tr class="text-center">
-                        <td colspan="6"><h5 class="m-0">Total</h5></td>
-                        <!-- <td>
-                        </td> -->
-                        <td>
-                        </td>
-                        <td>
-                        </td>
-                    </tr>
-                </template>
-                <template v-else>
-                    <tr>
-                        <td colspan="6" class="text-right"><strong>Total</strong></td>
-                        <template v-if="showTotalAs === 'time'">
-                            <template v-if="showDays === '0'">
-                                <!-- <td class="text-center">
-                                    ${stats.days.time.days||''}
-                                </td> -->
-                                <td class="text-center">
-                                    ${stats.days.time.hoursDays||''}
-                                </td>
-                                <td class="text-center">
-                                    ${stats.days.time.minutes||''}
-                                </td>
-                            </template>
-                            <template v-if="showDays === '1'">
-                                <!-- <td class="text-center">
-                                    ${stats.workdays.time.days||''}
-                                </td> -->
-                                <td class="text-center">
-                                    ${stats.workdays.time.hoursDays||''}
-                                </td>
-                                <td class="text-center">
-                                    ${stats.workdays.time.minutes||''}
-                                </td>
-                            </template>
-                            <template v-if="showDays === '2'">
-                                <!-- <td class="text-center">
-                                    ${stats.restDays.time.days||''}
-                                </td> -->
-                                <td class="text-center">
-                                    ${stats.restDays.time.hoursDays||''}
-                                </td>
-                                <td class="text-center">
-                                    ${stats.restDays.time.minutes||''}
-                                </td>
-                            </template>
-                        </template>
-                        <template v-if="showTotalAs === 'undertime'">
-                            <template v-if="showDays === '0'">
-                                <!-- <td class="text-center">
-                                    ${stats.days.undertime.days||''}
-                                </td> -->
-                                <td class="text-center">
-                                    ${stats.days.undertime.hoursDays||''}
-                                </td>
-                                <td class="text-center">
-                                    ${stats.days.undertime.minutes||''}
-                                </td>
-                            </template>
-                            <template v-if="showDays === '1'">
-                                <!-- <td class="text-center">
-                                    ${stats.workdays.undertime.days||''}
-                                </td> -->
-                                <td class="text-center">
-                                    ${stats.workdays.undertime.hoursDays||''}
-                                </td>
-                                <td class="text-center">
-                                    ${stats.workdays.undertime.minutes||''}
-                                </td>
-                            </template>
-                            <template v-if="showDays === '2'">
-                                <!-- <td class="text-center">
-                                    ${stats.restDays.undertime.days||''}
-                                </td> -->
-                                <td class="text-center">
-                                    ${stats.restDays.undertime.hoursDays||''}
-                                </td>
-                                <td class="text-center">
-                                    ${stats.restDays.undertime.minutes||''}
-                                </td>
-                            </template>
-                        </template>
-                    </tr>
-                </template>
-            </table>
-        </div>
-        <div class="row">
-            <div class="col-md-5">
-                <div class="legend p-3 d-flex align-items-center" style="font-size: 10px">
-                    <div class="m-2">Legend:</div>
-                    <div class="m-2">
-                        <div style="width: 30px; height: 10px; background:#adbdf0"></div>
-                        Holiday
-                    </div>
-                    <div class="m-2">
-                        <div style="width: 30px; height: 10px; border: 1px solid #dee2e6; background:#b9ffc8"></div>
-                        Today
-                    </div>
-                    <div class="m-2">
-                        <div style="width: 30px; height: 10px; border: 1px solid #f53c3c;"></div>
-                        Late/Undertime
+                </table>
+            </div>
+            <div class="row p-3">
+                <div class="col-md-5">
+                    <div class="legend p-3 d-flex align-items-center" style="font-size: 10px">
+                        <div class="m-2">Legend:</div>
+                        <div class="m-2">
+                            <div style="width: 30px; height: 10px; background:#adbdf0"></div>
+                            Holiday
+                        </div>
+                        <div class="m-2">
+                            <div style="width: 30px; height: 10px; border: 1px solid #dee2e6; background:#b9ffc8"></div>
+                            Today
+                        </div>
+                        <div class="m-2">
+                            <div style="width: 30px; height: 10px; border: 1px solid #f53c3c;"></div>
+                            Late/Undertime
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-7">
-                {% if showDays === 1 %}
-                    {% if employment.employmentType === 'permanent' %}
-                        <div class=" dtr-estimate" style="">
-                            <div class="form-row">
-                                <div class="col-12 text-center">Gross Pay Computation</div>
+                <div class="col-md-7">
+                    {% if showDays === 1 %}
+                        {% if employment.employmentType === 'permanent' %}
+                            <div class=" dtr-estimate" style="">
+                                <div class="form-row">
+                                    <div class="col-12 text-center">Gross Pay Computation</div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-6">Absences</div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-6 text-right">${stats.count.absentDays} days = ${roundOff(stats.count.absentDays * 8, 9)} hrs</div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-6">Tardy/Undertime:</div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-6 text-right">${stats.workdays.undertime.totalInHours} hrs</div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-6" style="font-size: 12px; color: gray;">Deduction</div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-6 text-right" style="font-size: 12px; color: gray;">₱ ${hourlyRate|currency} x ${stats.workdays.undertime.totalInHours + stats.count.absentDays * 8} hrs</div>
+                                    <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${(hourlyRate * (stats.workdays.undertime.totalInHours + (stats.count.absentDays * 8)))|currency}</span></div>
+                                </div>
                             </div>
-                            <div class="form-row">
-                                <div class="col-6">Absences</div>
+                        {% else %}
+                            {% if showTotalAs === 'time' %}
+                            <div class=" dtr-estimate">
+                                <div class="form-row">
+                                    <div class="col-12 text-center">Gross Pay Computation</div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-6">Workdays</div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-6 text-right">₱ ${hourlyRate} x <span v-on:click="alert(getBreakdown(getTotalHours(days, showTotalAs), getTotalMinutes(days, showTotalAs)))" class="expand-details">${roundOff(stats.workdays.time.totalInHours, 9)} hours</span></div>
+                                    <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(hourlyRate * roundOff(stats.days.time.totalInHours, 9), 2) | currency}</span></div>
+                                </div>
                             </div>
-                            <div class="form-row">
-                                <div class="col-6 text-right">${stats.count.absentDays} days = ${roundOff(stats.count.absentDays * 8, 9)} hrs</div>
+                            {% else %}
+                            <div class=" dtr-estimate">
+                                <div class="form-row">
+                                    <div class="col-12 text-center">Loss to Tardiness</div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-6">Workdays</div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-6 text-right">₱ ${hourlyRate} x <span v-on:click="alert(getBreakdown(getTotalHours(days, showTotalAs), getTotalMinutes(days, showTotalAs)))" class="expand-details">${roundOff(stats.workdays.undertime.totalInHours, 9)} hours</span></div>
+                                    <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-danger">${roundOff(hourlyRate * roundOff(stats.days.undertime.totalInHours, 9), 2) | currency}</span></div>
+                                </div>
                             </div>
-                            <div class="form-row">
-                                <div class="col-6">Tardy/Undertime:</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6 text-right">${stats.workdays.undertime.totalInHours} hrs</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6" style="font-size: 12px; color: gray;">Deduction</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6 text-right" style="font-size: 12px; color: gray;">₱ ${hourlyRate|currency} x ${stats.workdays.undertime.totalInHours + stats.count.absentDays * 8} hrs</div>
-                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${(hourlyRate * (stats.workdays.undertime.totalInHours + (stats.count.absentDays * 8)))|currency}</span></div>
-                            </div>
-                        </div>
-
-                    {% else %}
-                        <div class=" dtr-estimate">
-                            <div class="form-row">
-                                <div class="col-12 text-center">Gross Pay Computation</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6">Weekdays</div>
-                            </div>
-                            <div class="form-row">
-                                <div class="col-6 text-right">₱ ${hourlyRate} x <span v-on:click="alert(stats.workdays.time.days + ' days '+stats.workdays.time.hours + ' hours ' + stats.workdays.time.minutes + ' minutes')" class="expand-details">${roundOff(stats.workdays.time.totalInHours, 9)} hours</span></div>
-                                <div class="col-6 text-right" style="font-size: 18px; font-family: Consolas">₱ <span class="text-success">${roundOff(hourlyRate * roundOff(stats.days.time.totalInHours, 9), 2) | currency}</span></div>
-                            </div>
-                        </div>
+                            {% endif %}
+                        {% endif %}
                     {% endif %}
-                {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -398,6 +447,14 @@
 {% include "parts/modal-consent-eprofile-script.html" %}
 {% include "e-profile/dtr/script-select-action.html" %}
 <script>
+    const roundOff =  function(number, precision = 0) {
+        number = parseFloat(number)
+        precision = parseInt(precision)
+        let factor = Math.pow(10, precision)
+        let n = precision < 0 ? number : 0.01 / factor + number
+        return Math.round( n * factor) / factor
+    }
+
     var geo = _.get(window, 'navigator.geolocation');
     var vApp = new Vue({
         el: '#vApp',
@@ -440,6 +497,7 @@
         },
         validations: {},
         computed: {
+            
             period: function(){
                 return this.periodSliceString + ' ' + this.periodMonthYearString + ' (' + this.periodWeekDaysString + ')';
             },
@@ -473,7 +531,7 @@
                 return this.urlPath + '?' + this.urlQuery;
             },
             printUrl: function(){
-                return '/e-profile/dtr/print/{{employment._id}}' + '?' + this.urlQuery
+                return '/e/dtr/print/{{employment._id}}' + '?' + this.urlQuery
             },
             shareUrl: function(){
                 return '/e-profile/dtr/share/{{employment._id}}' + '?' + this.urlQuery
@@ -499,6 +557,60 @@
             var me = this;
         },
         methods: {
+            getBreakdown: function(hours, minutes){
+                const me = this
+                return `${hours} hours + (${minutes} minutes / 60 minutes)`
+            },
+            getTotalHours: function (days, timeType = 'time') {
+                return days.map(day => _.get(day, `${timeType}.hoursDays`, 0)).reduce((a, b) => a + b, 0)
+            },
+            getTotalMinutes: function (days, timeType = 'time') {
+                return days.map(day => _.get(day, `${timeType}.minutes`, 0)).reduce((a, b) => a + b, 0)
+            },
+            getTotalMinutesAsHours: function (days, timeType = 'time') {
+                return roundOff(this.getTotalMinutes(days, timeType) / 60, 9)
+            },
+            /**
+             * Slice time in minutes starting from day to minutes
+             */ 
+            sliceAsDay: function(totalInMinutes, part){
+                // Eg. totalInMinutes = 510 
+                let hoursPerDay = 8
+                let totalInDays = totalInMinutes / 60 / hoursPerDay // 1.0625
+                let dayPart = Math.floor(totalInDays) // 1
+
+                let remainderInHours = (totalInDays - dayPart) * hoursPerDay // 0.5
+                let hourPart = Math.floor(remainderInHours) // 0
+
+                let remainderInMinutes = (remainderInHours - hourPart) * 60 // 30
+                let minutePart = roundOff(remainderInMinutes)
+                if(part === 'day') {
+                    return dayPart
+                } else if(part === 'hour') {
+                    return hourPart
+                } else if(part === 'minute') {
+                    return minutePart
+                }
+                return 0
+            },
+            /**
+             * Slice time in minutes starting from hour to minutes
+             */ 
+            sliceAsHour: function(totalInMinutes, part){
+                // Eg. totalInMinutes = 510 
+                let hoursPerDay = 8
+                let totalInHours = totalInMinutes / 60 // 8.5
+                let hourPart = Math.floor(totalInHours) // 8
+
+                let remainderInMinutes = (totalInHours - hourPart) * 60 // 30
+                let minutePart = roundOff(remainderInMinutes)
+                if(part === 'hour') {
+                    return hourPart
+                } else if(part === 'minute') {
+                    return minutePart
+                }
+                return 0
+            },
             showSettings: function(){
                 jQuery('#vAppDtrSettings').modal('show')
             },
@@ -518,64 +630,6 @@
                 vModalSelectAction.attendanceId = attendanceId
                 vModalSelectAction.date = date
                 jQuery('#modal-select-action').modal('show')
-            },
-            precisionRound: function(number, precision) {
-                var factor = Math.pow(10, precision);
-                return Math.round(number * factor) / factor;
-            },
-            toFixed: function(n){
-                return n.toFixed(2)
-            },
-            perHour: function(){
-                return this.precisionRound(this.salary / 8, 9)
-            },
-            perMinute: function(){
-                return this.precisionRound(this.salary / 8 / 60, 9)
-            },
-            netPay: function(minutes){
-                return this.precisionRound((this.salary / 8 / 60) * minutes, 9).toFixed(2)
-            },
-            subTotalDays: function(day) {
-                var x = _.get(day, 'dtr.time.days', '');
-                if(this.showTotalAs === 'undertime'){
-                    x = _.get(day, 'dtr.underDays', '');
-                }
-                return (x === 0) ? '' : x;
-            },
-            subTotalHours: function(day) {
-                var x = _.get(day, 'dtr.time.hours', '');
-                if(this.showTotalAs === 'undertime'){
-                    x = _.get(day, 'dtr.underHours', '');
-                }
-                return (x === 0) ? '' : x;
-            },
-            subTotalMinutes: function(day) {
-                var x = _.get(day, 'dtr.time.minutes', '');
-                if(this.showTotalAs === 'undertime'){
-                    x = _.get(day, 'dtr.underMinutes', '');
-                }
-                return (x === 0) ? '' : x;
-            },
-            totalDays: function(timeRecordSummary) {
-                var x = _.get(timeRecordSummary, 'time.days', '')
-                if(this.showTotalAs === 'undertime'){
-                    x = _.get(timeRecordSummary, 'underDays', '')
-                }
-                return (x === 0) ? '' : x;
-            },
-            totalHours: function(timeRecordSummary) {
-                var x = _.get(timeRecordSummary, 'time.hours', '')
-                if(this.showTotalAs === 'undertime'){
-                    x = _.get(timeRecordSummary, 'underHours', '')
-                }
-                return (x === 0) ? '' : x;
-            },
-            totalMinutes: function(timeRecordSummary) {
-                var x = _.get(timeRecordSummary, 'time.minutes', '')
-                if(this.showTotalAs === 'undertime'){
-                    x = _.get(timeRecordSummary, 'underMinutes', '')
-                }
-                return (x === 0) ? '' : x;
             },
             showLogType: function(type) {
                 type = _.capitalize(type);

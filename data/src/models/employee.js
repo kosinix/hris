@@ -321,6 +321,7 @@ const schema = new Schema({
             $type: String,
             trim: true,
         },
+        vaccines: []
     },
     acceptedDataPrivacy: {
         $type: Boolean,

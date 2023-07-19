@@ -1,0 +1,189 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h5">Vaccination Information</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3">
+        <div v-if="vaccineList.length > 0" class="table-responsive mb-3">
+            <table class="table table-sm table-bordered">
+                <tr>
+                    <th>Name</th>
+                    <th>Date</th>
+                    <th>Dosage</th>
+                    <th>Health Facility</th>
+                    <th width="1%"></th>
+                </tr>
+                <tr v-for="(vaccine, i) in vaccineList">
+                    <td>${vaccine.name}</td>
+                    <td>${vaccine.date|formatDate('MMM DD, YYYY')}</td>
+                    <td>${vaccine.sequence}</td>
+                    <td>${vaccine.healthFacility}</td>
+                    <td><button v-on:click="deleteX(i)" type="button" class="btn btn-sm btn-danger">X</button></td>
+                </tr>
+            </table>
+        </div>
+        <form ref="form" @submit.prevent="onSubmit" action="" method="post">
+            <div class="form-row">
+                <div class="col-md-3 form-group">
+                    <label for="name">Vaccine Name</label>
+                    <input v-model="name" name="name" id="name" type="text" class="form-control">
+                    <small class="invalid-feedback">${getError('name')}</small>
+                </div>
+                <div class="col-md-2 form-group">
+                    <label for="date">Date</label>
+                    <input v-model="date" name="date" id="date" type="date" class="form-control">
+                    <small class="invalid-feedback">${getError('date')}</small>
+                </div>
+                <div class="col-md-3 form-group">
+                    <label for="sequence">Dosage Sequence</label>
+                    <select v-model="sequence" name="sequence" id="sequence" class="form-control">
+                        <option value=""></option>
+                        <option>1st Dose</option>
+                        <option>2nd Dose</option>
+                        <option>Booster Shot #1</option>
+                        <option>Booster Shot #2</option>
+                    </select>
+                    <small class="invalid-feedback">${getError('sequence')}</small>
+                </div>
+                <div class="col-md-3 form-group">
+                    <label for="healthFacility">Vaccine Facility </label> <em>(eg. Jordan RHU)</em>
+                    <input v-model="healthFacility" name="healthFacility" id="healthFacility" type="search" class="form-control">
+                    <small class="invalid-feedback">${getError('healthFacility')}</small>
+                </div>
+                <div class="col-md-1 d-flex align-items-center">
+                    <button class="btn btn-large btn-primary">Add</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        filters: {
+            formatDate: function(date, format){
+                return moment(date).format(format)
+            }
+        },
+        components: {
+
+        },
+        data: {
+            pending: false,
+            name: 'Sinovac',
+            date: '2020-11-09',
+            sequence: '1st Dose',
+            healthFacility: 'Jordan RHU',
+            vaccineList: {{employee.personal.vaccines|default(true, [])|stringify|safe}}
+        },
+        validations: {
+            name: {
+                required: window.validators.required
+            },
+            date: {
+                required: window.validators.required
+            },
+            sequence: {
+                required: window.validators.required
+            },
+            healthFacility: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            deleteX: function(i){
+                let me = this;
+                me.pending = true
+
+                fetch(`/e/clinic/vax/delete`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        vaxId: me.vaccineList[i]._id,
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        // me.department.members.splice(index, 1)
+                        me.$delete(me.vaccineList, i)
+                    } else {
+                        throw new Error(await response.text())
+                    }
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
+                }).then(function(){
+                    me.pending = false
+                });
+
+                
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        // me.$refs.form.submit();
+                        me.pending = true
+                        fetch(`/e/clinic/vax/create`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                name: me.name,
+                                date: me.date,
+                                sequence: me.sequence,
+                                healthFacility: me.healthFacility,
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(async function(response){
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error(await response.text())
+                            
+                        }).then(function(responseJson){
+                            me.vaccineList.push(responseJson)
+
+                            me.name = ''
+                            me.date = ''
+                            me.sequence = ''
+                            me.healthFacility = ''
+                            me.$v.$reset()
+
+                        }).catch(async function(error){
+                            console.error(error)
+                            alert(error);
+                        }).then(function(){
+                            me.pending = false
+                        });
+                        
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

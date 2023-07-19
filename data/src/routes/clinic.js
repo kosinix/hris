@@ -181,4 +181,66 @@ router.post('/e/clinic/hdf', middlewares.guardRoute(['use_employee_profile']), m
     }
 });
 
+
+router.get('/e/clinic/vax/all', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        res.render('e/clinic/vax/all.html', {
+            employee: employee,
+            momentNow: moment(),
+        });
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e/clinic/vax/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        // return res.send(req.body)
+        let body = lodash.get(req, 'body')
+        let payload = {
+            _id: req.app.locals.db.mongoose.Types.ObjectId(),
+            name: body.name,
+            date: body.date,
+            sequence: body.sequence,
+            healthFacility: body.healthFacility,
+        }
+
+        let vaccines = lodash.get(employee, 'personal.vaccines', [])
+        vaccines.push(payload)
+        lodash.set(employee, 'personal.vaccines', vaccines)
+
+
+        await req.app.locals.db.main.Employee.updateOne({
+            _id: employee._id
+        }, employee)
+
+        res.send(payload)
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e/clinic/vax/delete', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let vaxId = lodash.get(req, 'body.vaxId')
+        
+        let vaccines = lodash.get(employee, 'personal.vaccines', [])
+        let index = vaccines.findIndex(v=>{
+            return v._id.toString() === vaxId
+        })
+        vaccines.splice(index, 1)
+        lodash.set(employee, 'personal.vaccines', vaccines)
+
+        await req.app.locals.db.main.Employee.updateOne({
+            _id: employee._id
+        }, employee)
+
+        res.send({})
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

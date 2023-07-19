@@ -1,23 +1,28 @@
-
+const lodash = require('lodash')
 
 module.exports = {
-    createPayload: (user, scanner) => {
+    createPayload: (user, payload, expiry) => {
         let msNow = Date.now() // milliseconds elapsed since January 1, 1970 00:00:00 UTC.
         let secondsNow = Math.floor(msNow / 1000) // Convert ms to seconds
-        let expiry = CONFIG.session.cookie.maxAge / 1000 //(in seconds) 
 
-        // Remove for security
-        user.passwordHash = null
-        user.salt = null
+        // Include only some props for security
+        user = lodash.pickBy(user, function(_, key) {
+            return [
+                '_id', 
+                'firstName', 
+                'middleName', 
+                'lastName', 
+                'email'
+            ].includes(key)
+        });
 
         // Add _id aliases for flexibility
-        user.id = user._id
-        scanner.id = scanner._id
         return {
             iss: 'gsueduph',
+            iat: secondsNow,
             exp: secondsNow + expiry,
             user: user,
-            scanner: scanner
+            payload: payload
         }
     }
 }

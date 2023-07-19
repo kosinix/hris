@@ -165,6 +165,9 @@ module.exports = {
 
                 next()
             } catch (err) {
+                if (err.name === 'TokenExpiredError') {
+                    return next(Error('Token has expired. Please login again.'))
+                }
                 next(err)
             }
         },

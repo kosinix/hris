@@ -30,7 +30,7 @@ const uploader = require('../uploader')
 // Router
 let router = express.Router()
 
-router.use('/api', middlewares.api.rateLimit)
+// router.use('/api', )
 
 // Status
 router.get('/api/status', async (req, res, next) => {
@@ -42,7 +42,7 @@ router.get('/api/status', async (req, res, next) => {
 })
 
 // Public API
-router.post('/api/login', async (req, res, next) => {
+router.post('/api/login', middlewares.api.rateLimit, async (req, res, next) => {
     try {
 
         let post = req.body

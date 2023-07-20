@@ -1445,7 +1445,7 @@ router.get('/employee/:employeeId/receipt', middlewares.guardRoute(['read_employ
             employee: employee,
             employment: employment,
             onlineAccount: onlineAccount,
-            title: `Employee ${employee.firstName} ${employee.lastName} Transaction Slip`,
+            title: `Employee ${employee.firstName} ${employee.lastName} Transaction Receipt`,
             createdBy: createdBy,
         });
     } catch (err) {

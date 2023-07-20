@@ -1425,6 +1425,11 @@ router.post('/employee/:employeeId/user/password-reset', middlewares.guardRoute(
 router.get('/employee/:employeeId/receipt', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
+        let employments = await req.app.locals.db.main.Employment.find({
+            employeeId: employee._id
+        }).lean()
+
+        let employment = employments.at(-1)
         
 
         let onlineAccount = await req.app.locals.db.main.User.findById(employee.userId)
@@ -1432,16 +1437,16 @@ router.get('/employee/:employeeId/receipt', middlewares.guardRoute(['read_employ
             flash.error(req, 'employee', `Could not view receipt. Could not identify the user who created the employee account.`)
             return res.redirect(`/employee/${employee._id}/user`)
         }
-        let username = passwordMan.genUsername(employee.firstName, employee.lastName)
-        let password = passwordMan.randomString(8)
+        
+        let createdBy = await req.app.locals.db.main.User.findById(onlineAccount.createdBy).lean()
 
         res.render('employee/online-account/receipt.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
+            employment: employment,
             onlineAccount: onlineAccount,
             title: `Employee ${employee.firstName} ${employee.lastName} Transaction Slip`,
-            username: username,
-            password: password,
+            createdBy: createdBy,
         });
     } catch (err) {
         next(err);

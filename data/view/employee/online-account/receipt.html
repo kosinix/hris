@@ -1,90 +1,106 @@
-{% extends "document-print.html" %}
+{% extends "document-print2.html" %}
 
 {% block body %}
 <div class="col-md-12" style="font-family: 'Poppins';">
-    <div class="d-flex justify-content-center">
-        <div style="width: 210mm; height:297mm; box-shadow: 0 0 1px gray; padding: 10mm">
-            <div class="form-row align-items-start mb-5">
-                <div class="col-1 text-right"><img src="/images/logo-md.png" width="70px" alt="Logo"></div>
-                <div class="col-6">
-                    <div class="font-weight-700">Guimaras State University</div>
-                    <div style="font-size: 14px;">Mclain, Buenavista, Guimaras</div>
-                </div>
-                <div class="col-5 text-left">
-                    <img src="/images/hrmo.png" width="70px" alt="Logo">
-                    <div style="font-size: 14px;" class="font-weight-bold">Human Resource Management Office</div>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="col-12">
-                    <h1 class="h5 text-center mb-5">Transaction Slip</h1>
-                    <div class="alert border-success text-success mb-5 text-center">This serves as proof that the employee has successfully completed the transaction at the Human Resource Management Office.</div>
-                    <table class="table table-striped mb-5">
-                        <tr>
-                            <td width="30%">Employee Name:</td>
-                            <td>
-                                <span class="text-underline-border">{{employee.firstName}}</span> 
-                                <span class="text-underline-border">{{employee.middleName}}</span>
-                                <span class="text-underline-border">{{employee.lastName}}</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>ID Number:</td>
-                            <td>{{employee.personal.agencyEmployeeNumber}}</td>
-                        </tr>
-                        
-                        <tr>
-                            <td>Birth Date:</td>
-                            <td>{{employee.birthDate|format_date('MMM DD, YYYY')}}</td>
-                        </tr>
-                        <tr>
-                            <td>Address:</td>
-                            <td>{{employee.address}}</td>
-                        </tr>
-                        <tr>
-                            <td>Gender:</td>
-                            <td>{{employee.gender}}</td>
-                        </tr>
-                        <tr>
-                            <td>Email:</td>
-                            <td>{{onlineAccount.email}}</td>
-                        </tr>
-                        <tr>
-                            <td>Phone:</td>
-                            <td>{{employee.mobileNumber}}</td>
-                        </tr>
-                        <tr>
-                            <td>Transaction Date:</td>
-                            <td contenteditable="true">{{onlineAccount.createdAt|format_date('MMM DD, YYYY hh:mm:ss A')}}</td>
-                        </tr>
-                        <tr>
-                            <td>Transaction Venue:</td>
-                            <td contenteditable="true">Human Resource Management Office</td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            <div class="form-row mb-5">
-                <div class="col-6"></div>
-                <div class="col-6">
-                    <div>Processed by: <strong>{{user.firstName}} {{user.middleName|first}}. {{user.lastName}}</strong></div>
-                </div>
-            </div>
-            <div class="form-row mb-4">
-                <div class="col-12">
-                    <h2 class="h5">What's Next?</h2>
-                    <ol>
-                        <li class="mb-2">Please proceed to the Information and Communications Technology Office (ICTO) to get your Identification Card (ID).</li>
-                        <li class="mb-2">Then have it activated at the Management Information System Office (MISO).</li>
-                        <li class="mb-2">Login into your HRIS account and watch the onboarding videos.</li>
-                    </ol>
-                </div>
-            </div>
-            <div class="text-center">
-                <small><em>The Human Resource Information System - &copy; 2021</em></small>
+    <div class="d-print-none d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="">
+            <h1 class="h5 mb-3">Transaction Receipt</h1>
+            <p class="alert alert-info"><em>Press CTRL + P to open printer options. You must be on a laptop or desktop computer.</em></p>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/employee/{{employee._id}}/user" class="btn btn-sm btn-outline-secondary">Back</a>
             </div>
         </div>
-        <!--  -->
+    </div>
+    <div class="d-print-none d-block d-md-none">
+        <div class="alert alert-warning">Preview could not fit on small screens.</div>
+    </div>
+    <div class="d-none d-md-block d-print-block">
+        <div class="d-flex justify-content-center">
+            <div style="width: 210mm; box-shadow: 0 0 1px gray; padding: 10mm">
+                <div class="form-row align-items-start mb-5">
+                    <div class="col-1 text-right"><img src="/images/logo-md.png" width="70px" alt="Logo"></div>
+                    <div class="col-6">
+                        <div class="font-weight-700">Guimaras State University</div>
+                        <div style="font-size: 14px;">Mclain, Buenavista, Guimaras</div>
+                    </div>
+                    <div class="col-5 text-left">
+                        <img src="/images/hrmo.png" width="70px" alt="Logo">
+                        <div style="font-size: 14px;" class="font-weight-bold">Human Resource Management Office</div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-12">
+                        <h1 class="h5 text-center mb-5">Transaction Slip</h1>
+                        <div class="alert border-success text-success mb-5 text-center">This serves as proof that the employee has successfully completed the transaction at the Human Resource Management Office.</div>
+                        <table class="table table-striped mb-5">
+                            <tr>
+                                <td width="25%">Employee Name:</td>
+                                <td>
+                                    <span class="text-underline-border">{{employee.firstName}}</span> 
+                                    <span class="text-underline-border">{{employee.middleName}}</span>
+                                    <span class="text-underline-border">{{employee.lastName}}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Employment:</td>
+                                <td>{{employment.position}} - {{employment.employmentType|replace('cos', 'Contract of Service')|start_case}}</td>
+                            </tr>
+                            <tr>
+                                <td>ID Number:</td>
+                                <td>{{employee.personal.agencyEmployeeNumber}}</td>
+                            </tr>
+                            
+                            <tr>
+                                <td>Birth Date:</td>
+                                <td>{{employee.birthDate|format_date('MMM DD, YYYY')}}</td>
+                            </tr>
+                            <tr>
+                                <td>Address:</td>
+                                <td>{{employee.address}}</td>
+                            </tr>
+                            <tr>
+                                <td>Gender:</td>
+                                <td>{{employee.gender}}</td>
+                            </tr>
+                            <tr>
+                                <td>Email:</td>
+                                <td>{{onlineAccount.email}}</td>
+                            </tr>
+                            <tr>
+                                <td>Transaction Date:</td>
+                                <td contenteditable="true">{{onlineAccount.createdAt|format_date('MMM DD, YYYY hh:mm:ss A')}}</td>
+                            </tr>
+                            <tr>
+                                <td>Transaction Venue:</td>
+                                <td contenteditable="true">Human Resource Management Office</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="form-row mb-5">
+                    <div class="col-6"></div>
+                    <div class="col-6">
+                        <div>Processed by: <strong>{{createdBy.firstName}} {{createdBy.middleName|first}}. {{createdBy.lastName}}</strong></div>
+                    </div>
+                </div>
+                <div class="form-row mb-4">
+                    <div class="col-12">
+                        <h2 class="h5">What's Next?</h2>
+                        <ol>
+                            <li class="mb-2">Please proceed to the Information and Communications Technology Office (ICTO) to get your Identification Card (ID).</li>
+                            <li class="mb-2">Then have it activated at the Management Information System Office (MISO).</li>
+                            <li class="mb-2">Login into your HRIS account and watch the onboarding videos.</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <small><em>The Human Resource Information System - &copy; 2021</em></small>
+                </div>
+            </div>
+            <!--  -->
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -1417,6 +1417,29 @@ router.post('/employee/:employeeId/user/password-reset', middlewares.guardRoute(
     }
 });
 
+//
+router.get('/employee/:employeeId/receipt', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee
+
+        let onlineAccount = await req.app.locals.db.main.User.findById(employee.userId)
+
+        let username = passwordMan.genUsername(employee.firstName, employee.lastName)
+        let password = passwordMan.randomString(8)
+
+        res.render('employee/online-account/receipt.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            onlineAccount: onlineAccount,
+            title: `Employee ${employee.firstName} ${employee.lastName} Transaction Slip`,
+            username: username,
+            password: password,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
 // Documents
 router.get('/employee/:employeeId/document/all', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {

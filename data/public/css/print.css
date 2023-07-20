@@ -9,6 +9,39 @@
     }
 }
 
+/* poppins-300 - latin */
+@font-face {
+    font-display: swap;
+    /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 300;
+    src: url('../fonts/poppins-v20-latin-300.woff2') format('woff2');
+    /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+
+/* poppins-regular - latin */
+@font-face {
+    font-display: swap;
+    /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/poppins-v20-latin-regular.woff2') format('woff2');
+    /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+
+/* poppins-700 - latin */
+@font-face {
+    font-display: swap;
+    /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 700;
+    src: url('../fonts/poppins-v20-latin-700.woff2') format('woff2');
+    /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+  
 body {
     padding: 25px 0;
     background: none;
@@ -219,4 +252,26 @@ hr.dashed {
     padding: 2px 3px;
     border: 1px solid black;
     vertical-align: middle;
+}
+
+/* Font Weights */
+.font-weight-bold {
+    font-weight: bold;
+}
+
+.font-weight-300 {
+    font-weight: 300;
+}
+
+.font-weight-700 {
+    font-weight: 700;
+}
+
+.text-underline {
+    text-decoration: underline;
+}
+
+.text-underline-border {
+    border-bottom: 1px solid gray;
+    border-color: inherit;
 }

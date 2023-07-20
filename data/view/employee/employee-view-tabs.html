@@ -13,6 +13,9 @@
             <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/user/])}}" href="/employee/{{employee._id}}/user">Online Account</a>
         </li>
         <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/receipt/])}}" href="/employee/{{employee._id}}/receipt">Receipt</a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/document\/(.)+/])}}" href="/employee/{{employee._id}}/document/all">E-201</a>
         </li>
         <li class="nav-item">

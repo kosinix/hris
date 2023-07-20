@@ -1,11 +1,13 @@
-{% extends "document-print2.html" %}
+{% extends "document-print.html" %}
 
 {% block body %}
 <div class="col-md-12" style="font-family: 'Poppins';">
     <div class="d-print-none d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="">
             <h1 class="h5 mb-3">Transaction Receipt</h1>
-            <p class="alert alert-info"><em>Press CTRL + P to open printer options. You must be on a laptop or desktop computer.</em></p>
+            <div class="d-none d-md-block d-print-block">
+                <p class="alert alert-warning"><em>Press CTRL + P to open printer options.</em></p>
+            </div>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">

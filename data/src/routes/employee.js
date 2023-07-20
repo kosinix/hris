@@ -1166,7 +1166,7 @@ router.post('/employee/:employeeId/user/create', middlewares.guardRoute(['update
         let info = await mailer.send('verified.html', data)
 
         flash.ok(req, 'employee', `Account created with username "${body.username}" and password "${body.password}".`)
-        res.redirect(`/employee/${employee._id}/user`)
+        res.redirect(`/employee/${employee._id}/receipt`)
 
     } catch (err) {
         next(err);

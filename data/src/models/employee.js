@@ -327,7 +327,10 @@ const schema = new Schema({
         $type: Boolean,
         default: false
     },
-    history: []
+    history: [],
+    createdBy: {
+        $type: mongoose.Schema.Types.ObjectId, // assoc. admin user account 
+    },
 }, { timestamps: true, typeKey: '$type' })
 
 //// Virtuals

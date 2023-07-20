@@ -82,6 +82,9 @@ const schema = new Schema({
             },
         }
     ],
+    createdBy: {
+        $type: mongoose.Schema.Types.ObjectId, // assoc. admin user account 
+    },
 }, { timestamps: true, typeKey: '$type' })
 
 //// Virtuals

@@ -445,6 +445,7 @@ router.post('/employee/create', middlewares.guardRoute(['create_employee']), asy
         }
 
         let employee = new req.app.locals.db.main.Employee(patch)
+        employee.createdBy = res.user._id
         await employee.save()
 
         await req.app.locals.db.main.EmployeeHistory.create({
@@ -632,6 +633,7 @@ router.post('/employee/:employeeId/employment/create', middlewares.guardRoute(['
         lodash.set(patch, `workScheduleId`, lodash.get(body, 'workScheduleId'))
 
         let employment = new req.app.locals.db.main.Employment(patch)
+        employment.createdBy = res.user._id
         await employment.save()
 
         await req.app.locals.db.main.EmployeeHistory.create({
@@ -1105,6 +1107,7 @@ router.post('/employee/:employeeId/user/create', middlewares.guardRoute(['update
             employeeUser.username = body.username
             employeeUser.salt = salt
             employeeUser.passwordHash = passwordHash
+            employeeUser.createdBy = res.user._id
             await employeeUser.save()
 
         } else { // No associated user
@@ -1138,6 +1141,7 @@ router.post('/employee/:employeeId/user/create', middlewares.guardRoute(['update
                 email: body.email,
                 active: true,
                 permissions: [],
+                createdBy: res.user._id,
             });
             await employeeUser.save()
             employee.userId = employeeUser._id
@@ -1421,9 +1425,13 @@ router.post('/employee/:employeeId/user/password-reset', middlewares.guardRoute(
 router.get('/employee/:employeeId/receipt', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
+        
 
         let onlineAccount = await req.app.locals.db.main.User.findById(employee.userId)
-
+        if(!onlineAccount.createdBy){
+            flash.error(req, 'employee', `Could not view receipt. Could not identify the user who created the employee account.`)
+            return res.redirect(`/employee/${employee._id}/user`)
+        }
         let username = passwordMan.genUsername(employee.firstName, employee.lastName)
         let password = passwordMan.randomString(8)
 

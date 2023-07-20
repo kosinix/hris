@@ -51,7 +51,14 @@ let schema = mongoose.Schema({
             $type: Boolean,
             default: false
         },
-    }
+        api: { // API access 
+            $type: Boolean,
+            default: false
+        },
+    },
+    createdBy: {
+        $type: mongoose.Schema.Types.ObjectId, // assoc. admin user account 
+    },
 }, {timestamps: true, typeKey: '$type'})
 
 //// Instance methods

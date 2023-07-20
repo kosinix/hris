@@ -117,6 +117,7 @@ router.post('/user/create', middlewares.guardRoute(['create_user']), async (req,
         let passwordHash = passwordMan.hashPassword(password, salt)
         lodash.set(patch, 'passwordHash', passwordHash)
         lodash.set(patch, 'salt', salt)
+        lodash.set(patch, 'createdBy', res.user._id)
 
         let user = await req.app.locals.db.main.User.create(patch)
 

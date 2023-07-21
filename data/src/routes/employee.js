@@ -1433,7 +1433,11 @@ router.get('/employee/:employeeId/receipt', middlewares.guardRoute(['read_employ
         
 
         let onlineAccount = await req.app.locals.db.main.User.findById(employee.userId)
-        if(!onlineAccount.createdBy){
+        if(!onlineAccount){
+            flash.error(req, 'employee', `Need to create an online account.`)
+            return res.redirect(`/employee/${employee._id}/user`)
+        }
+        if(!onlineAccount?.createdBy){
             flash.error(req, 'employee', `Could not view receipt. Could not identify the user who created the employee account.`)
             return res.redirect(`/employee/${employee._id}/user`)
         }

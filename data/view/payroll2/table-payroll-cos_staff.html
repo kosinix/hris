@@ -3,52 +3,48 @@
 {% block body %}
 <div class="col-12" id="vApp" v-bind:data-pending="pending" v-cloak>
     <h1 class="h6 mb-2">{{payroll.name}} - <em>{{payroll.dateStart|format_date('MMM DD, YYYY')}} to {{payroll.dateEnd|format_date('MMM DD, YYYY')}}</em></h1>
-    <div class="btn-group mb-2">
-        <a href="/payroll2/{{payroll._id}}/add-row?rtype=2&index=0&title=Subtotal" class="btn btn-sm btn-light">Add Subtotal Row</a>
-        <a href="/payroll2/{{payroll._id}}/add-row?rtype=3&index=0&title=Title" class="btn btn-sm btn-light">Add Title Row</a>
-        <a href="/payroll2/regen/{{payroll._id}}" class="btn btn-sm btn-primary">Regenerate Payroll</a>
+    <div class="d-flex flex-wrap justify-content-between pt-3 pb-3">
+        <div class="btn-group">
+            <a href="/payroll2/{{payroll._id}}/add-row?rtype=2&index=0&title=Subtotal" class="btn btn-sm btn-light">Add Subtotal Row</a>
+            <a href="/payroll2/{{payroll._id}}/add-row?rtype=3&index=0&title=Title" class="btn btn-sm btn-light">Add Title Row</a>
+            <a href="/payroll2/regen/{{payroll._id}}" class="btn btn-sm btn-primary">Regenerate Payroll</a>
+        </div>
+        <div class="btn-group">
+            <a href="/payroll2/view/{{payroll._id}}/payroll.xlsx" class="btn btn-light btn-sm">Download Excel</a>
+        </div>
     </div>
     <div class="table-responsive mb-3">
         <table class="table-payroll">
             <thead>
                 <tr class="text-center">
-                    <th rowspan="3"></th>
-                    <th rowspan="3">No.</th>
-                    <th rowspan="3" width="1%">Source of Fund</th>
-                    <th rowspan="3">Name</th>
-                    <th rowspan="3">Position</th>
-                    <th rowspan="3">Daily/Monthly Wage</th>
-                    <th rowspan="3" colspan="6">No. of Days Rendered</th>
-                    <th rowspan="3">Gross Amount</th>
-                    <!-- <th rowspan="3">5% Premium</th> -->
-
-                    <th colspan="9">Deductions</th>
-
-                    <th rowspan="3">Net Amount</th>
-                    <th rowspan="3">No.</th>
-                    <!-- <th rowspan="3">Signature</th> -->
-                    <!-- <th rowspan="3">Remarks</th> -->
-                    <th rowspan="3"></th>
-
-                </tr>
-                <tr class="text-center">
-                    <th colspan="4">Tax</th>
-                    <th colspan="3">SSS</th>
-                    <th>IGP</th>
-                    <th rowspan="2">Total</th>
-                </tr>
-                <tr class="text-center">
-
-                    <th>1%</th>
-                    <th>5%</th>
-                    <th>10%</th>
+                    <th></th>
+                    <th>No.</th>
+                    <th width="1%">Source of Fund</th>
+                    <th>Name</th>
+                    <th>Position</th>
+                    <th>Daily/Monthly Wage</th>
+                    <th colspan="6">No. of Days Rendered</th>
+                    <th>Gross Amount</th>
+                    <th>5% Premium</th>
                     <th>Total</th>
 
-                    <th>Contribution</th>
-                    <th>EC</th>
-                    <th>Total</th>
+                    <th>1% Tax</th>
+                    <th>5% Tax</th>
+                    <th>10% Tax</th>
+                    <th>Total Tax</th>
+
+                    <th>Contribution SSS</th>
+                    <th>EC SSS</th>
+                    <th>Total SSS</th>
 
                     <th>Multi-crop</th>
+                    <th>Total Deductions</th>
+
+                    <th>Net Amount</th>
+                    <th>No.</th>
+                    <!-- <th>Signature</th> -->
+                    <!-- <th>Remarks</th> -->
+                    <th></th>
 
                 </tr>
             </thead>
@@ -72,12 +68,12 @@
                         <td><a v-bind:href="`/attendance/employment/${row.uid}?start=${payroll.dateStart}&end=${payroll.dateEnd}&showDays=1`">${row.minutes|blank}</a></td>
                         <td>mins</td>
                         <td>${row.gross|currency}</td>
-                        <!-- <td>
+                        <td>
                             {% set fieldName = 'premium5' %}
                             {% include 'payroll2/field.html' %}
                             {% set fieldName = '' %}
-                        </td> -->
-
+                        </td>
+                        <td>${totalRowGrant(row)|currency}</td>
                         <td>
                             {% set fieldName = 'tax1' %}
                             {% include 'payroll2/field.html' %}
@@ -94,7 +90,7 @@
                             {% set fieldName = '' %}
                         </td>
                         <!--  total tax -->
-                        <td>${totalTax(row)|currency}</td>
+                        <td>${totalRowTax(row)|currency}</td>
 
                         <td>
                             {% set fieldName = 'sss' %}
@@ -107,7 +103,7 @@
                             {% set fieldName = '' %}
                         </td>
                         <!--  -->
-                        <td>${totalSSS(row)|currency}</td>
+                        <td>${totalRowSSS(row)|currency}</td>
 
                         <td>
                             {% set fieldName = 'igp' %}
@@ -115,9 +111,8 @@
                             {% set fieldName = '' %}
                         </td>
                         <!--  -->
-                        <td>${totalDeductions(row)|currency}</td>
-
-                        <td>${netAmount(row)|currency}</td>
+                        <td>${totalRowDeductions(row)|currency}</td>
+                        <td>${totalRowNetAmount(row)|currency}</td>
                         <td>${row.count}</td>
                         <!-- <td></td> -->
                         <!-- <td></td> -->
@@ -135,17 +130,16 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td>${subTotalGross(row, index, 'gross')|currency}</td>
-
+                        <td>${subTotal(index, 'gross')|currency}</td>
+                        <td></td>
+                        <td>${subTotal(index, 'grant')|currency}</td>
                         <td></td>
                         <td></td>
                         <td></td>
                         <td>${subTotalTax(row, index)|currency}</td>
-
                         <td></td>
                         <td></td>
                         <td>${subTotalSSS(row, index)|currency}</td>
-
                         <td></td>
                         <td>${subTotalDeductions(row, index)|currency}</td>
                         <td>${subTotalNetAmount(row, index)|currency}</td>
@@ -165,7 +159,8 @@
                         <!-- <td>Name</td> -->
                         <td><!-- Position --></td>
                         <td><!-- Wage --></td>
-                        <!-- <td></td> -->
+                        <td></td>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -198,9 +193,10 @@
                 </tr>
             </tbody>
         </table>
-        <button type="button" v-on:click="saveMe" class="btn btn-primary btn-sm">Save</button>
 
     </div> 
+    <button type="button" v-on:click="saveMe" class="btn btn-primary btn-sm">Save</button>
+    <a href="/payroll2/view/{{payroll._id}}/payroll.xlsx" class="btn btn-light btn-sm">Download Excel</a>
 </div>
 {% endblock %}
 {% block scripts %}
@@ -309,34 +305,42 @@
             })
         },
         methods: {
-            totalTax: function(row){
-                return row.tax1 + row.tax5 + row.tax10
+            totalRowGrant: function(row){
+                return row.grant = row.gross + row.premium5
             },
-            totalSSS: function(row){
-                return row.sss + row.sssEC
+            totalRowTax: function(row){
+                row.taxTotal = row.tax1 + row.tax5 + row.tax10
+                return row.taxTotal
             },
-            totalIGP: function(row){
+            totalRowSSS: function(row){
+                row.sssTotal = row.sss + row.sssEC
+                return row.sssTotal
+            },
+            totalRowIGP: function(row){
                 return row.igp
             },
-            totalDeductions: function(row){
-                return this.totalTax(row) + this.totalSSS(row) + this.totalIGP(row)
+            totalRowDeductions: function(row){
+                row.deductionsTotal = this.totalRowTax(row) + this.totalRowSSS(row) + this.totalRowIGP(row)
+                return row.deductionsTotal
             },
-            netAmount: function(row){
-                return row.gross - this.totalDeductions(row)
+            totalRowNetAmount: function(row){
+                row.netAmount = row.gross - this.totalRowDeductions(row)
+                return row.netAmount
             },
-            subTotalGross: function(row, index, key) {
-                let totalGross = 0
+            subTotal: function(index, key) {
+                let total = 0
                 let currentIndex = index - 1
 
                 let currentRow = this.payroll.rows[currentIndex]
                 while(currentRow?.rtype === 1 && currentIndex >= 0){
 
-                    totalGross += currentRow[key]
+                    total += currentRow[key]
                     currentIndex--
                     currentRow = this.payroll.rows[currentIndex]
                 }
-                return totalGross
+                return total
             },
+            
             subTotalTax: function(row, index) {
                 let totalGross = 0
                 let currentIndex = index - 1
@@ -344,7 +348,7 @@
                 let currentRow = this.payroll.rows[currentIndex]
                 while(currentRow?.rtype === 1 && currentIndex >= 0){
 
-                    totalGross += this.totalTax(currentRow)
+                    totalGross += this.totalRowTax(currentRow)
                     currentIndex--
                     currentRow = this.payroll.rows[currentIndex]
                 }
@@ -358,7 +362,7 @@
                 let currentRow = this.payroll.rows[currentIndex]
                 while(currentRow?.rtype === 1 && currentIndex >= 0){
 
-                    totalGross += this.totalSSS(currentRow)
+                    totalGross += this.totalRowSSS(currentRow)
                     currentIndex--
                     currentRow = this.payroll.rows[currentIndex]
                 }
@@ -371,7 +375,7 @@
                 let currentRow = this.payroll.rows[currentIndex]
                 while(currentRow?.rtype === 1 && currentIndex >= 0){
 
-                    totalGross += this.totalDeductions(currentRow)
+                    totalGross += this.totalRowDeductions(currentRow)
                     currentIndex--
                     currentRow = this.payroll.rows[currentIndex]
                 }
@@ -384,7 +388,7 @@
                 let currentRow = this.payroll.rows[currentIndex]
                 while(currentRow?.rtype === 1 && currentIndex >= 0){
 
-                    totalGross += this.netAmount(currentRow)
+                    totalGross += this.totalRowNetAmount(currentRow)
                     currentIndex--
                     currentRow = this.payroll.rows[currentIndex]
                 }

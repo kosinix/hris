@@ -425,7 +425,283 @@ let templateCos = async (payroll) => {
 
     return workbook
 }
+let templateCos2 = async (payroll) => {
+    let workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/payroll2/template_cos_staff.xlsx`);
 
+    let worksheet = workbook.getWorksheet('igp')
+
+    let startRowIndex = 9
+
+    if (worksheet) {
+
+        // Set Print Area for a sheet
+        worksheet.pageSetup.printArea = `A1:Y${startRowIndex + payroll.rows.length + 12}`;
+
+        let rowCount = payroll.rows.length
+        // let rowCount = payroll.rows.filter(r => r.type === 1).length
+
+        worksheet.duplicateRow(startRowIndex, rowCount - 1, true);
+
+        worksheet.getCell('A2').value = `Salary for the period ${moment(payroll.dateStart).format('MMMM DD')} - ${moment(payroll.dateEnd).format('DD, YYYY')}`
+
+        let numbering = 0
+
+        payroll.rows.forEach((row, rowIndex) => {
+
+            let curRowIndex = startRowIndex + rowIndex
+            let wsRow = worksheet.getRow(curRowIndex)
+
+            if (row.rtype === 3) {
+
+                wsRow.eachCell(function (cell, colNumber) {
+                    cell.value = ''
+                });
+
+                //worksheet.mergeCells(`A${curRowIndex}:B${curRowIndex}`)
+                worksheet.getCell(`A${curRowIndex}`).value = row.name
+
+            } else if (row.rtype === 1) {
+
+                numbering++
+                //let attendance = payrollJs.getCellValue(row, 'attendance', payrollJs.formulas, payroll.columns)
+
+                //=F10*E10+H10*E10/8+J10*E10/8/60
+                //let amount = payrollJs.amountWorked(lodash.get(row, 'wage', 0), lodash.get(row, 'employment.salaryType', 0), lodash.get(row, 'timeRecord.totalMinutes', 0))
+
+                worksheet.getCell(`A${curRowIndex}`).value = numbering
+                worksheet.getCell(`B${curRowIndex}`).value = row.sourceOfFund
+                worksheet.getCell(`C${curRowIndex}`).value = row.name
+                worksheet.getCell(`D${curRowIndex}`).value = row.position.replace('Admin Aide', 'AA').replace('Administrative Aide', 'AA').trim()
+                worksheet.getCell(`E${curRowIndex}`).value = row.wage
+                worksheet.getCell(`F${curRowIndex}`).value = row.days
+                worksheet.getCell(`H${curRowIndex}`).value = row.hours
+                worksheet.getCell(`J${curRowIndex}`).value = row.minutes
+                worksheet.getCell(`L${curRowIndex}`).value = row.gross
+                worksheet.getCell(`M${curRowIndex}`).value = row.premium5
+                worksheet.getCell(`N${curRowIndex}`).value = {
+                    formula: `=L${curRowIndex}+M${curRowIndex}`,
+                    result: row.gross + row.premium5
+                }
+                worksheet.getCell(`O${curRowIndex}`).value = 0 // tax 3%
+                worksheet.getCell(`P${curRowIndex}`).value = row.tax10
+                worksheet.getCell(`Q${curRowIndex}`).value = lodash.get(row, 'taxTotal', 0) 
+                worksheet.getCell(`R${curRowIndex}`).value = row.sss
+                worksheet.getCell(`S${curRowIndex}`).value = row.sssEC
+                worksheet.getCell(`T${curRowIndex}`).value = lodash.get(row, 'sssTotal', 0) 
+                worksheet.getCell(`U${curRowIndex}`).value = lodash.get(row, 'deductionsTotal', 0)
+                worksheet.getCell(`V${curRowIndex}`).value = {
+                    formula: `=N${curRowIndex}-U${curRowIndex}`,
+                    result: lodash.get(row, 'netAmount', 0)
+                }
+                worksheet.getCell(`W${curRowIndex}`).value = numbering
+
+            } else if (row.rtype === 2) {
+                wsRow.eachCell(function (cell, colNumber) {
+                    cell.value = ''
+                });
+                try {
+                    worksheet.unMergeCells(`A${curRowIndex}:K${curRowIndex}`)
+                    worksheet.mergeCells(`A${curRowIndex}:K${curRowIndex}`)
+                } catch (err) { }
+
+                worksheet.getCell(`A${curRowIndex}`).font = {
+                    name: 'Arial',
+                    size: 12,
+                    bold: true,
+                }
+                worksheet.getCell(`A${curRowIndex}`).alignment = {
+                    horizontal: 'left'
+                }
+                worksheet.getCell(`A${curRowIndex}`).value = 'Subtotal'
+
+                let start = 0
+                // Start from current row and move backwards
+                // Until a non row.rtype === 1 is found
+                for (let y = rowIndex - 1; y >= 0; y--) {
+                    let row = payroll.rows[y]
+                    if (row.rtype !== 1) {
+                        start = y + 1
+                        break
+                    }
+                }
+                let end = rowIndex // rowIndex - 1 is actual end index because of Array.slice
+
+                let activeRowIndexes = []
+                // Start first row until grand total row.
+                // Compile all rows that are type 1
+                for (let y = start; y < end; y++) {
+                    let row = payroll.rows[y]
+                    if (row.rtype === 1) {
+                        activeRowIndexes.push(y + startRowIndex)
+                    }
+                }
+
+                // account for excel data row starting index
+                let range = [start + startRowIndex, end + startRowIndex]
+
+                const subTotalGross = function(rows, index, key) {
+                    let totalGross = 0
+                    let currentIndex = index - 1
+
+                    let currentRow = rows[currentIndex]
+                    while(currentRow?.rtype === 1 && currentIndex >= 0){
+
+                        totalGross += currentRow[key]
+                        currentIndex--
+                        currentRow = rows[currentIndex]
+                    }
+                    return totalGross
+                }
+                worksheet.getCell(`L${curRowIndex}`).value = {
+                    formula: `=${rowAdditions(activeRowIndexes, 'L')}`,
+                    result: subTotalGross(payroll.rows, rowIndex, 'gross')
+                }
+                
+                worksheet.getCell(`N${curRowIndex}`).value = {
+                    formula: `=${rowAdditions(activeRowIndexes, 'N')}`,
+                    result: subTotalGross(payroll.rows, rowIndex, 'grant')
+                }
+
+                worksheet.getCell(`V${curRowIndex}`).value = {
+                    formula: `=${rowAdditions(activeRowIndexes, 'V')}`,
+                    result: subTotalGross(payroll.rows, rowIndex, 'netAmount')
+                }
+                // slex.getCell(`O${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'O')}`,
+                //         result: payrollJs.getSubTotal('tax3', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`P${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'P')}`,
+                //         result: payrollJs.getSubTotal('tax10', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`Q${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'Q')}`,
+                //         result: payrollJs.getSubTotal('totalTax', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`R${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'R')}`,
+                //         result: payrollJs.getSubTotal('contributionSss', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`S${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'S')}`,
+                //         result: payrollJs.getSubTotal('ecSss', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`T${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'T')}`,
+                //         result: payrollJs.getSubTotal('totalSss', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`U${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'U')}`,
+                //         result: payrollJs.getSubTotal('totalDeductions', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`V${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'V')}`,
+                //         result: payrollJs.getSubTotal('netPay', rowIndex, payroll, payrollJs.formulas)
+                //     })
+            } else if (row.rtype === 4) {
+                // wsRow.eachCell(function (cell, colNumber) {
+                //     cell.value = ''
+                // });
+                // try {
+                //     worksheet.unMergeCells(`A${curRowIndex}:K${curRowIndex}`)
+                //     worksheet.mergeCells(`A${curRowIndex}:K${curRowIndex}`)
+                // } catch (err) { }
+                // worksheet.getCell(`A${curRowIndex}`).font = {
+                //     name: 'Arial',
+                //     size: 12,
+                //     bold: true,
+                // }
+                // worksheet.getCell(`A${curRowIndex}`).alignment = {
+                //     horizontal: 'left'
+                // }
+                // worksheet.getCell(`A${curRowIndex}`).value = 'GRAND TOTAL > > > > > >'
+
+                // let start = 0
+                // let end = rowIndex
+
+                // let activeRowIndexes = []
+                // // Start first row until grand total row.
+                // // Compile all rows that are type 1
+                // for (let y = start; y < end; y++) {
+                //     let row = payroll.rows[y]
+                //     if (row.type === 1) {
+                //         activeRowIndexes.push(y + startRowIndex)
+                //     }
+                // }
+
+                // // account for excel data row starting index
+                // let range = [start + startRowIndex, end + startRowIndex]
+
+                // slex.getCell(`L${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'L')}`,
+                //         result: payrollJs.getGrandTotal('amountWorked', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`M${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'M')}`,
+                //         result: payrollJs.getGrandTotal('5Premium', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`N${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'N')}`,
+                //         result: payrollJs.getGrandTotal('grossPay', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`O${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'O')}`,
+                //         result: payrollJs.getGrandTotal('tax3', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`P${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'P')}`,
+                //         result: payrollJs.getGrandTotal('tax10', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`Q${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'Q')}`,
+                //         result: payrollJs.getGrandTotal('totalTax', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`R${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'R')}`,
+                //         result: payrollJs.getGrandTotal('contributionSss', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`S${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'S')}`,
+                //         result: payrollJs.getGrandTotal('ecSss', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`T${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'T')}`,
+                //         result: payrollJs.getGrandTotal('totalSss', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`U${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'U')}`,
+                //         result: payrollJs.getGrandTotal('totalDeductions', rowIndex, payroll, payrollJs.formulas)
+                //     })
+                // slex.getCell(`V${curRowIndex}`)
+                //     .value({
+                //         formula: `=${rowAdditions(activeRowIndexes, 'V')}`,
+                //         result: payrollJs.getGrandTotal('netPay', rowIndex, payroll, payrollJs.formulas)
+                //     })
+            }
+        })
+    }
+
+    return workbook
+}
 let templateHdf = async (healthDeclarations) => {
     let row = null
     let cell = null
@@ -1737,6 +2013,7 @@ let templateReportTrainingAll = async (employees, pagination) => {
 
 module.exports = {
     templateCos: templateCos,
+    templateCos2: templateCos2,
     templateHdf: templateHdf,
     templatePds: templatePds,
     templatePermanent: templatePermanent,

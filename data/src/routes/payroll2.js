@@ -231,13 +231,13 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
 
                 let tardyHours = stats.workdays.undertime.totalInHours + (stats.count.absentDays * 8)
                 let tardy = hourlyRate * tardyHours
-                let grant = gross - tardy
+                let grant = gross
 
 
                 let _days = stats.workdays.time.days
                 let _hours = stats.workdays.time.hours
                 let _minutes = stats.workdays.time.minutes
-                if (employment.salaryType === 'hourly') {
+                if (employment.salaryType === 'hourly') { // part-timers
                     _days = stats.days.time.days
                     _hours = stats.days.time.hours
                     _minutes = stats.days.time.minutes
@@ -246,6 +246,7 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
                 
                 let customCols = {}
                 if (template === 'permanent') {
+                    grant = gross - tardy
                     customCols['peraAca'] = 2000
                     mandatoryDeductions.forEach((name)=>{
                         lodash.set(customCols, name, 0)
@@ -253,6 +254,8 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
                     nonMandatoryDeductions.forEach((name)=>{
                         lodash.set(customCols, name, 0)
                     })
+                } else if (template === 'cos_staff') {
+                    customCols['premium5'] = 0
                 }
                 rows.push({
                     uid: employment?._id,
@@ -288,7 +291,7 @@ router.post('/payroll2/create', middlewares.guardRoute(['read_payroll']), async 
         next(err);
     }
 });
-router.get('/payroll2/view/:payrollId', middlewares.guardRoute(['read_payroll']), async (req, res, next) => {
+router.get(['/payroll2/view/:payrollId', `/payroll2/view/:payrollId/payroll.xlsx`], middlewares.guardRoute(['read_payroll']), async (req, res, next) => {
     try {
         let payroll = await req.app.locals.db.main.Payroll2.findById(req?.params?.payrollId).lean()
         if (!payroll) {
@@ -304,19 +307,52 @@ router.get('/payroll2/view/:payrollId', middlewares.guardRoute(['read_payroll'])
                 row.tax1 = row.tax1 ?? 0
                 row.tax5 = row.tax5 ?? 0
                 row.tax10 = row.tax10 ?? 0
+                row.taxTotal = row.taxTotal ?? 0
 
                 row.sss = row.sss ?? 0
                 row.sssEC = row.sssEC ?? 0
+                row.sssTotal = row.sssTotal ?? 0
 
                 row.igp = row.igp ?? 0
+
+                row.deductionsTotal = row.deductionsTotal ?? 0
+
+                row.netAmount = row.netAmount ?? 0
 
             }
             return row
         })
-        lodash.each(payroll.rows[0], (_,k)=>{
-            console.log(k)
-        })
+        // lodash.each(payroll.rows[0], (_,k)=>{
+        //     console.log(k)
+        // })
 
+        if (req.originalUrl.includes('.xlsx')) {
+
+            let promises = payroll.rows.map((row) => {
+                if (row.rtype === 1) {
+                    return req.app.locals.db.main.Employment.findById(row.uid).lean()
+                }
+                return null
+            })
+            let results = await Promise.all(promises)
+            payroll.rows.map((row, i) => {
+                row.employment = results[i]
+                return row
+            })
+            // return res.send(payroll)
+            let workbook = {}
+
+            if (payroll.template === 'permanent') {
+                workbook = await excelGen.templatePermanent(payroll)
+            } else if (payroll.template === 'cos_staff') {
+                workbook = await excelGen.templateCos2(payroll)
+            }
+
+            let buffer = await workbook.xlsx.writeBuffer();
+            res.set('Content-Disposition', `attachment; filename="payroll.xlsx"`)
+            res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            return res.send(buffer)
+        }
         res.render(`payroll2/table-payroll-${payroll.template}.html`, {
             payroll: payroll,
             mandatoryDeductions: mandatoryDeductions,

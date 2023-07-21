@@ -16,19 +16,25 @@
             <div class="col-md-6 order-md-1 order-2">
                 <form ref="form" @submit.prevent="onSubmit" action="" method="post" class="border p-3 mb-4">
                     <div class="form-row">
+                        <div class="col-md-12 form-group">
+                            <div class="custom-control custom-switch">
+                                <input v-model="unvaxxed" name="unvaxxed" type="checkbox" class="custom-control-input" id="unvaxxed">
+                                <label class="custom-control-label" for="unvaxxed">Unvaxxed</label>
+                            </div>
+                        </div>
                         <div class="col-md-4 form-group">
                             <label for="name">Vaccine Name <span class="text-danger">*</span></label>
-                            <input v-model="name" name="name" id="name" type="text" class="form-control">
+                            <input v-model="name" name="name" id="name" type="text" class="form-control" v-bind:disabled="unvaxxed">
                             <small class="invalid-feedback">${getError('name')}</small>
                         </div>
                         <div class="col-md-4 form-group">
                             <label for="date">Date <span class="text-danger">*</span></label>
-                            <input v-model="date" name="date" id="date" type="date" class="form-control">
+                            <input v-model="date" name="date" id="date" type="date" class="form-control" v-bind:disabled="unvaxxed">
                             <small class="invalid-feedback">${getError('date')}</small>
                         </div>
                         <div class="col-md-4 form-group">
                             <label for="sequence">Dosage Sequence <span class="text-danger">*</span></label>
-                            <select v-model="sequence" name="sequence" id="sequence" class="form-control">
+                            <select v-model="sequence" name="sequence" id="sequence" class="form-control" v-bind:disabled="unvaxxed">
                                 <option value=""></option>
                                 <option>1st Dose</option>
                                 <option>2nd Dose</option>
@@ -39,7 +45,7 @@
                         </div>
                         <div class="col-md-12 form-group">
                             <label for="healthFacility">Vaccine Facility  <span class="text-danger">*</span></label>
-                            <input v-model="healthFacility" name="healthFacility" id="healthFacility" type="search" class="form-control">
+                            <input v-model="healthFacility" name="healthFacility" id="healthFacility" type="search" class="form-control" v-bind:disabled="unvaxxed">
                             <small class="invalid-feedback">${getError('healthFacility')}</small>
                             <em>(eg. Jordan RHU)</em>
                         </div>
@@ -62,7 +68,7 @@
                         </tr>
                         <tr v-for="(vaccine, i) in vaccineList">
                             <td>${vaccine.name}</td>
-                            <td>${vaccine.date|formatDate('MMM DD, YYYY')}</td>
+                            <td><template v-if="!vaccine.unvaxxed">${vaccine.date|formatDate('MMM DD, YYYY')}</template><template v-else>N/A</template></td>
                             <td>${vaccine.sequence}</td>
                             <td>${vaccine.healthFacility}</td>
                             <td><button v-on:click="deleteX(i)" type="button" class="btn btn-sm btn-danger">X</button></td>
@@ -95,6 +101,7 @@
         },
         data: {
             pending: false,
+            unvaxxed: false,
             name: '',
             date: '',
             sequence: '',
@@ -103,16 +110,24 @@
         },
         validations: {
             name: {
-                required: window.validators.required
+                required: window.validators.requiredIf(function(){
+                    return !this.unvaxxed;
+                })
             },
             date: {
-                required: window.validators.required
+                required: window.validators.requiredIf(function(){
+                    return !this.unvaxxed;
+                })
             },
             sequence: {
-                required: window.validators.required
+                required: window.validators.requiredIf(function(){
+                    return !this.unvaxxed;
+                })
             },
             healthFacility: {
-                required: window.validators.required
+                required: window.validators.requiredIf(function(){
+                    return !this.unvaxxed;
+                })
             },
         },
         methods: {
@@ -158,6 +173,7 @@
                         fetch(`/e/clinic/vax/create`, {
                             method: 'POST',
                             body: JSON.stringify({
+                                unvaxxed: me.unvaxxed,
                                 name: me.name,
                                 date: me.date,
                                 sequence: me.sequence,

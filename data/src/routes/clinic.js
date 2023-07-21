@@ -498,7 +498,6 @@ router.get('/e/clinic/vax/all', middlewares.guardRoute(['use_employee_profile'])
 router.post('/e/clinic/vax/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        // return res.send(req.body)
         let body = lodash.get(req, 'body')
         let payload = {
             _id: req.app.locals.db.mongoose.Types.ObjectId(),
@@ -508,6 +507,13 @@ router.post('/e/clinic/vax/create', middlewares.guardRoute(['use_employee_profil
             healthFacility: body.healthFacility,
         }
 
+        if(body.unvaxxed){
+            payload = {
+                _id: req.app.locals.db.mongoose.Types.ObjectId(),
+                unvaxxed: true,
+                name: 'Unvaxxed'
+            }
+        }
         let vaccines = lodash.get(employee, 'personal.vaccines', [])
         vaccines.push(payload)
         lodash.set(employee, 'personal.vaccines', vaccines)

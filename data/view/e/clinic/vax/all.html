@@ -7,7 +7,7 @@
             <h1 class="h5">Vaccination Information</h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
-            
+            <a href="/e-profile/home" class="btn btn-light">Back</a>
         </div>
     </div>
     {% include 'parts/flash.html' %}
@@ -26,6 +26,7 @@
                             <label for="name">Name of Vaccine <span class="text-danger">*</span></label>
                             <input v-model="name" name="name" id="name" type="text" class="form-control" v-bind:disabled="unvaxxed">
                             <small class="invalid-feedback">${getError('name')}</small>
+                            <em>Eg. Sinovac</em>
                         </div>
                         <div class="col-md-4 form-group">
                             <label for="date">Date of Vaccination<span class="text-danger">*</span></label>

@@ -17,17 +17,17 @@
                 <form ref="form" @submit.prevent="onSubmit" action="" method="post" class="border p-3 mb-4">
                     <div class="form-row">
                         <div class="col-md-4 form-group">
-                            <label for="name">Vaccine Name</label>
+                            <label for="name">Vaccine Name <span class="text-danger">*</span></label>
                             <input v-model="name" name="name" id="name" type="text" class="form-control">
                             <small class="invalid-feedback">${getError('name')}</small>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label for="date">Date</label>
+                            <label for="date">Date <span class="text-danger">*</span></label>
                             <input v-model="date" name="date" id="date" type="date" class="form-control">
                             <small class="invalid-feedback">${getError('date')}</small>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label for="sequence">Dosage Sequence</label>
+                            <label for="sequence">Dosage Sequence <span class="text-danger">*</span></label>
                             <select v-model="sequence" name="sequence" id="sequence" class="form-control">
                                 <option value=""></option>
                                 <option>1st Dose</option>
@@ -38,9 +38,10 @@
                             <small class="invalid-feedback">${getError('sequence')}</small>
                         </div>
                         <div class="col-md-12 form-group">
-                            <label for="healthFacility">Vaccine Facility </label> <em>(eg. Jordan RHU)</em>
+                            <label for="healthFacility">Vaccine Facility  <span class="text-danger">*</span></label>
                             <input v-model="healthFacility" name="healthFacility" id="healthFacility" type="search" class="form-control">
                             <small class="invalid-feedback">${getError('healthFacility')}</small>
+                            <em>(eg. Jordan RHU)</em>
                         </div>
                         <div class="col-md-12 d-flex justify-content-end">
                             <button class="btn btn-large btn-primary">Add Vaccination Info</button>
@@ -49,7 +50,7 @@
                 </form>
             </div>
             <div class="col-md-6">
-                <h2 class="h5 mb-3">List of Vaccines</h2>
+                <h2 v-if="vaccineList.length > 0" class="h6 mb-3">List of Vaccines</h2>
                 <div v-if="vaccineList.length > 0" class="table-responsive mb-3">
                     <table class="table table-sm table-bordered table-striped">
                         <tr>
@@ -132,6 +133,7 @@
                     if (response.ok) {
                         // me.department.members.splice(index, 1)
                         me.$delete(me.vaccineList, i)
+                        alert('Info deleted.')
                     } else {
                         throw new Error(await response.text())
                     }
@@ -172,6 +174,7 @@
                             throw new Error(await response.text())
                             
                         }).then(function(responseJson){
+                            alert('Info added.')
                             me.vaccineList.push(responseJson)
 
                             me.name = ''

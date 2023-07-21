@@ -22,6 +22,8 @@ router.get('/e/clinic/home', middlewares.guardRoute(['use_employee_profile']), m
         let employee = res.employee.toObject()
 
         let data = {
+            flash: flash.get(req, 'employee'),
+
             employee: employee,
             momentNow: moment(),
         }
@@ -187,6 +189,7 @@ router.get('/e/clinic/vax/all', middlewares.guardRoute(['use_employee_profile'])
         let employee = res.employee.toObject()
 
         res.render('e/clinic/vax/all.html', {
+            flash: flash.get(req, 'employee'),
             employee: employee,
             momentNow: moment(),
         });

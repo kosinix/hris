@@ -143,6 +143,11 @@
                 })
             },
         },
+        mounted: function() {
+            var me = this;
+
+            me.page = (me.vaccineList.length > 0) ? 2 : 1
+        },
         methods: {
             deleteX: function(i){
                 let me = this;

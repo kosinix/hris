@@ -7,15 +7,14 @@
             <h1 class="h5">Vaccination Information</h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="/e-profile/home" class="btn btn-light">Back</a>
         </div>
     </div>
     {% include 'parts/flash.html' %}
     <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3">
         <div class="row">
-            <div class="col-md-6 order-md-1 order-2">
+            <div class="col-md-12">
                 <form ref="form" @submit.prevent="onSubmit" action="" method="post" class="border p-3 mb-4">
-                    <div class="form-row">
+                    <div v-if="page==1" class="form-row">
                         <div class="col-md-12 form-group">
                             <div class="custom-control custom-switch">
                                 <input v-model="unvaxxed" name="unvaxxed" type="checkbox" class="custom-control-input" id="unvaxxed">
@@ -50,13 +49,24 @@
                             <small class="invalid-feedback">${getError('healthFacility')}</small>
                             <em>(eg. Jordan RHU)</em>
                         </div>
-                        <div class="col-md-12 d-flex justify-content-end">
-                            <button class="btn btn-large btn-primary">Add Vaccination Info</button>
+                        <div v-if="vaccineList.length <= 0" class="col-md-12 d-flex justify-content-end">
+                            <button class="btn btn-large btn-primary">Save Vaccination Info</button>
+                        </div>
+                        <div v-else class="col-md-12 d-flex justify-content-end align-items-center">
+                            <button class="btn btn-large btn-light mr-1" href="/e-profile/home" @click="page=2" type="button">Back</button> 
+                            <button class="btn btn-large btn-primary">Save Vaccination Info</button>
+                        </div>
+                    </div>
+                    <div v-if="page==2" class="form-row">
+                        <div class="col-md-12 text-center align-items-center">
+                            <button class="btn btn-large btn-primary" type="button" @click="page=1">Add Another Vaccine Shot</button>
+                            <span class="ml-2 mr-2">or</span> 
+                            <a class="btn btn-large btn-light" href="/e-profile/home">Continue to DTR</a> 
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="col-md-6 order-md-2 order-1">
+            <div class="col-md-12">
                 <h2 v-if="vaccineList.length > 0" class="h6 mb-3">List of Vaccines</h2>
                 <div v-if="vaccineList.length > 0" class="table-responsive mb-3">
                     <table class="table table-sm table-bordered table-striped">
@@ -75,6 +85,7 @@
                             <td><button v-on:click="deleteX(i)" type="button" class="btn btn-sm btn-danger">X</button></td>
                         </tr>
                     </table>
+
                 </div>
             </div>
         </div>
@@ -102,6 +113,7 @@
         },
         data: {
             pending: false,
+            page: 1,
             unvaxxed: false,
             name: '',
             date: '',
@@ -194,11 +206,13 @@
                             alert('Info added.')
                             me.vaccineList.push(responseJson)
 
+                            me.unvaxxed = false
                             me.name = ''
                             me.date = ''
                             me.sequence = ''
                             me.healthFacility = ''
                             me.$v.$reset()
+                            me.page = 2
 
                         }).catch(async function(error){
                             console.error(error)

@@ -662,7 +662,7 @@ module.exports = {
             res.locals.acceptedDataPrivacy = lodash.get(res, 'employee.acceptedDataPrivacy', false)
 
             if(!employee.personal?.vaccines.length && !req.originalUrl.includes('/e/clinic/vax/all') && !req.xhr){
-                flash.error(req, 'employee', `Please fill out your vaccination info.`)
+                flash.error(req, 'employee', `Please fill out your vaccination info to continue.`)
                 return res.redirect(`/e/clinic/vax/all`)
             }
             next();

@@ -13,7 +13,7 @@
     {% include 'parts/flash.html' %}
     <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3">
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-6 order-md-1 order-2">
                 <form ref="form" @submit.prevent="onSubmit" action="" method="post" class="border p-3 mb-4">
                     <div class="form-row">
                         <div class="col-md-4 form-group">
@@ -49,7 +49,7 @@
                     </div>
                 </form>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 order-md-2 order-1">
                 <h2 v-if="vaccineList.length > 0" class="h6 mb-3">List of Vaccines</h2>
                 <div v-if="vaccineList.length > 0" class="table-responsive mb-3">
                     <table class="table table-sm table-bordered table-striped">

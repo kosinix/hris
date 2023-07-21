@@ -1,0 +1,186 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div id="vApp" v-cloak v-bind:data-pending="pending" class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h5">
+                Vaccination Info
+            </h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a :href="'/clinic/vax/all.csv?' + query_string(pagination.query, {})" class="btn btn-outline-primary btn-sm">Download CSV</a>
+            </div>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    
+    {% if employees.length <= 0 %}
+        <p>None found.</p>
+    {% else %}
+        <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+            <div class="form-row pb-3">
+                
+                <div class="col-md-8">
+                    <div class="d-flex">
+                        <a v-for="letter in alphabet" :href="`/clinic/vax/all?` + query_string(pagination.query,{letter: letter })" :class="letterCss(letter)">${letter}</a>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-center justify-content-between">
+                    <div class="pr-3 text-right">
+                        Per page:
+                    </div>
+                    <div class="">
+                        {% set url = '/clinic/vax/all' %}
+                        {% include 'parts/form-per-page.html' %}
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th width="1%">
+                                {% set thId = 'profilePhoto' %}
+                                {% set thLabel = ' ' %}
+                                {% include 'parts/sorted-th-any.html' %}
+                                {% set thLabel = '' %}
+                            </th>
+                            <th>
+                                {% set thId = 'lastName' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                {% set thId = 'firstName' %}
+                                {% include 'parts/sorted-th.html' %}
+                            </th>
+                            <th>
+                                Vaccines
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="employee, i in employees">
+                            <td><a :href="'/employee/' + employee._id + '/personal'">${(i+1) + (pagination.page - 1) * (pagination.perPage)}</a></td>
+                            <td>
+                                <a v-if="employee.profilePhoto" :href="'/employee/' + employee._id + '/personal'"><img width="30" height="30" class="privy-photo" :src="employee.profilePhoto|s3_url('tiny')" alt="..."></a>
+                            </td>
+                            <td>
+                                <a class="privy-name privy-last-name" :href="'/employee/' + employee._id + '/personal'">${employee.lastName}</a>
+                            </td>
+                            <td><a class="privy-name privy-last-name" :href="'/employee/' + employee._id + '/personal'">${employee.firstName}</a></td>
+                            <td>
+                                <div v-for="vaccine in _.get(employee, 'personal.vaccines', [])">
+                                    ${_.get(vaccine, 'name')|capitalize} - ${_.get(vaccine, 'date')} - ${_.get(vaccine, 'sequence')} - ${_.get(vaccine, 'healthFacility')}
+                                </div>
+                            </td>
+                            
+                            
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div v-if="pagination.pages.length > 0" class="row">
+                <div class="col-md-6 text-center text-md-left pt-3 pb-3">
+                    <div class="pages">
+                        <span>Pages</span>
+                        <a v-on:click.prevent="goto($event)" v-for="p in pagination.pages" :href="paginationUrl({page:p})" :class="'btn btn-sm ' + ((pagination.page == p) ? 'btn-primary' : 'btn-light')">${p}</a>
+                    </div>
+                </div>
+                <div class="col-md-6 text-center text-md-right pt-3 pb-5">
+                    <a :href="'/clinic/vax/all.csv?' + query_string(pagination.query,{})" class="btn btn-primary btn-sm">Download CSV</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/axios.min.js"></script>
+{# <script src="{{app.url}}/js/socket.io.min.js"></script> #}
+<script>
+    
+    let vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            pending: false,
+            s: '{{s}}',
+            employees: {{employees|default([], true)|stringify|safe}},
+            pagination: {{pagination|default({}, true)|stringify|safe}},
+            query: {{query|default({}, true)|stringify|safe}},
+            alphabet: ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"],
+        },
+        filters: {
+            s3_url: function (value, sizePrefix = "") {
+                if (!value) {
+                    return ''
+                }
+                if (sizePrefix) {
+                    sizePrefix += "-";
+                }
+                return `/file-getter/{{CONFIG.aws.bucket1.name}}/{{CONFIG.aws.bucket1.prefix}}/${sizePrefix}${value}`
+            },
+            capitalize: (value) => {
+                return _.capitalize(value);
+            },
+            replace: (value,a,b) => {
+                return value.replace(a,b)
+            },
+            query_string: function(defs, params){
+                return this.query_string(defs, params)
+            }
+        },
+        methods: {
+            letterCss: function(current){
+                var me = this;
+                if(current === _.get(me, 'query.letter')){
+                    return `btn btn-sm btn-primary`
+                }
+                return `btn btn-sm btn-light`
+            },
+            query_string: function(defs, params){
+                let merged = { ...defs, ...params }
+                let qs = new URLSearchParams(merged);
+                return qs.toString()
+            },
+            paginationUrl: function(params){
+                return `${this.pagination.urlBase}?${this.query_string(this.pagination.query, params)}`
+            },
+            goto: function(e){
+                let me = this
+                me.pending = true
+                let r = axios.get(`${e.target.href}`, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(r => {
+                    me.employees = _.get(r, 'data.employees', []);
+                    me.pagination = _.get(r, 'data.pagination', {});
+                    me.pending = false;
+                }).catch(err => {
+                    console.error(err)
+                })
+            },
+            search: function(s){
+                let me = this;
+                me.pending = true;
+                let r = axios.get(`/employee/all.json?s=${s}`, {headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(r => {
+                    me.employees = _.get(r, 'data.employees', []);
+                    me.pagination = _.get(r, 'data.pagination', {});
+                    me.pending = false;
+
+                    const url = new URL(window.location);
+                    url.searchParams.set('s', s);
+                    window.history.pushState({}, '', url);
+                }).catch(err => {
+                    console.error(err)
+                })
+            }
+        },
+        mounted: function(){
+           
+        }
+    })
+</script>
+{% endblock %}

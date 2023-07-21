@@ -23,12 +23,12 @@
                             </div>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label for="name">Vaccine Name <span class="text-danger">*</span></label>
+                            <label for="name">Name of Vaccine <span class="text-danger">*</span></label>
                             <input v-model="name" name="name" id="name" type="text" class="form-control" v-bind:disabled="unvaxxed">
                             <small class="invalid-feedback">${getError('name')}</small>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label for="date">Date <span class="text-danger">*</span></label>
+                            <label for="date">Date of Vaccination<span class="text-danger">*</span></label>
                             <input v-model="date" name="date" id="date" type="date" class="form-control" v-bind:disabled="unvaxxed">
                             <small class="invalid-feedback">${getError('date')}</small>
                         </div>
@@ -44,7 +44,7 @@
                             <small class="invalid-feedback">${getError('sequence')}</small>
                         </div>
                         <div class="col-md-12 form-group">
-                            <label for="healthFacility">Vaccine Facility  <span class="text-danger">*</span></label>
+                            <label for="healthFacility">Health Facility Name<span class="text-danger">*</span></label>
                             <input v-model="healthFacility" name="healthFacility" id="healthFacility" type="search" class="form-control" v-bind:disabled="unvaxxed">
                             <small class="invalid-feedback">${getError('healthFacility')}</small>
                             <em>(eg. Jordan RHU)</em>

@@ -12,57 +12,65 @@
     </div>
     {% include 'parts/flash.html' %}
     <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3">
-        <div v-if="vaccineList.length > 0" class="table-responsive mb-3">
-            <table class="table table-sm table-bordered">
-                <tr>
-                    <th>Name</th>
-                    <th>Date</th>
-                    <th>Dosage</th>
-                    <th>Health Facility</th>
-                    <th width="1%"></th>
-                </tr>
-                <tr v-for="(vaccine, i) in vaccineList">
-                    <td>${vaccine.name}</td>
-                    <td>${vaccine.date|formatDate('MMM DD, YYYY')}</td>
-                    <td>${vaccine.sequence}</td>
-                    <td>${vaccine.healthFacility}</td>
-                    <td><button v-on:click="deleteX(i)" type="button" class="btn btn-sm btn-danger">X</button></td>
-                </tr>
-            </table>
-        </div>
-        <form ref="form" @submit.prevent="onSubmit" action="" method="post">
-            <div class="form-row">
-                <div class="col-md-3 form-group">
-                    <label for="name">Vaccine Name</label>
-                    <input v-model="name" name="name" id="name" type="text" class="form-control">
-                    <small class="invalid-feedback">${getError('name')}</small>
-                </div>
-                <div class="col-md-2 form-group">
-                    <label for="date">Date</label>
-                    <input v-model="date" name="date" id="date" type="date" class="form-control">
-                    <small class="invalid-feedback">${getError('date')}</small>
-                </div>
-                <div class="col-md-3 form-group">
-                    <label for="sequence">Dosage Sequence</label>
-                    <select v-model="sequence" name="sequence" id="sequence" class="form-control">
-                        <option value=""></option>
-                        <option>1st Dose</option>
-                        <option>2nd Dose</option>
-                        <option>Booster Shot #1</option>
-                        <option>Booster Shot #2</option>
-                    </select>
-                    <small class="invalid-feedback">${getError('sequence')}</small>
-                </div>
-                <div class="col-md-3 form-group">
-                    <label for="healthFacility">Vaccine Facility </label> <em>(eg. Jordan RHU)</em>
-                    <input v-model="healthFacility" name="healthFacility" id="healthFacility" type="search" class="form-control">
-                    <small class="invalid-feedback">${getError('healthFacility')}</small>
-                </div>
-                <div class="col-md-1 d-flex align-items-center">
-                    <button class="btn btn-large btn-primary">Add</button>
+        <div class="row">
+            <div class="col-md-6">
+                <form ref="form" @submit.prevent="onSubmit" action="" method="post" class="border p-3 mb-4">
+                    <div class="form-row">
+                        <div class="col-md-4 form-group">
+                            <label for="name">Vaccine Name</label>
+                            <input v-model="name" name="name" id="name" type="text" class="form-control">
+                            <small class="invalid-feedback">${getError('name')}</small>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="date">Date</label>
+                            <input v-model="date" name="date" id="date" type="date" class="form-control">
+                            <small class="invalid-feedback">${getError('date')}</small>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="sequence">Dosage Sequence</label>
+                            <select v-model="sequence" name="sequence" id="sequence" class="form-control">
+                                <option value=""></option>
+                                <option>1st Dose</option>
+                                <option>2nd Dose</option>
+                                <option>Booster Shot #1</option>
+                                <option>Booster Shot #2</option>
+                            </select>
+                            <small class="invalid-feedback">${getError('sequence')}</small>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label for="healthFacility">Vaccine Facility </label> <em>(eg. Jordan RHU)</em>
+                            <input v-model="healthFacility" name="healthFacility" id="healthFacility" type="search" class="form-control">
+                            <small class="invalid-feedback">${getError('healthFacility')}</small>
+                        </div>
+                        <div class="col-md-12 d-flex justify-content-end">
+                            <button class="btn btn-large btn-primary">Add Vaccination Info</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h2 class="h5 mb-3">List of Vaccines</h2>
+                <div v-if="vaccineList.length > 0" class="table-responsive mb-3">
+                    <table class="table table-sm table-bordered table-striped">
+                        <tr>
+                            <th>Name</th>
+                            <th>Date</th>
+                            <th>Dosage</th>
+                            <th>Health Facility</th>
+                            <th width="1%"></th>
+                        </tr>
+                        <tr v-for="(vaccine, i) in vaccineList">
+                            <td>${vaccine.name}</td>
+                            <td>${vaccine.date|formatDate('MMM DD, YYYY')}</td>
+                            <td>${vaccine.sequence}</td>
+                            <td>${vaccine.healthFacility}</td>
+                            <td><button v-on:click="deleteX(i)" type="button" class="btn btn-sm btn-danger">X</button></td>
+                        </tr>
+                    </table>
                 </div>
             </div>
-        </form>
+        </div>
+        
     </div>
 </div>
 {% endblock %}

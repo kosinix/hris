@@ -94,7 +94,6 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
         employmentTypes = employmentTypes.filter(e => {
             return ['permanent', 'cos', 'part-time'].includes(e)
         })
-        console.log(employmentTypes)
 
         let sort = {}
         sort['lastName'] = 1
@@ -120,6 +119,7 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
             gender: 1,
             profilePhoto: 1,
             email: 1,
+            address: 1,
             mobileNumber: 1,
             personal: {
                 schools: 1,
@@ -152,7 +152,7 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
             val = val.replace(/(\s)+/, ' ').split(' ')
             val = val.map(word => {
                 first = word.at(0)
-                if (first === first.toUpperCase()) {
+                if (first === first?.toUpperCase()) {
                     return first
                 }
                 return ''
@@ -160,11 +160,32 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
             return val.join('.')
         }
 
+        const acronym = (val) => {
+            val = new String(val)
+            val = val.replace(/(\s)+/,' ').split(' ')
+            val = val.map(word => {
+                first = word.at(0)
+                if (first === first?.toUpperCase()){
+                    return first
+                }
+                return ''
+            })
+            return val.join('')
+        }
+
         employees = employees.map(e => {
 
             let schools = e.personal.schools ?? []
             let college = schools.find(o => {
                 return o.level === 'College'
+            })
+            let masters = schools.find(o => {
+                let course = o.course.replace(/(\s)+/g, ' ')
+                return o.level === 'Graduate Studies' && /^(master)/i.test(course)
+            })
+            let doctoral = schools.find(o => {
+                let course = o.course.replace(/(\s)+/g, ' ')
+                return o.level === 'Graduate Studies' && /^(doctor)/i.test(course)
             })
 
             let employments = e.employments ?? []
@@ -174,13 +195,33 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
             let employment = employments.at(-1)
 
             return {
-                key: `${initials(e.firstName)}., ${e.lastName}`,
-                qualification: {
-                    course: college?.course,
-                    level: 'College',
+                key: `${e.firstName}|${e.middleName}|${e.lastName}`,
+                profile: {
+                    qualification: {
+                        college: {
+                            course_code: acronym(college?.course),
+                            course_title: college?.course,
+                            year_graduated: college?.yearGraduated
+                        },
+                        masters: {
+                            course_code: acronym(masters?.course),
+                            course_title: masters?.course,
+                            year_graduated: masters?.yearGraduated
+                        },
+                        doctoral: {
+                            course_code: acronym(doctoral?.course),
+                            course_title: doctoral?.course,
+                            year_graduated: doctoral?.yearGraduated
+                        },
+                    },
                     position: {
                         plantilla: (employment?.employmentType === 'permanent'),
-                        title: employment?.position
+                        title: employment?.position,
+                        rate: employment?.salary ?? 0
+                    },
+                    addresses_contact: {
+                        address: e.address,
+                        email: e.email
                     }
                 }
             }

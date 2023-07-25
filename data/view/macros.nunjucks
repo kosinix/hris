@@ -1,0 +1,12 @@
+{% macro input(name, model=null, id=null, value='', inputType='text', classNames='form-control', placeholder='') %}
+{% if model === null %} {% set model = name %}{% endif %}
+{% if id === null %} {% set id = name %}{% endif %}
+    <input {% if name %} name="{{name}}" {% endif %} 
+    {% if model %} v-model="{{model}}" {% endif %} 
+    {% if id %} id="{{id}}" {% endif %} 
+    {% if value %} value="{{value}}" {% endif %} 
+    {% if inputType %} type="{{inputType}}" {% endif %} 
+    {% if placeholder %} placeholder="{{placeholder}}" {% endif %} 
+    {% if classNames %} class="{{classNames}}" {% endif %} 
+    />
+{% endmacro %}

@@ -1,0 +1,373 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'e/pds/header.html' %}
+    {% include 'e/pds/tabs.html' %}
+    <div class="tab-content p-3">
+        <div class=" mb-5">
+            {% include 'parts/flash.html' %}
+            <form ref="form" id="vApp" v-cloak v-bind:data-pending="pending" v-on:submit.prevent="onSubmit" action="/e/pds/educational-background" method="POST" class="form-default">
+                <template  v-if="page==1">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm table-striped">
+                            <tr>
+                                <th width="20%">School</th>
+                                <th class="d-none d-md-table-cell">Level</th>
+                                <th class="d-none d-md-table-cell">Course</th>
+                                <th class="d-none d-md-table-cell">From</th>
+                                <th class="d-none d-md-table-cell">To</th>
+                                <th>Graduated</th>
+                                <th class="d-none d-md-table-cell">Units Earned</th>
+                                <th class="d-none d-md-table-cell">Honors</th>
+                                <th></th>
+                            </tr>
+                            <tr v-for="(school, index) in schools">
+                                <td>${school.name}</td>
+                                <td class="d-none d-md-table-cell">${school.level}</td>
+                                <td class="d-none d-md-table-cell">${school.course}</td>
+                                <td class="d-none d-md-table-cell">${school.periodFrom}</td>
+                                <td class="d-none d-md-table-cell">${school.periodTo}</td>
+                                <td>${school.yearGraduated}</td>
+                                <td class="d-none d-md-table-cell">${school.unitsEarned}</td>
+                                <td class="d-none d-md-table-cell">${school.honors}</td>
+                                <td>
+                                    <div class="d-flex">
+                                        <button v-on:click="editSchool(index)" type="button" class="btn btn-light btn-sm mr-1">Edit</button>
+                                        <button v-on:click="deleteSchool(index)" type="button" class="btn btn-danger btn-sm">X</button>
+                                    </div>
+                                    
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="text-center">
+                        <button v-on:click.prevent="addSchool" class="btn btn-sm btn-primary" type="button">Add School</button>
+                    </div>
+                </template>
+                <div v-if="page==2" class="form-group focusable" tabindex="0" v-if="school.name">
+                    <div class="form-row mb-3 align-items-center">
+                        <div class="col-md-3">
+                            <label for="level" class="mb-0">School Level <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-md-9">
+                            <select ref="level" v-model="schools[editIndex].level" @change="onChangeLevel" name="level" id="level" class="form-control">
+                                <option value=""></option> <option value="Elementary">Elementary</option> 
+                                <option value="Secondary">Secondary</option> 
+                                <option value="Vocational">Vocational/Trade Course</option> 
+                                <option value="College">College</option> 
+                                <option value="Graduate Studies">Graduate Studies</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row mb-3 align-items-center">
+                        <div class="col-md-3">
+                            <label for="name" class="mb-0">Name of School <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-md-9">
+                            <input v-model="schools[editIndex].name" name="name" id="name" type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row mb-3 align-items-center">
+                        <div class="col-md-3">
+                            <label for="course" class="mb-0">Degree/Course <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-md-9">
+                            <input v-model="schools[editIndex].course" name="course" id="course" type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row mb-3 align-items-center">
+                        <div class="col-12 col-md-3">
+                            <label for="periodFrom" class="mb-0">Attended From <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <input v-model="schools[editIndex].periodFrom" name="periodFrom" id="periodFrom" type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row mb-3 align-items-center">
+                        <div class="col-12 col-md-3">
+                            <label for="periodTo" class="mb-0">Attended To <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <input v-model="schools[editIndex].periodTo" :disabled="periodToReadOnly" name="periodTo" id="periodTo" type="text" class="form-control">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="custom-control custom-switch">
+                                <input v-model="periodToPresent" @change="onChangePeriodToPresent" type="checkbox" id="periodToPresent" class="custom-control-input"> 
+                                <label for="periodToPresent" class="custom-control-label">Present</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row mb-3 align-items-center">
+                        <div class="col-md-3">
+                            <label for="unitsEarned" class="mb-0">Highest Level/Units Earned <br> (If not graduated)</label>
+                        </div>
+                        <div class="col-md-9">
+                            <input v-model="schools[editIndex].unitsEarned" name="unitsEarned" id="unitsEarned" type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row mb-3 align-items-center">
+                        <div class="col-12 col-md-3">
+                            <label for="yearGraduated" class="mb-0">Year Graduated <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <input v-model="schools[editIndex].yearGraduated" :disabled="yearGraduatedReadOnly" name="yearGraduated" id="yearGraduated" type="text" class="form-control">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="custom-control custom-switch">
+                                <input v-model="onGoing" @change="onChangeOnGoing" type="checkbox" id="onGoing" class="custom-control-input"> 
+                                <label for="onGoing" class="custom-control-label">On-going</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-3 align-items-center">
+                        <div class="col-md-3">
+                            <label for="honors" class="mb-0">Scholarship/Academic Honors Received</label>
+                        </div>
+                        <div class="col-md-9">
+                            <input v-model="schools[editIndex].honors" name="honors" id="honors" type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button class="btn btn-primary">Save</button>
+                    </div> 
+                </div> 
+                <hr>
+                <div class="form-row pt-3 pb-3">
+                    <!-- <div class="col-md-12">
+                        <input name="actionType" type="hidden" v-model="actionType">
+                        <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save PDS</button>
+                        <button v-on:click="setAction('saveNext')" type="submit" name="save" value="saveNext" class="btn btn-primary">Save and Go to C2</button>
+                    </div> -->
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% include 'parts/modal-help.html' %}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vue-ph-address.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            VuePhAddress.mixin
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        computed: {
+            
+        },
+        data: {
+            pending: false,
+            page: 1,
+            schools:{{employee.personal.schools|default([], true)|stringify|safe}},
+            editIndex: 0,
+            school: {
+                index : "",
+                level : "",
+                name : "",
+                course : "",
+                periodFrom : "",
+                periodTo : "",
+                unitsEarned : "",
+                yearGraduated : "",
+                honors : ""
+            },
+            periodToPresent: false,
+            periodToReadOnly: false,
+            onGoing: false,
+            yearGraduatedReadOnly: false,
+        },
+        mounted: function(){
+           
+            // 
+            // this.page = 2
+        },
+        validations: {
+           
+            
+        },
+        watch: {
+            
+        },
+        methods: {
+            onChangeLevel: function(cur,prev){
+                const me = this 
+
+                if(this.schools[me.editIndex].level === 'Elementary'){
+                    if(!this.schools[me.editIndex]?.course){
+                        me.$set(this.schools[me.editIndex], `course`, 'Primary')
+                    }
+                } else if(this.schools[me.editIndex].level === 'Secondary'){
+                    if(!this.schools[me.editIndex]?.course){
+                        me.$set(this.schools[me.editIndex], `course`, 'Secondary')
+                    }
+                } else {
+                    me.$set(this.schools[me.editIndex], `course`, '')
+                }
+            },
+            onChangePeriodToPresent: function(){
+                const me = this
+                if(this.periodToPresent){
+                    me.$set(this.schools[me.editIndex], `periodTo`, 'Present')
+                    this.periodToReadOnly = true
+                } else {
+                    me.$set(this.schools[me.editIndex], `periodTo`, '')
+                    this.periodToReadOnly = false
+                }
+            },
+            onChangeOnGoing: function(){
+                const me = this
+                if(this.onGoing){
+                    me.$set(this.schools[me.editIndex], `yearGraduated`, 'On-going')
+                    this.yearGraduatedReadOnly = true
+                } else {
+                    me.$set(this.schools[me.editIndex], `yearGraduated`, '')
+                    this.yearGraduatedReadOnly = false
+                }
+            },
+            addSchool: function() {
+                const me = this
+                this.schools.push({
+                    level: '',
+                    name: '',
+                    course: '',
+                    periodFrom: '',
+                    periodTo: '',
+                    unitsEarned: '',
+                    yearGraduated: '',
+                    honors: '',
+                })
+                // this.schools.push({
+                //     level: 'College',
+                //     name: 'Guimaras State University',
+                //     course: 'Bachelor of Science in Information Technology',
+                //     periodFrom: '1999',
+                //     periodTo: '2003',
+                //     unitsEarned: '',
+                //     yearGraduated: '2003',
+                //     honors: '',
+                // })
+                this.page = 2
+                this.editIndex = this.schools.length - 1
+                this.$nextTick(() => {
+                    me.$refs.level.focus();
+                })
+            },
+            editSchool: function(index){
+                this.page = 2
+                this.editIndex = index
+                jQuery('#level').focus()
+
+            },
+            saveSchool: function(index){
+                
+            },
+            deleteSchool: function(start){
+                const me = this
+                if(!confirm('Delete permanently?')){
+                    return false
+                }
+                this.$delete(this.schools, start)
+                this.editIndex = this.schools.length - 1
+
+                me.pending = true
+                fetch(`/e/pds/educational-background`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        schools: me.schools
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(await response.text())
+                    
+                }).then(function(responseJson){
+                    
+                    me.$v.$reset()
+                    me.page = 1
+                    alert('School deleted.')
+
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
+                }).then(function(){
+                    me.pending = false
+                });
+
+            },
+           
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                let school = this.schools[this.editIndex]
+                if(!school.name){
+                    return alert('Please provide Name of School.')
+                }
+                if(!school.course){
+                    return alert('Please provide Degree/Course.')
+                }
+                if(!school.periodFrom){
+                    return alert('Please provide Attended From.')
+                }
+                if(!school.periodTo){
+                    return alert('Please provide Attended To.')
+                }
+                if(!school.yearGraduated){
+                    return alert('Please provide Year Graduated.')
+                }
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.pending = true
+                        fetch(`/e/pds/educational-background`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                schools: me.schools
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(async function(response){
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error(await response.text())
+                            
+                        }).then(function(responseJson){
+                           
+                            me.$v.$reset()
+                            me.page = 1
+                            alert('School info saved.')
+
+                        }).catch(async function(error){
+                            console.error(error)
+                            alert(error);
+                        }).then(function(){
+                            me.pending = false
+                        });
+
+                        //me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

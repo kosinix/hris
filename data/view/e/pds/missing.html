@@ -1,0 +1,696 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'e/pds/header.html' %}
+    {% include 'e/pds/tabs.html' %}
+    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
+        <div class=" mb-5">
+            {% include 'parts/flash.html' %}
+            <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e/pds/c1" method="POST" class="form-default">
+                <h2 class="h5 mb-4">I. Missing Information</h2>
+           
+                <div class="form-row">
+                    <div class="col-md-5">
+                        {% set name = 'birthPlace' %}
+                        {% set label = 'Place of Birth' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                </div>
+              
+                <div class="form-group form-row">
+                    <div class="col-md-4">
+                        <label for="heightFeet">Height</label>
+                        <div class="form-row">
+                            <div class="col-md-6 form-group">
+                                {% set name = 'heightFeet' %}
+                                {% set options = [{value:3, text:'3 ft'}, {value:4, text:'4 ft'}, {value:5, text:'5 ft'}, {value:6, text:'6 ft'}, {value:7, text:'7 ft'}] %}
+                                <div>
+                                    {% include 'parts/form-select.html' %}
+                                    <small class="invalid-feedback">${getError('{{name}}')}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                {% set name = 'heightInches' %}
+                                {% set options = [{value:0, text:''}, {value:1, text:'1 inch'}, {value:2, text:'2 inches'}, {value:3, text:'3 inches'}, {value:4, text:'4 inches'}, {value:'5', text:'5 inches'}, {value:'6', text:'6 inches'}, {value:'7', text:'7 inches'}, {value:'8', text:'8 inches'}, {value:'9', text:'9 inches'}, {value:10, text:'10 inches'}, {value:11, text:'11 inches'}] %}
+                                <div>
+                                    {% include 'parts/form-select.html' %}
+                                    <small class="invalid-feedback">${getError('{{name}}')}</small>
+                                </div>
+                                {% set label = '' %}
+                                <input type="hidden" name="height" v-model="height">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        {% set name = 'weight' %}
+                        {% set label = 'Weight (kg)' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-4">
+                        {% set name = 'bloodType' %}
+                        {% set label = 'Blood Type' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-6">
+                        {% set name = 'gsis' %}
+                        {% set label = 'GSIS ID No.' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-6">
+                        {% set name = 'sss' %}
+                        {% set label = 'SSS No.' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                </div>
+            
+                <div class="form-row">
+                    <div class="col-md-6">
+                        {% set name = 'philHealth' %}
+                        {% set label = 'PhilHealth No.' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-6">
+                        {% set name = 'tin' %}
+                        {% set label = 'TIN' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                </div>
+                <div class="form-group form-row">
+                    <div class="col-md-6">
+                        {% set name = 'pagibig' %}
+                        {% set label = 'PAG-IBIG ID No.' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-6">
+                        {% set name = 'agencyEmployeeNumber' %}
+                        {% set label = 'Agency Employee No.' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                </div>
+                <div class="form-group focusable" tabindex="0">
+                    <h2 class="h5 mb-4">Citizenship</h2>
+                    <div class="form-row">
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" v-model="citizenship" name="citizenship[]" value="filipino" id="citizenship-fil">
+                                <label class="form-check-label" for="citizenship-fil">
+                                    Filipino
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" v-model="citizenship" name="citizenship[]" value="dual" id="citizenship-dual">
+                                <label class="form-check-label" for="citizenship-dual">
+                                    Dual Citizenship
+                                </label>
+                            </div>
+                            
+
+                        </div>
+                        <div class="col-md-3" v-if="citizenship.includes('dual')">
+                            {% set name = 'citizenshipCountry' %}
+                            {% set label = 'Country' %}
+                            {% set options = countries %}
+                            {% include 'parts/form-group-select.html' %}
+                            {% set label = '' %}
+
+                            {#  #}
+                            <div class="form-check pl-5">
+                                <input class="form-check-input" type="checkbox" v-model="citizenshipSource" name="citizenshipSource[]" value="birth" id="citizenship-src-birth">
+                                <label class="form-check-label" for="citizenship-src-birth">
+                                    by Birth
+                                </label>
+                            </div>
+                            <div class="form-check pl-5">
+                                <input class="form-check-input" type="checkbox" v-model="citizenshipSource" name="citizenshipSource[]" value="naturalization" id="citizenship-src-natural">
+                                <label class="form-check-label" for="citizenship-src-natural">
+                                    by Naturalization
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Address #}
+                <div class="form-group focusable" tabindex="0">
+                    <h2 class="h5">Permanent Address</h2>
+                    <p class="mb-4"><em>(The one found in your primary IDs)</em></p>
+                    <div class="form-group form-row">
+                        <div class="col-md-4 form-group">
+                            <label for="unit0">House/Block/Lot No.</label>
+                            <div>
+                                {% set name = 'unit0' %}
+                                {% include 'parts/form-input-text.html' %}
+                                <small class="invalid-feedback">${getError('unit0')}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="street0">Street</label>
+                            <div>
+                                {% set name = 'street0' %}
+                                {% include 'parts/form-input-text.html' %}
+                                <small class="invalid-feedback">${getError('street0')}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="village0">Subdivision/Village</label>
+                            <div>
+                                {% set name = 'village0' %}
+                                {% include 'parts/form-input-text.html' %}
+                                <small class="invalid-feedback">${getError('village0')}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group form-row">
+                        <div class="col-md-8 form-group">
+                            <label for="psgc0">Barangay, Municipality, Province <a data-toggle="modal" data-target="#modal-help" href="#" class="btn btn-info btn-help">?</a></label>
+                            <div>
+                                <autocomplete v-model="psgc0"
+                                    name="psgc0"
+                                    initial-value="{{employee.addresses[0].psgc}}"
+                                    initial-display="{{employee.addresses[0].full}}"
+                                    placeholder="Type your barangay and city/municipality..."
+                                    :source="dataSource"
+                                    input-class="form-control"
+                                    :request-headers="headers"
+                                    v-on:selected="onSelect"
+                                    >
+                                </autocomplete>
+                                <small class="invalid-feedback">${getError('psgc0')}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="zipCode0">Zip Code</label>
+                            <div>
+                                {% set name = 'zipCode0' %}
+                                {% include 'parts/form-input-text.html' %}
+                                <small class="invalid-feedback">${getError('zipCode0')}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Address #}
+                <div class="form-group focusable" tabindex="0">
+                    <h2 class="h5">Present Address</h2>
+                    <p class="mb-4"><em>(The one where you currently reside. Ignore if the same as Permanent Address.)</em></p>
+                    <div class="form-group form-row">
+                        <div class="col-md-4 form-group">
+                            <label for="unit1">House/Block/Lot No.</label>
+                            <div>
+                                {% set name = 'unit1' %}
+                                {% include 'parts/form-input-text.html' %}
+                                <small class="invalid-feedback">${getError('unit1')}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="street1">Street</label>
+                            <div>
+                                {% set name = 'street1' %}
+                                {% include 'parts/form-input-text.html' %}
+                                <small class="invalid-feedback">${getError('street1')}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="village1">Subdivision/Village</label>
+                            <div>
+                                {% set name = 'village1' %}
+                                {% include 'parts/form-input-text.html' %}
+                                <small class="invalid-feedback">${getError('village1')}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group form-row">
+                        <div class="col-md-8 form-group">
+                            <label for="psgc1">Barangay, Municipality, Province <a data-toggle="modal" data-target="#modal-help" href="#" class="btn btn-info btn-help">?</a></label>
+                            <div>
+                                <autocomplete v-model="psgc1"
+                                    name="psgc1"
+                                    initial-value="{{employee.addresses[1].psgc}}"
+                                    initial-display="{{employee.addresses[1].full}}"
+                                    placeholder="Type your barangay and city/municipality..."
+                                    :source="dataSource"
+                                    input-class="form-control"
+                                    :request-headers="headers"
+                                    v-on:selected="onSelect"
+                                    >
+                                </autocomplete>
+                                <small class="invalid-feedback">${getError('psgc1')}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="zipCode1">Zip Code</label>
+                            <div>
+                                {% set name = 'zipCode1' %}
+                                {% include 'parts/form-input-text.html' %}
+                                <small class="invalid-feedback">${getError('zipCode1')}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group form-row">
+                    <div class="col-md-4">
+                        {% set name = 'mobileNumber' %}
+                        {% set label = 'Mobile No.' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-4">
+                        {% set name = 'email' %}
+                        {% set label = 'Email' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-4">
+                        {% set name = 'phoneNumber' %}
+                        {% set label = 'Tel. No.' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                </div>
+
+                {#  #}
+
+                <h2 class="h5 mb-4">II. Family Background</h2>
+                <div class="form-row">
+                    <div class="col-md-3">
+                        {% set name = 'spouse.lastName' %}
+                        {% set label = 'Spouse Last Name' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-3">
+                        {% set name = 'spouse.firstName' %}
+                        {% set label = 'Spouse First Name' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-2">
+                        {% set name = 'spouse.middleName' %}
+                        {% set label = 'Spouse Middle Name' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-2">
+                        {% set name = 'spouse.suffix' %}
+                        {% set label = 'Spouse Extension (Jr.)' %}
+                        {% set options = suffixes %}
+                        {% include 'parts/form-group-select.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-2">
+                        {% set name = 'spouse.birthDate' %}
+                        {% set label = 'Spouse Birth Date' %}
+                        {% include 'parts/form-group-date.html' %}
+                        {% set label = '' %}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-4">
+                        {% set name = 'spouse.occupation' %}
+                        {% set label = 'Spouse Occupation' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-4">
+                        {% set name = 'spouse.employerOrBusinessName' %}
+                        {% set label = 'Spouse Employer/Business Name' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-2">
+                        {% set name = 'spouse.businessAddress' %}
+                        {% set label = 'Spouse Business Address' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-2">
+                        {% set name = 'spouse.phone' %}
+                        {% set label = 'Spouse Telephone Number' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-3">
+                        {% set name = 'father.lastName' %}
+                        {% set label = 'Father Last Name' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-3">
+                        {% set name = 'father.firstName' %}
+                        {% set label = 'Father First Name' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-2">
+                        {% set name = 'father.middleName' %}
+                        {% set label = 'Father Middle Name' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-2">
+                        {% set name = 'father.suffix' %}
+                        {% set label = 'Father Extension (Jr.)' %}
+                        {% set options = suffixes %}
+                        {% include 'parts/form-group-select.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-2">
+                        {% set name = 'father.birthDate' %}
+                        {% set label = 'Father Birth Date' %}
+                        {% include 'parts/form-group-date.html' %}
+                        {% set label = '' %}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-3">
+                        {% set name = 'mother.lastName' %}
+                        {% set label = 'Mother Maiden Last Name' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-3">
+                        {% set name = 'mother.firstName' %}
+                        {% set label = 'Mother First Name' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-4">
+                        {% set name = 'mother.middleName' %}
+                        {% set label = 'Mother Middle Name' %}
+                        {% include 'parts/form-group-text.html' %}
+                        {% set label = '' %}
+                    </div>
+                    <div class="col-md-2">
+                        {% set name = 'mother.birthDate' %}
+                        {% set label = 'Mother Birth Date' %}
+                        {% include 'parts/form-group-date.html' %}
+                        {% set label = '' %}
+                    </div>
+                </div>
+
+
+                {# Children #}
+                <div class="form-group focusable" tabindex="0">
+                    <h2 class="h5">Children</h2>
+                    <p class="mb-4"><em>(Write full name and list all)</em></p>
+                    <div v-for="(child, index) in children">
+                        <hr v-if="index > 0">
+                        <div class="text-right mb-2">
+                            <button v-on:click="deleteChild(index)" type="button" class="btn btn-danger btn-sm">X - Delete Child</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-9">
+                                {% set name = "'children[' + index + '][name]'"|safe %}
+                                {% set vModel = 'child.name' %}
+                                {% set label = 'Full Name of Child' %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-3">
+                                {% set name = "'children[' + index + '][birthDate]'"|safe %}
+                                {% set vModel = 'child.birthDate' %}
+                                {% set label = 'Child Birth Date' %}
+                                {% include 'parts/form-group-date-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center" v-if="children.length < 12">
+                        <button type="button" v-on:click.prevent="addChild" class="btn btn-sm btn-primary">Add More Children</button>
+                    </div> 
+                </div>
+
+                {# Educational #}
+                <div class="form-group focusable" tabindex="0">
+                    <h2 class="h5 mb-4">III. Educational Background</h2>
+                    <div v-for="(school, index) in schools">
+                        <hr v-if="index > 0">
+                        <div class="text-right mb-2">
+                            <button v-on:click="deleteSchool(index)" type="button" class="btn btn-danger btn-sm">X - Delete School</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-2">
+                                {% set name = "'schools[' + index + '][level]'"|safe %}
+                                {% set vModel = 'school.level' %}
+                                {% set label = 'School <br> Level'|safe %}
+                                {% set options = [{text:'', value:''}, {text:'Elementary', value:'Elementary'},{text:'Secondary', value:'Secondary'}, {text:'Vocational/Trade Course', value:'Vocational'}, {text:'College', value:'College'}, {text:'Graduate Studies', value:'Graduate Studies'}] %}
+                                {% include 'parts/form-group-select-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-3">
+                                {% set name = "'schools[' + index + '][name]'"|safe %}
+                                {% set vModel = 'school.name' %}
+                                {% set label = 'Name of <br> School'|safe %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-3">
+                                {% set name = "'schools[' + index + '][course]'"|safe %}
+                                {% set vModel = 'school.course' %}
+                                {% set label = 'Basic <br>Education/Degree/Course'|safe %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-2">
+                                {% set name = "'schools[' + index + '][periodFrom]'"|safe %}
+                                {% set vModel = 'school.periodFrom' %}
+                                {% set label = 'Attended <br>From'|safe %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-2">
+                                {% set name = "'schools[' + index + '][periodTo]'"|safe %}
+                                {% set vModel = 'school.periodTo' %}
+                                {% set label = 'Attended <br>To'|safe %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                {% set name = "'schools[' + index + '][unitsEarned]'"|safe %}
+                                {% set vModel = 'school.unitsEarned' %}
+                                {% set label = 'Highest Level/Units Earned <br> (If not graduated)'|safe %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-4">
+                                {% set name = "'schools[' + index + '][yearGraduated]'"|safe %}
+                                {% set vModel = 'school.yearGraduated' %}
+                                {% set label = 'Year <br> Graduated'|safe %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                            <div class="col-md-4">
+                                {% set name = "'schools[' + index + '][honors]'"|safe %}
+                                {% set vModel = 'school.honors' %}
+                                {% set label = 'Scholarship/Academic<br> Honors Received'|safe %}
+                                {% include 'parts/form-group-text-vue.html' %}
+                                {% set label = '' %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="button" v-on:click.prevent="addSchool" class="btn btn-sm btn-primary">Add School</button>
+                    </div> 
+                </div> 
+                <hr>
+                <div class="form-row pt-3 pb-3">
+                    <div class="col-md-12">
+                        <input name="actionType" type="hidden" v-model="actionType">
+                        <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save PDS</button>
+                        <button v-on:click="setAction('saveNext')" type="submit" name="save" value="saveNext" class="btn btn-primary">Save and Go to C2</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% include 'parts/modal-help.html' %}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vue-ph-address.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            VuePhAddress.mixin
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        computed: {
+            height: {
+                get: function () {
+                    return parseFloat(((parseFloat(this.heightFeet) * 12 + parseFloat(this.heightInches)) / 39.37).toFixed(2));
+                },
+                set: function (newValue) {
+                    var inches = Math.round(parseFloat(this.height) *  39.37);
+                    this.heightFeet = Math.floor(inches / 12);
+                    this.heightInches= Math.floor(inches %  12);
+                }
+            }
+        },
+        data: {
+            actionType: 'save',
+            firstName: '{{employee.firstName}}',
+            middleName: '{{employee.middleName}}',
+            lastName: '{{employee.lastName}}',
+            suffix: '{{employee.suffix}}',
+            birthDate: '{{employee.birthDate|default('', true)|format_date("YYYY-MM-DD")}}',
+            gender: '{{employee.gender}}',
+            civilStatus: '{{employee.civilStatus}}',
+            // employee.personal
+            birthPlace: '{{employee.personal.birthPlace}}',
+            heightFeet: 0,
+            heightInches: 0,
+            weight: '{{employee.personal.weight}}',
+            bloodType: '{{employee.personal.bloodType}}',
+            gsis: '{{employee.personal.gsis}}',
+            sss: '{{employee.personal.sss}}',
+            philHealth: '{{employee.personal.philHealth}}',
+            tin: '{{employee.personal.tin}}',
+            pagibig: '{{employee.personal.pagibig}}',
+            agencyEmployeeNumber: '{{employee.personal.agencyEmployeeNumber}}',
+            citizenship: {{employee.personal.citizenship|default([], true)|stringify|safe|default([], true)}},
+            citizenshipCountry: '{{employee.personal.citizenshipCountry}}',
+            citizenshipSource: {{employee.personal.citizenshipSource|default([], true)|stringify|safe}},
+
+            mobileNumber: '{{employee.mobileNumber}}',
+            phoneNumber: '{{employee.phoneNumber}}',
+            email: '{{employee.email}}',
+
+            psgc0: '{{employee.addresses[0].psgc}}',
+            unit0: '{{employee.addresses[0].unit}}',
+            street0: '{{employee.addresses[0].street}}',
+            village0: '{{employee.addresses[0].village}}',
+            zipCode0: '{{employee.addresses[0].zipCode}}',
+
+            psgc1: '{{employee.addresses[1].psgc}}',
+            unit1: '{{employee.addresses[1].unit}}',
+            street1: '{{employee.addresses[1].street}}',
+            village1: '{{employee.addresses[1].village}}',
+            zipCode1: '{{employee.addresses[1].zipCode}}',
+
+            spouse:{
+                lastName:'{{employee.personal.spouse.lastName}}',
+                firstName:'{{employee.personal.spouse.firstName}}',
+                middleName:'{{employee.personal.spouse.middleName}}',
+                suffix:'{{employee.personal.spouse.suffix}}',
+                birthDate:'{{employee.personal.spouse.birthDate}}',
+                occupation:'{{employee.personal.spouse.occupation}}',
+                employerOrBusinessName:'{{employee.personal.spouse.employerOrBusinessName}}',
+                businessAddress:'{{employee.personal.spouse.businessAddress}}',
+                phone:'{{employee.personal.spouse.phone}}',
+            },
+            father:{
+                lastName:'{{employee.personal.father.lastName}}',
+                firstName:'{{employee.personal.father.firstName}}',
+                middleName:'{{employee.personal.father.middleName}}',
+                suffix:'{{employee.personal.father.suffix}}',
+                birthDate:'{{employee.personal.father.birthDate}}',
+            },
+            mother:{
+                lastName:'{{employee.personal.mother.lastName}}',
+                firstName:'{{employee.personal.mother.firstName}}',
+                middleName:'{{employee.personal.mother.middleName}}',
+                birthDate:'{{employee.personal.mother.birthDate}}',
+            },
+            children:{{employee.personal.children|default([], true)|stringify|safe}},
+            schools:{{employee.personal.schools|default([], true)|stringify|safe}},
+        },
+        mounted: function(){
+            var inches = Math.round(parseFloat({{employee.personal.height|default(0, true)}}) *  39.37)
+            this.heightFeet = Math.floor(inches / 12)
+            this.heightInches= Math.floor(inches %  12)
+        },
+        validations: {
+            lastName: {
+                required: window.validators.required
+            },
+            middleName: {
+                required: window.validators.required
+            },
+            firstName: {
+                required: window.validators.required
+            },
+            birthDate: {
+                required: window.validators.required
+            },
+            gender: {
+                required: window.validators.required
+            },
+            civilStatus: {
+                required: window.validators.required
+            },
+            
+        },
+        methods: {
+            addChild: function(){
+                this.children.push({
+                    name:'',
+                    birthDate: null
+                })
+            },
+            deleteChild: function(start){
+                this.$delete(this.children, start)
+            },
+            addSchool: function(){
+                this.schools.push({
+                    level:'',
+                    name:'',
+                    course:'',
+                    periodFrom:'',
+                    periodTo:'',
+                    unitsEarned:'',
+                    yearGraduated:'',
+                    honors:'',
+                })
+            },
+            deleteSchool: function(start){
+                this.$delete(this.schools, start)
+            },
+            setAction: function(action){
+                this.actionType = action
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if(/^([a-zA-Z]\.?)$/.test(me.middleName)){
+                    alert('Please type your full middle name, not your middle initial.')
+                    throw new Error('Please type your full middle name, not your middle initial.')
+                }
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

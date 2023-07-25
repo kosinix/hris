@@ -2469,6 +2469,10 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
         }
     })
 
+    if(moment(attendance.createdAt).format('YYYY-MM-DD') === '2023-07-25'){
+        dtr.totalMinutes = 480
+        dtr.underTimeTotalMinutes = 0
+    }
     dtr.renderedDays = dtr.totalMinutes / 60 / hoursPerDay
     dtr.renderedHours = (dtr.renderedDays - Math.floor(dtr.renderedDays)) * hoursPerDay
     dtr.renderedMinutes = (dtr.renderedHours - Math.floor(dtr.renderedHours)) * 60

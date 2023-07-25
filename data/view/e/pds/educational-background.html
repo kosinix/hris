@@ -315,6 +315,9 @@
                 var me = this;
                 me.$v.$touch()
                 let school = this.schools[this.editIndex]
+                if(!school.level){
+                    return alert('Please provide School Level.')
+                }
                 if(!school.name){
                     return alert('Please provide Name of School.')
                 }

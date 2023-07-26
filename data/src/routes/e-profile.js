@@ -274,8 +274,32 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
         }
         let aggr = [
             {
+                $lookup: {
+                    localField: 'attendanceId',
+                    foreignField: '_id',
+                    from: 'attendances',
+                    as: 'attendances'
+                }
+            },
+            {
+                $addFields: {
+                    "attendance": {
+                        $arrayElemAt: ["$attendances", 0]
+                    }
+                }
+            },
+            {
+                $project: {
+                    attendances: 0,
+                    attendance: {
+                        logs: 0,
+                        changes: 0
+                    },
+                }
+            },
+            {
                 $match: {
-                    createdAt: {
+                    'attendance.createdAt': {
                         $gte: momentDate.clone().startOf('day').toDate(),
                         $lt: momentDate.clone().endOf('day').toDate(),
                     },
@@ -310,6 +334,7 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
                     }
                 }
             },
+            
             {
                 $project: {
                     employments: 0,
@@ -338,7 +363,20 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
 
         attendance.shifts = lodash.get(workSchedule, 'timeSegments')
 
-        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find({
+            $or: [
+                {
+                    members: {
+                        $in: [employment._id]
+                    }
+                },
+                {
+                    members: {
+                        $eq: []
+                    }
+                }
+            ]
+        }).lean()
         workSchedules = workSchedules.map((o) => {
             let times = []
             o.timeSegments = o.timeSegments.map((t) => {

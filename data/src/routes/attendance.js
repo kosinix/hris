@@ -1661,8 +1661,9 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
     try {
         let employment = res.employment.toObject()
         let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
+        let scheduleName = req.query?.scheduleName ?? 'Overtime Weekdays'
         let overrideWorkSched = await req.app.locals.db.main.WorkSchedule.findOne({
-            name: 'Overtime Weekdays'
+            name: scheduleName
         }).lean()
         if (!overrideWorkSched) {
             throw new Error('Missing overtime schedule.')

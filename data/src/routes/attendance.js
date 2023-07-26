@@ -1668,6 +1668,16 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
         if (!overrideWorkSched) {
             throw new Error('Missing overtime schedule.')
         }
+        let schedules = await req.app.locals.db.main.WorkSchedule.find({
+            $or: [
+                {
+                    name: /overtime/ig
+                },
+                {
+                    name: /open time/ig
+                }
+            ]
+        }).lean()
 
         let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
         let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
@@ -1770,6 +1780,8 @@ router.get(['/attendance/employment/:employmentId/overtime', '/attendance/employ
             startMoment: startMoment,
             endMoment: endMoment,
             hourlyRate: hourlyRate,
+            schedules: schedules,
+            scheduleName: overrideWorkSched.name,
             attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
         }
         if (req.originalUrl.indexOf('overtime-print') > -1) {
@@ -1786,7 +1798,7 @@ router.post('/attendance/employment/:employmentId/overtime', middlewares.guardRo
         let employment = res.employment.toObject()
         const attendances = req.body?.attendances ?? []
 
-        res.redirect(`/attendance/employment/${employment._id}/overtime-print?start=${req.body.start}&end=${req.body.end}&showDays=${req.body.showDays}&includes=${attendances.join('_')}`)
+        res.redirect(`/attendance/employment/${employment._id}/overtime-print?start=${req.body.start}&end=${req.body.end}&showDays=${req.body.showDays}&scheduleName=${req.body.scheduleName}&includes=${attendances.join('_')}`)
     } catch (err) {
         next(err);
     }

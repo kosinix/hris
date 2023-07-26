@@ -15,6 +15,10 @@
                     <input v-model="startDate" id="startDate" type="date" value="{{startMoment|format_date('YYYY-MM-DD')}}" class="form-control form-control-sm">
                     <label for="endDate" class="mr-2 ml-2"> to </label>
                     <input v-model="endDate" id="endDate" type="date" value="{{endMoment|format_date('YYYY-MM-DD')}}" class="form-control form-control-sm">
+
+                    <select v-model="scheduleName" id="scheduleName" name="scheduleName">
+                        <option v-for="schedule in schedules" :value="schedule.name">${schedule.name}</option>
+                    </select>
                     <div class="btn-toolbar justify-content-end ml-3">
                         <div class="btn-group mr-2">
                             <button class="btn btn-sm btn-outline-secondary">Change</button>

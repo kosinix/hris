@@ -58,13 +58,15 @@
             startDate: '{{startMoment|format_date("YYYY-MM-DD")}}',
             endDate: '{{endMoment|format_date("YYYY-MM-DD")}}',
             showDays: '{{showDays}}',
+            schedules: {{schedules|default([], true)|stringify|safe}},
+            scheduleName: '{{scheduleName}}',
         },
         validations: {
             
         },
         methods: {
             reloado: function(){
-                window.location.href = this.urlPath + '?start=' + this.startDate + '&end=' + this.endDate + '&showDays=' + this.showDays
+                window.location.href = this.urlPath + '?start=' + this.startDate + '&end=' + this.endDate + '&showDays=' + this.showDays + '&scheduleName=' + this.scheduleName
             },
             onSubmit: function(){
                 var me = this;

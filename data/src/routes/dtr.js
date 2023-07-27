@@ -240,7 +240,7 @@ router.get(['/e/dtr/:employmentId/overtime', '/e/dtr/:employmentId/overtime-prin
                 day.rate = hourlyRate * 1.5
             }
             day.rate = parseFloat((day.rate).toFixed(2))
-            let numOfHours = dtrHelper.roundOff(day?.time?.asHours ?? 0, 2)
+            let numOfHours = dtrHelper.roundOff(day?.time?.asHours ?? 0, 10)
             lodash.set(day, 'numOfHours', numOfHours)
             lodash.set(day, 'time.OTPay', day.rate * numOfHours)
 

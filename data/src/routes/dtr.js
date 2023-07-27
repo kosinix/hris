@@ -170,12 +170,12 @@ router.get(['/e/dtr/:employmentId/overtime', '/e/dtr/:employmentId/overtime-prin
         let employee = res.employee.toObject()
         let employment = res.employment
         let employmentId = employment._id
-
+        let scheduleName = req.query?.scheduleName ?? 'Overtime Weekdays'
         let overrideWorkSched = await req.app.locals.db.main.WorkSchedule.findOne({
-            name: 'Overtime Weekdays'
+            name: scheduleName
         }).lean()
         if (!overrideWorkSched) {
-            throw new Error('Missing overtime schedule.')
+            throw new Error('Could not find overtime schedule.')
         }
         if (employment.employmentType !== 'cos') {
             throw new Error('Not allowed.')

@@ -1804,6 +1804,7 @@ router.post('/attendance/employment/:employmentId/overtime', middlewares.guardRo
     }
 });
 
+// TODO: Using getDtrByDateRange6
 router.get('/attendance/tardy/:employmentId', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
     try {
         let employment = res.employment.toObject()

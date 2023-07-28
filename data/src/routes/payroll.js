@@ -121,6 +121,8 @@ router.get('/payroll/generate', middlewares.guardRoute(['create_payroll']), asyn
         next(err);
     }
 });
+
+// TODO: Using getDtrByDateRange6
 router.post('/payroll/create', middlewares.guardRoute(['create_payroll']), async (req, res, next) => {
     try {
         let body = req.body

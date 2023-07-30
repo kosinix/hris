@@ -89,7 +89,7 @@
                             <label for="periodTo" class="mb-0">Attended To <span class="text-danger">*</span></label>
                         </div>
                         <div class="col-6 col-md-3">
-                            <input v-model="schools[editIndex].periodTo" :disabled="periodToReadOnly" name="periodTo" id="periodTo" type="text" class="form-control">
+                            <input v-model="schools[editIndex].periodTo" :disabled="periodToPresent" name="periodTo" id="periodTo" type="text" class="form-control">
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="custom-control custom-switch">
@@ -98,21 +98,12 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="form-row mb-3 align-items-center">
-                        <div class="col-md-3">
-                            <label for="unitsEarned" class="mb-0">Highest Level/Units Earned <br> (If not graduated)</label>
-                        </div>
-                        <div class="col-md-9">
-                            <input v-model="schools[editIndex].unitsEarned" name="unitsEarned" id="unitsEarned" type="text" class="form-control">
-                        </div>
-                    </div>
                     <div class="form-row mb-3 align-items-center">
                         <div class="col-12 col-md-3">
                             <label for="yearGraduated" class="mb-0">Year Graduated <span class="text-danger">*</span></label>
                         </div>
                         <div class="col-6 col-md-3">
-                            <input v-model="schools[editIndex].yearGraduated" :disabled="yearGraduatedReadOnly" name="yearGraduated" id="yearGraduated" type="text" class="form-control">
+                            <input v-model="schools[editIndex].yearGraduated" :disabled="onGoing" name="yearGraduated" id="yearGraduated" type="text" class="form-control">
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="custom-control custom-switch">
@@ -123,14 +114,31 @@
                     </div>
                     <div class="form-row mb-3 align-items-center">
                         <div class="col-md-3">
+                        </div>
+                        <div class="col-md-9">
+                            <em>Fields with <span class="text-danger">*</span> are required</em>
+                        </div>
+                    </div>
+                    <div class="form-row mb-3 align-items-center">
+                        <div class="col-md-3">
+                            <label for="unitsEarned" class="mb-0">Highest Level/Units Earned <br> (If not graduated)</label>
+                        </div>
+                        <div class="col-md-9">
+                            <input v-model="schools[editIndex].unitsEarned" name="unitsEarned" id="unitsEarned" type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row mb-3 align-items-center">
+                        <div class="col-md-3">
                             <label for="honors" class="mb-0">Scholarship/Academic Honors Received</label>
                         </div>
                         <div class="col-md-9">
                             <input v-model="schools[editIndex].honors" name="honors" id="honors" type="text" class="form-control">
                         </div>
                     </div>
+                    
                     <div class="text-center">
-                        <button type="button" class="btn btn-light" @click="page=1">Cancel</button>
+                        <button v-if="action=='add'" type="button" class="btn btn-light" @click="cancelAdd">Cancel</button>
+                        <button v-if="action=='edit'" type="button" class="btn btn-light" @click="page=1">Cancel</button>
                         <button class="btn btn-primary">Save</button>
                     </div> 
                 </div> 
@@ -169,6 +177,7 @@
         data: {
             pending: false,
             page: 1,
+            action: '',
             schools:{{employee.personal.schools|default([], true)|stringify|safe}},
             editIndex: 0,
             school: {
@@ -183,9 +192,7 @@
                 honors : ""
             },
             periodToPresent: false,
-            periodToReadOnly: false,
             onGoing: false,
-            yearGraduatedReadOnly: false,
         },
         mounted: function(){
            
@@ -219,20 +226,16 @@
                 const me = this
                 if(this.periodToPresent){
                     me.$set(this.schools[me.editIndex], `periodTo`, 'Present')
-                    this.periodToReadOnly = true
                 } else {
                     me.$set(this.schools[me.editIndex], `periodTo`, '')
-                    this.periodToReadOnly = false
                 }
             },
             onChangeOnGoing: function(){
                 const me = this
                 if(this.onGoing){
                     me.$set(this.schools[me.editIndex], `yearGraduated`, 'On-going')
-                    this.yearGraduatedReadOnly = true
                 } else {
                     me.$set(this.schools[me.editIndex], `yearGraduated`, '')
-                    this.yearGraduatedReadOnly = false
                 }
             },
             addSchool: function() {
@@ -261,11 +264,34 @@
                 this.editIndex = this.schools.length - 1
                 this.$nextTick(() => {
                     me.$refs.level.focus();
+                    me.periodToPresent = false
+                    me.onGoing = false
                 })
+                this.action = 'add'
+            },
+            cancelAdd: function(){
+                const me = this
+
+                me.page = 1
+                me.action = ''
+                me.schools.splice(-1, 1)
             },
             editSchool: function(index){
-                this.page = 2
-                this.editIndex = index
+                const me = this
+                this.action = 'edit'
+
+                me.page = 2
+                me.editIndex = index
+                me.periodToPresent = false
+                me.onGoing = false
+
+                if(me.schools[me.editIndex].periodTo == 'Present'){
+                    me.periodToPresent = true
+                }
+                if(me.schools[me.editIndex].yearGraduated == 'On-going'){
+                    me.onGoing = true
+                }
+
                 jQuery('#level').focus()
 
             },

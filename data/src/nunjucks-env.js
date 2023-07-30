@@ -145,15 +145,39 @@ env.addFilter('uppercase', (val) => {
 
 env.addFilter('acronym', (val) => {
     val = new String(val)
-    val = val.replace(/(\s)+/,' ').split(' ')
+    val = val.replace(/(\s)+/, ' ').split(' ')
     val = val.map(word => {
         first = word.at(0)
-        if (first === first.toUpperCase()){
+        if (first === first.toUpperCase()) {
             return first
         }
         return ''
     })
     return val.join('')
+});
+
+// Change ALL CAPS into All Caps
+env.addFilter('noCaps', (val) => {
+    val = new String(val)
+    val = val.replace(/(\s)+/g, ' ').split(' ') // Turn extra spaces into single space and split by single space
+    val = val.map(word => {
+        // Split word into array of letters
+        word = word.split('').map((v, k, arr) => {
+            if (k == 0) {
+                return v // As is - respects lowercase first letter
+            } else { // Ignore if...
+                if (arr.at(k + 1) === '.') { // If next is a period, might be an acronym, so ignore - C.P.U.
+                    return v
+                }
+                if (arr.at(0) === '(' && arr.at(-1) === ')') { // If surrounded by parenthesis (CPU)
+                    return v
+                }
+            }
+            return v.toLowerCase()
+        })
+        return word.join('')
+    })
+    return val.join(' ')
 });
 
 //// Export

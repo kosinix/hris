@@ -2903,6 +2903,7 @@ const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) =
                 _id: lodash.get(attendance, '_id'),
                 type: lodash.get(attendance, 'type', ''),
                 logs: lodash.get(attendance, 'logs', []), // for half-day travel
+                workSchedule: lodash.get(attendance, 'workSchedule'),
             },
             ...dtr,
         }

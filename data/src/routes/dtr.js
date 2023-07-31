@@ -110,6 +110,11 @@ router.get(['/e/dtr/:employmentId', '/e/dtr/print/:employmentId'], middlewares.g
         // let dailyRate = dtrHelper.getDailyRate(salary, employment.salaryType) // Unified computation for daily
         let hourlyRate = dtrHelper.getHourlyRate(salary, employment.salaryType) // Unified computation for hourly
 
+        // Get IGP employmentId
+        let listIGP = await req.app.locals.db.main.EmployeeList.findOne({
+            name: /IGP/g
+        }).lean()
+        listIGP = lodash.get(listIGP, 'members', []).map(o => o.employmentId.toString())
         let data = {
             title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
 
@@ -144,6 +149,8 @@ router.get(['/e/dtr/:employmentId', '/e/dtr/print/:employmentId'], middlewares.g
             workScheduleWeekDays: workScheduleWeekDays,
             workScheduleWeekEnd: workScheduleWeekEnd,
             workScheduleWeek: workScheduleWeek,
+
+            listIGP: listIGP
         }
 
         // return res.send(req.path)
@@ -290,7 +297,7 @@ router.get(['/e/dtr/:employmentId/overtime', '/e/dtr/:employmentId/overtime-prin
         }
         if (req.originalUrl.indexOf('overtime-print') > -1) {
             res.locals.title = 'Extended Services Annex A'
-            return res.render('e/dtr/overtime-print.html', data);
+            return res.render('attendance/overtime-print.html', data);
         }
         res.render('e/dtr/overtime.html', data);
     } catch (err) {
@@ -310,4 +317,173 @@ router.post('/e/dtr/:employmentId/overtime', middlewares.guardRoute(['use_employ
     }
 });
 
+// Schedule
+router.get(['/e/dtr/:employmentId/schedule', '/e/dtr/:employmentId/schedule-print'], middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.getDtrQueries, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+        let employmentId = employment._id
+        let scheduleName = req.query?.scheduleName ?? 'Overtime Weekdays'
+        let overrideWorkSched = await req.app.locals.db.main.WorkSchedule.findOne({
+            name: scheduleName
+        }).lean()
+        if (!overrideWorkSched) {
+            throw new Error('Could not find overtime schedule.')
+        }
+        if (employment.employmentType !== 'cos') {
+            throw new Error('Not allowed.')
+        }
+
+        let {
+            periodMonthYear,
+        } = res
+
+        let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+        let showTotalAs = lodash.get(req, 'query.undertime') == 1 ? 'undertime' : 'time'
+        let showDays = parseInt(lodash.get(req, 'query.showDays', 0))
+
+        let startMoment = moment(periodMonthYear).startOf('month').startOf('day')
+        let endMoment = startMoment.clone().endOf('month').endOf('day')
+
+        if (!startMoment.isValid()) {
+            throw new Error(`Invalid start date.`)
+        }
+        if (!endMoment.isValid()) {
+            throw new Error(`Invalid end date.`)
+        }
+
+        if (endMoment.isBefore(startMoment)) {
+            throw new Error(`Invalid end date. Must not be less than the start date.`)
+        }
+
+        let momentNow = moment()
+
+        // Normal days
+        let options = {
+            showTotalAs: showTotalAs,
+            showDays: showDays, // 0 - all, 1 - workdays (Mon-Fri, excl. holidays), 2 - weekends, 3 - holidays, 4 - weekends + holidays
+        }
+
+        let days = await dtrHelper.getDtrDays(req.app.locals.db, employment._id, startMoment, endMoment, options)
+        let stats = dtrHelper.getDtrStats(days)
+        // return res.send(days)
+
+        if (req?.query?.includes) {
+            let includes = req.query.includes.split('_')
+            console.log('includes', includes)
+            days = days.filter(day => {
+                return includes.includes(day.date)
+            })
+
+        }
+        // console.log(kalendaryo.getMatrix(momentNow, 0))
+        let months = Array.from(Array(12).keys()).map((e, i) => {
+            return moment.utc().month(i).startOf('month')
+        }); // 1-count
+        // return res.send(days2)
+
+        showTotalAs = 'time'
+        if (req?.query?.undertime == 1) {
+            showTotalAs = 'undertime'
+        }
+
+        let data = {
+            flash: flash.get(req, 'attendance'),
+            employee: employee,
+            employment: employment,
+            momentNow: momentNow,
+            months: months,
+            days: days,
+            stats: stats,
+            selectedMonth: 'nu',
+            showTotalAs: showTotalAs,
+            showDays: showDays,
+            startMoment: startMoment,
+            endMoment: endMoment,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+        }
+        // return res.send(days)
+        if (req.originalUrl.indexOf('overtime-print') > -1) {
+            res.locals.title = 'Extended Services Annex A'
+            return res.render('e/dtr/overtime-print.html', data);
+        }
+        res.render('e/dtr/schedule.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e/dtr/:employmentId/schedule', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeEmployment, middlewares.getDtrQueries, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = res.employment
+        let employmentId = employment._id
+        const attendances = req.body?.attendances ?? []
+
+        // return res.send(req.body.submit)
+        let schedule = await req.app.locals.db.main.WorkSchedule.findOne({
+            name: /IGP Sliding/ig
+        }).lean()
+        if (!schedule) {
+            throw new Error('Sliding schedule not found.')
+        }
+
+        let attendanceIds = attendances.map((a) => {
+            return req.app.locals.db.mongoose.Types.ObjectId(a)
+        })
+
+        let results = {}
+        if (req.body.submit === 'change') {
+            results = await req.app.locals.db.main.Attendance.update(
+                {
+                    _id: {
+                        $in: attendanceIds
+                    },
+                    employmentId: employmentId, // Limit to this employee only
+                    workScheduleId: {
+                        $ne: employmentId
+                    }
+                },
+                {
+                    $set: {
+                        workScheduleId: schedule._id
+                    },
+                },
+                {
+                    multi: true
+                }
+            )
+            if (results.n > 0) {
+                flash.ok(req, 'employee', `Changed ${results.n} attendance(s) to Sliding Time.`)
+            }
+
+        } else {
+            results = await req.app.locals.db.main.Attendance.update(
+                {
+                    _id: {
+                        $in: attendanceIds
+                    },
+                    employmentId: employmentId, // Limit to this employee only
+                    workScheduleId: {
+                        $ne: employment.workScheduleId
+                    }
+                },
+                {
+                    $set: {
+                        workScheduleId: employment.workScheduleId
+                    },
+                },
+                {
+                    multi: true
+                }
+            )
+            if (results.n > 0) {
+                flash.ok(req, 'employee', `Changed ${results.n} attendance(s) to Normal Sched.`)
+            }
+        }
+        res.redirect(`/e/dtr/${employment._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

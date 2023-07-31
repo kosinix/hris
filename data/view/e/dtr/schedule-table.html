@@ -1,0 +1,78 @@
+<form action="" method="post">
+    <input type="hidden" name="start" value="{{startMoment|format_date('YYYY-MM-DD')}}">
+    <input type="hidden" name="end" value="{{endMoment|format_date('YYYY-MM-DD')}}">
+    <input type="hidden" name="showDays" value="{{showDays}}">
+    <input type="hidden" name="scheduleName" value="{{scheduleName}}">
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-dtr mb-0">
+            <tr class="text-center">
+                <th class="text-left">
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="check-all">
+                        <label class="form-check-label" for="check-all">
+                            <span>Date</span>
+                        </label>
+                    </div>
+                </th>
+                <th>Day</th>
+                <th>In</th>
+                <th>Out</th>
+                <th>In</th>
+                <th>Out</th>
+                <th>Schedule</th>
+            </tr>
+         
+            {% for day in days %}
+            {% if day.attendance._id %}
+                {% set cssClass = [] %}
+
+                {% if day.isNow %}
+                    {% set cssClass = (cssClass.push('selected'), cssClass) %}
+                {% endif %}
+
+                {% if days[loop.index0].isInvalidOvertime %}
+                    {% set cssClass = (cssClass.push('undertime'), cssClass) %}
+                {% endif %}
+
+                {% if day.isHoliday %}
+                    {% set cssClass = (cssClass.push('holiday'), cssClass) %}
+                {% endif %}
+
+                <tr class="{{cssClass.join(",")}} text-center">
+                    <td class="text-left">
+                        <div class="form-check">
+                            <input  class="form-check-input catt" type="checkbox" value="{{day.attendance._id}}" name="attendances[]" id="day-{{loop.index}}">
+                            <label class="form-check-label" for="day-{{loop.index}}">
+                                {{day.date|format_date('MMM DD')}}
+                            </label>
+                        </div>
+                        
+                    </td>
+                    <td>
+                        {{day.weekDay}}
+                    </td>
+                    {% if day.attendance %}
+
+                        <td class="{{classes}}">{{day.display.inAM}}</td>
+                        <td class="{{classes}}">{{day.display.outAM}}</td>
+                        <td class="{{classes}}">{{day.display.inPM}}</td>
+                        <td class="{{classes}}">{{day.display.outPM}}</td>
+                    {% else %}
+                        <td colspan="4"></td>
+                    {% endif %}
+
+                    <td>
+                    {{day.attendance.workSchedule.name}}
+                    </td>
+                </tr>
+            {% endif %}
+            {% endfor %}
+        </table>
+    </div>
+    <div class="p-3 text-center">
+        <button class="btn btn-primary" name="submit" value="change">Change to Sliding Time</button>
+        <button class="btn btn-primary" name="submit" value="rollback">Change to Normal Schedule</button>
+    </div>
+</form>

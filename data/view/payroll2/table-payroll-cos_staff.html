@@ -7,6 +7,7 @@
         <div class="btn-group">
             <a href="/payroll2/{{payroll._id}}/add-row?rtype=2&index=0&title=Subtotal" class="btn btn-sm btn-light">Add Subtotal Row</a>
             <a href="/payroll2/{{payroll._id}}/add-row?rtype=3&index=0&title=Title" class="btn btn-sm btn-light">Add Title Row</a>
+            <a href="/payroll2/{{payroll._id}}/add-row?rtype=4&index=0&title=Total" class="btn btn-sm btn-light">Add Total Row</a>
             <a href="/payroll2/regen/{{payroll._id}}" class="btn btn-sm btn-primary">Regenerate Payroll</a>
         </div>
         <div class="btn-group">
@@ -149,6 +150,7 @@
                         
                         <td></td>
                     </template>
+                    
                     <template v-else-if="row.rtype === 3">
                         <td colspan="3">
                             {% set fieldName = 'name' %}
@@ -181,6 +183,37 @@
                         <td></td>
                         <td></td>
                         <td></td>
+
+                        <!-- <td></td> -->
+                        <!-- <td></td> -->
+                        
+                        <td></td>
+                    </template>
+                    <template v-else-if="row.rtype === 4">
+                        <td>${row.name}</td>
+                        <td><!-- Source of fund --></td>
+                        <td><!-- Name --></td>
+                        <td><!-- Position --></td>
+                        <td><!-- Wage --></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>${theTotal(index, 'gross')|currency}</td>
+                        <td></td>
+                        <td>${theTotal(index, 'grant')|currency}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>${theTotal(row, index)|currency}</td>
+                        <td></td>
+                        <td></td>
+                        <td>${theTotalSSS(row, index)|currency}</td>
+                        <td></td>
+                        <td>${theTotalDeductions(row, index)|currency}</td>
+                        <td>${theTotalNetAmount(row, index)|currency}</td>
 
                         <!-- <td></td> -->
                         <!-- <td></td> -->
@@ -354,7 +387,6 @@
                 }
                 return totalGross
             },
-            
             subTotalSSS: function(row, index) {
                 let totalGross = 0
                 let currentIndex = index - 1
@@ -394,6 +426,79 @@
                 }
                 return totalGross
             },
+
+            theTotal: function(index, key) {
+                let total = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentIndex >= 0){
+                    if(currentRow?.rtype === 1){
+                        total += currentRow[key]
+                    }
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return total
+            },
+            theTotalTax: function(row, index) {
+                let total = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentIndex >= 0){
+                    if(currentRow?.rtype === 1){
+                        total += this.totalRowTax(currentRow)
+                    }
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return total
+            },
+            
+            theTotalSSS: function(row, index) {
+                let total = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentIndex >= 0){
+                    if(currentRow?.rtype === 1){
+                        total += this.totalRowSSS(currentRow)
+                    }
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return total
+            },
+            theTotalDeductions: function(row, index) {
+                let total = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentIndex >= 0){
+                    if(currentRow?.rtype === 1){
+                        total += this.totalRowDeductions(currentRow)
+                    }
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return total
+            },
+            theTotalNetAmount: function(row, index) {
+                let total = 0
+                let currentIndex = index - 1
+
+                let currentRow = this.payroll.rows[currentIndex]
+                while(currentIndex >= 0){
+                    if(currentRow?.rtype === 1){
+                        total += this.totalRowNetAmount(currentRow)
+                    }
+                    currentIndex--
+                    currentRow = this.payroll.rows[currentIndex]
+                }
+                return total
+            },
+
             setActiveDrag: function(){
                 this.activeDrag = !this.activeDrag
             },

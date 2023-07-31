@@ -472,11 +472,20 @@ router.get('/payroll2/:payrollId/add-row', middlewares.guardRoute(['read_payroll
         if (!payroll) {
             throw new Error(`Payroll not found.`)
         }
-        payroll.rows.splice(req?.query?.index, 0, {
-            uid: req.app.locals.db.mongoose.Types.ObjectId(),
-            rtype: parseInt(req?.query?.rtype),
-            name: req?.query?.title
-        })
+        if(req?.query?.rtype == 4 ){ // Add to bottom
+            payroll.rows.push({
+                uid: req.app.locals.db.mongoose.Types.ObjectId(),
+                rtype: parseInt(req?.query?.rtype),
+                name: req?.query?.title
+            })
+        } else { // Add to start
+            payroll.rows.splice(req?.query?.index, 0, {
+                uid: req.app.locals.db.mongoose.Types.ObjectId(),
+                rtype: parseInt(req?.query?.rtype),
+                name: req?.query?.title
+            })
+        }
+        
         await payroll.save()
         res.redirect(`/payroll2/view/${payroll._id}`)
     } catch (err) {

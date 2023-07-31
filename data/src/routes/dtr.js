@@ -112,9 +112,10 @@ router.get(['/e/dtr/:employmentId', '/e/dtr/print/:employmentId'], middlewares.g
 
         // Get IGP employmentId
         let listIGP = await req.app.locals.db.main.EmployeeList.findOne({
-            name: /IGP/g
+            name: /With Sliding Time/ig
         }).lean()
         listIGP = lodash.get(listIGP, 'members', []).map(o => o.employmentId.toString())
+        
         let data = {
             title: `DTR - ${employee.firstName} ${employee.lastName} ${employee.suffix}`,
 

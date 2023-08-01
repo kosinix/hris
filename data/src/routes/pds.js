@@ -70,6 +70,74 @@ router.get('/e/pds/family-background', middlewares.guardRoute(['use_employee_pro
         next(err);
     }
 });
+router.post('/e/pds/family-background/children', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let patch = res.employee.toObject()
+        let body = lodash.get(req, 'body')
+        // return res.send(body)
+
+        lodash.set(patch, 'personal.children', lodash.get(body, 'children', []))
+
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: {
+                'personal.children': patch.personal.children
+            }
+        })
+
+        res.send(patch.personal.children)
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e/pds/family-background/spouse', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let patch = lodash.get(req, 'body.spouse')
+
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: {
+                'personal.spouse': patch
+            }
+        })
+
+        res.send(patch)
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e/pds/family-background/father', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let patch = lodash.get(req, 'body.father')
+
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: {
+                'personal.father': patch
+            }
+        })
+
+        res.send(patch)
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e/pds/family-background/mother', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let patch = lodash.get(req, 'body.mother')
+
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: {
+                'personal.mother': patch
+            }
+        })
+
+        res.send(patch)
+    } catch (err) {
+        next(err);
+    }
+});
 
 router.get('/e/pds/educational-background', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
@@ -95,19 +163,30 @@ router.post('/e/pds/educational-background', middlewares.guardRoute(['use_employ
         // return res.send(body)
 
         lodash.set(patch, 'personal.schools', lodash.get(body, 'schools', []))
+        patch.personal.schools = patch.personal.schools.sort((a, b) => {
+            try {
+                let aFrom = parseInt(a.periodFrom)
+                let bFrom = parseInt(b.periodFrom)
+                if (aFrom > bFrom) {
+                    return 1;
+                }
+                if (aFrom < bFrom) {
+                    return -1;
+                }
+                return 0;
+            } catch (err) {
+                return 0
+            }
+        })
 
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
-
-        res.send({
-            ok:`PDS updated.`
-        })
+        res.send(patch.personal.schools)
     } catch (err) {
         next(err);
     }
 });
 
-// sasa
 router.get('/e/pds/csc-eligibility', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -115,23 +194,6 @@ router.get('/e/pds/csc-eligibility', middlewares.guardRoute(['use_employee_profi
         res.render('e/pds/csc-eligibility.html', {
             flash: flash.get(req, 'employee'),
             title: `${res.locals.title} - CSC Eligibility`,
-            employee: employee,
-            momentNow: moment(),
-            countries: countries.options,
-            suffixes: suffixes.options,
-        });
-
-    } catch (err) {
-        next(err);
-    }
-});
-router.get('/e/pds/work-experience', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-
-        res.render('e/pds/work-experience.html', {
-            flash: flash.get(req, 'employee'),
-            title: `${res.locals.title} - Work Experience`,
             employee: employee,
             momentNow: moment(),
             countries: countries.options,
@@ -150,20 +212,40 @@ router.post('/e/pds/csc-eligibility', middlewares.guardRoute(['use_employee_prof
         // return res.send(body)
 
         lodash.set(patch, 'personal.eligibilities', lodash.get(body, 'eligibilities', []))
+
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
+
+        res.send(patch.personal.eligibilities)
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/e/pds/work-experience', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        res.render('e/pds/work-experience.html', {
+            flash: flash.get(req, 'employee'),
+            title: `${res.locals.title} - Work Experience`,
+            employee: employee,
+            momentNow: moment(),
+            countries: countries.options,
+            suffixes: suffixes.options,
+        });
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e/pds/work-experience', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let patch = res.employee.toObject()
+        let body = lodash.get(req, 'body')
+        // return res.send(body)
+
         lodash.set(patch, 'personal.workExperiences', lodash.get(body, 'workExperiences', []))
-
-        patch.personal.eligibilities = patch.personal.eligibilities.sort((a, b) => {
-            let aFrom = moment(a.examDate).unix()
-            let bFrom = moment(b.examDate).unix()
-            if (aFrom < bFrom) {
-                return 1;
-            }
-            if (aFrom > bFrom) {
-                return -1;
-            }
-            return 0;
-        })
-
         patch.personal.workExperiences = patch.personal.workExperiences.sort((a, b) => {
             let aFrom = moment(a.fromDate).unix()
             let bFrom = moment(b.fromDate).unix()
@@ -175,15 +257,10 @@ router.post('/e/pds/csc-eligibility', middlewares.guardRoute(['use_employee_prof
             }
             return 0;
         })
-
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
-        flash.ok(req, 'employee', `PDS updated.`)
 
-        if (lodash.get(body, 'actionType') === 'saveNext') {
-            return res.redirect(`/e-profile/pds3`)
-        }
-        res.redirect(`/e-profile/pds2`)
+        res.send(patch.personal.workExperiences)
     } catch (err) {
         next(err);
     }

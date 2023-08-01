@@ -4,103 +4,129 @@
 <div class="col-md-12">
     {% include 'e/pds/header.html' %}
     {% include 'e/pds/tabs.html' %}
-    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
-        <div class=" mb-5">
-            {% include 'parts/flash.html' %}
-            <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/pds2" method="POST" class="form-default">
-                {# Work Exp #}
-                <div class="form-group focusable" tabindex="0">
-                    <p class="mb-4"><em>(Include private employment. Start from your recent work) Description of duties should be indicated in the attached Work Experience sheet.</em></p>
-                    <div v-for="(experience, index) in workExperiences">
-                        <hr v-if="index > 0">
-                        <div class="text-right mb-2">
-                            <button v-on:click="deleteExperience(index)" type="button" class="btn btn-danger btn-sm">X - Delete Experience</button>
-                        </div>
-                        <div class="form-row">
-                            <div class="col-md-2">
-                                {% set name = "'workExperiences[' + index + '][fromDate]'"|safe %}
-                                {% set vModel = 'experience.fromDate' %}
-                                {% set label = "Work From" %}
-                                {% include 'parts/form-group-date-vue.html' %}
-                                {% set label = '' %}
-                            </div>
-                            <div class="col-md-2">
-                                <template v-if="!workExperiences[index]['present']">
-                                    {% set name = "'workExperiences[' + index + '][toDate]'"|safe %}
-                                    {% set vModel = 'experience.toDate' %}
-                                    {% set label = "Work To" %}
-                                    {% include 'parts/form-group-date-vue.html' %}
-                                    {% set label = '' %}
-                                </template>
-                            </div>
-                            <div class="col-md-2 d-flex align-items-center">
-                                {% set name = "'workExperiences[' + index + '][present]'"|safe %}
-                                {% set vModel = 'experience.present' %}
-                                {% set label = "Present Work" %}
-                                {% include 'parts/form-group-checkbox-vue.html' %}
-                                {% set label = '' %}
-                            </div>
-                            <div class="col-md-3">
-                                {% set name = "'workExperiences[' + index + '][positionTitle]'"|safe %}
-                                {% set vModel = 'experience.positionTitle' %}
-                                {% set label = "Position Title" %}
-                                {% include 'parts/form-group-text-vue.html' %}
-                                {% set label = '' %}
-                            </div>                                                                                          		
-                            <div class="col-md-3">
-                                {% set name = "'workExperiences[' + index + '][department]'"|safe %}
-                                {% set vModel = 'experience.department' %}
-                                {% set label = "Department/Agency/Office/Company" %}
-                                {% include 'parts/form-group-text-vue.html' %}
-                                {% set label = '' %}
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="col-md-3">
-                                {% set name = "'workExperiences[' + index + '][salary]'"|safe %}
-                                {% set vModel = 'experience.salary' %}
-                                {% set label = "Monthly Salary" %}
-                                {% include 'parts/form-group-text-vue.html' %}
-                                {% set label = '' %}
-                            </div>
-                            <div class="col-md-3">
-                                {% set name = "'workExperiences[' + index + '][payGrade]'"|safe %}
-                                {% set vModel = 'experience.payGrade' %}
-                                {% set label = 'Pay Grade Step (Format "00-0")' %}
-                                {% include 'parts/form-group-text-vue.html' %}
-                                {% set label = '' %}
-                            </div>
-                            <div class="col-md-3">
-                                {% set name = "'workExperiences[' + index + '][appointmentStatus]'"|safe %}
-                                {% set vModel = 'experience.appointmentStatus' %}
-                                {% set label = "Status of Appointment" %}
-                                {% include 'parts/form-group-text-vue.html' %}
-                                {% set label = '' %}
-                            </div>
-                            <div class="col-md-3">
-                                {% set name = "'workExperiences[' + index + '][isGov]'"|safe %}
-                                {% set vModel = 'experience.isGov' %}
-                                {% set label = "Gov't Service?" %}
-                                {% set options = [{text:'', value:''}, {text:'No', value:'No'},{text:'Yes', value:'Yes'}] %}
-                                {% include 'parts/form-group-select-vue.html' %}
-                                {% set label = '' %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-center" v-if="workExperiences.length < 28">
-                        <button type="button" v-on:click.prevent="addExperience" class="btn btn-sm btn-primary">Add Experience</button>
-                    </div> 
+    <div class="tab-content p-3 min-height-300">
+        {% include 'parts/flash.html' %}
+        <form ref="form" id="vApp" v-cloak v-bind:data-pending="pending" v-on:submit.prevent="onSubmit" action="/e/pds/work-experience" method="POST" class="form-default">
+            <template v-if="page==1">
+                <div v-if="workExperiences.length > 0" class="table-responsive">
+                    <table class="table table-bordered table-sm table-striped">
+                        <tr>
+                            <th width="30%">Department</th>
+                            <th>Position</th>
+                            <th class="d-none d-md-table-cell">Monthly</th>
+                            <th class="d-none d-md-table-cell">From</th>
+                            <th class="d-none d-md-table-cell">To</th>
+                            <th class="d-none d-md-table-cell">Pay Grade</th>
+                            <th class="d-none d-md-table-cell">Appointment</th>
+                            <th class="d-none d-md-table-cell">Government</th>
+                            <th></th>
+                        </tr>
+                        <tr v-for="(work, index) in workExperiences">
+                            <td>${work.department}</td>
+                            <td>${work.positionTitle}</td>
+                            <td class="d-none d-md-table-cell">${work.salary}</td>
+                            <td class="d-none d-md-table-cell">${work.fromDate|formatDate('MM/DD/YYYY')}</td>
+                            <td class="d-none d-md-table-cell">${work.toDate|formatDate('MM/DD/YYYY')}</td>
+                            <td class="d-none d-md-table-cell">${work.payGrade}</td>
+                            <td class="d-none d-md-table-cell">${work.appointmentStatus}</td>
+                            <td class="d-none d-md-table-cell">${work.isGov}</td>
+                            <td>
+                                <div class="d-flex">
+                                    <button v-on:click="editWork(index)" type="button" class="btn btn-light btn-sm mr-1">Edit</button>
+                                    <button v-on:click="deleteWork(index)" type="button" class="btn btn-danger btn-sm">X</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
-                <hr>
-                <div class="form-row pt-3 pb-3">
-                    <div class="col-md-12">
-                        <input name="actionType" type="hidden" v-model="actionType">
-                        <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save PDS</button>
-                        <button v-on:click="setAction('saveNext')" type="submit" name="save" value="saveNext" class="btn btn-primary">Save and Go to C3</button>
+                <div class="text-center">
+                    <button v-on:click.prevent="addWork" class="btn btn-sm btn-primary" type="button">Add Work Experience</button>
+                </div>
+            </template>
+            <div v-if="page==2" class="form-group focusable" tabindex="0">
+                <p class="mb-4"><em>(Include private employment. Start from your recent work) Description of duties should be indicated in the attached Work Experience sheet.</em></p>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-12 col-md-3">
+                        <label for="fromDate" class="mb-0">From <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <input ref="level" v-model="workExperiences[editIndex].fromDate" name="fromDate" id="fromDate" type="date" class="form-control">
                     </div>
                 </div>
-            </form>
-        </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-12 col-md-3">
+                        <label for="toDate" class="mb-0">To <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <input v-model="workExperiences[editIndex].toDate" :disabled="workExperiences[editIndex].present" name="toDate" id="toDate" :type="(workExperiences[editIndex].present) ? 'text' : 'date'" class="form-control">
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="custom-control custom-switch">
+                            <input v-model="workExperiences[editIndex].present" @change="onChangePresentWork" type="checkbox" id="presentWork" class="custom-control-input"> 
+                            <label for="presentWork" class="custom-control-label">Present</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="positionTitle" class="mb-0">Position Title <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="workExperiences[editIndex].positionTitle" name="positionTitle" id="positionTitle" type="text" class="form-control">
+                        <div><em>Write in full. Do not abbreviate</em></div>
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="department" class="mb-0">Department/Agency/Office/Company <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="workExperiences[editIndex].department" name="department" id="department" type="text" class="form-control">
+                        <div><em>Write in full. Do not abbreviate</em></div>
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="salary" class="mb-0">Monthly Salary <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="workExperiences[editIndex].salary" name="salary" id="salary" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="payGrade" class="mb-0">Pay Grade Step (Format "00-0")</label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="workExperiences[editIndex].payGrade" name="payGrade" id="payGrade" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="appointmentStatus" class="mb-0">Status of Appointment <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="workExperiences[editIndex].appointmentStatus" name="appointmentStatus" id="appointmentStatus" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="isGov" class="mb-0">Gov't Service? <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <select v-model="workExperiences[editIndex].isGov" name="isGov" id="isGov" class="form-control">
+                            <option value="No">No</option> 
+                            <option value="Yes">Yes</option> 
+                        </select>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button v-if="action=='add'" type="button" class="btn btn-light" @click="cancelAdd">Cancel</button>
+                    <button v-if="action=='edit'" type="button" class="btn btn-light" @click="page=1">Cancel</button>
+                    <button class="btn btn-primary">Save</button>
+                </div> 
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
@@ -118,55 +144,185 @@
         },
         computed: {
         },
+        filters: {
+            formatDate: function(date, format){
+                if(moment(date, 'YYYY-MM-DD', true).isValid()){
+                    return moment(date).format(format)
+                }
+                return date
+            }
+        },
         data: {
+            pending: false,
+            page: 1,
+            action: '',
             actionType: 'save',
-            eligibilities:{{employee.personal.eligibilities|default([], true)|stringify|safe}},
             workExperiences:{{employee.personal.workExperiences|default([], true)|stringify|safe}},
+            editIndex: 0,
+
         },
         mounted: function(){
         },
         validations: {
         },
         methods: {
-            addEligibility: function(){
-                this.eligibilities.push({
-                    name:'',
-                    rating:'',
-                    examDate:'',
-                    examPlace:'',
-                    licenseNumber:'',
-                    licenseValidity:'',
+            onChangePresentWork: function(){
+                const me = this
+                if(this.workExperiences[me.editIndex].present){
+                    me.$set(this.workExperiences[me.editIndex], `toDate`, 'Present')
+                    
+                } else {
+                    me.$set(this.workExperiences[me.editIndex], `toDate`, '')
+                }
+            },
+            addWork: function() {
+                const me = this
+                me.workExperiences.push({
+                    fromDate: '',
+                    toDate: '',
+                    present: false,
+                    positionTitle: '',
+                    department: '',
+                    salary: '',
+                    payGrade: '',
+                    appointmentStatus: '',
+                    isGov: 'No',
                 })
-            },
-            deleteEligibility: function(start){
-                this.$delete(this.eligibilities, start)
-            },
-            addExperience: function(){
-                this.workExperiences.push({
-                    fromDate:'',
-                    toDate:'',
-                    positionTitle:'',
-                    department:'',
-                    salary:'',
-                    payGrade:'',
-                    appointmentStatus:'',
-                    isGov:'',
+                // me.workExperiences.push({
+                //     fromDate: '',
+                //     toDate: '',
+                //     positionTitle: '',
+                //     department: '',
+                //     salary: '',
+                //     payGrade: '',
+                //     appointmentStatus: '',
+                //     isGov: '',
+                // })
+                this.page = 2
+                this.editIndex = this.workExperiences.length - 1
+                this.$nextTick(() => {
+                    me.$refs.level.focus();
                 })
+                this.action = 'add'
             },
-            deleteExperience: function(start){
+            cancelAdd: function(){
+                const me = this
+
+                me.page = 1
+                me.action = ''
+                me.workExperiences.splice(-1, 1)
+            },
+            editWork: function(index){
+                const me = this
+                this.action = 'edit'
+
+                me.page = 2
+                me.editIndex = index
+
+                this.$nextTick(() => {
+                    me.$refs.level.focus();
+                })
+
+            },
+            deleteWork: function(start){
+                const me = this
+                if(!confirm('Delete permanently?')){
+                    return false
+                }
                 this.$delete(this.workExperiences, start)
-            },
-            setAction: function(action){
-                this.actionType = action
+                this.editIndex = this.workExperiences.length - 1
+
+                me.pending = true
+                fetch(`/e/pds/work-experience`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        workExperiences: me.workExperiences
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(await response.text())
+                    
+                }).then(function(responseJson){
+                    
+                    me.$v.$reset()
+                    me.page = 1
+                    me.workExperiences = responseJson
+                    alert('Work Experience deleted.')
+
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
+                }).then(function(){
+                    me.pending = false
+                });
+
             },
             onSubmit: function(){
                 var me = this;
                 me.$v.$touch()
+                let work = this.workExperiences[this.editIndex]
+                if(!work.fromDate){
+                    return alert('Please provide From Date.')
+                }
+                if(!work.toDate){
+                    return alert('Please provide To Date.')
+                }
+                if(!work.positionTitle){
+                    return alert('Please provide Position.')
+                }
+                if(!work.department){
+                    return alert('Please provide Department.')
+                }
+                if(!work.salary){
+                    return alert('Please provide Salary.')
+                }
+                // if(!work.payGrade){
+                //     return alert('Please provide Pay Grade.')
+                // }
+                if(!work.appointmentStatus){
+                    return alert('Please provide Status of Appointment.')
+                }
                 if (me.$v.$error) {
                     alert('Please correct the errors to continue.')
                 } else {
                     me.$nextTick(function() {
-                        me.$refs.form.submit();
+                        me.pending = true
+                        fetch(`/e/pds/work-experience`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                workExperiences: me.workExperiences
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(async function(response){
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error(await response.text())
+                            
+                        }).then(function(responseJson){
+                           
+                            me.$v.$reset()
+                            me.page = 1
+                            me.workExperiences = responseJson
+                            alert('Work Experience saved.')
+
+                        }).catch(async function(error){
+                            console.error(error)
+                            alert(error);
+                        }).then(function(){
+                            me.pending = false
+                        });
+
+                        //me.$refs.form.submit();
                     });
                 }
             }

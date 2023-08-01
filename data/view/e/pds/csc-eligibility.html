@@ -4,80 +4,110 @@
 <div class="col-md-12">
     {% include 'e/pds/header.html' %}
     {% include 'e/pds/tabs.html' %}
-    <div class="tab-content pt-3 pb-2 pl-3 pr-2">
-        <div class=" mb-5">
-            {% include 'parts/flash.html' %}
-            <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/pds2" method="POST" class="form-default">
-                {# Civil Service #}
-                <div class="form-group focusable" tabindex="0">
-                    <div v-for="(eligibility, index) in eligibilities">
-                        <hr v-if="index > 0">
-                        <div class="text-right mb-2">
-                            <button v-on:click="deleteEligibility(index)" type="button" class="btn btn-danger btn-sm">X - Delete Eligibility</button>
-                        </div>
-                        <div class="form-row">
-                            <div class="col-md-12">
-                                {% set name = "'eligibilities[' + index + '][name]'"|safe %}
-                                {% set vModel = 'eligibility.name' %}
-                                {% set label = "CAREER SERVICE / RA 1080 (BOARD/BAR) UNDER SPECIAL LAWS/ CES/ CSEE BARANGAY ELIGIBILITY / DRIVER'S LICENSE" %}
-                                {% include 'parts/form-group-text-vue.html' %}
-                                {% set label = '' %}
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="col-md-4">
-                                {% set name = "'eligibilities[' + index + '][rating]'"|safe %}
-                                {% set vModel = 'eligibility.rating' %}
-                                {% set label = 'RATING (If Applicable)' %}
-                                {% include 'parts/form-group-text-vue.html' %}
-                                {% set label = '' %}
-                            </div>
-                            <div class="col-md-4">
-                                {% set name = "'eligibilities[' + index + '][examDate]'"|safe %}
-                                {% set vModel = 'eligibility.examDate' %}
-                                {% set label = 'Exam Date / Conferment' %}
-                                {% include 'parts/form-group-date-vue.html' %}
-                                {% set label = '' %}
-                            </div>
-                            <div class="col-md-4">
-                                {% set name = "'eligibilities[' + index + '][examPlace]'"|safe %}
-                                {% set vModel = 'eligibility.examPlace' %}
-                                {% set label = 'Place of Exam / Conferment' %}
-                                {% include 'parts/form-group-text-vue.html' %}
-                                {% set label = '' %}
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="col-md-4">
-                                {% set name = "'eligibilities[' + index + '][licenseNumber]'"|safe %}
-                                {% set vModel = 'eligibility.licenseNumber' %}
-                                {% set label = 'License Number (If applicable)' %}
-                                {% include 'parts/form-group-text-vue.html' %}
-                                {% set label = '' %}
-                            </div>
-                            <div class="col-md-4">
-                                {% set name = "'eligibilities[' + index + '][licenseValidity]'"|safe %}
-                                {% set vModel = 'eligibility.licenseValidity' %}
-                                {% set label = 'Date of Validity (If applicable)' %}
-                                {% include 'parts/form-group-date-vue.html' %}
-                                {% set label = '' %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-center" v-if="eligibilities.length < 7">
-                        <button type="button" v-on:click.prevent="addEligibility" class="btn btn-sm btn-primary">Add Eligibility</button>
-                    </div> 
+    <div class="tab-content p-3 min-height-300">
+        {% include 'parts/flash.html' %}
+        <form ref="form" id="vApp" v-cloak v-bind:data-pending="pending" v-on:submit.prevent="onSubmit" action="/e/pds/csc-eligibility" method="POST" class="form-default">
+            <template  v-if="page==1">
+                <div v-if="eligibilities.length > 0" class="table-responsive">
+                    <table class="table table-bordered table-sm table-striped">
+                        <tr>
+                            <th width="30%">Name</th>
+                            <th class="d-none d-md-table-cell">Rating</th>
+                            <th class="d-none d-md-table-cell">Exam Date</th>
+                            <th class="d-none d-md-table-cell">Exam Place</th>
+                            <th>License Number</th>
+                            <th class="d-none d-md-table-cell">Validity</th>
+                            <th></th>
+                        </tr>
+                        <tr v-for="(eligibility, index) in eligibilities">
+                            <td>${eligibility.name}</td>
+                            <td class="d-none d-md-table-cell">${eligibility.rating}</td>
+                            <td class="d-none d-md-table-cell">${eligibility.examDate}</td>
+                            <td class="d-none d-md-table-cell">${eligibility.examPlace}</td>
+                            <td>${eligibility.licenseNumber}</td>
+                            <td class="d-none d-md-table-cell">${eligibility.licenseValidity}</td>
+                            <td>
+                                <div class="d-flex">
+                                    <button v-on:click="edit(index)" type="button" class="btn btn-light btn-sm mr-1">Edit</button>
+                                    <button v-on:click="del(index)" type="button" class="btn btn-danger btn-sm">X</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
-                <hr>
-                <div class="form-row pt-3 pb-3">
-                    <div class="col-md-12">
-                        <input name="actionType" type="hidden" v-model="actionType">
-                        <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save PDS</button>
-                        <button v-on:click="setAction('saveNext')" type="submit" name="save" value="saveNext" class="btn btn-primary">Save and Go to C3</button>
+                <div class="text-center">
+                    <button v-on:click.prevent="add" class="btn btn-sm btn-primary" type="button">Add Eligibility</button>
+                </div>
+            </template>
+            <div v-if="page==2" class="form-group focusable" tabindex="0">
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="name" class="mb-0">Eligibility <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <select ref="level" v-model="eligibilities[editIndex].name" name="name" id="name" class="form-control">
+                            <option value=""></option> 
+                            <option>Career Service Sub-Professional</option>
+                            <option>Career Service Professional</option>
+                            <option>Career Service Executive</option>
+                            <option>Stenographer</option>
+                            <option>PD 997 – Scientific and Technological Specialist</option>
+                            <option>EO132/790 – Veteran Preference Rating</option>
+                            <option>PD 907 – Honor Graduate</option>
+                            <option>RA 7883 – Barangay Health Worker</option>
+                            <option>Barangay Official</option>
+                            <option>Others</option>
+                        </select>
                     </div>
                 </div>
-            </form>
-        </div>
+                
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="examDate" class="mb-0">Exam Date / Conferment <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="eligibilities[editIndex].examDate" name="examDate" id="examDate" type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="examPlace" class="mb-0">Place of Exam / Conferment <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="eligibilities[editIndex].examPlace" name="examPlace" id="examPlace" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="rating" class="mb-0">Rating (If Applicable)</label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="eligibilities[editIndex].rating" name="rating" id="rating" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="licenseNumber" class="mb-0">License Number (If applicable)</label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="eligibilities[editIndex].licenseNumber" name="licenseNumber" id="licenseNumber" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="licenseValidity" class="mb-0">Date of Validity (If applicable)</label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="eligibilities[editIndex].licenseValidity" name="licenseValidity" id="licenseValidity" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button v-if="action=='add'" type="button" class="btn btn-light" @click="cancel">Cancel</button>
+                    <button v-if="action=='edit'" type="button" class="btn btn-light" @click="page=1">Cancel</button>
+                    <button class="btn btn-primary">Save</button>
+                </div> 
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
@@ -96,17 +126,22 @@
         computed: {
         },
         data: {
-            actionType: 'save',
+            pending: false,
+            page: 1,
+            action: '',
             eligibilities:{{employee.personal.eligibilities|default([], true)|stringify|safe}},
-            workExperiences:{{employee.personal.workExperiences|default([], true)|stringify|safe}},
+            editIndex: 0,
+
         },
         mounted: function(){
         },
         validations: {
         },
         methods: {
-            addEligibility: function(){
-                this.eligibilities.push({
+            add: function(){
+                const me = this
+
+                me.eligibilities.push({
                     name:'',
                     rating:'',
                     examDate:'',
@@ -114,36 +149,122 @@
                     licenseNumber:'',
                     licenseValidity:'',
                 })
-            },
-            deleteEligibility: function(start){
-                this.$delete(this.eligibilities, start)
-            },
-            addExperience: function(){
-                this.workExperiences.push({
-                    fromDate:'',
-                    toDate:'',
-                    positionTitle:'',
-                    department:'',
-                    salary:'',
-                    payGrade:'',
-                    appointmentStatus:'',
-                    isGov:'',
+                me.page = 2
+                me.editIndex = me.eligibilities.length - 1
+                me.$nextTick(() => {
+                    me.$refs.level.focus();
                 })
+                me.action = 'add'
             },
-            deleteExperience: function(start){
-                this.$delete(this.workExperiences, start)
+            cancel: function(){
+                const me = this
+
+                me.page = 1
+                me.action = ''
+                me.eligibilities.splice(-1, 1)
             },
-            setAction: function(action){
-                this.actionType = action
+            edit: function(index){
+                const me = this
+                this.action = 'edit'
+
+                me.page = 2
+                me.editIndex = index
+
+                this.$nextTick(() => {
+                    me.$refs.level.focus();
+                })
+
             },
+            del: function(start){
+                const me = this
+                if(!confirm('Delete permanently?')){
+                    return false
+                }
+                this.$delete(this.eligibilities, start)
+                this.editIndex = this.eligibilities.length - 1
+
+                me.pending = true
+                fetch(`/e/pds/csc-eligibility`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        eligibilities: me.eligibilities
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(await response.text())
+                    
+                }).then(function(responseJson){
+                    
+                    me.$v.$reset()
+                    me.page = 1
+                    me.eligibilities = responseJson
+
+                    alert('Eligibility deleted.')
+
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
+                }).then(function(){
+                    me.pending = false
+                });
+            },
+            
+            
             onSubmit: function(){
                 var me = this;
                 me.$v.$touch()
+                let o = this.eligibilities[this.editIndex]
+                if(!o.name){
+                    return alert('Please provide Eligibility.')
+                }
+                if(!o.examDate){
+                    return alert('Please provide Exam Date / Conferment.')
+                }
+                if(!o.examPlace){
+                    return alert('Please provide Place of Exam / Conferment.')
+                }
+                
                 if (me.$v.$error) {
                     alert('Please correct the errors to continue.')
                 } else {
                     me.$nextTick(function() {
-                        me.$refs.form.submit();
+                        me.pending = true
+                        fetch(`/e/pds/csc-eligibility`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                eligibilities: me.eligibilities
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(async function(response){
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error(await response.text())
+                            
+                        }).then(function(responseJson){
+                           
+                            me.$v.$reset()
+                            me.page = 1
+                            me.eligibilities = responseJson
+
+                            alert('Eligibility saved.')
+
+                        }).catch(async function(error){
+                            console.error(error)
+                            alert(error);
+                        }).then(function(){
+                            me.pending = false
+                        });
+
                     });
                 }
             }

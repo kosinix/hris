@@ -55,21 +55,21 @@ router.get('/e/pds/personal-info', middlewares.guardRoute(['use_employee_profile
 });
 router.post('/e/pds/personal-info', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
-        if(!res.user?.settings?.editPds){
-            throw new Error('PDS editing locked.')
-        }
+        // if(!res.user?.settings?.editPds){
+        //     throw new Error('PDS editing locked.')
+        // }
         let employee = res.employee.toObject()
         let patch = res.employee.toObject()
         let body = lodash.get(req, 'body')
         // return res.send(body)
 
-        lodash.set(patch, 'lastName', lodash.get(body, 'lastName'))
-        lodash.set(patch, 'firstName', lodash.get(body, 'firstName'))
-        lodash.set(patch, 'middleName', lodash.get(body, 'middleName'))
-        lodash.set(patch, 'suffix', lodash.get(body, 'suffix'))
-        lodash.set(patch, 'birthDate', lodash.get(body, 'birthDate'))
-        lodash.set(patch, 'gender', lodash.get(body, 'gender'))
-        lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
+        // lodash.set(patch, 'lastName', lodash.get(body, 'lastName'))
+        // lodash.set(patch, 'firstName', lodash.get(body, 'firstName'))
+        // lodash.set(patch, 'middleName', lodash.get(body, 'middleName'))
+        // lodash.set(patch, 'suffix', lodash.get(body, 'suffix'))
+        // lodash.set(patch, 'birthDate', lodash.get(body, 'birthDate'))
+        // lodash.set(patch, 'gender', lodash.get(body, 'gender'))
+        // lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
         lodash.set(patch, 'mobileNumber', lodash.get(body, 'mobileNumber'))
         lodash.set(patch, 'phoneNumber', lodash.get(body, 'phoneNumber'))
         lodash.set(patch, 'email', lodash.get(body, 'email'))

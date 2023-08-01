@@ -180,10 +180,7 @@ router.get('/e/pds/family-background', middlewares.guardRoute(['use_employee_pro
 });
 router.post('/e/pds/family-background/children', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
-        if(!res.user?.settings?.editPds){
-            throw new Error('PDS editing locked.')
-        }
-        
+
         let employee = res.employee.toObject()
         let patch = res.employee.toObject()
         let body = lodash.get(req, 'body')

@@ -112,6 +112,15 @@ div[data-pending="true"]:after {
     font-style: italic;
 } 
 
+.min-height-100 {
+    min-height: 100px;
+}
+.min-height-200 {
+    min-height: 200px;
+}
+.min-height-300 {
+    min-height: 300px;
+}
 .min-height-500 {
     min-height: 500px;
 }

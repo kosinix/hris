@@ -195,7 +195,7 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
             let employment = employments.at(-1)
 
             return {
-                key: `${e.firstName}|${e.middleName}|${e.lastName}`,
+                key: `${e.firstName}|${e.middleName}|${e.lastName}|${e.suffix}`,
                 profile: {
                     qualification: {
                         college: {
@@ -222,7 +222,8 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
                     addresses_contact: {
                         address: e.address,
                         email: e.email
-                    }
+                    },
+                    id_num: e?.personal?.agencyEmployeeNumber ?? ''
                 }
             }
         })

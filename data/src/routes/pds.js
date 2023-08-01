@@ -241,29 +241,111 @@ router.get('/e/pds/work-experience', middlewares.guardRoute(['use_employee_profi
 router.post('/e/pds/work-experience', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let patch = res.employee.toObject()
-        let body = lodash.get(req, 'body')
-        // return res.send(body)
+        let patch = lodash.get(req, 'body.workExperiences', [])
 
-        lodash.set(patch, 'personal.workExperiences', lodash.get(body, 'workExperiences', []))
-        patch.personal.workExperiences = patch.personal.workExperiences.sort((a, b) => {
-            let aFrom = moment(a.fromDate).unix()
-            let bFrom = moment(b.fromDate).unix()
-            if (aFrom < bFrom) {
-                return 1;
+        patch = patch.sort((a, b) => {
+            try {
+                let aFrom = moment(a.fromDate).unix()
+                let bFrom = moment(b.fromDate).unix()
+                if (aFrom < bFrom) {
+                    return 1;
+                }
+                if (aFrom > bFrom) {
+                    return -1;
+                }
+                return 0;
+            } catch (err) {
+                return 0
             }
-            if (aFrom > bFrom) {
-                return -1;
-            }
-            return 0;
         })
-        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: {
+                'personal.workExperiences': patch
+            }
+        })
 
-        res.send(patch.personal.workExperiences)
+        res.send(patch)
     } catch (err) {
         next(err);
     }
 });
 
+router.get('/e/pds/voluntary-work', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        res.render('e/pds/voluntary-work.html', {
+            flash: flash.get(req, 'employee'),
+            title: `${res.locals.title} - Voluntary Work`,
+            employee: employee,
+            momentNow: moment(),
+        })
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e/pds/voluntary-work', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let patch = lodash.get(req, 'body.voluntaryWorks')
+
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: {
+                'personal.voluntaryWorks': patch
+            }
+        })
+
+        res.send(patch)
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/e/pds/learning-development', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        res.render('e/pds/learning-development.html', {
+            flash: flash.get(req, 'employee'),
+            title: `${res.locals.title} - Learning and Development`,
+            employee: employee,
+            momentNow: moment(),
+        })
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e/pds/learning-development', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let patch = lodash.get(req, 'body.trainings', [])
+
+        patch = patch.sort((a, b) => {
+            try {
+                let aFrom = moment(a.fromDate).unix()
+                let bFrom = moment(b.fromDate).unix()
+                if (aFrom < bFrom) {
+                    return 1;
+                }
+                if (aFrom > bFrom) {
+                    return -1;
+                }
+                return 0;
+            } catch (err) {
+                return 0
+            }
+        })
+
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: {
+                'personal.trainings': patch
+            }
+        })
+
+        res.send(patch)
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

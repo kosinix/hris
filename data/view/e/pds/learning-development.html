@@ -1,0 +1,267 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'e/pds/header.html' %}
+    {% include 'e/pds/tabs.html' %}
+    <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3 min-height-300">
+        {% include 'parts/flash.html' %}
+        <template v-if="page==1">
+            <div v-if="trainings.length > 0" class="table-responsive">
+                <table class="table table-bordered table-sm table-striped">
+                    <tr>
+                        <th width="40%">Title of L&D/Training </th>
+                        <th>From</th>
+                        <th class="d-none d-md-table-cell">To</th>
+                        <th class="d-none d-md-table-cell">Hours</th>
+                        <th class="d-none d-md-table-cell">Type of LD ( Managerial/ Supervisory/Technical/etc) </th>
+                        <th class="d-none d-md-table-cell">Conducted / Sponsored by</th>
+                        <th width="5%"></th>
+                    </tr>
+                    <tr v-for="(training, index) in trainings">
+                        <td>${training.title}</td>
+                        <td>${training.fromDate}</td>
+                        <td class="d-none d-md-table-cell">${training.toDate}</td>
+                        <td class="d-none d-md-table-cell">${training.hours}</td>
+                        <td class="d-none d-md-table-cell">${training.type}</td>
+                        <td class="d-none d-md-table-cell">${training.sponsor}</td>
+                        <td>
+                            <div class="d-flex">
+                                <button v-on:click="edit(index)" type="button" class="btn btn-light btn-sm mr-1">Edit</button>
+                                <button v-on:click="del(index)" type="button" class="btn btn-danger btn-sm">X</button>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="text-center">
+                <button v-on:click.prevent="add" class="btn btn-sm btn-primary" type="button">Add </button>
+            </div>
+        </template>
+        <div v-if="page==2" class="form-group focusable" tabindex="0">
+            <form ref="form" v-on:submit.prevent="onSubmit($event)" action="/e/pds/learning-development" method="POST" class="form-default">
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="title" class="mb-0">Title of L&D/Training <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input ref="title" v-model="trainings[editIndex].title" name="title" id="title" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-12 col-md-3">
+                        <label for="fromDate" class="mb-0">From<span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <input v-model="trainings[editIndex].fromDate" placeholder="" name="fromDate" id="fromDate" type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-12 col-md-3">
+                        <label for="toDate" class="mb-0">To <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <input v-model="trainings[editIndex].toDate" placeholder="" name="toDate" id="toDate" type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="hours" class="mb-0">Number of Hours <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="trainings[editIndex].hours" name="hours" id="hours" type="number" min="0" step="1" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="type" class="mb-0">Type of LD ( Managerial/ Supervisory/Technical/etc) <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="trainings[editIndex].type" name="type" id="type" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="sponsor" class="mb-0">Conducted / Sponsored by <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="trainings[editIndex].sponsor" name="sponsor" id="sponsor" type="text" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button v-if="action=='add'" type="button" class="btn btn-light" @click="cancelAdd">Cancel</button>
+                    <button v-if="action=='edit'" type="button" class="btn btn-light" @click="page=1">Cancel</button>
+                    <button class="btn btn-primary">Save</button>
+                </div> 
+            </form>
+        </div> 
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            pending: false,
+            page: 1,
+            action: '',
+            trainings:{{employee.personal.trainings|default([], true)|stringify|safe}},
+            editIndex: 0,
+        },
+        mounted: function(){},
+        validations: {},
+        methods: {
+            add: function() {
+                const me = this
+
+                me.trainings.push({
+                    title: '',
+                    fromDate: '',
+                    toDate: '',
+                    hours: '',
+                    type: '',
+                    sponsor: '',
+                })
+                me.editIndex = this.trainings.length - 1
+                
+                me.page = 2
+                me.$nextTick(() => {
+                    me.$refs.title.focus();
+                })
+                me.action = 'add'
+            },
+            cancelAdd: function(){
+                const me = this
+
+                me.page = 1
+                me.action = ''
+                me.trainings.splice(-1, 1)
+            },
+            edit: function(index){
+                const me = this
+                me.action = 'edit'
+
+                me.page = 2
+                me.editIndex = index
+
+                this.$nextTick(() => {
+                    me.$refs.title.focus();
+                })
+
+            },
+            del: function(start){
+                const me = this
+                if(!confirm('Delete permanently?')){
+                    return false
+                }
+                me.$delete(me.trainings, start)
+                me.editIndex = me.trainings.length - 1
+
+                me.pending = true
+                fetch(`/e/pds/learning-development`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        trainings: me.trainings
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(await response.text())
+                    
+                }).then(function(responseJson){
+                    
+                    me.$v.$reset()
+                    me.page = 1
+                    me.trainings = responseJson
+
+                    alert('Training deleted.')
+
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
+                }).then(function(){
+                    me.pending = false
+                });
+
+            },
+           
+            onSubmit: function(e){
+                var me = this;
+                me.$v.$touch()
+                let training = this.trainings[this.editIndex]
+              
+                if(!training.title){
+                    return alert('Please provide Title.')
+                }
+                if(!training.fromDate){
+                    return alert('Please provide From.')
+                }
+                if(!training.toDate){
+                    return alert('Please provide To.')
+                }
+                if(!training.hours){
+                    return alert('Please provide Number of Hours.')
+                }
+                if(!training.type){
+                    return alert('Please provide Type of LD.')
+                }
+                if(!training.sponsor){
+                    return alert('Please provide Sponsor.')
+                }
+                
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.pending = true
+                        fetch(e.target.action, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                trainings: me.trainings
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(async function(response){
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error(await response.text())
+                            
+                        }).then(function(responseJson){
+                           
+                            me.$v.$reset()
+                            me.page = 1
+                            me.trainings = responseJson
+
+                            alert('Training saved.')
+
+                        }).catch(async function(error){
+                            console.error(error)
+                            alert(error);
+                        }).then(function(){
+                            me.pending = false
+                        });
+
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

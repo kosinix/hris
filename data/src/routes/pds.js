@@ -53,6 +53,7 @@ router.get('/e/pds/personal-info', middlewares.guardRoute(['use_employee_profile
         next(err);
     }
 });
+// @TODO: POST
 
 router.get('/e/pds/family-background', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
@@ -158,12 +159,9 @@ router.get('/e/pds/educational-background', middlewares.guardRoute(['use_employe
 router.post('/e/pds/educational-background', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let patch = res.employee.toObject()
-        let body = lodash.get(req, 'body')
-        // return res.send(body)
+        let patch = lodash.get(req, 'body.schools', [])
 
-        lodash.set(patch, 'personal.schools', lodash.get(body, 'schools', []))
-        patch.personal.schools = patch.personal.schools.sort((a, b) => {
+        patch = patch.sort((a, b) => {
             try {
                 let aFrom = parseInt(a.periodFrom)
                 let bFrom = parseInt(b.periodFrom)
@@ -179,9 +177,13 @@ router.post('/e/pds/educational-background', middlewares.guardRoute(['use_employ
             }
         })
 
-        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: {
+                'personal.schools': patch
+            }
+        })
 
-        res.send(patch.personal.schools)
+        res.send(patch)
     } catch (err) {
         next(err);
     }
@@ -207,15 +209,15 @@ router.get('/e/pds/csc-eligibility', middlewares.guardRoute(['use_employee_profi
 router.post('/e/pds/csc-eligibility', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let patch = res.employee.toObject()
-        let body = lodash.get(req, 'body')
-        // return res.send(body)
+        let patch = lodash.get(req, 'body.eligibilities', [])
+        
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: {
+                'personal.eligibilities': patch
+            }
+        })
 
-        lodash.set(patch, 'personal.eligibilities', lodash.get(body, 'eligibilities', []))
-
-        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
-
-        res.send(patch.personal.eligibilities)
+        res.send(patch)
     } catch (err) {
         next(err);
     }
@@ -348,4 +350,5 @@ router.post('/e/pds/learning-development', middlewares.guardRoute(['use_employee
         next(err);
     }
 });
+
 module.exports = router;

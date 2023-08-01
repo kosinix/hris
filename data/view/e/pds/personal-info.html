@@ -8,11 +8,49 @@
         {% include 'parts/flash.html' %}
         <form ref="form" v-on:submit.prevent="onSubmit" action="/e/pds/personal-info" method="POST" class="form-default">
             <div class="form-row">
+                <div class="col-md-4">
+                    {% set name = 'lastName' %}
+                    {% include 'parts/form-group-text.html' %}
+                </div>
+                <div class="col-md-4">
+                    {% set name = 'firstName' %}
+                    {% include 'parts/form-group-text.html' %}
+                </div>
+                <div class="col-md-2">
+                    {% set name = 'middleName' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-2">
+                    {% set name = 'suffix' %}
+                    {% set label = 'Extension (Jr.)' %}
+                    {% set options = suffixes %}
+                    {% include 'parts/form-group-select.html' %}
+                    {% set label = '' %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-3">
+                    {% set name = 'birthDate' %}
+                    {% include 'parts/form-group-date.html' %}
+                </div>
                 <div class="col-md-5">
                     <div class="form-group">
                         <label for="birthPlace">Place of Birth</label>
                         <input v-model="birthPlace" @blur="toNoCaps(birthPlace, 'birthPlace')" name="birthPlace" id="birthPlace" type="text" class="capital-case form-control">
                     </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-2">
+                    {% set name = 'gender' %}
+                    {% set options = [{value:'', text:''}, {value:'M', text:'Male'}, {value:'F', text:'Female'}] %}
+                    {% include 'parts/form-group-select.html' %}
+                </div>
+                <div class="col-md-2">
+                    {% set name = 'civilStatus' %}
+                    {% set options = [{value:'', text:''}, {value:'Single', text:'Single'}, {value:'Married', text:'Married'}, {value:'Divorced', text:'Divorced'}, {value:'Separated', text:'Separated'}, {value:'Widowed', text:'Widowed'}] %}
+                    {% include 'parts/form-group-select.html' %}
                 </div>
             </div>
             <div class="form-group form-row">
@@ -280,10 +318,10 @@
             </div>
             <hr>
             <div class="form-row pt-3 pb-3">
-                <div class="col-md-12">
+                <div class="col-md-12 text-center">
                     <input name="actionType" type="hidden" v-model="actionType">
                     <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save PDS</button>
-                    <button v-on:click="setAction('saveNext')" type="submit" name="save" value="saveNext" class="btn btn-primary">Save and Go to C2</button>
+                    <!-- <button v-on:click="setAction('saveNext')" type="submit" name="save" value="saveNext" class="btn btn-primary">Save and Go to C2</button> -->
                 </div>
             </div>
         </form>

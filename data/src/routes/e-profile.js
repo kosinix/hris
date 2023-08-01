@@ -1589,7 +1589,7 @@ router.post('/e/document/create', middlewares.guardRoute(['use_employee_profile'
 router.get('/e-profile/pds', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-
+        return res.redirect(`/e/pds/personal-info`)
         res.render('e-profile/pds.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
@@ -1618,6 +1618,7 @@ router.get('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']), 
     try {
         let employee = res.employee.toObject()
 
+        return res.redirect(`/e/pds/personal-info`)
 
 
         res.render('e-profile/pds1.html', {
@@ -1762,6 +1763,7 @@ router.post('/e-profile/pds1', middlewares.guardRoute(['use_employee_profile']),
 router.get('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
+        return res.redirect(`/e/pds/personal-info`)
 
         res.render('e-profile/pds2.html', {
             flash: flash.get(req, 'employee'),
@@ -1825,6 +1827,7 @@ router.post('/e-profile/pds2', middlewares.guardRoute(['use_employee_profile']),
 router.get('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
+        return res.redirect(`/e/pds/personal-info`)
 
         res.render('e-profile/pds3.html', {
             flash: flash.get(req, 'employee'),
@@ -1889,6 +1892,7 @@ router.post('/e-profile/pds3', middlewares.guardRoute(['use_employee_profile']),
 router.get('/e-profile/pds4', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.lockPds, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
+        return res.redirect(`/e/pds/personal-info`)
 
         res.render('e-profile/pds4.html', {
             flash: flash.get(req, 'employee'),

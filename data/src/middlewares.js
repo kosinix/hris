@@ -571,6 +571,7 @@ module.exports = {
             description: CONFIG.description,
         }
         req.app.locals.CONFIG = lodash.cloneDeep(CONFIG) // Config
+        req.app.locals.ENV = ENV
         next()
     },
     /**
@@ -661,10 +662,6 @@ module.exports = {
             // Data privacy
             res.locals.acceptedDataPrivacy = lodash.get(res, 'employee.acceptedDataPrivacy', false)
 
-            if(!employee.personal?.vaccines.length && !req.originalUrl.includes('/e/clinic/vax/all') && !req.xhr){
-                flash.error(req, 'employee', `Please fill out your vaccination info to continue.`)
-                return res.redirect(`/e/clinic/vax/all`)
-            }
             next();
         } catch (err) {
             next(err)

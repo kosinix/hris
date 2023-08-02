@@ -18,7 +18,7 @@ let router = express.Router()
 
 router.use('/clinic', middlewares.requireAuthUser)
 
-router.get(['/clinic/vax/all', '/clinic/vax/all.csv'], middlewares.guardRoute(['read_all_employee', 'read_employee']), async (req, res, next) => {
+router.get(['/clinic/vax/all', '/clinic/vax/all.csv'], middlewares.guardRoute(['read_all_hdf', 'read_hdf']), async (req, res, next) => {
     try {
         let page = parseInt(lodash.get(req, 'query.page', 1))
         let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))

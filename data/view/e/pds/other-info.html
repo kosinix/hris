@@ -7,6 +7,7 @@
     <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3 min-height-300">
         {% include 'parts/flash.html' %}
         <template v-if="page==1">
+            <h1 class="h6 mb-3 text-center">Special Skills and Hobbies, Non-Academic Distinctions / Recognition, Organization</h1>
             <div v-if="extraCurriculars.length > 0" class="table-responsive">
                 <table class="table table-bordered table-sm table-striped">
                     <tr>
@@ -27,7 +28,7 @@
                 </table>
             </div>
             <div class="text-center">
-                <button v-on:click.prevent="add" class="btn btn-sm btn-primary" type="button">Add </button>
+                <button v-on:click.prevent="add" class="btn btn-sm btn-primary" type="button">Add Info</button>
             </div>
         </template>
         <div v-if="page==2" class="form-group focusable" tabindex="0">

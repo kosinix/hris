@@ -7,6 +7,7 @@
     <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3 min-height-300">
         {% include 'parts/flash.html' %}
         <template v-if="page==1">
+            <h1 class="h6 mb-3 text-center">Learning and Development (L&D) Interventions / Training Programs Attended</h1>
             <div v-if="trainings.length > 0" class="table-responsive">
                 <table class="table table-bordered table-sm table-striped" style="font-size: 15px;">
                     <tr>
@@ -35,14 +36,14 @@
                 </table>
             </div>
             <div class="text-center">
-                <button v-on:click.prevent="add" class="btn btn-sm btn-primary" type="button">Add </button>
+                <button v-on:click.prevent="add" class="btn btn-sm btn-primary" type="button">Add Info</button>
             </div>
         </template>
         <div v-if="page==2" class="form-group focusable" tabindex="0">
             <form ref="form" v-on:submit.prevent="onSubmit($event)" action="/e/pds/learning-development" method="POST" class="form-default">
                 <div class="form-row mb-3 align-items-center">
                     <div class="col-md-3">
-                        <label for="title" class="mb-0">Title of L&D/Training <span class="text-danger">*</span></label>
+                        <label for="title" class="mb-0">Title of L&D/Training Programs<span class="text-danger">*</span></label>
                     </div>
                     <div class="col-md-9">
                         <input ref="title" v-model="trainings[editIndex].title" name="title" id="title" type="text" class="form-control">

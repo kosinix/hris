@@ -516,12 +516,12 @@ router.post('/e/clinic/vax/create', middlewares.guardRoute(['use_employee_profil
         }
         let vaccines = lodash.get(employee, 'personal.vaccines', [])
         vaccines.push(payload)
-        lodash.set(employee, 'personal.vaccines', vaccines)
 
-
-        await req.app.locals.db.main.Employee.updateOne({
-            _id: employee._id
-        }, employee)
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: {
+                'personal.vaccines': vaccines
+            }
+        })
 
         res.send(payload)
     } catch (err) {

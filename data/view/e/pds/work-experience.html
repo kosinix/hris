@@ -13,7 +13,7 @@
                         <tr>
                             <th width="30%">Department</th>
                             <th>Position</th>
-                            <th class="d-none d-md-table-cell">Monthly</th>
+                            <th class="d-none d-md-table-cell">Salary</th>
                             <th class="d-none d-md-table-cell">From</th>
                             <th class="d-none d-md-table-cell">To</th>
                             <th class="d-none d-md-table-cell">Pay Grade</th>
@@ -24,7 +24,7 @@
                         <tr v-for="(work, index) in workExperiences">
                             <td>${work.department}</td>
                             <td>${work.positionTitle}</td>
-                            <td class="d-none d-md-table-cell">${work.salary}</td>
+                            <td class="d-none d-md-table-cell">${work.salary|currency} ${work.salaryType}</td>
                             <td class="d-none d-md-table-cell">${work.fromDate|formatDate('MM/DD/YYYY')}</td>
                             <td class="d-none d-md-table-cell">${work.toDate|formatDate('MM/DD/YYYY')}</td>
                             <td class="d-none d-md-table-cell">${work.payGrade}</td>
@@ -87,18 +87,38 @@
                 </div>
                 <div class="form-row mb-3 align-items-center">
                     <div class="col-md-3">
-                        <label for="salary" class="mb-0">Monthly Salary <span class="text-danger">*</span></label>
+                        <label for="salary" class="mb-0"> Salary <span class="text-danger">*</span></label>
                     </div>
-                    <div class="col-md-9">
+                    <div class="col-md-5">
                         <input v-model="workExperiences[editIndex].salary" name="salary" id="salary" type="text" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <select v-model="workExperiences[editIndex].salaryType" name="salaryType" id="salaryType" class="form-control">
+                            <option value=""></option> 
+                            <option value="hourly">Hourly</option> 
+                            <option value="daily">Daily</option> 
+                            <option value="monthly">Monthly</option> 
+                            <option value="yearly">Yearly</option> 
+                        </select>
                     </div>
                 </div>
                 <div class="form-row mb-3 align-items-center">
                     <div class="col-md-3">
-                        <label for="payGrade" class="mb-0">Pay Grade Step (Format "00-0")</label>
+                        <label for="payGrade" class="mb-0">Salary Grade</label>
                     </div>
-                    <div class="col-md-9">
-                        <input v-model="workExperiences[editIndex].payGrade" name="payGrade" id="payGrade" type="text" class="form-control">
+                    <div class="col-md-5">
+                        <select @change="onChangeSg" v-model="sg" name="sg" id="sg" class="form-control">
+                            <option value="">N/A</option> 
+                            <option v-for="i in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33]" :value="i">${i}</option> 
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select @change="onChangeSg" v-model="sgStep" name="sgStep" id="sgStep" class="form-control">
+                            <option value=""></option> 
+                            <option value="0">No Step</option> 
+                            <option v-for="i in [1,2,3,4,5,6,7,8]" :value="i">Step ${i}</option> 
+                        </select>
+                        <input v-model="workExperiences[editIndex].payGrade" name="payGrade" id="payGrade" type="hidden" class="form-control">
                     </div>
                 </div>
                 <div class="form-row mb-3 align-items-center">
@@ -106,7 +126,14 @@
                         <label for="appointmentStatus" class="mb-0">Status of Appointment <span class="text-danger">*</span></label>
                     </div>
                     <div class="col-md-9">
-                        <input v-model="workExperiences[editIndex].appointmentStatus" name="appointmentStatus" id="appointmentStatus" type="text" class="form-control">
+                        <select v-model="workExperiences[editIndex].appointmentStatus" name="appointmentStatus" id="appointmentStatus" class="form-control">
+                            <option value=""></option> 
+                            <option>Permanent</option> 
+                            <option>Contractual</option> 
+                            <option>Casual</option> 
+                            <option>Temporary</option> 
+                            <option>Others</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-row mb-3 align-items-center">
@@ -132,6 +159,7 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
+<script src="{{app.url}}/js/vue-money.js"></script>
 <script>
     var vApp = new Vue({
         el: '#vApp',
@@ -139,6 +167,7 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
+            VueMoney.mixin,
         ],
         components: {
         },
@@ -159,13 +188,31 @@
             actionType: 'save',
             workExperiences:{{employee.personal.workExperiences|default([], true)|stringify|safe}},
             editIndex: 0,
-
+            sg:'',
+            sgStep:'',
+            appointmentStatus: ''
         },
         mounted: function(){
+            const me = this 
         },
         validations: {
         },
         methods: {
+            onChangeAppointmentStatus: function(){
+                const me = this 
+                
+                me.$set(me.workExperiences[me.editIndex], `appointmentStatus`, me.appointmentStatus)
+            },
+            onChangeSg: function(){
+                const me = this 
+
+                let payGrade = `${(me.sg+'').padStart(2, '0')}-${me.sgStep}`
+                if(!me.sg){
+                    payGrade = ''
+                }
+                me.$set(this.workExperiences[me.editIndex], `payGrade`, payGrade)
+
+            },
             onChangePresentWork: function(){
                 const me = this
                 if(this.workExperiences[me.editIndex].present){
@@ -184,6 +231,7 @@
                     positionTitle: '',
                     department: '',
                     salary: '',
+                    salaryType: 'monthly',
                     payGrade: '',
                     appointmentStatus: '',
                     isGov: 'No',
@@ -218,6 +266,14 @@
 
                 me.page = 2
                 me.editIndex = index
+                let payGrade = me.workExperiences[this.editIndex].payGrade
+                if(payGrade){
+                    payGrade = payGrade.split('-')
+                    me.sg = payGrade.at(0)
+                    me.sgStep = payGrade.at(1)
+                }
+
+                me.appointmentStatus = me.workExperiences[this.editIndex].appointmentStatus
 
                 this.$nextTick(() => {
                     me.$refs.level.focus();

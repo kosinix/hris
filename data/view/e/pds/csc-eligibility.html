@@ -22,7 +22,7 @@
                         <tr v-for="(eligibility, index) in eligibilities">
                             <td>${eligibility.name}</td>
                             <td class="d-none d-md-table-cell">${eligibility.rating}</td>
-                            <td class="d-none d-md-table-cell">${eligibility.examDate}</td>
+                            <td class="d-none d-md-table-cell">${eligibility.examDate|formatDate('MM/DD/YYYY')}</td>
                             <td class="d-none d-md-table-cell">${eligibility.examPlace}</td>
                             <td>${eligibility.licenseNumber}</td>
                             <td class="d-none d-md-table-cell">${eligibility.licenseValidity}</td>
@@ -116,9 +116,20 @@
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
         ],
-        components: {
-        },
-        computed: {
+        filters: {
+            age: function (value) {
+                let birthDate = moment(value, 'YYYY-MM-DD', true)
+                if(birthDate.isValid()){
+                    return moment().diff(birthDate, 'years')
+                }
+                return ''
+            },
+            formatDate: function(date, format){
+                if(moment(date, 'YYYY-MM-DD', true).isValid()){
+                    return moment(date).format(format)
+                }
+                return date
+            }
         },
         data: {
             pending: false,

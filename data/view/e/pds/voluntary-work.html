@@ -19,8 +19,8 @@
                     </tr>
                     <tr v-for="(voluntaryWork, index) in voluntaryWorks">
                         <td>${voluntaryWork.name}</td>
-                        <td>${voluntaryWork.fromDate}</td>
-                        <td class="d-none d-md-table-cell">${voluntaryWork.toDate}</td>
+                        <td>${voluntaryWork.fromDate|formatDate}</td>
+                        <td class="d-none d-md-table-cell">${voluntaryWork.toDate|formatDate}</td>
                         <td class="d-none d-md-table-cell">${voluntaryWork.hours}</td>
                         <td class="d-none d-md-table-cell">${voluntaryWork.position}</td>
                         <td>
@@ -99,6 +99,22 @@
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
         ],
+        filters: {
+            age: function (value) {
+                let birthDate = moment(value, 'YYYY-MM-DD', true)
+                if(birthDate.isValid()){
+                    return moment().diff(birthDate, 'years')
+                }
+                return ''
+            },
+            formatDate: function(date, format = 'MMM DD, YYYY'){
+                let mDate = moment(date, 'YYYY-MM-DD', true)
+                if(mDate.isValid()){
+                    return mDate.format(format)
+                }
+                return date
+            }
+        },
         data: {
             pending: false,
             page: 1,
@@ -106,7 +122,6 @@
             voluntaryWorks:{{employee.personal.voluntaryWorks|default([], true)|stringify|safe}},
             editIndex: 0,
         },
-        mounted: function(){},
         validations: {},
         methods: {
             add: function() {

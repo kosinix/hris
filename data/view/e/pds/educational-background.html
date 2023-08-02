@@ -200,8 +200,10 @@
            
             
         },
-        watch: {
-            
+        filters: {
+            age: function (value) {
+                return moment().diff(value, 'years')
+            }
         },
         methods: {
             onChangeLevel: function(cur,prev){

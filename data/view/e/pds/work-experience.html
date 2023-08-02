@@ -9,25 +9,25 @@
         <form ref="form" id="vApp" v-cloak v-bind:data-pending="pending" v-on:submit.prevent="onSubmit" action="/e/pds/work-experience" method="POST" class="form-default">
             <template v-if="page==1">
                 <div v-if="workExperiences.length > 0" class="table-responsive">
-                    <table class="table table-bordered table-sm table-striped">
+                    <table class="table table-bordered table-sm table-striped" style="font-size: 15px;">
                         <tr>
-                            <th width="30%">Department</th>
-                            <th>Position</th>
+                            <th width="30%">Position</th>
+                            <th>Department</th>
                             <th class="d-none d-md-table-cell">Salary</th>
                             <th class="d-none d-md-table-cell">From</th>
                             <th class="d-none d-md-table-cell">To</th>
-                            <th class="d-none d-md-table-cell">Pay Grade</th>
+                            <th class="d-none d-md-table-cell">Salary Grade</th>
                             <th class="d-none d-md-table-cell">Appointment</th>
-                            <th class="d-none d-md-table-cell">Government</th>
+                            <th class="d-none d-md-table-cell">Gov.</th>
                             <th></th>
                         </tr>
                         <tr v-for="(work, index) in workExperiences">
-                            <td>${work.department}</td>
                             <td>${work.positionTitle}</td>
+                            <td>${work.department}</td>
                             <td class="d-none d-md-table-cell">${work.salary|currency} ${work.salaryType}</td>
-                            <td class="d-none d-md-table-cell">${work.fromDate|formatDate('MM/DD/YYYY')}</td>
-                            <td class="d-none d-md-table-cell">${work.toDate|formatDate('MM/DD/YYYY')}</td>
-                            <td class="d-none d-md-table-cell">${work.payGrade}</td>
+                            <td class="d-none d-md-table-cell text-nowrap text-right">${work.fromDate|formatDate}</td>
+                            <td class="d-none d-md-table-cell text-nowrap text-right">${work.toDate|formatDate}</td>
+                            <td class="d-none d-md-table-cell text-center">${work.payGrade}</td>
                             <td class="d-none d-md-table-cell">${work.appointmentStatus}</td>
                             <td class="d-none d-md-table-cell">${work.isGov}</td>
                             <td>
@@ -132,6 +132,7 @@
                             <option>Contractual</option> 
                             <option>Casual</option> 
                             <option>Temporary</option> 
+                            <option>Probationary</option> 
                             <option>Others</option>
                         </select>
                     </div>
@@ -174,9 +175,17 @@
         computed: {
         },
         filters: {
-            formatDate: function(date, format){
-                if(moment(date, 'YYYY-MM-DD', true).isValid()){
-                    return moment(date).format(format)
+            age: function (value) {
+                let birthDate = moment(value, 'YYYY-MM-DD', true)
+                if(birthDate.isValid()){
+                    return moment().diff(birthDate, 'years')
+                }
+                return ''
+            },
+            formatDate: function(date, format = 'MMM DD, YYYY'){
+                let mDate = moment(date, 'YYYY-MM-DD', true)
+                if(mDate.isValid()){
+                    return mDate.format(format)
                 }
                 return date
             }
@@ -274,6 +283,9 @@
                     payGrade = payGrade.split('-')
                     me.sg = parseInt(payGrade.at(0))
                     me.sgStep = parseInt(payGrade.at(1))
+                } else {
+                    me.sg = ''
+                    me.sgStep = ''
                 }
 
                 me.appointmentStatus = me.workExperiences[this.editIndex].appointmentStatus

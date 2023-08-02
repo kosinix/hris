@@ -20,7 +20,7 @@
                     </tr>
                     <tr>
                         <td>${spouse.firstName} ${spouse.middleName} ${spouse.lastName} ${spouse.suffix}</td>
-                        <td>${spouse.birthDate}</td>
+                        <td>${spouse.birthDate|formatDate} - <em>${spouse.birthDate|age} yrs</td>
                         <td class="d-none d-md-table-cell">${spouse.occupation}</td>
                         <td class="d-none d-md-table-cell">${spouse.employerOrBusinessName}</td>
                         <td class="d-none d-md-table-cell">${spouse.businessAddress}</td>
@@ -46,7 +46,7 @@
                     </tr>
                     <tr>
                         <td>${father.firstName} ${father.middleName} ${father.lastName} ${father.suffix}</td>
-                        <td>${father.birthDate}</td>
+                        <td>${father.birthDate|formatDate} - <em>${father.birthDate|age} yrs</em></td>
                         <td>
                             <div class="d-flex">
                                 <button v-on:click="editFather()" type="button" class="btn btn-light btn-sm mr-1">Edit</button>
@@ -68,7 +68,7 @@
                     </tr>
                     <tr>
                         <td>${mother.firstName} ${mother.middleName} ${mother.lastName} ${mother.suffix}</td>
-                        <td>${mother.birthDate}</td>
+                        <td>${mother.birthDate|formatDate} - <em>${mother.birthDate|age} yrs</em></td>
                         <td>
                             <div class="d-flex">
                                 <button v-on:click="editMother()" type="button" class="btn btn-light btn-sm mr-1">Edit</button>
@@ -90,7 +90,7 @@
                     </tr>
                     <tr v-for="(child, index) in children">
                         <td>${child.name}</td>
-                        <td>${child.birthDate}</td>
+                        <td>${child.birthDate|formatDate} - <em>${child.birthDate|age} yrs</em></td>
                         <td>
                             <div class="d-flex">
                                 <button v-on:click="editChild(index)" type="button" class="btn btn-light btn-sm mr-1">Edit</button>
@@ -325,10 +325,21 @@
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
         ],
-        components: {
-        },
-        computed: {
-            
+        filters: {
+            age: function (value) {
+                let birthDate = moment(value, 'YYYY-MM-DD', true)
+                if(birthDate.isValid()){
+                    return moment().diff(birthDate, 'years')
+                }
+                return ''
+            },
+            formatDate: function(date, format = 'MMM DD, YYYY'){
+                let mDate = moment(date, 'YYYY-MM-DD', true)
+                if(mDate.isValid()){
+                    return mDate.format(format)
+                }
+                return date
+            }
         },
         data: {
             pending: false,

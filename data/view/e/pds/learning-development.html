@@ -8,7 +8,7 @@
         {% include 'parts/flash.html' %}
         <template v-if="page==1">
             <div v-if="trainings.length > 0" class="table-responsive">
-                <table class="table table-bordered table-sm table-striped">
+                <table class="table table-bordered table-sm table-striped" style="font-size: 15px;">
                     <tr>
                         <th width="40%">Title of L&D/Training </th>
                         <th>From</th>
@@ -20,9 +20,9 @@
                     </tr>
                     <tr v-for="(training, index) in trainings">
                         <td>${training.title}</td>
-                        <td>${training.fromDate}</td>
-                        <td class="d-none d-md-table-cell">${training.toDate}</td>
-                        <td class="d-none d-md-table-cell">${training.hours}</td>
+                        <td class="text-nowrap text-right">${training.fromDate|formatDate}</td>
+                        <td class="d-none d-md-table-cell text-nowrap text-right">${training.toDate|formatDate}</td>
+                        <td class="d-none d-md-table-cell text-center">${training.hours}</td>
                         <td class="d-none d-md-table-cell">${training.type}</td>
                         <td class="d-none d-md-table-cell">${training.sponsor}</td>
                         <td>
@@ -109,6 +109,22 @@
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
         ],
+        filters: {
+            age: function (value) {
+                let birthDate = moment(value, 'YYYY-MM-DD', true)
+                if(birthDate.isValid()){
+                    return moment().diff(birthDate, 'years')
+                }
+                return ''
+            },
+            formatDate: function(date, format = 'MMM DD, YYYY'){
+                let mDate = moment(date, 'YYYY-MM-DD', true)
+                if(mDate.isValid()){
+                    return mDate.format(format)
+                }
+                return date
+            }
+        },
         data: {
             pending: false,
             page: 1,
@@ -116,7 +132,6 @@
             trainings:{{employee.personal.trainings|default([], true)|stringify|safe}},
             editIndex: 0,
         },
-        mounted: function(){},
         validations: {},
         methods: {
             add: function() {

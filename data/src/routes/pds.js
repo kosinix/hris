@@ -13,6 +13,8 @@ const countries = require('../countries');
 const middlewares = require('../middlewares');
 const suffixes = require('../suffixes');
 const noCaps = (val) => {
+    if(!val) return val
+
     val = new String(val)
     val = val.replace(/(\s)+/g, ' ').split(' ') // Turn extra spaces into single space and split by single space
     val = val.map(word => {

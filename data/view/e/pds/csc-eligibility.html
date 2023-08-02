@@ -44,20 +44,15 @@
                     <div class="col-md-3">
                         <label for="name" class="mb-0">Eligibility <span class="text-danger">*</span></label>
                     </div>
-                    <div class="col-md-9">
-                        <select ref="level" v-model="eligibilities[editIndex].name" name="name" id="name" class="form-control">
+                    <div class="col-md-5">
+                        <select ref="level" @change="onChangeEligibility" v-model="eligibility" name="name" id="name" class="form-control">
                             <option value=""></option> 
-                            <option>Career Service Sub-Professional</option>
-                            <option>Career Service Professional</option>
-                            <option>Career Service Executive</option>
-                            <option>Stenographer</option>
-                            <option>PD 997 – Scientific and Technological Specialist</option>
-                            <option>EO132/790 – Veteran Preference Rating</option>
-                            <option>PD 907 – Honor Graduate</option>
-                            <option>RA 7883 – Barangay Health Worker</option>
-                            <option>Barangay Official</option>
-                            <option>Others</option>
+                            <option v-for="n in eligibilityList">${n}</option>
+                            <option value="Others">Others, please specify:</option>
                         </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input v-model="eligibilities[editIndex].name" name="name" placeholder="" id="name" :type="eligibility=='Others' ? 'text' : 'hidden'" class="form-control">
                     </div>
                 </div>
                 
@@ -131,13 +126,34 @@
             action: '',
             eligibilities:{{employee.personal.eligibilities|default([], true)|stringify|safe}},
             editIndex: 0,
-
+            eligibility: '',
+            eligibilityList: [
+                'Career Service Sub-Professional',
+                'Career Service Professional',
+                'Career Service Executive',
+                'Stenographer',
+                'PD 997 – Scientific and Technological Specialist',
+                'EO132/790 – Veteran Preference Rating',
+                'PD 907 – Honor Graduate',
+                'RA 7883 – Barangay Health Worker',
+                'Barangay Official',
+            ]
         },
         mounted: function(){
         },
         validations: {
         },
         methods: {
+            onChangeEligibility: function(){
+                const me = this
+
+                if(me.eligibility === 'Others'){
+                // if(me.eligibilities[me.editIndex].name === 'Others'){
+                    me.eligibilities[me.editIndex].name = ''
+                } else {
+                    me.eligibilities[me.editIndex].name = me.eligibility
+                }
+            },
             add: function(){
                 const me = this
 
@@ -170,6 +186,10 @@
                 me.page = 2
                 me.editIndex = index
 
+                me.eligibility = me.eligibilities[me.editIndex].name
+                if(!me.eligibilityList.includes(me.eligibility)){
+                    me.eligibility = 'Others'
+                }
                 this.$nextTick(() => {
                     me.$refs.level.focus();
                 })

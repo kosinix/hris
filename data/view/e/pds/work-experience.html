@@ -246,12 +246,15 @@
                 //     appointmentStatus: '',
                 //     isGov: '',
                 // })
-                this.page = 2
-                this.editIndex = this.workExperiences.length - 1
-                this.$nextTick(() => {
+                me.sg = ''
+                me.sgStep = ''
+                me.appointmentStatus = ''
+                me.page = 2
+                me.editIndex = me.workExperiences.length - 1
+                me.$nextTick(() => {
                     me.$refs.level.focus();
                 })
-                this.action = 'add'
+                me.action = 'add'
             },
             cancelAdd: function(){
                 const me = this
@@ -269,8 +272,8 @@
                 let payGrade = me.workExperiences[this.editIndex].payGrade
                 if(payGrade){
                     payGrade = payGrade.split('-')
-                    me.sg = payGrade.at(0)
-                    me.sgStep = payGrade.at(1)
+                    me.sg = parseInt(payGrade.at(0))
+                    me.sgStep = parseInt(payGrade.at(1))
                 }
 
                 me.appointmentStatus = me.workExperiences[this.editIndex].appointmentStatus

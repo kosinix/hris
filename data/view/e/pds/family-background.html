@@ -35,7 +35,7 @@
                 </table>
             </div>
             <div v-else class="text-center p-3">
-                <button v-on:click.prevent="page=3" class="btn btn-sm btn-primary" type="button">Add Spouse Info</button>
+                <button v-on:click.prevent="page=3" class="btn btn-sm btn-primary" type="button">Add Spouse Information</button>
             </div>
             <div v-if="father.firstName" class="table-responsive">
                 <table class="table table-bordered table-sm table-striped">
@@ -57,7 +57,7 @@
                 </table>
             </div>
             <div v-else class="text-center p-3">
-                <button v-on:click.prevent="editFather" class="btn btn-sm btn-primary" type="button">Add Father Info</button>
+                <button v-on:click.prevent="editFather" class="btn btn-sm btn-primary" type="button">Add Father Information</button>
             </div>
             <div v-if="mother.firstName" class="table-responsive">
                 <table class="table table-bordered table-sm table-striped">
@@ -79,7 +79,7 @@
                 </table>
             </div>
             <div v-else class="text-center p-3">
-                <button v-on:click.prevent="editMother" class="btn btn-sm btn-primary" type="button">Add Mother Info</button>
+                <button v-on:click.prevent="editMother" class="btn btn-sm btn-primary" type="button">Add Mother Information</button>
             </div>
             <div v-if="children.length > 0" class="table-responsive">
                 <table class="table table-bordered table-sm table-striped">
@@ -101,7 +101,7 @@
                 </table>
             </div>
             <div class="text-center p-3">
-                <button v-on:click.prevent="addChild" class="btn btn-sm btn-primary" type="button">Add Child Info</button>
+                <button v-on:click.prevent="addChild" class="btn btn-sm btn-primary" type="button">Add Child Information</button>
             </div>
         </template>
         <div v-if="page==2" class="form-group focusable" tabindex="0">
@@ -132,7 +132,7 @@
         <div v-if="page==3" class="form-group focusable" tabindex="0">
             <form ref="form2" v-on:submit.prevent="onSubmitSpouse($event)" action="/e/pds/family-background/spouse" method="POST" class="form-default">
                 <div class="text-center mb-3">
-                    <h2 class="h5">Spouse Info</h2>
+                    <h2 class="h5">Spouse Information</h2>
                 </div>
                 <div class="form-row mb-3 align-items-center">
                     <div class="col-md-3">
@@ -218,7 +218,7 @@
         <div v-if="page==4" class="form-group focusable" tabindex="0">
             <form ref="form4" v-on:submit.prevent="onSubmitFather($event)" action="/e/pds/family-background/father" method="POST" class="form-default">
                 <div class="text-center mb-3">
-                    <h2 class="h5">Father Info</h2>
+                    <h2 class="h5">Father Information</h2>
                 </div>
                 <div class="form-row mb-3 align-items-center">
                     <div class="col-md-3">
@@ -271,7 +271,7 @@
         <div v-if="page==5" class="form-group focusable" tabindex="0">
             <form ref="form5" v-on:submit.prevent="onSubmitMother($event)" action="/e/pds/family-background/mother" method="POST" class="form-default">
                 <div class="text-center mb-3">
-                    <h2 class="h5">Mother Info</h2>
+                    <h2 class="h5">Mother Information</h2>
                 </div>
                 <div class="form-row mb-3 align-items-center">
                     <div class="col-md-3">
@@ -412,7 +412,7 @@
                     me.page = 1
                     me.spouse = responseJson
 
-                    alert('Spouse Info deleted.')
+                    alert('Spouse Information deleted.')
 
                 }).catch(async function(error){
                     console.error(error)
@@ -455,7 +455,7 @@
                     me.page = 1
                     me.father = responseJson
 
-                    alert('father Info deleted.')
+                    alert('father Information deleted.')
 
                 }).catch(async function(error){
                     console.error(error)
@@ -497,7 +497,7 @@
                     me.page = 1
                     me.mother = responseJson
 
-                    alert('Mother Info deleted.')
+                    alert('Mother Information deleted.')
 
                 }).catch(async function(error){
                     console.error(error)
@@ -571,7 +571,7 @@
                     me.page = 1
                     me.children = responseJson
 
-                    alert('Child Info deleted.')
+                    alert('Child Information deleted.')
 
                 }).catch(async function(error){
                     console.error(error)
@@ -621,7 +621,7 @@
                             me.page = 1
                             me.children = responseJson
 
-                            alert('Child Info saved.')
+                            alert('Child Information saved.')
 
                         }).catch(async function(error){
                             console.error(error)
@@ -678,7 +678,7 @@
                             me.page = 1
                             me.spouse = responseJson
 
-                            alert('Spouse Info saved.')
+                            alert('Spouse Information saved.')
 
                         }).catch(async function(error){
                             console.error(error)
@@ -735,7 +735,7 @@
                             me.page = 1
                             me.father = responseJson
 
-                            alert('Father Info saved.')
+                            alert('Father Information saved.')
 
                         }).catch(async function(error){
                             console.error(error)
@@ -792,7 +792,7 @@
                             me.page = 1
                             me.mother = responseJson
 
-                            alert('Mother Info saved.')
+                            alert('Mother Information saved.')
 
                         }).catch(async function(error){
                             console.error(error)

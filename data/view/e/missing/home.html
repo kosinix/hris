@@ -1,0 +1,60 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div id="vApp" v-cloak class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h4">Missing Data</h1>
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <form @:submit.prevent="onSubmit" action="/e/missing/u/middleName" method="POST">
+                <div class="form-group">
+                    <label for="middleName">Middle Name</label>
+                    <input v-model="employee.middleName" name="middleName" id="middleName" type="text" class="form-control">
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary">Provide</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            pending: false,
+            employee:{{employee|default({}, true)|stringify|safe}},
+        },
+        mounted: function(){},
+        validations: {},
+        methods: {
+            onSubmit: function(e){
+                const me = this;
+                me.$v.$touch()
+                
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit()
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

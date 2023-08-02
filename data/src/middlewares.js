@@ -662,6 +662,11 @@ module.exports = {
             // Data privacy
             res.locals.acceptedDataPrivacy = lodash.get(res, 'employee.acceptedDataPrivacy', false)
 
+            if(!req.originalUrl.includes('/e/missing/u')){
+                if(employee.middleName.length <= 2){
+                    // return res.redirect(`/e/missing/u/middleName`)
+                }
+            }
             next();
         } catch (err) {
             next(err)

@@ -298,10 +298,10 @@
             
             <div class="form-group form-row">
                 <div class="col-md-4">
-                    {% set name = 'mobileNumber' %}
-                    {% set label = 'Mobile No.' %}
-                    {% include 'parts/form-group-text.html' %}
-                    {% set label = '' %}
+                    <div class="form-group">
+                        <label for="mobileNumber">Mobile No.</label>
+                        <input v-model="mobileNumber" type="text" id="mobileNumber" name="mobileNumber" maxlength="13" class="form-control">
+                    </div>
                 </div>
                 <div class="col-md-4">
                     {% set name = 'email' %}

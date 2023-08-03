@@ -212,15 +212,17 @@
             moneyCharactersOnly: function(evt) {
                 var e = evt || window.event;
                 var key = e.keyCode || e.which;
-                console.log(key)
-
                 if(![8,44,46,48,49,50,51,52,53,54,55,56,57,58,59,188,190].includes(key)){
                     e.preventDefault()
                     return
                 }
             },
             toMoney: function(e) {
-                e.target.value = this.currency(e.target.value.replace(/[^0-9,.]/g, ''))
+                if(e.target.value === 'N/A' || !e.target.value){
+                    
+                } else {
+                    e.target.value = this.currency(e.target.value.replace(/[^0-9,.]/g, ''))
+                }
             },
             currency: function (value, sep, decPlace) {
                 if (isNaN(value)) return value

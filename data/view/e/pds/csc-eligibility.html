@@ -4,9 +4,9 @@
 <div class="col-md-12">
     {% include 'e/pds/header.html' %}
     {% include 'e/pds/tabs.html' %}
-    <div class="tab-content p-3 min-height-300">
+    <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3 min-height-300">
         {% include 'parts/flash.html' %}
-        <form ref="form" id="vApp" v-cloak v-bind:data-pending="pending" v-on:submit.prevent="onSubmit" action="/e/pds/csc-eligibility" method="POST" class="form-default">
+        <form ref="form" v-on:submit.prevent="onSubmit" action="/e/pds/csc-eligibility" method="POST" class="form-default">
             <template  v-if="page==1">
                 <div v-if="eligibilities.length > 0" class="table-responsive">
                     <table class="table table-bordered table-sm table-striped">

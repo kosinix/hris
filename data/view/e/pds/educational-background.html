@@ -4,9 +4,9 @@
 <div class="col-md-12">
     {% include 'e/pds/header.html' %}
     {% include 'e/pds/tabs.html' %}
-    <div class="tab-content p-3 min-height-300">
+    <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3 min-height-300">
         {% include 'parts/flash.html' %}
-        <form ref="form" id="vApp" v-cloak v-bind:data-pending="pending" v-on:submit.prevent="onSubmit" action="/e/pds/educational-background" method="POST" class="form-default">
+        <form ref="form" v-on:submit.prevent="onSubmit" action="/e/pds/educational-background" method="POST" class="form-default">
             <template  v-if="page==1">
                 <div v-if="schools.length > 0" class="table-responsive">
                     <table class="table table-bordered table-sm table-striped">
@@ -358,8 +358,9 @@
                 if (me.$v.$error) {
                     alert('Please correct the errors to continue.')
                 } else {
+                    me.pending = true
+
                     me.$nextTick(function() {
-                        me.pending = true
                         fetch(`/e/pds/educational-background`, {
                             method: 'POST',
                             body: JSON.stringify({

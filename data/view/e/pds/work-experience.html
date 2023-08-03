@@ -90,7 +90,7 @@
                         <label for="salary" class="mb-0"> Salary <span class="text-danger">*</span></label>
                     </div>
                     <div class="col-md-5">
-                        <input v-model="workExperiences[editIndex].salary" name="salary" id="salary" type="text" class="form-control">
+                        <input v-model="workExperiences[editIndex].salary" @keypress="moneyCharactersOnly($event)" @blur="toMoney($event)" name="salary" id="salary" type="text" class="form-control">
                     </div>
                     <div class="col-md-4">
                         <select v-model="workExperiences[editIndex].salaryType" name="salaryType" id="salaryType" class="form-control">
@@ -209,6 +209,46 @@
         validations: {
         },
         methods: {
+            moneyCharactersOnly: function(evt) {
+                var e = evt || window.event;
+                var key = e.keyCode || e.which;
+                console.log(key)
+
+                if(![8,44,46,48,49,50,51,52,53,54,55,56,57,58,59,188,190].includes(key)){
+                    e.preventDefault()
+                    return
+                }
+            },
+            toMoney: function(e) {
+                e.target.value = this.currency(e.target.value.replace(/[^0-9,.]/g, ''))
+            },
+            currency: function (value, sep, decPlace) {
+                if (isNaN(value)) return value
+                if (!sep) sep = ',';
+                if (!decPlace) decPlace = 2;
+                var rounded = _.toNumber(value).toFixed(decPlace);
+                var split = _.split(rounded, '.');
+                var whole = _.toArray(_.get(split, '[0]', []));
+                var cent = _.toString(_.get(split, '[1]', ''));
+
+                var out = [];
+                var length = whole.length;
+                for (c = 0; c < length; c++) {
+                    var rev = length - c;
+                    if (rev % 3 === 0) {
+                        out.push(sep);
+                        out.push(whole[c]);
+                    } else {
+                        out.push(whole[c]);
+                    }
+                }
+                var merged = _.join(out, ''); // Join arrays
+                merged = _.trimStart(merged, sep); // Remove left-most sep
+                if (cent) { // If there is a cent, append
+                    merged += '.' + cent;
+                }
+                return merged;
+            },
             onChangeAppointmentStatus: function(){
                 const me = this 
                 

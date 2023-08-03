@@ -105,6 +105,7 @@
         </form>
     </div>
 </div>
+{% include 'parts/modal-alert-success.html' %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
@@ -236,8 +237,8 @@
                     me.page = 1
                     me.eligibilities = responseJson
 
-                    alert('Eligibility deleted.')
-
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Eligibility deleted.')
                 }).catch(async function(error){
                     console.error(error)
                     alert(error);
@@ -287,8 +288,8 @@
                             me.page = 1
                             me.eligibilities = responseJson
 
-                            alert('Eligibility saved.')
-
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Eligibility saved.')
                         }).catch(async function(error){
                             console.error(error)
                             alert(error);

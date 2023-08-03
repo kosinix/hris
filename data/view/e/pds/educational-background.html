@@ -162,7 +162,7 @@
         </form>
     </div>
 </div>
-{% include 'parts/modal-help.html' %}
+{% include 'parts/modal-alert-success.html' %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
@@ -322,8 +322,8 @@
                     me.page = 1
                     me.schools = responseJson
 
-                    alert('Education deleted.')
-
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Education deleted.')
                 }).catch(async function(error){
                     console.error(error)
                     alert(error);
@@ -381,7 +381,8 @@
                             me.page = 1
                             me.schools = responseJson
 
-                            alert('Education saved.')
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Education saved.')
 
                         }).catch(async function(error){
                             console.error(error)
@@ -389,8 +390,6 @@
                         }).then(function(){
                             me.pending = false
                         });
-
-                        //me.$refs.form.submit();
                     });
                 }
             }

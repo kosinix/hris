@@ -171,7 +171,7 @@
                 </div>
                 <div class="form-row mb-3 align-items-center">
                     <div class="col-md-3">
-                        <label for="birthDate" class="mb-0">Birth Date</label>
+                        <label for="birthDate" class="mb-0">Birth Date <span class="text-danger">*</span></label>
                     </div>
                     <div class="col-md-9">
                         <input v-model="spouse.birthDate" name="birthDate" id="birthDate" type="date" class="form-control">
@@ -283,7 +283,7 @@
                 </div>
                 <div class="form-row mb-3 align-items-center">
                     <div class="col-md-3">
-                        <label for="middleName" class="mb-0">Middle Name <span class="text-danger">*</span></label>
+                        <label for="middleName" class="mb-0">Middle Name (Maiden)<span class="text-danger">*</span></label>
                     </div>
                     <div class="col-md-9">
                         <input ref="middleName" v-model="mother.middleName" name="middleName" id="middleName" type="text" class="form-control">
@@ -291,7 +291,7 @@
                 </div>
                 <div class="form-row mb-3 align-items-center">
                     <div class="col-md-3">
-                        <label for="lastName" class="mb-0">Last Name <span class="text-danger">*</span></label>
+                        <label for="lastName" class="mb-0">Last Name (Maiden)<span class="text-danger">*</span></label>
                     </div>
                     <div class="col-md-9">
                         <input ref="lastName" v-model="mother.lastName" name="lastName" id="lastName" type="text" class="form-control">
@@ -313,7 +313,7 @@
         </div>
     </div>
 </div>
-{% include 'parts/modal-help.html' %}
+{% include 'parts/modal-alert-success.html' %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
@@ -412,8 +412,8 @@
                     me.page = 1
                     me.spouse = responseJson
 
-                    alert('Spouse Information deleted.')
-
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Spouse Information deleted.')
                 }).catch(async function(error){
                     console.error(error)
                     alert(error);
@@ -455,7 +455,8 @@
                     me.page = 1
                     me.father = responseJson
 
-                    alert('father Information deleted.')
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Father Information deleted.')
 
                 }).catch(async function(error){
                     console.error(error)
@@ -497,7 +498,8 @@
                     me.page = 1
                     me.mother = responseJson
 
-                    alert('Mother Information deleted.')
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Mother Information deleted.')
 
                 }).catch(async function(error){
                     console.error(error)
@@ -571,7 +573,8 @@
                     me.page = 1
                     me.children = responseJson
 
-                    alert('Child Information deleted.')
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Chuld Information deleted.')
 
                 }).catch(async function(error){
                     console.error(error)
@@ -621,8 +624,8 @@
                             me.page = 1
                             me.children = responseJson
 
-                            alert('Child Information saved.')
-
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Child Information saved.')
                         }).catch(async function(error){
                             console.error(error)
                             alert(error);
@@ -678,7 +681,8 @@
                             me.page = 1
                             me.spouse = responseJson
 
-                            alert('Spouse Information saved.')
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Spouse Information saved.')
 
                         }).catch(async function(error){
                             console.error(error)
@@ -735,8 +739,8 @@
                             me.page = 1
                             me.father = responseJson
 
-                            alert('Father Information saved.')
-
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Father Information saved.')
                         }).catch(async function(error){
                             console.error(error)
                             alert(error);
@@ -792,7 +796,8 @@
                             me.page = 1
                             me.mother = responseJson
 
-                            alert('Mother Information saved.')
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Mother Information saved.')
 
                         }).catch(async function(error){
                             console.error(error)

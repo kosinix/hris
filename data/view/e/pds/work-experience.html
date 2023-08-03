@@ -44,7 +44,7 @@
                 </div>
             </template>
             <div v-if="page==2" class="form-group focusable" tabindex="0">
-                <p class="mb-4"><em>(Include private employment. Start from your recent work) Description of duties should be indicated in the attached Work Experience sheet.</em></p>
+                <!-- <p class="mb-4"><em>(Include private employment. Start from your recent work) Description of duties should be indicated in the attached Work Experience sheet.</em></p> -->
                 <div class="form-row mb-3 align-items-center">
                     <div class="col-12 col-md-3">
                         <label for="fromDate" class="mb-0">From <span class="text-danger">*</span></label>
@@ -158,6 +158,7 @@
         </form>
     </div>
 </div>
+{% include 'parts/modal-alert-success.html' %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
@@ -325,7 +326,9 @@
                     me.$v.$reset()
                     me.page = 1
                     me.workExperiences = responseJson
-                    alert('Work Experience deleted.')
+                    
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Work Experience deleted.')
 
                 }).catch(async function(error){
                     console.error(error)
@@ -385,7 +388,9 @@
                             me.$v.$reset()
                             me.page = 1
                             me.workExperiences = responseJson
-                            alert('Work Experience saved.')
+                            
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Work Experience saved.')
 
                         }).catch(async function(error){
                             console.error(error)

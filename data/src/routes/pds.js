@@ -80,13 +80,13 @@ router.post('/e/pds/personal-info', middlewares.guardRoute(['use_employee_profil
         let body = lodash.get(req, 'body')
         // return res.send(body)
 
-        // lodash.set(patch, 'lastName', lodash.get(body, 'lastName'))
-        // lodash.set(patch, 'firstName', lodash.get(body, 'firstName'))
-        // lodash.set(patch, 'middleName', lodash.get(body, 'middleName'))
-        // lodash.set(patch, 'suffix', lodash.get(body, 'suffix'))
-        // lodash.set(patch, 'birthDate', lodash.get(body, 'birthDate'))
-        // lodash.set(patch, 'gender', lodash.get(body, 'gender'))
-        // lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
+        lodash.set(patch, 'lastName', lodash.get(body, 'lastName'))
+        lodash.set(patch, 'firstName', lodash.get(body, 'firstName'))
+        lodash.set(patch, 'middleName', lodash.get(body, 'middleName'))
+        lodash.set(patch, 'suffix', lodash.get(body, 'suffix'))
+        lodash.set(patch, 'birthDate', lodash.get(body, 'birthDate'))
+        lodash.set(patch, 'gender', lodash.get(body, 'gender'))
+        lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
         lodash.set(patch, 'mobileNumber', lodash.get(body, 'mobileNumber'))
         lodash.set(patch, 'phoneNumber', lodash.get(body, 'phoneNumber'))
         lodash.set(patch, 'email', lodash.get(body, 'email'))
@@ -169,11 +169,11 @@ router.post('/e/pds/personal-info', middlewares.guardRoute(['use_employee_profil
         // return res.send(patch)
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
-        flash.ok(req, 'employee', `PDS updated.`)
+        flash.ok(req, 'employee', `Personal Information updated. Please update your family background.`)
         // if (lodash.get(body, 'actionType') === 'saveNext') {
         //     return res.redirect(`/e-profile/pds2`)
         // }
-        res.redirect(`/e/pds/personal-info`)
+        res.redirect(`/e/pds/family-background`)
     } catch (err) {
         next(err);
     }

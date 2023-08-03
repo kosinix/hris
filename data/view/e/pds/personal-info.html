@@ -9,17 +9,22 @@
         <form ref="form" v-on:submit.prevent="onSubmit" action="/e/pds/personal-info" method="POST" class="form-default">
             <div class="form-row">
                 <div class="col-md-4">
-                    {% set name = 'lastName' %}
-                    {% include 'parts/form-group-text.html' %}
+                    <div class="form-group">
+                        <label for="lastName">Last Name <span class="text-danger">*</span></label>
+                        <input v-model="lastName" name="lastName" id="lastName" type="text" class="form-control">
+                    </div>
                 </div>
                 <div class="col-md-4">
-                    {% set name = 'firstName' %}
-                    {% include 'parts/form-group-text.html' %}
+                    <div class="form-group">
+                        <label for="firstName">First Name <span class="text-danger">*</span></label>
+                        <input v-model="firstName" name="firstName" id="firstName" type="text" class="form-control">
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    {% set name = 'middleName' %}
-                    {% include 'parts/form-group-text.html' %}
-                    {% set label = '' %}
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="middleName">Middle Name <span class="text-danger">*</span></label>
+                        <input v-model="middleName" name="middleName" id="middleName" type="text" class="form-control">
+                    </div>
                 </div>
                 <div class="col-md-2">
                     {% set name = 'suffix' %}
@@ -320,7 +325,7 @@
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12 text-center">
                     <input name="actionType" type="hidden" v-model="actionType">
-                    <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save PDS</button>
+                    <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save Personal Information</button>
                     <!-- <button v-on:click="setAction('saveNext')" type="submit" name="save" value="saveNext" class="btn btn-primary">Save and Go to C2</button> -->
                 </div>
             </div>
@@ -416,7 +421,6 @@
             firstName: {
                 required: window.validators.required
             },
-            
             civilStatus: {
                 required: window.validators.required
             },
@@ -452,18 +456,25 @@
                 this.actionType = action
             },
             onSubmit: function(){
-                var me = this;
-                me.$v.$touch()
-                if(/^([a-zA-Z]\.?)$/.test(me.middleName)){
-                    alert('Please type your full middle name, not your middle initial.')
-                    throw new Error('Please type your full middle name, not your middle initial.')
-                }
-                if (me.$v.$error) {
-                    alert('Please correct the errors to continue.')
-                } else {
+                try {
+                    const me = this;
+                    if((me?.firstName?.length ?? 0) < 2){
+                        throw new Error('Please type your First Name.')
+                    }
+                    if(!me.lastName){
+                        throw new Error('Please type your Last Name.')
+                    }
+                    if(!me.middleName){
+                        throw new Error('Please type your Middle Name.')
+                    }
+                    if(/^([a-zA-Z]\.?)$/.test(me.middleName)){
+                        throw new Error('Please type your full middle name, not your middle initial.')
+                    }
                     me.$nextTick(function() {
                         me.$refs.form.submit();
                     });
+                } catch (err){
+                    alert(err.message)
                 }
             }
         }

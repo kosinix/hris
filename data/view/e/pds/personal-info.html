@@ -328,6 +328,7 @@
     </div>
 </div>
 {% include 'parts/modal-alert-success.html' %}
+{% include 'parts/modal-help-pds.html' %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
@@ -403,6 +404,7 @@
             var inches = Math.round(parseFloat({{employee.personal.height|default(0, true)}}) *  39.37)
             this.heightFeet = Math.floor(inches / 12)
             this.heightInches= Math.floor(inches %  12)
+            jQuery('#modal-help-pds').modal('show')
         },
         validations: {
             lastName: {

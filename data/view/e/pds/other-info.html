@@ -62,6 +62,8 @@
         </div> 
     </div>
 </div>
+{% include 'parts/modal-alert-success.html' %}
+{% include 'parts/modal-help-pds.html' %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
@@ -159,7 +161,8 @@
                     me.page = 1
                     me.extraCurriculars = responseJson
 
-                    alert('Information deleted.')
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Information deleted.')
 
                 }).catch(async function(error){
                     console.error(error)
@@ -207,7 +210,8 @@
                             me.page = 1
                             me.extraCurriculars = responseJson
 
-                            alert('Information saved.')
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Information saved.')
 
                         }).catch(async function(error){
                             console.error(error)

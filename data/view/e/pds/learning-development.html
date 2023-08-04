@@ -99,6 +99,8 @@
         </div> 
     </div>
 </div>
+{% include 'parts/modal-alert-success.html' %}
+{% include 'parts/modal-help-pds.html' %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
@@ -203,7 +205,8 @@
                     me.page = 1
                     me.trainings = responseJson
 
-                    alert('Training deleted.')
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Training deleted.')
 
                 }).catch(async function(error){
                     console.error(error)
@@ -264,7 +267,8 @@
                             me.page = 1
                             me.trainings = responseJson
 
-                            alert('Training saved.')
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Training saved.')
 
                         }).catch(async function(error){
                             console.error(error)

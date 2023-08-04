@@ -823,15 +823,15 @@ let templatePds = async (employee) => {
     let worksheet = workbook.getWorksheet('C1')
     if (worksheet) {
         slex.setSheet(worksheet)
-        slex.getCell('D10').value(`${lodash.get(employee, 'lastName', '')}`)
-        slex.getCell('D11').value(`${lodash.get(employee, 'firstName', '')}`)
+        slex.getCell('D10').value(`${lodash.get(employee, 'lastName', '') || 'N/A'}`)
+        slex.getCell('D11').value(`${lodash.get(employee, 'firstName', '') || 'N/A'}`)
         slex.getCell('L11').value({
             'richText': [
                 { 'font': { 'size': 7, 'color': colors.black, 'name': 'Arial Narrow', 'family': 2, 'scheme': 'none' }, 'text': 'NAME EXTENSION (JR., SR)' },
-                { 'font': { 'bold': true, 'size': 11, 'color': colors.black, 'name': 'Arial', 'scheme': 'none' }, 'text': ` ${lodash.get(employee, 'suffix', '')}` },
+                { 'font': { 'bold': true, 'size': 11, 'color': colors.black, 'name': 'Arial', 'scheme': 'none' }, 'text': ` ${lodash.get(employee, 'suffix', '') || 'N/A'}` },
             ]
         })
-        slex.getCell('D12').value(`${lodash.get(employee, 'middleName', '')}`)
+        slex.getCell('D12').value(`${lodash.get(employee, 'middleName', '') || 'N/A'}`)
 
         value = lodash.get(employee, 'birthDate', '')
         tmpVar = (value) ? moment(value).format('MM/DD/YYYY') : ''
@@ -887,48 +887,48 @@ let templatePds = async (employee) => {
 
         // residential addr
         value = lodash.get(employee, 'addresses[1].unit', '')
-        slex.getCell('I17').value(value)
+        slex.getCell('I17').value(value || 'N/A')
 
         value = lodash.get(employee, 'addresses[1].street', '')
-        slex.getCell('L17').value(value)
+        slex.getCell('L17').value(value || 'N/A')
 
         value = lodash.get(employee, 'addresses[1].village', '')
-        slex.getCell('I19').value(value)
+        slex.getCell('I19').value(value || 'N/A')
 
         value = lodash.get(employee, 'addresses[1].brgy', '')
-        slex.getCell('L19').value(value)
+        slex.getCell('L19').value(value || 'N/A')
 
         value = lodash.get(employee, 'addresses[1].cityMun', '')
-        slex.getCell('I22').value(value)
+        slex.getCell('I22').value(value || 'N/A')
 
         value = lodash.get(employee, 'addresses[1].province', '')
-        slex.getCell('L22').value(value)
+        slex.getCell('L22').value(value || 'N/A')
 
         value = lodash.get(employee, 'addresses[1].zipCode', '')
-        slex.getCell('I24').value(value)
+        slex.getCell('I24').value(value || 'N/A')
 
 
         // residential addr
         value = lodash.get(employee, 'addresses[0].unit', '')
-        slex.getCell('I25').value(value)
+        slex.getCell('I25').value(value || 'N/A')
 
         value = lodash.get(employee, 'addresses[0].street', '')
-        slex.getCell('L25').value(value)
+        slex.getCell('L25').value(value || 'N/A')
 
         value = lodash.get(employee, 'addresses[0].village', '')
-        slex.getCell('I27').value(value)
+        slex.getCell('I27').value(value || 'N/A')
 
         value = lodash.get(employee, 'addresses[0].brgy', '')
-        slex.getCell('L27').value(value)
+        slex.getCell('L27').value(value || 'N/A')
 
         value = lodash.get(employee, 'addresses[0].cityMun', '')
-        slex.getCell('I29').value(value)
+        slex.getCell('I29').value(value || 'N/A')
 
         value = lodash.get(employee, 'addresses[0].province', '')
-        slex.getCell('L29').value(value)
+        slex.getCell('L29').value(value || 'N/A')
 
         value = lodash.get(employee, 'addresses[0].zipCode', '')
-        slex.getCell('I31').value(value)
+        slex.getCell('I31').value(value || 'N/A')
 
         // height
         value = lodash.get(employee, 'personal.height', '')
@@ -945,70 +945,71 @@ let templatePds = async (employee) => {
 
         // gsis
         value = lodash.get(employee, 'personal.gsis', '')
-        slex.getCell('D27').value(value)
+        slex.getCell('D27').value(value || 'N/A')
 
         // pagibig
         value = lodash.get(employee, 'personal.pagibig', '')
-        slex.getCell('D29').value(value)
+        slex.getCell('D29').value(value || 'N/A')
 
         // philhealth
         value = lodash.get(employee, 'personal.philHealth', '')
-        slex.getCell('D31').value(value)
+        slex.getCell('D31').value(value || 'N/A')
 
         // sss
         value = lodash.get(employee, 'personal.sss', '')
-        slex.getCell('D32').value(value)
+        slex.getCell('D32').value(value || 'N/A')
 
         // tin
         value = lodash.get(employee, 'personal.tin', '')
-        slex.getCell('D33').value(value)
+        slex.getCell('D33').value(value || 'N/A')
 
         // agencyEmployeeNumber
         value = lodash.get(employee, 'personal.agencyEmployeeNumber', '')
-        slex.getCell('D34').value(value)
+        slex.getCell('D34').value(value || 'N/A')
 
         // phoneNumber
         value = lodash.get(employee, 'phoneNumber', '')
-        slex.getCell('I32').value(value)
+        slex.getCell('I32').value(value || 'N/A')
 
         // mobile
         value = lodash.get(employee, 'mobileNumber', '')
-        slex.getCell('I33').value(value)
+        slex.getCell('I33').value(value || 'N/A')
 
         // email
         value = lodash.get(employee, 'email', '')
-        slex.getCell('I34').value(value)
+        slex.getCell('I34').value(value || 'N/A')
 
         // II. FAMILY
 
         // spouse
         value = lodash.get(employee, 'personal.spouse.lastName', '')
-        slex.getCell('D36').value(value)
+        slex.getCell('D36').value(value || 'N/A')
 
         value = lodash.get(employee, 'personal.spouse.firstName', '')
-        slex.getCell('D37').value(value)
+        slex.getCell('D37').value(value || 'N/A')
 
+        let spouseSuffix = lodash.get(employee, 'personal.spouse.suffix', '') || 'N/A'
         slex.getCell('G37').value({
             'richText': [
                 { 'font': { 'size': 7, 'color': colors.black, 'name': 'Arial Narrow', 'family': 2, 'scheme': 'none' }, 'text': 'NAME EXTENSION (JR., SR)' },
-                { 'font': { 'bold': true, 'size': 9, 'color': colors.black, 'name': 'Arial', 'scheme': 'none' }, 'text': `\n${lodash.get(employee, 'personal.spouse.suffix', '')}` },
+                { 'font': { 'bold': true, 'size': 9, 'color': colors.black, 'name': 'Arial', 'scheme': 'none' }, 'text': `\n${spouseSuffix}` },
             ]
         })
 
         value = lodash.get(employee, 'personal.spouse.middleName', '')
-        slex.getCell('D38').value(value)
+        slex.getCell('D38').value(value || 'N/A')
 
         value = lodash.get(employee, 'personal.spouse.occupation', '')
-        slex.getCell('D39').value(value)
+        slex.getCell('D39').value(value || 'N/A')
 
         value = lodash.get(employee, 'personal.spouse.employerOrBusinessName', '')
-        slex.getCell('D40').value(value)
+        slex.getCell('D40').value(value || 'N/A')
 
         value = lodash.get(employee, 'personal.spouse.businessAddress', '')
-        slex.getCell('D41').value(value)
+        slex.getCell('D41').value(value || 'N/A')
 
         value = lodash.get(employee, 'personal.spouse.phone', '')
-        slex.getCell('D42').value(value)
+        slex.getCell('D42').value(value || 'N/A')
 
         // children
         let offset = 37
@@ -1027,30 +1028,30 @@ let templatePds = async (employee) => {
 
         // father
         value = lodash.get(employee, 'personal.father.lastName', '')
-        slex.getCell('D43').value(value)
+        slex.getCell('D43').value(value || 'N/A')
 
         value = lodash.get(employee, 'personal.father.firstName', '')
-        slex.getCell('D44').value(value)
+        slex.getCell('D44').value(value || 'N/A')
 
         slex.getCell('G44').value({
             'richText': [
                 { 'font': { 'size': 7, 'color': colors.black, 'name': 'Arial Narrow', 'family': 2, 'scheme': 'none' }, 'text': 'NAME EXTENSION (JR., SR)' },
-                { 'font': { 'bold': true, 'size': 9, 'color': colors.black, 'name': 'Arial', 'scheme': 'none' }, 'text': `\n${lodash.get(employee, 'personal.father.suffix', '')}` },
+                { 'font': { 'bold': true, 'size': 9, 'color': colors.black, 'name': 'Arial', 'scheme': 'none' }, 'text': `\n${lodash.get(employee, 'personal.father.suffix', '') || 'N/A'}` },
             ]
         })
 
         value = lodash.get(employee, 'personal.father.middleName', '')
-        slex.getCell('D45').value(value)
+        slex.getCell('D45').value(value || 'N/A')
 
         // mother
         value = lodash.get(employee, 'personal.mother.lastName', '')
-        slex.getCell('D47').value(value)
+        slex.getCell('D47').value(value || 'N/A')
 
         value = lodash.get(employee, 'personal.mother.firstName', '')
-        slex.getCell('D48').value(value)
+        slex.getCell('D48').value(value || 'N/A')
 
         value = lodash.get(employee, 'personal.mother.middleName', '')
-        slex.getCell('D49').value(value)
+        slex.getCell('D49').value(value || 'N/A')
 
         // III. EDUCATION
         for (let x = 0; x < 5; x++) {

@@ -34,7 +34,7 @@
                 </table>
             </div>
             <div class="text-center">
-                <button v-on:click.prevent="add" class="btn btn-sm btn-primary" type="button">Add Information</button>
+                <button v-on:click.prevent="add" class="btn btn-sm btn-success" type="button">Add Information</button>
             </div>
         </template>
         <div v-if="page==2" class="form-group focusable" tabindex="0">
@@ -81,9 +81,9 @@
                 </div>
                 
                 <div class="text-center">
+                    <button class="btn btn-primary">Save</button>
                     <button v-if="action=='add'" type="button" class="btn btn-light" @click="cancelAdd">Cancel</button>
                     <button v-if="action=='edit'" type="button" class="btn btn-light" @click="page=1">Cancel</button>
-                    <button class="btn btn-primary">Save</button>
                 </div> 
             </form>
         </div> 

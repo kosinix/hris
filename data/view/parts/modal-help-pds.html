@@ -10,20 +10,27 @@
                 </button>
             </div>
             <div class="modal-body p-5">
-                
+                <h6 class="h6 mb-4 text-center">Please go to each and every tab and provide the needed details:</h6>
+                <div class="text-center mb-5">
+                    <div>
+                        <img src="/images/help/pds-tabs.gif" alt="PDS" style="width: 90%;">
+                    </div>
+                    <small><em>The various personal data sheet tabs.</em></small>
+                </div>
                 <h6 class="h6 mb-3">Notes</h6>
                 <ol>
                     <li class="mb-1">Don't use ALL CAPS.</li>
                     <li class="mb-1">Don't abbreviate.</li>
-                    <li class="mb-1">Fields marked with (<span class="text-danger">*</span>) are required.</li>
-                    <li class="mb-1">Leave optional fields as blank. Write N/A if its not applicable.</li>
+                    <li class="mb-1">Fields marked with <strong class="text-danger">*</strong> are required.</li>
+                    <li class="mb-1">Optional fields can be blank.</li>
                 </ol>
                 <div class="mb-5">
-                    <p>If you really want to abbreviate, write the full name along with the abbreviation enclosed in parenthesis: <br><em class="ml-5">Guimaras State College (GSC)</em></p>
+                    <p>If you really want to abbreviate, write the full name along with the abbreviation enclosed in parenthesis: <em class="ml-3">Eg. Guimaras State College (GSC)</em></p>
+                    <p>"N/A"s are automatically added to any empty fields in the downloaded PDS.</p>
                 </div>
                 
                 <div class="text-center">
-                    <button class="btn btn-success" @mouseenter="kk" type="button" class="close" data-dismiss="modal" aria-label="Close" style="border-radius: 25px; padding: 3px 15px 5px;">Proceed</button>
+                    <button class="btn btn-success" onclick="(function(){ localStorage.setItem('hrisPdsModal1', moment().format('YYYY-MM-DD hh:mm:ss')) })()" type="button" class="close" data-dismiss="modal" aria-label="Close" style="border-radius: 25px; padding: 3px 15px 5px;">Proceed</button>
                 </div>
             </div>
         </div>

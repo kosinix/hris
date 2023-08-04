@@ -35,7 +35,7 @@
                 </table>
             </div>
             <div v-else class="text-center p-3">
-                <button v-on:click.prevent="page=3" class="btn btn-sm btn-primary" type="button">Add Spouse Information</button>
+                <button v-on:click.prevent="page=3" class="btn btn-sm btn-success" type="button">Add Spouse Information</button>
             </div>
             <div v-if="father.firstName" class="table-responsive">
                 <table class="table table-bordered table-sm table-striped">
@@ -57,7 +57,7 @@
                 </table>
             </div>
             <div v-else class="text-center p-3">
-                <button v-on:click.prevent="editFather" class="btn btn-sm btn-primary" type="button">Add Father Information</button>
+                <button v-on:click.prevent="editFather" class="btn btn-sm btn-success" type="button">Add Father Information</button>
             </div>
             <div v-if="mother.firstName" class="table-responsive">
                 <table class="table table-bordered table-sm table-striped">
@@ -79,7 +79,7 @@
                 </table>
             </div>
             <div v-else class="text-center p-3">
-                <button v-on:click.prevent="editMother" class="btn btn-sm btn-primary" type="button">Add Mother Information</button>
+                <button v-on:click.prevent="editMother" class="btn btn-sm btn-success" type="button">Add Mother Information</button>
             </div>
             <div v-if="children.length > 0" class="table-responsive">
                 <table class="table table-bordered table-sm table-striped">
@@ -101,7 +101,7 @@
                 </table>
             </div>
             <div class="text-center p-3">
-                <button v-on:click.prevent="addChild" class="btn btn-sm btn-primary" type="button">Add Child Information</button>
+                <button v-on:click.prevent="addChild" class="btn btn-sm btn-success" type="button">Add Child Information</button>
             </div>
         </template>
         <div v-if="page==2" class="form-group focusable" tabindex="0">
@@ -123,9 +123,9 @@
                     </div>
                 </div>
                 <div class="text-center">
+                    <button class="btn btn-primary">Save</button>
                     <button v-if="action=='addChild'" type="button" class="btn btn-light" @click="cancelAddChild">Cancel</button>
                     <button v-if="action=='editChild'" type="button" class="btn btn-light" @click="page=1">Cancel</button>
-                    <button class="btn btn-primary">Save</button>
                 </div> 
             </form>
         </div>
@@ -210,8 +210,8 @@
                     </div>
                 </div>
                 <div class="text-center">
-                    <button type="button" class="btn btn-light" @click="page=1">Cancel</button>
                     <button class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-light" @click="page=1">Cancel</button>
                 </div> 
             </form>
         </div>
@@ -263,8 +263,8 @@
                     </div>
                 </div>
                 <div class="text-center">
-                    <button type="button" class="btn btn-light" @click="page=1">Cancel</button>
                     <button class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-light" @click="page=1">Cancel</button>
                 </div> 
             </form>
         </div>
@@ -306,8 +306,8 @@
                     </div>
                 </div>
                 <div class="text-center">
-                    <button type="button" class="btn btn-light" @click="page=1">Cancel</button>
                     <button class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-light" @click="page=1">Cancel</button>
                 </div> 
             </form>
         </div>

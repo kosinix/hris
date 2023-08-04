@@ -8,25 +8,25 @@
         {% include 'parts/flash.html' %}
         <form ref="form" v-on:submit.prevent="onSubmit" action="/e/pds/personal-info" method="POST" class="form-default">
             <div class="form-row">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for="lastName">Last Name <span class="text-danger">*</span></label>
                         <input v-model="lastName" name="lastName" id="lastName" type="text" class="form-control">
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for="firstName">First Name <span class="text-danger">*</span></label>
                         <input v-model="firstName" name="firstName" id="firstName" type="text" class="form-control">
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for="middleName">Middle Name <span class="text-danger">*</span></label>
                         <input v-model="middleName" name="middleName" id="middleName" type="text" class="form-control">
                     </div>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     {% set name = 'suffix' %}
                     {% set label = 'Extension (Jr.)' %}
                     {% set options = suffixes %}
@@ -36,12 +36,14 @@
             </div>
             <div class="form-row">
                 <div class="col-md-3">
-                    {% set name = 'birthDate' %}
-                    {% include 'parts/form-group-date.html' %}
+                    <div class="form-group">
+                        <label for="birthDate">Birth Date <span class="text-danger">*</span> <em>${age}</em></label>
+                        <input v-model="birthDate" name="birthDate" id="birthDate" type="date" class="form-control">
+                    </div>
                 </div>
                 <div class="col-md-5">
                     <div class="form-group">
-                        <label for="birthPlace">Place of Birth</label>
+                        <label for="birthPlace">Place of Birth <span class="text-danger">*</span></label>
                         <input v-model="birthPlace" @blur="toNoCaps(birthPlace, 'birthPlace')" name="birthPlace" id="birthPlace" type="text" class="capital-case form-control">
                     </div>
                 </div>
@@ -49,18 +51,18 @@
             <div class="form-row">
                 <div class="col-md-2">
                     {% set name = 'gender' %}
-                    {% set options = [{value:'', text:''}, {value:'M', text:'Male'}, {value:'F', text:'Female'}] %}
+                    {% set options = [{value:'M', text:'Male'}, {value:'F', text:'Female'}] %}
                     {% include 'parts/form-group-select.html' %}
                 </div>
                 <div class="col-md-2">
                     {% set name = 'civilStatus' %}
-                    {% set options = [{value:'', text:''}, {value:'Single', text:'Single'}, {value:'Married', text:'Married'}, {value:'Divorced', text:'Divorced'}, {value:'Separated', text:'Separated'}, {value:'Widowed', text:'Widowed'}] %}
+                    {% set options = [{value:'Single', text:'Single'}, {value:'Married', text:'Married'}, {value:'Divorced', text:'Divorced'}, {value:'Separated', text:'Separated'}, {value:'Widowed', text:'Widowed'}] %}
                     {% include 'parts/form-group-select.html' %}
                 </div>
             </div>
             <div class="form-group form-row">
                 <div class="col-md-4">
-                    <label for="heightFeet">Height</label>
+                    <label for="heightFeet">Height <span class="text-danger">*</span></label>
                     <div class="form-row">
                         <div class="col-md-6 form-group">
                             {% set name = 'heightFeet' %}
@@ -84,15 +86,15 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="weight">Weight (kg)</label>
+                        <label for="weight">Weight (kg) <span class="text-danger">*</span></label>
                         <input v-model="weight" name="weight" id="weight" type="number" min="0" step="0.1" class="form-control">
                     </div>
                 </div>
                 <div class="col-md-4">
-                    {% set name = 'bloodType' %}
-                    {% set label = 'Blood Type' %}
-                    {% include 'parts/form-group-text.html' %}
-                    {% set label = '' %}
+                    <div class="form-group">
+                        <label for="bloodType">Blood Type <span class="text-danger">*</span></label>
+                        <input v-model="bloodType" type="text" id="bloodType" name="bloodType" class="form-control">
+                    </div>
                 </div>
             </div>
             <div class="form-row">
@@ -304,15 +306,15 @@
             <div class="form-group form-row">
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="mobileNumber">Mobile No.</label>
+                        <label for="mobileNumber">Mobile No. <span class="text-danger">*</span></label>
                         <input v-model="mobileNumber" type="text" id="mobileNumber" name="mobileNumber" maxlength="13" class="form-control">
                     </div>
                 </div>
                 <div class="col-md-4">
-                    {% set name = 'email' %}
-                    {% set label = 'Email' %}
-                    {% include 'parts/form-group-text.html' %}
-                    {% set label = '' %}
+                    <div class="form-group">
+                        <label for="email">Email <span class="text-danger">*</span></label>
+                        <input v-model="email" type="email" id="email" name="email" class="form-control">
+                    </div>
                 </div>
                 <div class="col-md-4">
                     {% set name = 'phoneNumber' %}
@@ -325,7 +327,7 @@
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12 text-center">
                     <input name="actionType" type="hidden" v-model="actionType">
-                    <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save Personal Information</button>
+                    <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save</button>
                     <!-- <button v-on:click="setAction('saveNext')" type="submit" name="save" value="saveNext" class="btn btn-primary">Save and Go to C2</button> -->
                 </div>
             </div>
@@ -334,6 +336,7 @@
 </div>
 {% include 'parts/modal-alert-success.html' %}
 {% include 'parts/modal-help-pds.html' %}
+{% include 'parts/modal-help.html' %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
@@ -360,6 +363,13 @@
                     this.heightFeet = Math.floor(inches / 12);
                     this.heightInches= Math.floor(inches %  12);
                 }
+            },
+            age: function(){
+                let age = moment().diff(moment(this.birthDate), 'years')
+                if(!age || isNaN(age) || age >= 80){
+                    return ''
+                }
+                return `(${age} yrs)`
             }
         },
         data: {
@@ -370,8 +380,8 @@
             lastName: '{{employee.lastName}}',
             suffix: '{{employee.suffix}}',
             birthDate: '{{employee.birthDate|default('', true)|format_date("YYYY-MM-DD")}}',
-            gender: '{{employee.gender}}',
-            civilStatus: '{{employee.civilStatus}}',
+            gender: '{{employee.gender|default('M', true)}}',
+            civilStatus: '{{employee.civilStatus|default('Single', true)}}',
             // employee.personal
             birthPlace: '{{employee.personal.birthPlace}}',
             heightFeet: 0,
@@ -409,7 +419,19 @@
             var inches = Math.round(parseFloat({{employee.personal.height|default(0, true)}}) *  39.37)
             this.heightFeet = Math.floor(inches / 12)
             this.heightInches= Math.floor(inches %  12)
-            jQuery('#modal-help-pds').modal('show')
+
+            let hrisPdsModal1 = localStorage.getItem('hrisPdsModal1'); // Contains date created
+            if(hrisPdsModal1){
+                let createdAt = moment(hrisPdsModal1)
+                if(createdAt.isValid()){
+                    if(moment().diff(createdAt, 'hours') >= 23){
+                        localStorage.removeItem('hrisPdsModal1')
+                        jQuery('#modal-help-pds').modal('show')
+                    }
+                }
+            } else {
+                jQuery('#modal-help-pds').modal('show')
+            }
         },
         validations: {
             lastName: {
@@ -466,6 +488,32 @@
                     }
                     if(!me.middleName){
                         throw new Error('Please type your Middle Name.')
+                    }
+                    if(!me.birthDate){
+                        throw new Error('Please type your Birth Date.')
+                    } else {
+                        let age = moment().diff(moment(me.birthDate), 'years')
+                        if(age<=15){
+                            throw new Error(`Age ${age} is too young.`)
+                        }
+                    }
+                    if(!me.birthPlace){
+                        throw new Error('Please type your Place of Birth.')
+                    }
+                    if(!me.height){
+                        throw new Error('Please type your Height.')
+                    }
+                    if(!me.weight){
+                        throw new Error('Please type your Weight.')
+                    }
+                    if(!me.bloodType){
+                        throw new Error('Please type your Blood Type.')
+                    }
+                    if(!me.mobileNumber){
+                        throw new Error('Please type your Mobile Number.')
+                    }
+                    if(!me.email){
+                        throw new Error('Please type your Email.')
                     }
                     if(/^([a-zA-Z]\.?)$/.test(me.middleName)){
                         throw new Error('Please type your full middle name, not your middle initial.')

@@ -114,9 +114,16 @@
                 Leave
             </td>
         {% elif (day.isHoliday) %}
-            <td class="text-center" colspan="4">
-                Holiday
-            </td>
+            {% if (attendance.type === 'normal') %}
+                <td>{{day.display.inAM}}</td>
+                <td>{{day.display.outAM}}</td>
+                <td>{{day.display.inPM}}</td>
+                <td>{{day.display.outPM}}</td>
+            {% else %}
+                <td class="text-center" colspan="4">
+                    {{Holiday}}
+                </td>
+            {% endif %}
         {% elif (attendance.type === 'normal') %}
             <td>{{day.display.inAM}}</td>
             <td>{{day.display.outAM}}</td>

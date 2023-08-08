@@ -1650,7 +1650,7 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
         }
 
         // return res.send(days)
-        return res.render('e-profile/dtr-print7.html', data)
+        return res.render('e/dtr/print8.html', data)
     } catch (err) {
         next(err);
     }

@@ -144,7 +144,7 @@
                         {% set cssClass = (cssClass.push('holiday'), cssClass) %}
                     {% endif %}
 
-                    <tr class="{{cssClass.join(",")}}">
+                    <tr class="{{cssClass.join(" ")}}">
                         <td class="text-mono">#{{loop.index}}</td>
                         <td class="text-left">
                             {% if day.attendance._id %}

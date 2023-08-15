@@ -367,7 +367,10 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
             $or: [
                 {
                     members: {
-                        $in: [employment._id]
+                        $elemMatch: {
+                            objectId: employment._id,
+                            type: "employment"
+                        }
                     }
                 },
                 {

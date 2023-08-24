@@ -120,6 +120,9 @@ module.exports = {
                     if (arr.at(k - 1) === '/') { // If preceded by / eg. Staff/Secretary
                         return v
                     }
+                    if (arr.at(k - 1) === '-') { // If preceded by - eg. Botong-Cabanbanan
+                        return v
+                    }
                 }
                 if(/^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/.test(arr.join(''))){ // Roman Numerals
                     return v

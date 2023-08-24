@@ -12,36 +12,7 @@ const address = require('../address');
 const countries = require('../countries');
 const middlewares = require('../middlewares');
 const suffixes = require('../suffixes');
-const noCaps = (val) => {
-    if(!val) return val
-
-    val = new String(val)
-    val = val.replace(/(\s)+/g, ' ').split(' ') // Turn extra spaces into single space and split by single space
-    val = val.map(word => {
-        // Split word into array of letters
-        word = word.split('').map((v, k, arr) => {
-            if (k == 0) {
-                return v // As is - respects lowercase first letter
-            } else { // Ignore if...
-                if (arr.at(k + 1) === '.') { // If next is a period, might be an acronym, so ignore - C.P.U.
-                    return v
-                }
-                if (arr.at(0) === '(' && arr.at(-1) === ')') { // If surrounded by parenthesis (CPU)
-                    return v
-                }
-                if (arr.at(k - 1) === '/') { // If preceded by / eg. Staff/Secretary
-                    return v
-                }
-            }
-            if(/^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/.test(arr.join(''))){ // Roman Numerals
-                return v
-            }
-            return v.toLowerCase()
-        })
-        return word.join('')
-    })
-    return val.join(' ')
-}
+const { noCaps } = require('../utils');
 
 // Router
 let router = express.Router()
@@ -164,8 +135,8 @@ router.post('/e/pds/personal-info', middlewares.guardRoute(['use_employee_profil
         lodash.set(patch, 'personal.citizenshipCountry', lodash.get(body, 'citizenshipCountry', ''))
         lodash.set(patch, 'personal.citizenshipSource', lodash.get(body, 'citizenshipSource', []))
 
-        
-        
+
+
         // return res.send(patch)
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
 
@@ -204,8 +175,8 @@ router.post('/e/pds/family-background/children', middlewares.guardRoute(['use_em
         // return res.send(body)
 
         lodash.set(patch, 'personal.children', lodash.get(body, 'children', []))
-        
-        patch.personal.children = patch.personal.children.map(o=>{
+
+        patch.personal.children = patch.personal.children.map(o => {
             o.name = noCaps(o.name)
             return o
         })
@@ -320,14 +291,14 @@ router.post('/e/pds/educational-background', middlewares.guardRoute(['use_employ
             }
         })
 
-        patch = patch.map(o=>{
+        patch = patch.map(o => {
             o.name = noCaps(o.name)
             o.course = noCaps(o.course)
             o.unitsEarned = noCaps(o.unitsEarned)
             o.honors = noCaps(o.honors)
             return o
         })
-        
+
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
             $set: {
                 'personal.schools': patch
@@ -361,7 +332,7 @@ router.post('/e/pds/csc-eligibility', middlewares.guardRoute(['use_employee_prof
     try {
         let employee = res.employee.toObject()
         let patch = lodash.get(req, 'body.eligibilities', [])
-        
+
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
             $set: {
                 'personal.eligibilities': patch
@@ -412,7 +383,7 @@ router.post('/e/pds/work-experience', middlewares.guardRoute(['use_employee_prof
             }
         })
 
-        patch = patch.map(o=>{
+        patch = patch.map(o => {
             o.positionTitle = noCaps(o.positionTitle)
             o.department = noCaps(o.department)
             o.appointmentStatus = noCaps(o.appointmentStatus)

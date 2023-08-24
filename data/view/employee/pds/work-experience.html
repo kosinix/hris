@@ -1,0 +1,453 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'employee/pds/header.html' %}
+    {% include 'employee/pds/tabs.html' %}
+    <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3 min-height-300">
+        {% include 'parts/flash.html' %}
+        <form ref="form" v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/pds/work-experience" method="POST" class="form-default">
+            <template v-if="page==1">
+                <div v-if="workExperiences.length > 0" class="table-responsive">
+                    <table class="table table-bordered table-sm table-striped" style="font-size: 15px;">
+                        <tr>
+                            <th width="30%">Position</th>
+                            <th>Department</th>
+                            <th class="d-none d-md-table-cell">Salary</th>
+                            <th class="d-none d-md-table-cell">From</th>
+                            <th class="d-none d-md-table-cell">To</th>
+                            <th class="d-none d-md-table-cell">Salary Grade</th>
+                            <th class="d-none d-md-table-cell">Appointment</th>
+                            <th class="d-none d-md-table-cell">Gov.</th>
+                            <th></th>
+                        </tr>
+                        <tr v-for="(work, index) in workExperiences">
+                            <td>${work.positionTitle}</td>
+                            <td>${work.department}</td>
+                            <td class="d-none d-md-table-cell">${work.salary|currency} ${work.salaryType}</td>
+                            <td class="d-none d-md-table-cell text-nowrap text-right">${work.fromDate|formatDate}</td>
+                            <td class="d-none d-md-table-cell text-nowrap text-right">${work.toDate|formatDate}</td>
+                            <td class="d-none d-md-table-cell text-center">${work.payGrade}</td>
+                            <td class="d-none d-md-table-cell">${work.appointmentStatus}</td>
+                            <td class="d-none d-md-table-cell">${work.isGov}</td>
+                            <td>
+                                <div class="d-flex">
+                                    <button v-on:click="editWork(index)" type="button" class="btn btn-light btn-sm mr-1">Edit</button>
+                                    <button v-on:click="deleteWork(index)" type="button" class="btn btn-danger btn-sm">X</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="text-center">
+                    <button v-on:click.prevent="addWork" class="btn btn-sm btn-success" type="button">Add Work Experience</button>
+                </div>
+            </template>
+            <div v-if="page==2" class="form-group focusable" tabindex="0">
+                <!-- <p class="mb-4"><em>(Include private employment. Start from your recent work) Description of duties should be indicated in the attached Work Experience sheet.</em></p> -->
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-12 col-md-3">
+                        <label for="fromDate" class="mb-0">From <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <input ref="level" v-model="workExperiences[editIndex].fromDate" name="fromDate" id="fromDate" type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-12 col-md-3">
+                        <label for="toDate" class="mb-0">To <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <input v-model="workExperiences[editIndex].toDate" :disabled="workExperiences[editIndex].present" name="toDate" id="toDate" :type="(workExperiences[editIndex].present) ? 'text' : 'date'" class="form-control">
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="custom-control custom-switch">
+                            <input v-model="workExperiences[editIndex].present" @change="onChangePresentWork" type="checkbox" id="presentWork" class="custom-control-input"> 
+                            <label for="presentWork" class="custom-control-label">Present</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="positionTitle" class="mb-0">Position Title <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="workExperiences[editIndex].positionTitle" name="positionTitle" id="positionTitle" type="text" class="form-control">
+                        <div><em>Write in full. Do not abbreviate</em></div>
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="department" class="mb-0">Department/Agency/Office/Company <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="workExperiences[editIndex].department" name="department" id="department" type="text" class="form-control">
+                        <div><em>Write in full. Do not abbreviate</em></div>
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="salary" class="mb-0"> Salary <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-5">
+                        <input v-model="workExperiences[editIndex].salary" @keypress="moneyCharactersOnly($event)" @blur="toMoney($event)" name="salary" id="salary" type="text" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <select v-model="workExperiences[editIndex].salaryType" name="salaryType" id="salaryType" class="form-control">
+                            <option value=""></option> 
+                            <option value="hourly">Hourly</option> 
+                            <option value="daily">Daily</option> 
+                            <option value="monthly">Monthly</option> 
+                            <option value="yearly">Yearly</option> 
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="payGrade" class="mb-0">Salary Grade</label>
+                    </div>
+                    <div class="col-md-5">
+                        <select @change="onChangeSg" v-model="sg" name="sg" id="sg" class="form-control">
+                            <option value="">N/A</option> 
+                            <option v-for="i in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33]" :value="i">${i}</option> 
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select @change="onChangeSg" v-model="sgStep" name="sgStep" id="sgStep" class="form-control">
+                            <option value=""></option> 
+                            <option value="0">No Step</option> 
+                            <option v-for="i in [1,2,3,4,5,6,7,8]" :value="i">Step ${i}</option> 
+                        </select>
+                        <input v-model="workExperiences[editIndex].payGrade" name="payGrade" id="payGrade" type="hidden" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="appointmentStatus" class="mb-0">Status of Appointment <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <select v-model="workExperiences[editIndex].appointmentStatus" name="appointmentStatus" id="appointmentStatus" class="form-control">
+                            <option value=""></option> 
+                            <option>Permanent</option> 
+                            <option>Contractual</option> 
+                            <option>Casual</option> 
+                            <option>Temporary</option> 
+                            <option>Probationary</option> 
+                            <option>On-the-job Trainee</option> 
+                            <option>Others</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="isGov" class="mb-0">Gov't Service? <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <select v-model="workExperiences[editIndex].isGov" name="isGov" id="isGov" class="form-control">
+                            <option value="No">No</option> 
+                            <option value="Yes">Yes</option> 
+                        </select>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button class="btn btn-primary">Save</button>
+                    <button v-if="action=='add'" type="button" class="btn btn-light" @click="cancelAdd">Cancel</button>
+                    <button v-if="action=='edit'" type="button" class="btn btn-light" @click="page=1">Cancel</button>
+                </div> 
+            </div>
+        </form>
+    </div>
+</div>
+{% include 'parts/modal-alert-success.html' %}
+{% include 'parts/modal-help-pds.html' %}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vue-money.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            VueMoney.mixin,
+        ],
+        components: {
+        },
+        computed: {
+        },
+        filters: {
+            age: function (value) {
+                let birthDate = moment(value, 'YYYY-MM-DD', true)
+                if(birthDate.isValid()){
+                    return moment().diff(birthDate, 'years')
+                }
+                return ''
+            },
+            formatDate: function(date, format = 'MMM DD, YYYY'){
+                let mDate = moment(date, 'YYYY-MM-DD', true)
+                if(mDate.isValid()){
+                    return mDate.format(format)
+                }
+                return date
+            }
+        },
+        data: {
+            pending: false,
+            page: 1,
+            action: '',
+            actionType: 'save',
+            workExperiences:{{employee.personal.workExperiences|default([], true)|stringify|safe}},
+            editIndex: 0,
+            sg:'',
+            sgStep:'',
+            appointmentStatus: ''
+        },
+        mounted: function(){
+            const me = this 
+        },
+        validations: {
+        },
+        methods: {
+            moneyCharactersOnly: function(evt) {
+                var e = evt || window.event;
+                var key = e.keyCode || e.which;
+                if(![8,44,46,48,49,50,51,52,53,54,55,56,57,58,59,188,190].includes(key)){
+                    e.preventDefault()
+                    return
+                }
+            },
+            toMoney: function(e) {
+                if(e.target.value === 'N/A' || !e.target.value){
+                    
+                } else {
+                    e.target.value = this.currency(e.target.value.replace(/[^0-9,.]/g, ''))
+                }
+            },
+            currency: function (value, sep, decPlace) {
+                if (isNaN(value)) return value
+                if (!sep) sep = ',';
+                if (!decPlace) decPlace = 2;
+                var rounded = _.toNumber(value).toFixed(decPlace);
+                var split = _.split(rounded, '.');
+                var whole = _.toArray(_.get(split, '[0]', []));
+                var cent = _.toString(_.get(split, '[1]', ''));
+
+                var out = [];
+                var length = whole.length;
+                for (c = 0; c < length; c++) {
+                    var rev = length - c;
+                    if (rev % 3 === 0) {
+                        out.push(sep);
+                        out.push(whole[c]);
+                    } else {
+                        out.push(whole[c]);
+                    }
+                }
+                var merged = _.join(out, ''); // Join arrays
+                merged = _.trimStart(merged, sep); // Remove left-most sep
+                if (cent) { // If there is a cent, append
+                    merged += '.' + cent;
+                }
+                return merged;
+            },
+            onChangeAppointmentStatus: function(){
+                const me = this 
+                
+                me.$set(me.workExperiences[me.editIndex], `appointmentStatus`, me.appointmentStatus)
+            },
+            onChangeSg: function(){
+                const me = this 
+
+                let payGrade = `${(me.sg+'').padStart(2, '0')}-${me.sgStep}`
+                if(!me.sg){
+                    payGrade = ''
+                }
+                me.$set(this.workExperiences[me.editIndex], `payGrade`, payGrade)
+
+            },
+            onChangePresentWork: function(){
+                const me = this
+                if(this.workExperiences[me.editIndex].present){
+                    me.$set(this.workExperiences[me.editIndex], `toDate`, 'Present')
+                    
+                } else {
+                    me.$set(this.workExperiences[me.editIndex], `toDate`, '')
+                }
+            },
+            addWork: function() {
+                const me = this
+                me.workExperiences.push({
+                    fromDate: '',
+                    toDate: '',
+                    present: false,
+                    positionTitle: '',
+                    department: '',
+                    salary: '',
+                    salaryType: 'monthly',
+                    payGrade: '',
+                    appointmentStatus: '',
+                    isGov: 'No',
+                })
+                // me.workExperiences.push({
+                //     fromDate: '',
+                //     toDate: '',
+                //     positionTitle: '',
+                //     department: '',
+                //     salary: '',
+                //     payGrade: '',
+                //     appointmentStatus: '',
+                //     isGov: '',
+                // })
+                me.sg = ''
+                me.sgStep = ''
+                me.appointmentStatus = ''
+                me.page = 2
+                me.editIndex = me.workExperiences.length - 1
+                me.$nextTick(() => {
+                    me.$refs.level.focus();
+                })
+                me.action = 'add'
+            },
+            cancelAdd: function(){
+                const me = this
+
+                me.page = 1
+                me.action = ''
+                me.workExperiences.splice(-1, 1)
+            },
+            editWork: function(index){
+                const me = this
+                this.action = 'edit'
+
+                me.page = 2
+                me.editIndex = index
+                let payGrade = me.workExperiences[this.editIndex].payGrade
+                if(payGrade){
+                    payGrade = payGrade.split('-')
+                    me.sg = parseInt(payGrade.at(0))
+                    me.sgStep = parseInt(payGrade.at(1))
+                } else {
+                    me.sg = ''
+                    me.sgStep = ''
+                }
+
+                me.appointmentStatus = me.workExperiences[this.editIndex].appointmentStatus
+
+                this.$nextTick(() => {
+                    me.$refs.level.focus();
+                })
+
+            },
+            deleteWork: function(start){
+                const me = this
+                if(!confirm('Delete permanently?')){
+                    return false
+                }
+                this.$delete(this.workExperiences, start)
+                this.editIndex = this.workExperiences.length - 1
+
+                me.pending = true
+                fetch(`/employee/{{employee._id}}/pds/work-experience`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        workExperiences: me.workExperiences
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(await response.text())
+                    
+                }).then(function(responseJson){
+                    
+                    me.$v.$reset()
+                    me.page = 1
+                    me.workExperiences = responseJson
+                    
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Work Experience deleted.')
+
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
+                }).then(function(){
+                    me.pending = false
+                });
+
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                let work = this.workExperiences[this.editIndex]
+                if(!work.fromDate){
+                    return alert('Please provide From Date.')
+                }
+                if(!work.toDate){
+                    return alert('Please provide To Date.')
+                }
+                if(!work.positionTitle){
+                    return alert('Please provide Position.')
+                }
+                if(!work.department){
+                    return alert('Please provide Department.')
+                }
+                if(!work.salary){
+                    return alert('Please provide Salary.')
+                }
+                // if(!work.payGrade){
+                //     return alert('Please provide Pay Grade.')
+                // }
+                if(!work.appointmentStatus){
+                    return alert('Please provide Status of Appointment.')
+                }
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.pending = true
+                        fetch(`/employee/{{employee._id}}/pds/work-experience`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                workExperiences: me.workExperiences
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(async function(response){
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error(await response.text())
+                            
+                        }).then(function(responseJson){
+                           
+                            me.$v.$reset()
+                            me.page = 1
+                            me.workExperiences = responseJson
+                            
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Work Experience saved.')
+
+                        }).catch(async function(error){
+                            console.error(error)
+                            alert(error);
+                        }).then(function(){
+                            me.pending = false
+                        });
+
+                        //me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

@@ -1,0 +1,230 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'employee/pds/header.html' %}
+    {% include 'employee/pds/tabs.html' %}
+    <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3 min-height-300">
+        {% include 'parts/flash.html' %}
+        <template v-if="page==1">
+            <h1 class="h6 mb-3 text-center">Special Skills and Hobbies, Non-Academic Distinctions / Recognition, Organization</h1>
+            <div v-if="extraCurriculars.length > 0" class="table-responsive">
+                <table class="table table-bordered table-sm table-striped">
+                    <tr>
+                        <th>Category</th>
+                        <th width="60%">Details</th>
+                        <th width="5%"></th>
+                    </tr>
+                    <tr v-for="(extraCurricular, index) in extraCurriculars">
+                        <td>${toLabel(extraCurricular.type)}</td>
+                        <td>${extraCurricular.detail}</td>
+                        <td>
+                            <div class="d-flex">
+                                <button v-on:click="edit(index)" type="button" class="btn btn-light btn-sm mr-1">Edit</button>
+                                <button v-on:click="del(index)" type="button" class="btn btn-danger btn-sm">X</button>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="text-center">
+                <button v-on:click.prevent="add" class="btn btn-sm btn-success" type="button">Add Information</button>
+            </div>
+        </template>
+        <div v-if="page==2" class="form-group focusable" tabindex="0">
+            <form ref="form" v-on:submit.prevent="onSubmit($event)" action="/employee/{{employee._id}}/pds/other-info" method="POST" class="form-default">
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="type" class="mb-0">Category <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <select ref="type" v-model="extraCurriculars[editIndex].type" name="type" id="type" class="form-control">
+                            <option value="skillHobbies">Special Skills and Hobbies</option>
+                            <option value="nonAcademic">Non-Academic Distinctions / Recognition</option>
+                            <option value="organization">Membership in Association/Organization</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="detail" class="mb-0">Details <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="extraCurriculars[editIndex].detail" name="detail" id="detail" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button class="btn btn-primary">Save</button>
+                    <button v-if="action=='add'" type="button" class="btn btn-light" @click="cancelAdd">Cancel</button>
+                    <button v-if="action=='edit'" type="button" class="btn btn-light" @click="page=1">Cancel</button>
+                </div> 
+            </form>
+        </div> 
+    </div>
+</div>
+{% include 'parts/modal-alert-success.html' %}
+{% include 'parts/modal-help-pds.html' %}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        data: {
+            pending: false,
+            page: 1,
+            action: '',
+            extraCurriculars:{{employee.personal.extraCurriculars|default([], true)|stringify|safe}},
+            editIndex: 0,
+        },
+        created: function(){
+
+        },
+        validations: {},
+        methods: {
+            toLabel: function(i){
+                if(i === 'skillHobbies'){
+                    return 'Special Skills and Hobbies'
+                } else if(i === 'nonAcademic'){
+                    return 'Non-Academic Distinctions / Recognition'
+                } else if(i === 'organization'){
+                    return 'Membership in Association/Organization'
+                }
+                return ''
+            },
+            add: function() {
+                const me = this
+
+                me.extraCurriculars.push({
+                    type: '',
+                    details: '',
+                })
+                me.editIndex = this.extraCurriculars.length - 1
+                
+                me.page = 2
+                me.$nextTick(() => {
+                    me.$refs.type.focus();
+                })
+                me.action = 'add'
+            },
+            cancelAdd: function(){
+                const me = this
+
+                me.page = 1
+                me.action = ''
+                me.extraCurriculars.splice(-1, 1)
+            },
+            edit: function(index){
+                const me = this
+                me.action = 'edit'
+
+                me.page = 2
+                me.editIndex = index
+
+                this.$nextTick(() => {
+                    me.$refs.type.focus();
+                })
+
+            },
+            del: function(start){
+                const me = this
+                if(!confirm('Delete permanently?')){
+                    return false
+                }
+                me.$delete(me.extraCurriculars, start)
+                me.editIndex = me.extraCurriculars.length - 1
+
+                me.pending = true
+                fetch(`/employee/{{employee._id}}/pds/other-info`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        extraCurriculars: me.extraCurriculars
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(await response.text())
+                    
+                }).then(function(responseJson){
+                    
+                    me.$v.$reset()
+                    me.page = 1
+                    me.extraCurriculars = responseJson
+
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Information deleted.')
+
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
+                }).then(function(){
+                    me.pending = false
+                });
+
+            },
+           
+            onSubmit: function(e){
+                var me = this;
+                me.$v.$touch()
+                let extraCurricular = this.extraCurriculars[this.editIndex]
+                if(!extraCurricular.type){
+                    return alert('Please provide Category.')
+                }
+                if(!extraCurricular.detail){
+                    return alert('Please provide Details.')
+                }
+                
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.pending = true
+                        fetch(e.target.action, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                extraCurriculars: me.extraCurriculars
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(async function(response){
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error(await response.text())
+                            
+                        }).then(function(responseJson){
+                           
+                            me.$v.$reset()
+                            me.page = 1
+                            me.extraCurriculars = responseJson
+
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Information saved.')
+
+                        }).catch(async function(error){
+                            console.error(error)
+                            alert(error);
+                        }).then(function(){
+                            me.pending = false
+                        });
+
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

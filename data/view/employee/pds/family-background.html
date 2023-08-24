@@ -1,0 +1,817 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'employee/pds/header.html' %}
+    {% include 'employee/pds/tabs.html' %}
+    <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3">
+        {% include 'parts/flash.html' %}
+        <template v-if="page==1">
+            <div v-if="spouse.firstName" class="table-responsive">
+                <table class="table table-bordered table-sm table-striped">
+                    <tr>
+                        <th width="40%">Spouse</th>
+                        <th>Birth Date</th>
+                        <th class="d-none d-md-table-cell">Occupation</th>
+                        <th class="d-none d-md-table-cell">Employer / Business Name</th>
+                        <th class="d-none d-md-table-cell">Business Address</th>
+                        <th class="d-none d-md-table-cell">Phone</th>
+                        <th width="5%"></th>
+                    </tr>
+                    <tr>
+                        <td>${spouse.firstName} ${spouse.middleName} ${spouse.lastName} ${spouse.suffix}</td>
+                        <td>${spouse.birthDate|formatDate} - <em>${spouse.birthDate|age} yrs</td>
+                        <td class="d-none d-md-table-cell">${spouse.occupation}</td>
+                        <td class="d-none d-md-table-cell">${spouse.employerOrBusinessName}</td>
+                        <td class="d-none d-md-table-cell">${spouse.businessAddress}</td>
+                        <td class="d-none d-md-table-cell">${spouse.phone}</td>
+                        <td>
+                            <div class="d-flex">
+                                <button v-on:click="editSpouse()" type="button" class="btn btn-light btn-sm mr-1">Edit</button>
+                                <button v-on:click="deleteSpouse()" type="button" class="btn btn-danger btn-sm">X</button>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div v-else class="text-center p-3">
+                <button v-on:click.prevent="page=3" class="btn btn-sm btn-success" type="button">Add Spouse Information</button>
+            </div>
+            <div v-if="father.firstName" class="table-responsive">
+                <table class="table table-bordered table-sm table-striped">
+                    <tr>
+                        <th width="40%">Father</th>
+                        <th>Birth Date</th>
+                        <th width="5%"></th>
+                    </tr>
+                    <tr>
+                        <td>${father.firstName} ${father.middleName} ${father.lastName} ${father.suffix}</td>
+                        <td>${father.birthDate|formatDate} - <em>${father.birthDate|age} yrs</em></td>
+                        <td>
+                            <div class="d-flex">
+                                <button v-on:click="editFather()" type="button" class="btn btn-light btn-sm mr-1">Edit</button>
+                                <button v-on:click="deleteFather()" type="button" class="btn btn-danger btn-sm">X</button>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div v-else class="text-center p-3">
+                <button v-on:click.prevent="editFather" class="btn btn-sm btn-success" type="button">Add Father Information</button>
+            </div>
+            <div v-if="mother.firstName" class="table-responsive">
+                <table class="table table-bordered table-sm table-striped">
+                    <tr>
+                        <th width="40%">Mother</th>
+                        <th>Birth Date</th>
+                        <th width="5%"></th>
+                    </tr>
+                    <tr>
+                        <td>${mother.firstName} ${mother.middleName} ${mother.lastName} ${mother.suffix}</td>
+                        <td>${mother.birthDate|formatDate} - <em>${mother.birthDate|age} yrs</em></td>
+                        <td>
+                            <div class="d-flex">
+                                <button v-on:click="editMother()" type="button" class="btn btn-light btn-sm mr-1">Edit</button>
+                                <button v-on:click="deleteMother()" type="button" class="btn btn-danger btn-sm">X</button>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div v-else class="text-center p-3">
+                <button v-on:click.prevent="editMother" class="btn btn-sm btn-success" type="button">Add Mother Information</button>
+            </div>
+            <div v-if="children.length > 0" class="table-responsive">
+                <table class="table table-bordered table-sm table-striped">
+                    <tr>
+                        <th width="40%">Children</th>
+                        <th>Birth Date</th>
+                        <th width="5%"></th>
+                    </tr>
+                    <tr v-for="(child, index) in children">
+                        <td>${child.name}</td>
+                        <td>${child.birthDate|formatDate} - <em>${child.birthDate|age} yrs</em></td>
+                        <td>
+                            <div class="d-flex">
+                                <button v-on:click="editChild(index)" type="button" class="btn btn-light btn-sm mr-1">Edit</button>
+                                <button v-on:click="deleteChild(index)" type="button" class="btn btn-danger btn-sm">X</button>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="text-center p-3">
+                <button v-on:click.prevent="addChild" class="btn btn-sm btn-success" type="button">Add Child Information</button>
+            </div>
+        </template>
+        <div v-if="page==2" class="form-group focusable" tabindex="0">
+            <form ref="form" v-on:submit.prevent="onSubmitChild($event)" action="/employee/{{employee._id}}/pds/family-background/children" method="POST" class="form-default">
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="name" class="mb-0">Child Name <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input ref="childName" v-model="children[editIndex].name" name="name" id="name" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="birthDate" class="mb-0">Birth Date <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="children[editIndex].birthDate" name="birthDate" id="birthDate" type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button class="btn btn-primary">Save</button>
+                    <button v-if="action=='addChild'" type="button" class="btn btn-light" @click="cancelAddChild">Cancel</button>
+                    <button v-if="action=='editChild'" type="button" class="btn btn-light" @click="page=1">Cancel</button>
+                </div> 
+            </form>
+        </div>
+        <div v-if="page==3" class="form-group focusable" tabindex="0">
+            <form ref="form2" v-on:submit.prevent="onSubmitSpouse($event)" action="/employee/{{employee._id}}/pds/family-background/spouse" method="POST" class="form-default">
+                <div class="text-center mb-3">
+                    <h2 class="h5">Spouse Information</h2>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="firstName" class="mb-0">First Name <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input ref="firstName" v-model="spouse.firstName" name="firstName" id="firstName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="middleName" class="mb-0">Middle Name <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="spouse.middleName" name="middleName" id="middleName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="lastName" class="mb-0">Last Name <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="spouse.lastName" name="lastName" id="lastName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="suffix" class="mb-0">Suffix</label>
+                    </div>
+                    <div class="col-md-9">
+                        <select v-model="spouse.suffix" name="suffix" id="suffix" class="form-control">
+                            
+                            <option v-for="suffix in suffixes" :value="suffix.value">${suffix.text}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="birthDate" class="mb-0">Birth Date <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="spouse.birthDate" name="birthDate" id="birthDate" type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="occupation" class="mb-0">Occupation</label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="spouse.occupation" name="occupation" id="occupation" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="employerOrBusinessName" class="mb-0">Employer/Business Name </label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="spouse.employerOrBusinessName" name="employerOrBusinessName" id="employerOrBusinessName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="businessAddress" class="mb-0">Business Address </label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="spouse.businessAddress" name="businessAddress" id="businessAddress" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="phone" class="mb-0">Telephone Number </label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="spouse.phone" name="phone" id="phone" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-light" @click="page=1">Cancel</button>
+                </div> 
+            </form>
+        </div>
+        <div v-if="page==4" class="form-group focusable" tabindex="0">
+            <form ref="form4" v-on:submit.prevent="onSubmitFather($event)" action="/employee/{{employee._id}}/pds/family-background/father" method="POST" class="form-default">
+                <div class="text-center mb-3">
+                    <h2 class="h5">Father Information</h2>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="firstName" class="mb-0">First Name <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input ref="firstName" v-model="father.firstName" name="firstName" id="firstName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="middleName" class="mb-0">Middle Name <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input ref="middleName" v-model="father.middleName" name="middleName" id="middleName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="lastName" class="mb-0">Last Name <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input ref="lastName" v-model="father.lastName" name="lastName" id="lastName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="suffix" class="mb-0">Suffix</label>
+                    </div>
+                    <div class="col-md-9">
+                        <select v-model="father.suffix" name="suffix" id="suffix" class="form-control">
+                            <option v-for="suffix in suffixes" :value="suffix.value">${suffix.text}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="birthDate" class="mb-0">Birth Date <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="father.birthDate" name="birthDate" id="birthDate" type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-light" @click="page=1">Cancel</button>
+                </div> 
+            </form>
+        </div>
+        <div v-if="page==5" class="form-group focusable" tabindex="0">
+            <form ref="form5" v-on:submit.prevent="onSubmitMother($event)" action="/employee/{{employee._id}}/pds/family-background/mother" method="POST" class="form-default">
+                <div class="text-center mb-3">
+                    <h2 class="h5">Mother Information</h2>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="firstName" class="mb-0">First Name <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input ref="firstName" v-model="mother.firstName" name="firstName" id="firstName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="middleName" class="mb-0">Middle Name (Maiden)<span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input ref="middleName" v-model="mother.middleName" name="middleName" id="middleName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="lastName" class="mb-0">Last Name (Maiden)<span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input ref="lastName" v-model="mother.lastName" name="lastName" id="lastName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="birthDate" class="mb-0">Birth Date <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-9">
+                        <input v-model="mother.birthDate" name="birthDate" id="birthDate" type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-light" @click="page=1">Cancel</button>
+                </div> 
+            </form>
+        </div>
+    </div>
+</div>
+{% include 'parts/modal-alert-success.html' %}
+{% include 'parts/modal-help-pds.html' %}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+        ],
+        filters: {
+            age: function (value) {
+                let birthDate = moment(value, 'YYYY-MM-DD', true)
+                if(birthDate.isValid()){
+                    return moment().diff(birthDate, 'years')
+                }
+                return ''
+            },
+            formatDate: function(date, format = 'MMM DD, YYYY'){
+                let mDate = moment(date, 'YYYY-MM-DD', true)
+                if(mDate.isValid()){
+                    return mDate.format(format)
+                }
+                return date
+            }
+        },
+        data: {
+            pending: false,
+            page: 1,
+            action: '',
+            editIndex: 0,
+            spouse:{
+                lastName:'{{employee.personal.spouse.lastName}}',
+                firstName:'{{employee.personal.spouse.firstName}}',
+                middleName:'{{employee.personal.spouse.middleName}}',
+                suffix:'{{employee.personal.spouse.suffix}}',
+                birthDate:'{{employee.personal.spouse.birthDate}}',
+                occupation:'{{employee.personal.spouse.occupation}}',
+                employerOrBusinessName:'{{employee.personal.spouse.employerOrBusinessName}}',
+                businessAddress:'{{employee.personal.spouse.businessAddress}}',
+                phone:'{{employee.personal.spouse.phone}}',
+            },
+            father:{
+                lastName:'{{employee.personal.father.lastName}}',
+                firstName:'{{employee.personal.father.firstName}}',
+                middleName:'{{employee.personal.father.middleName}}',
+                suffix:'{{employee.personal.father.suffix}}',
+                birthDate:'{{employee.personal.father.birthDate}}',
+            },
+            mother:{
+                lastName:'{{employee.personal.mother.lastName}}',
+                firstName:'{{employee.personal.mother.firstName}}',
+                middleName:'{{employee.personal.mother.middleName}}',
+                birthDate:'{{employee.personal.mother.birthDate}}',
+            },
+            children:{{employee.personal.children|default([], true)|stringify|safe}},
+            suffixes:{{suffixes|default([], true)|stringify|safe}},
+        },
+        mounted: function(){
+        },
+        validations: {
+            
+        },
+        methods: {
+            editSpouse: function(){
+                const me = this 
+                me.page = 3
+            },
+            deleteSpouse: function(){
+                const me = this
+
+                if(!confirm('Delete permanently?')){
+                    return false
+                }
+
+                me.pending = true
+                fetch(`/employee/{{employee._id}}/pds/family-background/spouse`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        spouse: {}
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(await response.text())
+                    
+                }).then(function(responseJson){
+                    
+                    me.$v.$reset()
+                    me.page = 1
+                    me.spouse = responseJson
+
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Spouse Information deleted.')
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
+                }).then(function(){
+                    me.pending = false
+                });
+            },
+            // 
+            editFather: function(){
+                const me = this 
+                me.page = 4
+            },
+            deleteFather: function(){
+                const me = this
+
+                if(!confirm('Delete permanently?')){
+                    return false
+                }
+
+                me.pending = true
+                fetch(`/employee/{{employee._id}}/pds/family-background/father`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        father: {}
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(await response.text())
+                    
+                }).then(function(responseJson){
+                    
+                    me.$v.$reset()
+                    me.page = 1
+                    me.father = responseJson
+
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Father Information deleted.')
+
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
+                }).then(function(){
+                    me.pending = false
+                });
+            },
+            editMother: function(){
+                const me = this 
+                me.page = 5
+            },
+            deleteMother: function(){
+                const me = this
+
+                if(!confirm('Delete permanently?')){
+                    return false
+                }
+
+                me.pending = true
+                fetch(`/employee/{{employee._id}}/pds/family-background/mother`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        mother: {}
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(await response.text())
+                    
+                }).then(function(responseJson){
+                    
+                    me.$v.$reset()
+                    me.page = 1
+                    me.mother = responseJson
+
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Mother Information deleted.')
+
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
+                }).then(function(){
+                    me.pending = false
+                });
+            },
+
+            addChild: function() {
+                const me = this
+
+                me.children.push({
+                    name: '',
+                    birthDate: null
+                })
+                me.editIndex = me.children.length - 1
+
+                me.page = 2
+                me.$nextTick(() => {
+                    me.$refs.childName.focus();
+                })
+                me.action = 'addChild'
+            },
+            cancelAddChild: function(){
+                const me = this
+
+                me.page = 1
+                me.action = ''
+                me.children.splice(-1, 1)
+            },
+            editChild: function(index){
+                const me = this
+                me.action = 'editChild'
+
+                me.page = 2
+                me.editIndex = index
+
+                me.$nextTick(() => {
+                    me.$refs.childName.focus();
+                })
+            },
+            deleteChild: function(start){
+                const me = this
+
+                if(!confirm('Delete permanently?')){
+                    return false
+                }
+                me.$delete(me.children, start)
+                me.editIndex = me.children.length - 1
+
+                me.pending = true
+                fetch(`/employee/{{employee._id}}/pds/family-background/children`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        children: me.children
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async function(response){
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(await response.text())
+                    
+                }).then(function(responseJson){
+                    
+                    me.$v.$reset()
+                    me.page = 1
+                    me.children = responseJson
+
+                    jQuery('#modal-alert-success').modal('show')
+                    jQuery('#modal-alert-success .content').html('Child Information deleted.')
+
+                }).catch(async function(error){
+                    console.error(error)
+                    alert(error);
+                }).then(function(){
+                    me.pending = false
+                });
+            },
+            
+            
+            onSubmitChild: function(e){
+                const me = this
+
+                me.$v.$touch()
+
+                let o = this.children[this.editIndex]
+                if(!o.name){
+                    return alert('Please provide Name.')
+                }
+                if(!o.birthDate){
+                    return alert('Please provide Birth Date.')
+                }
+                
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.pending = true
+                        fetch(e.target.action, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                children: me.children
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(async function(response){
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error(await response.text())
+                            
+                        }).then(function(responseJson){
+                           
+                            me.$v.$reset()
+                            me.page = 1
+                            me.children = responseJson
+
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Child Information saved.')
+                        }).catch(async function(error){
+                            console.error(error)
+                            alert(error);
+                        }).then(function(){
+                            me.pending = false
+                        });
+
+                    });
+                }
+            },
+            onSubmitSpouse: function(e){
+                const me = this
+
+                me.$v.$touch()
+                let spouse = me.spouse
+
+                if(!spouse.firstName){
+                    return alert('Please provide First Name.')
+                }
+                if(!spouse.middleName){
+                    return alert('Please provide Middle Name.')
+                }
+                if(!spouse.lastName){
+                    return alert('Please provide Last Name.')
+                }
+                if(!spouse.birthDate){
+                    return alert('Please provide Birth Date.')
+                }
+                
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.pending = true
+                        fetch(e.target.action, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                spouse: me.spouse
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(async function(response){
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error(await response.text())
+                            
+                        }).then(function(responseJson){
+                           
+                            me.$v.$reset()
+                            me.page = 1
+                            me.spouse = responseJson
+
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Spouse Information saved.')
+
+                        }).catch(async function(error){
+                            console.error(error)
+                            alert(error);
+                        }).then(function(){
+                            me.pending = false
+                        });
+
+                    });
+                }
+            },
+            onSubmitFather: function(e){
+                const me = this
+
+                me.$v.$touch()
+                let father = me.father
+
+                if(!father.firstName){
+                    return alert('Please provide First Name.')
+                }
+                if(!father.middleName){
+                    return alert('Please provide Middle Name.')
+                }
+                if(!father.lastName){
+                    return alert('Please provide Last Name.')
+                }
+                if(!father.birthDate){
+                    return alert('Please provide Birth Date.')
+                }
+                
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.pending = true
+                        fetch(e.target.action, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                father: me.father
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(async function(response){
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error(await response.text())
+                            
+                        }).then(function(responseJson){
+                           
+                            me.$v.$reset()
+                            me.page = 1
+                            me.father = responseJson
+
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Father Information saved.')
+                        }).catch(async function(error){
+                            console.error(error)
+                            alert(error);
+                        }).then(function(){
+                            me.pending = false
+                        });
+
+                    });
+                }
+            },
+            onSubmitMother: function(e){
+                const me = this
+
+                me.$v.$touch()
+                let mother = me.mother
+
+                if(!mother.firstName){
+                    return alert('Please provide First Name.')
+                }
+                if(!mother.middleName){
+                    return alert('Please provide Middle Name.')
+                }
+                if(!mother.lastName){
+                    return alert('Please provide Last Name.')
+                }
+                if(!mother.birthDate){
+                    return alert('Please provide Birth Date.')
+                }
+                
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.pending = true
+                        fetch(e.target.action, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                mother: me.mother
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(async function(response){
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error(await response.text())
+                            
+                        }).then(function(responseJson){
+                           
+                            me.$v.$reset()
+                            me.page = 1
+                            me.mother = responseJson
+
+                            jQuery('#modal-alert-success').modal('show')
+                            jQuery('#modal-alert-success .content').html('Mother Information saved.')
+
+                        }).catch(async function(error){
+                            console.error(error)
+                            alert(error);
+                        }).then(function(){
+                            me.pending = false
+                        });
+
+                    });
+                }
+            },
+        }
+    });
+</script>
+{% endblock %}
+

@@ -1,0 +1,532 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'employee/pds/header.html' %}
+    {% include 'employee/pds/tabs.html' %}
+    <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3">
+        {% include 'parts/flash.html' %}
+        <form ref="form" v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/pds/personal-info" method="POST" class="form-default">
+            <div class="form-row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="lastName">Last Name <span class="text-danger">*</span></label>
+                        <input v-model="lastName" name="lastName" id="lastName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="firstName">First Name <span class="text-danger">*</span></label>
+                        <input v-model="firstName" name="firstName" id="firstName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="middleName">Middle Name <span class="text-danger">*</span></label>
+                        <input v-model="middleName" name="middleName" id="middleName" type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    {% set name = 'suffix' %}
+                    {% set label = 'Extension (Jr.)' %}
+                    {% set options = suffixes %}
+                    {% include 'parts/form-group-select.html' %}
+                    {% set label = '' %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="birthDate">Birth Date <span class="text-danger">*</span> <em>${age}</em></label>
+                        <input v-model="birthDate" name="birthDate" id="birthDate" type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label for="birthPlace">Place of Birth <span class="text-danger">*</span></label>
+                        <input v-model="birthPlace" @blur="toNoCaps(birthPlace, 'birthPlace')" name="birthPlace" id="birthPlace" type="text" class="capital-case form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-2">
+                    {% set name = 'gender' %}
+                    {% set options = [{value:'M', text:'Male'}, {value:'F', text:'Female'}] %}
+                    {% include 'parts/form-group-select.html' %}
+                </div>
+                <div class="col-md-2">
+                    {% set name = 'civilStatus' %}
+                    {% set options = [{value:'Single', text:'Single'}, {value:'Married', text:'Married'}, {value:'Divorced', text:'Divorced'}, {value:'Separated', text:'Separated'}, {value:'Widowed', text:'Widowed'}] %}
+                    {% include 'parts/form-group-select.html' %}
+                </div>
+            </div>
+            <div class="form-group form-row">
+                <div class="col-md-4">
+                    <label for="heightFeet">Height <span class="text-danger">*</span></label>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            {% set name = 'heightFeet' %}
+                            {% set options = [{value:3, text:'3 ft'}, {value:4, text:'4 ft'}, {value:5, text:'5 ft'}, {value:6, text:'6 ft'}, {value:7, text:'7 ft'}] %}
+                            <div>
+                                {% include 'parts/form-select.html' %}
+                                <small class="invalid-feedback">${getError('{{name}}')}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            {% set name = 'heightInches' %}
+                            {% set options = [{value:0, text:''}, {value:1, text:'1 inch'}, {value:2, text:'2 inches'}, {value:3, text:'3 inches'}, {value:4, text:'4 inches'}, {value:'5', text:'5 inches'}, {value:'6', text:'6 inches'}, {value:'7', text:'7 inches'}, {value:'8', text:'8 inches'}, {value:'9', text:'9 inches'}, {value:10, text:'10 inches'}, {value:11, text:'11 inches'}] %}
+                            <div>
+                                {% include 'parts/form-select.html' %}
+                                <small class="invalid-feedback">${getError('{{name}}')}</small>
+                            </div>
+                            {% set label = '' %}
+                            <input type="hidden" name="height" v-model="height">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="weight">Weight (kg) <span class="text-danger">*</span></label>
+                        <input v-model="weight" name="weight" id="weight" type="number" min="0" step="0.1" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="bloodType">Blood Type <span class="text-danger">*</span></label>
+                        <input v-model="bloodType" type="text" id="bloodType" name="bloodType" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-6">
+                    {% set name = 'gsis' %}
+                    {% set label = 'GSIS ID No.' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-6">
+                    {% set name = 'sss' %}
+                    {% set label = 'SSS No.' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+            </div>
+        
+            <div class="form-row">
+                <div class="col-md-6">
+                    {% set name = 'philHealth' %}
+                    {% set label = 'PhilHealth No.' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-6">
+                    {% set name = 'tin' %}
+                    {% set label = 'TIN' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+            </div>
+            <div class="form-group form-row">
+                <div class="col-md-6">
+                    {% set name = 'pagibig' %}
+                    {% set label = 'PAG-IBIG ID No.' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+                <div class="col-md-6">
+                    {% set name = 'agencyEmployeeNumber' %}
+                    {% set label = 'Agency Employee No.' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+            </div>
+            <div class="form-group focusable" tabindex="0">
+                <h2 class="h5 mb-4">Citizenship</h2>
+                <div class="form-row">
+                    <div class="col-md-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" v-model="citizenship" name="citizenship[]" value="filipino" id="citizenship-fil">
+                            <label class="form-check-label" for="citizenship-fil">
+                                Filipino
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" v-model="citizenship" name="citizenship[]" value="dual" id="citizenship-dual">
+                            <label class="form-check-label" for="citizenship-dual">
+                                Dual Citizenship
+                            </label>
+                        </div>
+                        
+
+                    </div>
+                    <div class="col-md-3" v-if="citizenship.includes('dual')">
+                        {% set name = 'citizenshipCountry' %}
+                        {% set label = 'Country' %}
+                        {% set options = countries %}
+                        {% include 'parts/form-group-select.html' %}
+                        {% set label = '' %}
+
+                        {#  #}
+                        <div class="form-check pl-5">
+                            <input class="form-check-input" type="checkbox" v-model="citizenshipSource" name="citizenshipSource[]" value="birth" id="citizenship-src-birth">
+                            <label class="form-check-label" for="citizenship-src-birth">
+                                by Birth
+                            </label>
+                        </div>
+                        <div class="form-check pl-5">
+                            <input class="form-check-input" type="checkbox" v-model="citizenshipSource" name="citizenshipSource[]" value="naturalization" id="citizenship-src-natural">
+                            <label class="form-check-label" for="citizenship-src-natural">
+                                by Naturalization
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Address #}
+            <div class="form-group focusable" tabindex="0">
+                <h2 class="h5">Permanent Address</h2>
+                <p class="mb-4"><em>(The one found in your primary IDs)</em></p>
+                <div class="form-group form-row">
+                    <div class="col-md-4 form-group">
+                        <label for="unit0">House/Block/Lot No.</label>
+                        <div>
+                            {% set name = 'unit0' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('unit0')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="street0">Street</label>
+                        <div>
+                            {% set name = 'street0' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('street0')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="village0">Subdivision/Village</label>
+                        <div>
+                            {% set name = 'village0' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('village0')}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group form-row">
+                    <div class="col-md-8 form-group">
+                        <label for="psgc0">Barangay, Municipality, Province <a data-toggle="modal" data-target="#modal-help" href="#" class="btn btn-info btn-help">?</a></label>
+                        <div>
+                            <autocomplete v-model="psgc0"
+                                name="psgc0"
+                                initial-value="{{employee.addresses[0].psgc}}"
+                                initial-display="{{employee.addresses[0].full}}"
+                                placeholder="Type your barangay and city/municipality..."
+                                :source="dataSource"
+                                input-class="form-control"
+                                :request-headers="headers"
+                                v-on:selected="onSelect"
+                                >
+                            </autocomplete>
+                            <small class="invalid-feedback">${getError('psgc0')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="zipCode0">Zip Code</label>
+                        <div>
+                            {% set name = 'zipCode0' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('zipCode0')}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Address #}
+            <div class="form-group focusable" tabindex="0">
+                <h2 class="h5">Present Address</h2>
+                <p class="mb-4"><em>(The one where you currently reside. Ignore if the same as Permanent Address.)</em></p>
+                <div class="form-group form-row">
+                    <div class="col-md-4 form-group">
+                        <label for="unit1">House/Block/Lot No.</label>
+                        <div>
+                            {% set name = 'unit1' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('unit1')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="street1">Street</label>
+                        <div>
+                            {% set name = 'street1' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('street1')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="village1">Subdivision/Village</label>
+                        <div>
+                            {% set name = 'village1' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('village1')}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group form-row">
+                    <div class="col-md-8 form-group">
+                        <label for="psgc1">Barangay, Municipality, Province <a data-toggle="modal" data-target="#modal-help" href="#" class="btn btn-info btn-help">?</a></label>
+                        <div>
+                            <autocomplete v-model="psgc1"
+                                name="psgc1"
+                                initial-value="{{employee.addresses[1].psgc}}"
+                                initial-display="{{employee.addresses[1].full}}"
+                                placeholder="Type your barangay and city/municipality..."
+                                :source="dataSource"
+                                input-class="form-control"
+                                :request-headers="headers"
+                                v-on:selected="onSelect"
+                                >
+                            </autocomplete>
+                            <small class="invalid-feedback">${getError('psgc1')}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="zipCode1">Zip Code</label>
+                        <div>
+                            {% set name = 'zipCode1' %}
+                            {% include 'parts/form-input-text.html' %}
+                            <small class="invalid-feedback">${getError('zipCode1')}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group form-row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="mobileNumber">Mobile No. <span class="text-danger">*</span></label>
+                        <input v-model="mobileNumber" type="text" id="mobileNumber" name="mobileNumber" maxlength="13" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="email">Email <span class="text-danger">*</span></label>
+                        <input v-model="email" type="email" id="email" name="email" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    {% set name = 'phoneNumber' %}
+                    {% set label = 'Tel. No.' %}
+                    {% include 'parts/form-group-text.html' %}
+                    {% set label = '' %}
+                </div>
+            </div>
+            <hr>
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12 text-center">
+                    <input name="actionType" type="hidden" v-model="actionType">
+                    <button v-on:click="setAction('save')" type="submit" name="save" value="save" class="btn btn-primary">Save</button>
+                    <!-- <button v-on:click="setAction('saveNext')" type="submit" name="save" value="saveNext" class="btn btn-primary">Save and Go to C2</button> -->
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% include 'parts/modal-alert-success.html' %}
+{% include 'parts/modal-help-pds.html' %}
+{% include 'parts/modal-help.html' %}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vue-ph-address.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            VuePhAddress.mixin
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        computed: {
+            height: {
+                get: function () {
+                    return parseFloat(((parseFloat(this.heightFeet) * 12 + parseFloat(this.heightInches)) / 39.37).toFixed(2));
+                },
+                set: function (newValue) {
+                    var inches = Math.round(parseFloat(this.height) *  39.37);
+                    this.heightFeet = Math.floor(inches / 12);
+                    this.heightInches= Math.floor(inches %  12);
+                }
+            },
+            age: function(){
+                let age = moment().diff(moment(this.birthDate), 'years')
+                if(!age || isNaN(age) || age >= 80){
+                    return ''
+                }
+                return `(${age} yrs)`
+            }
+        },
+        data: {
+            pending: false,
+            actionType: 'save',
+            firstName: '{{employee.firstName}}',
+            middleName: '{{employee.middleName}}',
+            lastName: '{{employee.lastName}}',
+            suffix: '{{employee.suffix}}',
+            birthDate: '{{employee.birthDate|default('', true)|format_date("YYYY-MM-DD")}}',
+            gender: '{{employee.gender|default('M', true)}}',
+            civilStatus: '{{employee.civilStatus|default('Single', true)}}',
+            // employee.personal
+            birthPlace: '{{employee.personal.birthPlace}}',
+            heightFeet: 0,
+            heightInches: 0,
+            weight: '{{employee.personal.weight}}',
+            bloodType: '{{employee.personal.bloodType}}',
+            gsis: '{{employee.personal.gsis}}',
+            sss: '{{employee.personal.sss}}',
+            philHealth: '{{employee.personal.philHealth}}',
+            tin: '{{employee.personal.tin}}',
+            pagibig: '{{employee.personal.pagibig}}',
+            agencyEmployeeNumber: '{{employee.personal.agencyEmployeeNumber}}',
+            citizenship: {{employee.personal.citizenship|default([], true)|stringify|safe|default([], true)}},
+            citizenshipCountry: '{{employee.personal.citizenshipCountry}}',
+            citizenshipSource: {{employee.personal.citizenshipSource|default([], true)|stringify|safe}},
+
+            mobileNumber: '{{employee.mobileNumber}}',
+            phoneNumber: '{{employee.phoneNumber}}',
+            email: '{{employee.email}}',
+
+            psgc0: '{{employee.addresses[0].psgc}}',
+            unit0: '{{employee.addresses[0].unit}}',
+            street0: '{{employee.addresses[0].street}}',
+            village0: '{{employee.addresses[0].village}}',
+            zipCode0: '{{employee.addresses[0].zipCode}}',
+
+            psgc1: '{{employee.addresses[1].psgc}}',
+            unit1: '{{employee.addresses[1].unit}}',
+            street1: '{{employee.addresses[1].street}}',
+            village1: '{{employee.addresses[1].village}}',
+            zipCode1: '{{employee.addresses[1].zipCode}}',
+            
+        },
+        mounted: function(){
+            var inches = Math.round(parseFloat({{employee.personal.height|default(0, true)}}) *  39.37)
+            this.heightFeet = Math.floor(inches / 12)
+            this.heightInches= Math.floor(inches %  12)
+
+            let hrisPdsModal1 = localStorage.getItem('hrisPdsModal1'); // Contains date created
+            if(hrisPdsModal1){
+                let createdAt = moment(hrisPdsModal1)
+                if(createdAt.isValid()){
+                    if(moment().diff(createdAt, 'hours') >= 23){
+                        localStorage.removeItem('hrisPdsModal1')
+                        jQuery('#modal-help-pds').modal('show')
+                    }
+                }
+            } else {
+                jQuery('#modal-help-pds').modal('show')
+            }
+        },
+        validations: {
+            lastName: {
+                required: window.validators.required
+            },
+            middleName: {
+                required: window.validators.required
+            },
+            firstName: {
+                required: window.validators.required
+            },
+            civilStatus: {
+                required: window.validators.required
+            },
+            
+        },
+        methods: {
+            noCaps: function (val) {
+                val = new String(val)
+                val = val.replace(/(\s)+/g, ' ').split(' ') // Turn extra spaces into single space and split by single space
+                val = val.map(word => {
+                    // Split word into array of letters
+                    word = word.split('').map((v, k, arr) => {
+                        if (k == 0) {
+                            return v // As is - respects lowercase first letter
+                        } else { // Ignore if...
+                            if (arr.at(k + 1) === '.') { // If next is a period, might be an acronym, so ignore - C.P.U.
+                                return v
+                            }
+                            if (arr.at(0) === '(' && arr.at(-1) === ')') { // If surrounded by parenthesis (CPU)
+                                return v
+                            }
+                        }
+                        return v.toLowerCase()
+                    })
+                    return word.join('')
+                })
+                return val.join(' ')
+            },
+            toNoCaps: function(v, key){
+                this[key] = this.noCaps(v)
+            },
+            setAction: function(action){
+                this.actionType = action
+            },
+            onSubmit: function(){
+                try {
+                    const me = this;
+                    if((me?.firstName?.length ?? 0) < 2){
+                        throw new Error('Please type your First Name.')
+                    }
+                    if(!me.lastName){
+                        throw new Error('Please type your Last Name.')
+                    }
+                    if(!me.middleName){
+                        throw new Error('Please type your Middle Name.')
+                    }
+                    if(!me.birthDate){
+                        throw new Error('Please type your Birth Date.')
+                    } else {
+                        let age = moment().diff(moment(me.birthDate), 'years')
+                        if(age<=15){
+                            throw new Error(`Age ${age} is too young.`)
+                        }
+                    }
+                    if(!me.birthPlace){
+                        throw new Error('Please type your Place of Birth.')
+                    }
+                    if(!me.height){
+                        throw new Error('Please type your Height.')
+                    }
+                    if(!me.weight){
+                        throw new Error('Please type your Weight.')
+                    }
+                    if(!me.bloodType){
+                        throw new Error('Please type your Blood Type.')
+                    }
+                    if(!me.mobileNumber){
+                        throw new Error('Please type your Mobile Number.')
+                    }
+                    if(!me.email){
+                        throw new Error('Please type your Email.')
+                    }
+                    if(/^([a-zA-Z]\.?)$/.test(me.middleName)){
+                        throw new Error('Please type your full middle name, not your middle initial.')
+                    }
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                } catch (err){
+                    alert(err.message)
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

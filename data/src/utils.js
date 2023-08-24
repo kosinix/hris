@@ -99,5 +99,35 @@ module.exports = {
         }, {});
 
         return Object.assign(target, filtered)
+    },
+    noCaps: (val) => {
+        if(!val) return val
+    
+        val = new String(val)
+        val = val.replace(/(\s)+/g, ' ').split(' ') // Turn extra spaces into single space and split by single space
+        val = val.map(word => {
+            // Split word into array of letters
+            word = word.split('').map((v, k, arr) => {
+                if (k == 0) {
+                    return v // As is - respects lowercase first letter
+                } else { // Ignore if...
+                    if (arr.at(k + 1) === '.') { // If next is a period, might be an acronym, so ignore - C.P.U.
+                        return v
+                    }
+                    if (arr.at(0) === '(' && arr.at(-1) === ')') { // If surrounded by parenthesis (CPU)
+                        return v
+                    }
+                    if (arr.at(k - 1) === '/') { // If preceded by / eg. Staff/Secretary
+                        return v
+                    }
+                }
+                if(/^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/.test(arr.join(''))){ // Roman Numerals
+                    return v
+                }
+                return v.toLowerCase()
+            })
+            return word.join('')
+        })
+        return val.join(' ')
     }
 }

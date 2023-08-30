@@ -240,6 +240,10 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
             throw new Error('Attendance not found.')
         }
 
+        if(moment(attendance.createdAt).startOf('day').isBefore(moment().startOf('day').subtract(3,'days'))){
+            throw new Error('Cannot apply for correction after 3 days. ')
+        }
+
         // Employment
         let employment = await req.app.locals.db.main.Employment.findOne({
             _id: attendance.employmentId,
@@ -265,6 +269,7 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
             attendanceId: attendanceId,
             status: 'rejected'
         }).sort({ _id: -1 }).lean()
+
 
 
         // Get related logsheet images

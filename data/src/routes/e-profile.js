@@ -241,7 +241,7 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
         }
 
         if(moment(attendance.createdAt).startOf('day').isBefore(moment().startOf('day').subtract(3,'days'))){
-            throw new Error('Cannot apply for correction after 3 days. ')
+            // throw new Error('Cannot apply for correction after 3 days. ')
         }
 
         // Employment

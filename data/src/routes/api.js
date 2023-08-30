@@ -116,6 +116,7 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
             lastName: 1,
             firstName: 1,
             middleName: 1,
+            suffix: 1,
             gender: 1,
             profilePhoto: 1,
             email: 1,

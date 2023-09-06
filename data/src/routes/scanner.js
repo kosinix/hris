@@ -263,11 +263,28 @@ router.get('/scanner/:scannerId/clients', middlewares.guardRoute(['read_scanner'
         let employees = await Promise.all(promises)
 
         let out = lodash.get(scanner, 'scans', []).map((scan, i) => {
-            scan = {scan, ...employees[i]}
+            scan = { scan, ...employees[i] }
             return scan
         })
 
         res.send(out)
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/scanner/:scannerId/clients-sync', middlewares.guardRoute(['read_scanner', 'update_scanner']), middlewares.getScanner, async (req, res, next) => {
+    try {
+        let scanner = res.scanner.toObject()
+        scanner.user = await req.app.locals.db.main.User.findById(scanner.userId)
+
+        let room = `scanner-${scanner._id}`
+        let response = await req.app.locals.io.of("/hybrid-scanner").to(room).timeout(10000).emitWithAck('sendscanstoserver', {
+            scannerId: scanner._id,
+            scannerName: scanner.name,
+            date: req.query.date
+        })
+        // console.log('response', response.at(-1))
+        res.send(response.at(-1))
     } catch (err) {
         next(err);
     }

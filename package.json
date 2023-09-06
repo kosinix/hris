@@ -53,7 +53,7 @@
     "pigura": "^1.0.1",
     "qr-image": "^3.2.0",
     "sharp": "^0.30.7",
-    "socket.io": "^4.4.1",
+    "socket.io": "^4.7.2",
     "sortablejs": "^1.14.0",
     "troso": "^2.0.1",
     "uuid": "^3.3.2",

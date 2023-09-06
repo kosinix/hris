@@ -41,6 +41,135 @@ router.get('/api/status', async (req, res, next) => {
     }
 })
 
+//
+// Uses hrsprint (v3) scanner
+router.post('/api/scanner/:scannerId/log', middlewares.getScanner, async (req, res, next) => {
+    try {
+        // Get post body
+        let code = lodash.get(req, 'body.code')
+
+        if (!code) {
+            throw new AppError('Sorry, invalid scan.')
+        }
+        code = String(code) // Convert to string
+        if (code.length !== 10) { // RFID numbers are 10 characters
+            throw new AppError('Sorry, invalid ID number.')
+        }
+
+        // Get scanner
+        let scanner = res.scanner.toObject()
+
+        // Get employee assoc with code
+        let employee = await req.app.locals.db.main.Employee.findOne({
+            uid: code
+        }).lean()
+        if (!employee) {
+            throw new AppError('Sorry, ID card is not registered.', {
+                scanner: res.scanner,
+                timeOut: 10
+            })
+        }
+
+        // Get all active employments
+        let employments = await req.app.locals.db.main.Employment.find({
+            employeeId: employee._id,
+            active: true,
+        }).lean()
+        if (employments.length <= 0) {
+            throw new AppError('Sorry, you have no active employments.', {
+                scanner: res.scanner,
+                timeOut: 10
+            })
+        }
+
+        let payload = {
+            attendances: [],
+            employee: {
+                firstName: employee.firstName,
+                middleName: employee.middleName,
+                lastName: employee.lastName,
+                gender: employee.gender,
+                birthDate: employee.birthDate,
+                profilePhoto: employee.profilePhoto,
+                speechSynthesisName: employee.speechSynthesisName,
+            },
+            log: null,
+            logs: {}
+        }
+
+        // Order by priority
+        let sortPriority = CONFIG.employmentTypes.map(e => e.value)
+        // Do not include not found in sort
+        employments = employments.filter(e => {
+            return sortPriority.includes(e.employmentType)
+        })
+        employments.sort(function (a, b) {
+            return sortPriority.indexOf(a.employmentType) - sortPriority.indexOf(b.employmentType);
+        });
+
+        let momentDate = moment()
+
+        // Log for every active employment
+        for (let c = 0; c < employments.length; c++) {
+            let source = {
+                id: scanner._id,
+                type: 'scanner',
+            }
+            let attendanceChanged = await dtrHelper.logNormal(req.app.locals.db, momentDate, employee, employments[c], source)
+            payload.attendances.push(attendanceChanged)
+        }
+
+        // Convert to full url
+        if (employee.profilePhoto) {
+            payload.employee.profilePhoto = `${CONFIG.app.url}/file-getter/${CONFIG.aws.bucket1.name}/${CONFIG.aws.bucket1.prefix}/small-${employee.profilePhoto}`
+        }
+
+        // Display logs on scanner
+        let mainAttendance = payload.attendances[0]
+        let mainEmployment = employments[0]
+
+        // Normalize Attendance
+        let workSchedule = {}
+        if (mainAttendance.workScheduleId) {
+            workSchedule = await req.app.locals.db.main.WorkSchedule.findById(mainAttendance.workScheduleId).lean()
+        } else {
+            workSchedule = await req.app.locals.db.main.WorkSchedule.findById(mainEmployment.workScheduleId).lean()
+        }
+        let workScheduleTimeSegments = dtrHelper.getWorkScheduleTimeSegments(workSchedule, mainAttendance.createdAt)
+        mainAttendance = dtrHelper.normalizeAttendance(mainAttendance, employee, workScheduleTimeSegments)
+
+        payload.logs = {
+            log0: lodash.get(mainAttendance, 'logs[0]'),
+            log1: lodash.get(mainAttendance, 'logs[1]'),
+            log2: lodash.get(mainAttendance, 'logs[2]'),
+            log3: lodash.get(mainAttendance, 'logs[3]')
+        }
+        payload.log = mainAttendance.logs.pop()
+        payload.logIndex = 0
+        payload.logs = lodash.mapValues(payload.logs, (log) => {
+            if (lodash.get(log, 'type') === 'travel') {
+                payload.logIndex++;
+                return 'Travel'
+            } else if (lodash.get(log, 'dateTime')) {
+                payload.logIndex++;
+                return moment(log.dateTime).format('h:mmA')
+            }
+            return log
+        })
+
+        payload.employmentId = mainEmployment._id
+        payload.employment = mainEmployment
+        payload.logMade = payload.log.dateTime
+
+        // let room = momentDate.format('YYYY-MM-DD')
+        // req.app.locals.io.of("/monitoring").to(room).emit('added', payload)
+
+        res.send(payload)
+    } catch (err) {
+        next(err)
+    }
+});
+
 // Public API
 router.post('/api/login', middlewares.api.rateLimit, async (req, res, next) => {
     try {

@@ -9,7 +9,7 @@
     const cookieParser = require('cookie-parser')
     const lodash = require('lodash')
     const moment = require('moment')
-    const { Server } = require('socket.io')
+    const socketIo = require('socket.io')
 
     //// Modules
     const db = require('./db-connect')
@@ -27,7 +27,7 @@
 
     //// Server and socket.io
     const httpServer = http.createServer(app)
-    const io = new Server(httpServer, CONFIG.socketio)
+    const io = new socketIo.Server(httpServer, CONFIG.socketio)
 
     //// Setup view
     nunjucksEnv.express(app)
@@ -91,13 +91,14 @@
         }
     }
     const onSocketConnect = (socket) => {
+        // Put the client socket into a room
         let room = lodash.get(socket, 'handshake.query.room')
         if (room) {
             socket.join(room)
         }
     }
     io.use(expressToSocketMiddleware(session));
-    io.use(authSocket);
+    // io.use(authSocket);
     let scanners = [] // List of scanner IDs
     io.use(async (socket, next) => {
         try {
@@ -131,7 +132,7 @@
                         let scannerId = payload.scannerId
                         let scanner = await app.locals.db.main.Scanner.findById(scannerId)
                         if (scanner) {
-                            scanner.scans = payload.scans
+                            scanner.scans = JSON.parse(payload.scans)
                             await scanner.save()
                         }
                     }
@@ -196,6 +197,91 @@
     io.of("/monitoring").use(expressToSocketMiddleware(session));
     io.of("/monitoring").use(authSocket);
     io.of("/monitoring").on('connection', onSocketConnect)
+
+    // Hybrid scanner
+    io.of("/hybrid-scanner").use((socket, next) => {
+        try {
+
+            let room = lodash.get(socket, 'handshake.query.room')
+            let scannerId = lodash.get(socket, 'handshake.query.scannerId')
+
+            if (!room) {
+                throw new Error('No room.')
+            }
+            if (!scannerId) {
+                throw new Error('No scannerId.')
+            }
+
+            next()
+        } catch (err) {
+            next(err)
+        }
+    });
+
+    io.of("/hybrid-scanner").on('connection', async (socket) => {
+        try {
+            // Put the client socket into a room
+            let room = lodash.get(socket, 'handshake.query.room')
+            let scannerId = lodash.get(socket, 'handshake.query.scannerId')
+
+            socket.join(room)
+            // console.log('room', room)
+            // console.log('scannerId', scannerId)
+
+            socket.on('disconnect', async () => {
+                try {
+                    await app.locals.db.main.Scanner.updateOne({ _id: scannerId }, {
+                        online: false
+                    })
+                    await app.locals.db.main.ScannerPing.create({
+                        scannerId: scannerId,
+                        status: 0
+                    })
+                    scanners = scanners.filter((s) => {
+                        return scannerId != s
+                    })
+                } catch (err) {
+                    console.error(err)
+                }
+            });
+            socket.on('scansfromclient', async (payload, callback) => {
+                try {
+
+                    console.log('scansfromclient', callback)
+                    // console.log('sizebyts', Buffer.byteLength(payload.scans, 'utf8'))
+                    if (payload.scannerId && payload.scans) {
+                        let scannerId = payload.scannerId
+                        let scanner = await app.locals.db.main.Scanner.findById(scannerId).lean()
+                        if (scanner) {
+
+                            lodash.set(scanner.scans, payload.date, JSON.parse(payload.scans))
+
+                            await app.locals.db.main.Scanner.updateOne({ _id: scannerId }, {
+                                $set: {
+                                    'scans': scanner.scans
+                                }
+                            })
+                            callback('ok')
+                        }
+                    }
+                } catch (err) {
+                    console.error(err)
+                }
+            })
+            await app.locals.db.main.Scanner.updateOne({ _id: scannerId }, {
+                online: true
+            })
+
+            await app.locals.db.main.ScannerPing.create({
+                scannerId: scannerId,
+                status: 1
+            })
+
+        } catch (err) {
+            console.error(err)
+            io.disconnectSockets();
+        }
+    })
 
     // Sockets IO
     app.locals.io = io

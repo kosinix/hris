@@ -485,10 +485,10 @@ let templateCos2 = async (payroll) => {
                 }
                 worksheet.getCell(`O${curRowIndex}`).value = 0 // tax 3%
                 worksheet.getCell(`P${curRowIndex}`).value = row.tax10
-                worksheet.getCell(`Q${curRowIndex}`).value = lodash.get(row, 'taxTotal', 0) 
+                worksheet.getCell(`Q${curRowIndex}`).value = lodash.get(row, 'taxTotal', 0)
                 worksheet.getCell(`R${curRowIndex}`).value = row.sss
                 worksheet.getCell(`S${curRowIndex}`).value = row.sssEC
-                worksheet.getCell(`T${curRowIndex}`).value = lodash.get(row, 'sssTotal', 0) 
+                worksheet.getCell(`T${curRowIndex}`).value = lodash.get(row, 'sssTotal', 0)
                 worksheet.getCell(`U${curRowIndex}`).value = lodash.get(row, 'deductionsTotal', 0)
                 worksheet.getCell(`V${curRowIndex}`).value = {
                     formula: `=N${curRowIndex}-U${curRowIndex}`,
@@ -540,12 +540,12 @@ let templateCos2 = async (payroll) => {
                 // account for excel data row starting index
                 let range = [start + startRowIndex, end + startRowIndex]
 
-                const subTotalGross = function(rows, index, key) {
+                const subTotalGross = function (rows, index, key) {
                     let totalGross = 0
                     let currentIndex = index - 1
 
                     let currentRow = rows[currentIndex]
-                    while(currentRow?.rtype === 1 && currentIndex >= 0){
+                    while (currentRow?.rtype === 1 && currentIndex >= 0) {
 
                         totalGross += currentRow[key]
                         currentIndex--
@@ -557,7 +557,7 @@ let templateCos2 = async (payroll) => {
                     formula: `=${rowAdditions(activeRowIndexes, 'L')}`,
                     result: subTotalGross(payroll.rows, rowIndex, 'gross')
                 }
-                
+
                 worksheet.getCell(`N${curRowIndex}`).value = {
                     formula: `=${rowAdditions(activeRowIndexes, 'N')}`,
                     result: subTotalGross(payroll.rows, rowIndex, 'grant')
@@ -803,7 +803,7 @@ let templateHdf = async (healthDeclarations) => {
 }
 
 let toPDSDate = (date) => {
-    if(date) {
+    if (date) {
         return moment(date).format('MM/DD/YYYY')
     }
     return ''
@@ -819,7 +819,7 @@ let templatePds = async (employee) => {
     let workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/e-profile/pds.xlsx`);
     let slex = new Slex(workbook)
-    
+
     let worksheet = workbook.getWorksheet('C1')
     if (worksheet) {
         slex.setSheet(worksheet)
@@ -1134,7 +1134,7 @@ let templatePds = async (employee) => {
             let isPresent = lodash.get(workExperience, `present`, '')
 
 
-            if(isPresent){
+            if (isPresent) {
                 toDate = `Present`
             } else {
                 toDate = toPDSDate(toDate)
@@ -1203,7 +1203,7 @@ let templatePds = async (employee) => {
                     .getCell(`I${row}`).value(`${lodash.get(training, 'sponsor', '')}`)
             }
         }
-        if(trainings.length <= 21) {
+        if (trainings.length <= 21) {
             workbook.removeWorksheet('L&D Cont.')
         }
 
@@ -1871,7 +1871,7 @@ let templateAttendanceFlag = async (mCalendar, attendances) => {
             slex.getCell(`A${row}`).value(x + 1)
             slex.getCell(`B${row}`).value(`${attendance.employee.firstName}`)
             let lastName = [attendance.employee.lastName]
-            if(attendance.employee.suffix) {
+            if (attendance.employee.suffix) {
                 lastName.push(attendance.employee.suffix)
             }
             slex.getCell(`C${row}`).value(`${lastName.join(', ')}`)
@@ -1935,11 +1935,11 @@ let templateReportTardinessOverall = async (employees, periodString, pagination)
         slex.setSheet(worksheet)
 
         let off = 3
-        for(let i = 0; i < employees.length; i++){
+        for (let i = 0; i < employees.length; i++) {
             let employee = employees[i]
             let r = off + i
             slex.getCell(`A1`).value(periodString)
-            slex.getCell(`A${r}`).value((i+1) + (pagination.page - 1) * (pagination.perPage|0))
+            slex.getCell(`A${r}`).value((i + 1) + (pagination.page - 1) * (pagination.perPage | 0))
             slex.getCell(`B${r}`).value(employee.lastName + ' ' + employee.firstName)
             slex.getCell(`C${r}`).value(employee.undertimeFreq)
             slex.getCell(`D${r}`).value(`${employee.underDays} days ${employee.underHours} hrs ${employee.underMinutes} mins`)
@@ -1979,28 +1979,28 @@ let templateReportTrainingAll = async (employees, pagination) => {
         slex.setSheet(worksheet)
 
         let off = 2
-        for(let i = 0; i < employees.length; i++){
+        for (let i = 0; i < employees.length; i++) {
             let employee = employees[i]
             let r = off + i
 
             let highest = ''
             let lastSchool = lodash.get(employee, 'lastSchool')
-            if (lastSchool){
+            if (lastSchool) {
                 highest = `${lastSchool.course} \n${lastSchool.name} (${lastSchool.periodFrom}-${lastSchool.periodTo}) \n${lastSchool.honors} - ${lastSchool.level}`
             }
 
             let eligibilities = lodash.get(employee, 'personal.eligibilities', [])
-            if(!eligibilities) eligibilities = []
+            if (!eligibilities) eligibilities = []
 
-            eligibilities = eligibilities.map(o=>{
+            eligibilities = eligibilities.map(o => {
                 return `${o.name}\nRating: ${o.rating}\nExam Date: ${o.examDate}\nExam Place: ${o.examPlace}\nNumber: ${o.licenseNumber}\nValidity: ${o.licenseValidity}\n`
             }).join("\n")
 
-            let trainings = lodash.get(employee, 'personal.trainings', []).map(o=>{
+            let trainings = lodash.get(employee, 'personal.trainings', []).map(o => {
                 return `${o.title}\n`
             }).join("\n")
 
-            slex.getCell(`A${r}`).value((i+1) + (pagination.page - 1) * (pagination.perPage|0))
+            slex.getCell(`A${r}`).value((i + 1) + (pagination.page - 1) * (pagination.perPage | 0))
             slex.getCell(`B${r}`).value(employee.lastName + ', ' + employee.firstName)
             slex.getCell(`C${r}`).value(highest)
             slex.getCell(`D${r}`).value(eligibilities)
@@ -2010,6 +2010,81 @@ let templateReportTrainingAll = async (employees, pagination) => {
 
     return workbook
 
+}
+
+const templateFlagRaisingReport = async (attendances, query) => {
+    let workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/reports/pm/flag-raising/overall.xlsx`);
+
+    let worksheet = null
+
+    if (query.employmentType == 'permanent' && query.group == 'faculty') {
+        worksheet = workbook.getWorksheet('PERMANENT FACULTY')
+
+    } else if (query.employmentType == 'permanent' && query.group == 'staff') {
+        worksheet = workbook.getWorksheet('PERMANENT STAFF')
+
+    } else if (query.employmentType == 'cos' && query.group == 'staff') {
+        worksheet = workbook.getWorksheet('COS Staff')
+
+    } else if (query.employmentType == 'cos' && query.group == 'faculty') {
+        worksheet = workbook.getWorksheet('COS Faculty')
+
+    } else if (query.employmentType == 'part-time' && query.group == 'faculty_staff') {
+        worksheet = workbook.getWorksheet('Part Time')
+
+    }
+
+    let startRowIndex = 15
+
+    if (worksheet) {
+
+        // Set Print Area for a sheet
+        worksheet.pageSetup.printArea = `A1:Y${startRowIndex + attendances.length + 12}`;
+
+        let rowCount = attendances.length
+
+        // worksheet.duplicateRow(startRowIndex, rowCount - 1, true);
+
+        // worksheet.getCell('A2').value = `Salary for the period ${moment(payroll.dateStart).format('MMMM DD')} - ${moment(payroll.dateEnd).format('DD, YYYY')}`
+
+        let numbering = 0
+
+        attendances.forEach((row, rowIndex) => {
+
+            let curRowIndex = startRowIndex + rowIndex
+            let wsRow = worksheet.getRow(curRowIndex)
+
+            worksheet.getCell(`B${curRowIndex}`).value = ++numbering
+            worksheet.getCell(`C${curRowIndex}`).value = row.lastName
+            worksheet.getCell(`D${curRowIndex}`).value = row.employment.position.replace('Admin Aide', 'AA').replace('Administrative Aide', 'AA').trim()
+            // worksheet.getCell(`E${curRowIndex}`).value = row.wage
+            // worksheet.getCell(`F${curRowIndex}`).value = row.days
+            // worksheet.getCell(`H${curRowIndex}`).value = row.hours
+            // worksheet.getCell(`J${curRowIndex}`).value = row.minutes
+            // worksheet.getCell(`L${curRowIndex}`).value = row.gross
+            // worksheet.getCell(`M${curRowIndex}`).value = row.premium5
+            // worksheet.getCell(`N${curRowIndex}`).value = {
+            //     formula: `=L${curRowIndex}+M${curRowIndex}`,
+            //     result: row.gross + row.premium5
+            // }
+            // worksheet.getCell(`O${curRowIndex}`).value = 0 // tax 3%
+            // worksheet.getCell(`P${curRowIndex}`).value = row.tax10
+            // worksheet.getCell(`Q${curRowIndex}`).value = lodash.get(row, 'taxTotal', 0) 
+            // worksheet.getCell(`R${curRowIndex}`).value = row.sss
+            // worksheet.getCell(`S${curRowIndex}`).value = row.sssEC
+            // worksheet.getCell(`T${curRowIndex}`).value = lodash.get(row, 'sssTotal', 0) 
+            // worksheet.getCell(`U${curRowIndex}`).value = lodash.get(row, 'deductionsTotal', 0)
+            // worksheet.getCell(`V${curRowIndex}`).value = {
+            //     formula: `=N${curRowIndex}-U${curRowIndex}`,
+            //     result: lodash.get(row, 'netAmount', 0)
+            // }
+            // worksheet.getCell(`W${curRowIndex}`).value = numbering
+
+        })
+    }
+
+    return workbook
 }
 
 module.exports = {
@@ -2024,4 +2099,5 @@ module.exports = {
     templateReportTardinessOverall: templateReportTardinessOverall,
     templateReportTardinessPerEmployee: templateReportTardinessPerEmployee,
     templateReportTrainingAll: templateReportTrainingAll,
+    templateFlagRaisingReport: templateFlagRaisingReport,
 }

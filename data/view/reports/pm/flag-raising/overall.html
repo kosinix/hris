@@ -9,7 +9,7 @@
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                <a href="/reports/pm/flag-raising/overall.csv?date={{mDate|format_date('YYYY-MM-DD')}}" class="btn btn-outline-primary btn-sm">Download</a>
+                <a href="/reports/pm/flag-raising/overall.xlsx?{{query|query_string}}" class="btn btn-outline-primary btn-sm">Download</a>
             </div>
         </div>
     </div>
@@ -18,7 +18,7 @@
         <ul class="nav nav-tabs">
             {% for month in months %}
             <li class="nav-item">
-                <a class="nav-link {% if mDate|format_date('MMM') == month|format_date('MMM') %} active {% endif%}" href="?date={{month|format_date('YYYY-MM-DD')}}">{{month|format_date('MMM')}}</a>
+                <a class="nav-link {% if mDate|format_date('MMM') == month|format_date('MMM') %} active {% endif%}" href="?{{query|query_string({date: month|format_date('YYYY-MM-DD')})}}">{{month|format_date('MMM')}}</a>
             </li>
             {% endfor %}
         </ul>
@@ -38,32 +38,52 @@
                 </form>
             </div>
         </div>
-        {% if dateGroups.length %}
-            <div class="table-responsive">
+        <div class="bg-light">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link {% if query.employmentType == 'permanent' and query.group == 'faculty' %} active {% endif%}" href="/reports/pm/flag-raising/overall?date={{mDate|format_date('YYYY-MM-DD')}}&employmentType=permanent&group=faculty">Permanent Faculty</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if query.employmentType == 'permanent' and query.group == 'staff' %} active {% endif%}" href="/reports/pm/flag-raising/overall?date={{mDate|format_date('YYYY-MM-DD')}}&employmentType=permanent&group=staff">Permanent Staff</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if query.employmentType == 'cos' and query.group == 'staff' %} active {% endif%}" href="/reports/pm/flag-raising/overall?date={{mDate|format_date('YYYY-MM-DD')}}&employmentType=cos&group=staff">COS Staff</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if query.employmentType == 'cos' and query.group == 'faculty' %} active {% endif%}" href="/reports/pm/flag-raising/overall?date={{mDate|format_date('YYYY-MM-DD')}}&employmentType=cos&group=faculty">COS Faculty</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if query.employmentType == 'part-time' and query.group == 'faculty_staff' %} active {% endif%}" href="/reports/pm/flag-raising/overall?date={{mDate|format_date('YYYY-MM-DD')}}&employmentType=part-time&group=faculty_staff">Part Time</a>
+                </li>
+            </ul>
+        </div>
+
+        {% if employees.length %}
+            <div class="table-responsive bg-white p-1 border border-top-0">
                 <table class="table table-sm table-striped">
                     <tr>
-                        <th width="3%">#</th>
-                        <th width="5%">Last Name</th>
-                        <th width="5%">First Name</th>
+                        <th width="1%">#</th>
+                        <th width="5%">Name</th>
+                        <th width="5%">Position</th>
                         {% for dateGroup in dateGroups %}
                             <th width="5%">{{dateGroup|format_date('MMM DD (ddd)')}}</th>
                         {% endfor %}
-                        <th width="5%" class="text-center">Out of {{dateGroups.length}}</th>
                     </tr>
-                    {% for employeeId, attendance in attendances %}
-                    {% set  employee = attendance[0].employee %}
+                    {% for employee in employees %}
+                    {% set  employment = employee.employment %}
                     <tr>
                         <td>{{loop.index}}</td>
-                        <td><a href="/employee/{{employee._id}}/employment">{{employee.lastName}}</a></td>
-                        <td><a href="/employee/{{employee._id}}/employment">{{employee.firstName}}</a></td>
+                        <td><a href="/employee/{{employee._id}}/employment">{{employee.lastName}}, {{employee.firstName}}</a></td>
+                        <td><a href="/employee/{{employee._id}}/employment">{{employment.position}}</a></td>
                         {% for dateGroup in dateGroups %}
                             <td>
-                                {% if attendancesByGroups[employeeId][dateGroup] %}
-                                    <a href="/attendance/flag/all?date={{attendancesByGroups[employeeId][dateGroup].dateTime|format_date('YYYY-MM-DD')}}#{{employeeId}}">{{attendancesByGroups[employeeId][dateGroup].dateTime|format_date('hh:mm A')}}</a>
+                                {% if employee.attendanceFlags[dateGroup] %}
+                                    <a href="/attendance/flag/all?date={{employee.attendanceFlags[dateGroup].dateTime|format_date('YYYY-MM-DD')}}#{{employee._id}}">{{employee.attendanceFlags[dateGroup].dateTime|format_date('hh:mm A')}}</a>
+                                {% else %}
+                                &nbsp;
                                 {% endif %}
                             </td>
                         {% endfor %}
-                        <td class="text-center">{{attendance.length}}</td>
                     </tr>
                     {% endfor %}
                 </table>

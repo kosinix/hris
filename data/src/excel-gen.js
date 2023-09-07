@@ -2012,7 +2012,7 @@ let templateReportTrainingAll = async (employees, pagination) => {
 
 }
 
-const templateFlagRaisingReport = async (attendances, query) => {
+const templateFlagRaisingReport = async (attendances, query,dateGroups) => {
     let workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/reports/pm/flag-raising/overall.xlsx`);
 
@@ -2044,20 +2044,25 @@ const templateFlagRaisingReport = async (attendances, query) => {
 
         let rowCount = attendances.length
 
-        // worksheet.duplicateRow(startRowIndex, rowCount - 1, true);
+        worksheet.duplicateRow(startRowIndex, rowCount - 1, true);
 
         // worksheet.getCell('A2').value = `Salary for the period ${moment(payroll.dateStart).format('MMMM DD')} - ${moment(payroll.dateEnd).format('DD, YYYY')}`
 
         let numbering = 0
-
+        let a = 'DEFGH'
         attendances.forEach((row, rowIndex) => {
 
             let curRowIndex = startRowIndex + rowIndex
             let wsRow = worksheet.getRow(curRowIndex)
 
-            worksheet.getCell(`B${curRowIndex}`).value = ++numbering
-            worksheet.getCell(`C${curRowIndex}`).value = row.lastName
-            worksheet.getCell(`D${curRowIndex}`).value = row.employment.position.replace('Admin Aide', 'AA').replace('Administrative Aide', 'AA').trim()
+            worksheet.getCell(`A${curRowIndex}`).value = ++numbering
+            worksheet.getCell(`B${curRowIndex}`).value = `${row.lastName}, ${row.firstName} ${row.suffix} ${row.middleName.at(0)}.`
+            worksheet.getCell(`C${curRowIndex}`).value = row.employment.position.replace('Admin Aide', 'AA').replace('Administrative Aide', 'AA').trim()
+            dateGroups.forEach((dateGroup, colIndex) => {
+                if(row.attendanceFlags[dateGroup]){
+                    worksheet.getCell(`${a[colIndex]}${curRowIndex}`).value = '/'
+                }
+            })
             // worksheet.getCell(`E${curRowIndex}`).value = row.wage
             // worksheet.getCell(`F${curRowIndex}`).value = row.days
             // worksheet.getCell(`H${curRowIndex}`).value = row.hours
@@ -2082,6 +2087,11 @@ const templateFlagRaisingReport = async (attendances, query) => {
             // worksheet.getCell(`W${curRowIndex}`).value = numbering
 
         })
+        worksheet.getCell(`D13`).value = moment(query.date).format('MMMM')
+        dateGroups.forEach((dateGroup, rowIndex) => {
+            worksheet.getCell(`${a[rowIndex]}${14}`).value = moment(dateGroup).format('DD')
+        })
+
     }
 
     return workbook

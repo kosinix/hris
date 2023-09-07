@@ -1077,7 +1077,7 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
         }
         if (req.originalUrl.includes('.xlsx')) {
 
-            let workbook = await excelGen.templateFlagRaisingReport(employees, req.query)
+            let workbook = await excelGen.templateFlagRaisingReport(employees, req.query, dateGroups)
             let buffer = await workbook.xlsx.writeBuffer();
             res.set('Content-Disposition', `attachment; filename="flag-${mDate.format('YYYY-MM')}.xlsx"`)
             res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

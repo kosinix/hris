@@ -60,29 +60,41 @@
 
         {% if employees.length %}
             <div class="table-responsive bg-white p-1 border border-top-0">
-                <table class="table table-sm table-striped">
+                <table class="table table-sm table-striped table-bordered text-center">
                     <tr>
                         <th width="1%">#</th>
-                        <th width="5%">Name</th>
-                        <th width="5%">Position</th>
-                        {% for dateGroup in dateGroups %}
-                            <th width="5%">{{dateGroup|format_date('MMM DD (ddd)')}}</th>
+                        <th width="14%">Name</th>
+                        <th width="15%">Position</th>
+                        {% for monthName, monthObject in dateGroups %}
+                            <th colspan="{{monthObject.length+1}}">{{monthName}}</th>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        {% for monthName, monthObject in dateGroups %}
+                            {% for date in monthObject %}
+                                <th>{{date|format_date('DD')}}</th>
+                            {% endfor %}
                         {% endfor %}
                     </tr>
                     {% for employee in employees %}
                     {% set  employment = employee.employment %}
                     <tr>
                         <td>{{loop.index}}</td>
-                        <td><a href="/employee/{{employee._id}}/employment">{{employee.lastName}}, {{employee.firstName}}</a></td>
-                        <td><a href="/employee/{{employee._id}}/employment">{{employment.position}}</a></td>
-                        {% for dateGroup in dateGroups %}
-                            <td>
-                                {% if employee.attendanceFlags[dateGroup] %}
-                                    <a href="/attendance/flag/all?date={{employee.attendanceFlags[dateGroup].dateTime|format_date('YYYY-MM-DD')}}#{{employee._id}}">{{employee.attendanceFlags[dateGroup].dateTime|format_date('hh:mm A')}}</a>
+                        <td class="text-left" style="font-size: 12px;"><a href="/employee/{{employee._id}}/employment">{{employee.lastName}}, {{employee.firstName}}</a></td>
+                        <td class="text-left" style="font-size: 12px;"><a href="/employee/{{employee._id}}/employment">{{employment.position}}</a></td>
+                        {% for monthName, monthObject in dateGroups %}
+                            {% for date in monthObject %}
+                                {% if employee.attendanceFlags[monthName][date] %}
+                                    <td>
+                                        <a title="{{employee.attendanceFlags[monthName][date][0].dateTime|format_date('h:mmA')}}" href="/attendance/flag/all?date={{employee.attendanceFlags[monthName][date][0].dateTime|format_date('YYYY-MM-DD')}}#{{employee._id}}">✓</a>
+                                    </td>
                                 {% else %}
-                                &nbsp;
+                                    <td></td>
                                 {% endif %}
-                            </td>
+                            {% endfor %}
                         {% endfor %}
                     </tr>
                     {% endfor %}

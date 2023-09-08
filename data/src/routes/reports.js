@@ -910,6 +910,8 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
     try {
         let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
         let mDate = moment(date)
+        let mStartDate = mDate.clone().startOf('month')
+        let mEndDate = mDate.clone().endOf('month')
         let employmentType = lodash.get(req, 'query.employmentType', 'permanent')
         let group = lodash.get(req, 'query.group', 'faculty')
 
@@ -940,7 +942,7 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
                 }
             }
         })
-        
+
         aggr.push({
             $lookup: {
                 from: "attendanceflags",
@@ -951,7 +953,7 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
         })
         aggr.push({
             $project: {
-                firstName: 1, 
+                firstName: 1,
                 middleName: 1,
                 lastName: 1,
                 employment: 1,
@@ -983,8 +985,8 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
                         as: "attendanceFlag",
                         cond: {
                             $and: [
-                                { "$gte": ["$$attendanceFlag.dateTime", mDate.clone().startOf('month').toDate()] },
-                                { "$lte": ["$$attendanceFlag.dateTime", mDate.clone().endOf('month').toDate()] },
+                                { "$gte": ["$$attendanceFlag.dateTime", mStartDate.toDate()] },
+                                { "$lte": ["$$attendanceFlag.dateTime", mEndDate.toDate()] },
                             ]
                         },
                     }
@@ -1026,13 +1028,17 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
         employees = employees.map(a => {
             a.attendanceFlags = a.attendanceFlags.map(a => {
                 a.date = moment(a.dateTime).format('YYYY-MM-DD')
+                a.month = moment(a.dateTime).format('MMMM')
                 return a
             })
             a.attendanceFlags = lodash.groupBy(a.attendanceFlags, f => {
-                return f.date
+                return f.month
             })
-            a.attendanceFlags = lodash.mapValues(a.attendanceFlags, d => {
-                return d.at(0)
+
+            a.attendanceFlags = lodash.mapValues(a.attendanceFlags, month => {
+                return lodash.groupBy(month, a => {
+                    return a.date
+                })
             })
             return a
         })
@@ -1041,30 +1047,49 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
 
         // DATE GROUPS
         aggr = []
-        aggr.push({ 
+        aggr.push({
             $match: {
                 dateTime: {
-                    $gte: mDate.clone().startOf('month').toDate(),
-                    $lte: mDate.clone().endOf('month').toDate(),
+                    $gte: mStartDate.toDate(),
+                    $lte: mEndDate.toDate(),
                 }
-            } 
+            }
+        })
+        aggr.push({
+            $project: {
+                _id: 1,
+                employeeId: 1,
+                dateTime: 1,
+            }
         })
         aggr.push({
             $addFields: {
-                dateGroup: {
-                    $dateToString: { format: "%Y-%m-%d", date: "$dateTime", "timezone": '+08' }
+                date: {
+                    $dateToString: { format: "%Y-%m-%d", date: "$dateTime", timezone: '+08' }
                 }
             }
         })
         aggr.push({
             $sort: {
-                'dateGroup': 1,
+                'date': 1,
             }
         })
         let dateGroups = await req.app.locals.db.main.AttendanceFlag.aggregate(aggr)
-        dateGroups = Object.keys(lodash.groupBy(dateGroups, (o) => {
-            return o.dateGroup
-        })).sort()
+        dateGroups = dateGroups.map(a => {
+            a.monthName = moment(a.date).format('MMMM')
+            return a
+        })
+        // dateGroups = Object.keys(lodash.groupBy(dateGroups, (o) => {
+        //     return o.monthName
+        // })).sort()
+        dateGroups = lodash.groupBy(dateGroups, (o) => {
+            return o.monthName
+        })
+        dateGroups = lodash.mapValues(dateGroups, month => {
+            return Object.keys(lodash.groupBy(month, a => {
+                return a.date
+            }))
+        })
         // return res.send(dateGroups)
 
         let months = Array.from(Array(12).keys()).map((e, i) => {
@@ -1088,6 +1113,8 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
         res.render('reports/pm/flag-raising/overall.html', {
             flash: flash.get(req, 'reports'),
             mDate: mDate,
+            mStartDate: mStartDate,
+            mEndDate: mEndDate,
             months: months,
             years: years,
             dateGroups: dateGroups,

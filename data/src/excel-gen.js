@@ -2012,7 +2012,7 @@ let templateReportTrainingAll = async (employees, pagination) => {
 
 }
 
-const templateFlagRaisingReport = async (attendances, query,dateGroups) => {
+const templateFlagRaisingReport = async (attendances, query, dateGroups) => {
     let workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/reports/pm/flag-raising/overall.xlsx`);
 
@@ -2058,10 +2058,12 @@ const templateFlagRaisingReport = async (attendances, query,dateGroups) => {
             worksheet.getCell(`A${curRowIndex}`).value = ++numbering
             worksheet.getCell(`B${curRowIndex}`).value = `${row.lastName}, ${row.firstName} ${row.suffix} ${row.middleName.at(0)}.`
             worksheet.getCell(`C${curRowIndex}`).value = row.employment.position.replace('Admin Aide', 'AA').replace('Administrative Aide', 'AA').trim()
-            dateGroups.forEach((dateGroup, colIndex) => {
-                if(row.attendanceFlags[dateGroup]){
-                    worksheet.getCell(`${a[colIndex]}${curRowIndex}`).value = '/'
-                }
+            lodash.forEach(dateGroups, (monthObject, monthName) => {
+                monthObject.forEach((date, colIndex) => {
+                    if (row.attendanceFlags[monthName] && row.attendanceFlags[monthName][date]) {
+                        worksheet.getCell(`${a[colIndex]}${curRowIndex}`).value = '/'
+                    }
+                })
             })
             // worksheet.getCell(`E${curRowIndex}`).value = row.wage
             // worksheet.getCell(`F${curRowIndex}`).value = row.days
@@ -2087,9 +2089,14 @@ const templateFlagRaisingReport = async (attendances, query,dateGroups) => {
             // worksheet.getCell(`W${curRowIndex}`).value = numbering
 
         })
-        worksheet.getCell(`D13`).value = moment(query.date).format('MMMM')
-        dateGroups.forEach((dateGroup, rowIndex) => {
-            worksheet.getCell(`${a[rowIndex]}${14}`).value = moment(dateGroup).format('DD')
+        worksheet.getCell(`D12`).value = `MONTHS ${moment(query.date).format('YYYY')}`
+
+        lodash.forEach(dateGroups, (monthObject, monthName) => {
+            worksheet.getCell(`D13`).value = monthName
+
+            monthObject.forEach((date, colIndex) => {
+                worksheet.getCell(`${a[colIndex]}14`).value = moment(date).format('DD')
+            })
         })
 
     }

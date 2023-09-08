@@ -10,6 +10,17 @@ const money = require('money-math')
 //// Modules
 const payrollJs = require('../public/js/payroll');
 
+/**
+ * Convert 0-based integer into excel column letters
+ * 
+ * @param {Number} n 
+ * @returns Letter/s
+ */
+const nToAZ = (n) => {
+    return (a = Math.floor(n / 26)) >= 0
+        ? nToAZ(a - 1) + String.fromCharCode(65 + (n % 26))
+        : '';
+}
 class Slex {
     workbook
     sheet
@@ -2065,28 +2076,6 @@ const templateFlagRaisingReport = async (attendances, query, dateGroups) => {
                     }
                 })
             })
-            // worksheet.getCell(`E${curRowIndex}`).value = row.wage
-            // worksheet.getCell(`F${curRowIndex}`).value = row.days
-            // worksheet.getCell(`H${curRowIndex}`).value = row.hours
-            // worksheet.getCell(`J${curRowIndex}`).value = row.minutes
-            // worksheet.getCell(`L${curRowIndex}`).value = row.gross
-            // worksheet.getCell(`M${curRowIndex}`).value = row.premium5
-            // worksheet.getCell(`N${curRowIndex}`).value = {
-            //     formula: `=L${curRowIndex}+M${curRowIndex}`,
-            //     result: row.gross + row.premium5
-            // }
-            // worksheet.getCell(`O${curRowIndex}`).value = 0 // tax 3%
-            // worksheet.getCell(`P${curRowIndex}`).value = row.tax10
-            // worksheet.getCell(`Q${curRowIndex}`).value = lodash.get(row, 'taxTotal', 0) 
-            // worksheet.getCell(`R${curRowIndex}`).value = row.sss
-            // worksheet.getCell(`S${curRowIndex}`).value = row.sssEC
-            // worksheet.getCell(`T${curRowIndex}`).value = lodash.get(row, 'sssTotal', 0) 
-            // worksheet.getCell(`U${curRowIndex}`).value = lodash.get(row, 'deductionsTotal', 0)
-            // worksheet.getCell(`V${curRowIndex}`).value = {
-            //     formula: `=N${curRowIndex}-U${curRowIndex}`,
-            //     result: lodash.get(row, 'netAmount', 0)
-            // }
-            // worksheet.getCell(`W${curRowIndex}`).value = numbering
 
         })
         worksheet.getCell(`D12`).value = `MONTHS ${moment(query.date).format('YYYY')}`
@@ -2117,4 +2106,5 @@ module.exports = {
     templateReportTardinessPerEmployee: templateReportTardinessPerEmployee,
     templateReportTrainingAll: templateReportTrainingAll,
     templateFlagRaisingReport: templateFlagRaisingReport,
+    nToAZ: nToAZ,
 }

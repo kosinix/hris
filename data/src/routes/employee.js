@@ -3,7 +3,7 @@ const fs = require('fs')
 const util = require('util')
 
 //// External modules
-const ExcelJS = require('exceljs');
+const ExcelJS = require('exceljs')
 const express = require('express')
 const fileUpload = require('express-fileupload')
 const flash = require('kisapmata')
@@ -12,17 +12,17 @@ const moment = require('moment')
 const qr = require('qr-image')
 
 //// Modules
-const address = require('../address');
-const excelGen = require('../excel-gen');
-const countries = require('../countries');
-const mailer = require('../mailer');
-const middlewares = require('../middlewares');
-const paginator = require('../paginator');
-const passwordMan = require('../password-man');
-const s3 = require('../aws-s3');
-const suffixes = require('../suffixes');
-const uploader = require('../uploader');
-const { noCaps } = require('../utils');
+const address = require('../address')
+const excelGen = require('../excel-gen')
+const countries = require('../countries')
+const mailer = require('../mailer')
+const middlewares = require('../middlewares')
+const paginator = require('../paginator')
+const passwordMan = require('../password-man')
+const suffixes = require('../suffixes')
+const uploader = require('../uploader')
+const { noCaps } = require('../utils')
+const S3_CLIENT = require('../aws-s3-client')  // V3 SDK
 
 // Router
 let router = express.Router()
@@ -943,6 +943,7 @@ router.get('/employee/:employeeId/photo', middlewares.guardRoute(['read_employee
         let employee = res.employee
 
         res.render('employee/photo.html', {
+            flash: flash.get(req, 'employee'),
             employee: employee
         });
     } catch (err) {
@@ -954,69 +955,79 @@ router.post('/employee/:employeeId/photo', middlewares.guardRoute(['create_emplo
         let employee = res.employee
 
         // Delete files on AWS S3
+        // because they are being replaced
         const bucketName = CONFIG.aws.bucket1.name
         const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
         let photo = employee.profilePhoto
         if (photo) {
-            await s3.deleteObjects({
-                Bucket: bucketName,
-                Delete: {
-                    Objects: [
-                        { Key: `${bucketKeyPrefix}${photo}` },
-                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
-                        { Key: `${bucketKeyPrefix}small-${photo}` },
-                        { Key: `${bucketKeyPrefix}medium-${photo}` },
-                        { Key: `${bucketKeyPrefix}large-${photo}` },
-                    ]
-                }
-            }).promise()
+            let objects = [
+                { Key: `${bucketKeyPrefix}${photo}` },
+                { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                { Key: `${bucketKeyPrefix}small-${photo}` },
+                { Key: `${bucketKeyPrefix}medium-${photo}` },
+                { Key: `${bucketKeyPrefix}large-${photo}` },
+                { Key: `${bucketKeyPrefix}xlarge-${photo}` },
+                { Key: `${bucketKeyPrefix}orig-${photo}` },
+            ]
+            await S3_CLIENT.deleteObjects(bucketName, objects)
         }
 
-        let patch = {
-            profilePhoto: lodash.get(req, 'saveList.photo[0]')
-        }
-        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: {
+                profilePhoto: lodash.get(req, 'saveList.photo[0]')
+            }
+        })
+
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} photo.`)
         res.redirect(`/employee/${employee._id}/personal`);
     } catch (err) {
         next(err);
     }
 });
+
 router.get('/employee/:employeeId/photo/delete', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
 
+        res.render('employee/photo-delete-confirm.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.post('/employee/:employeeId/photo/delete', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, middlewares.antiCsrfCheck, async (req, res, next) => {
+    try {
+        let employee = res.employee
 
         // Delete files on AWS S3
         const bucketName = CONFIG.aws.bucket1.name
         const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
 
-        let promises = []
-
         let photo = employee.profilePhoto
         if (photo) {
-            let promise = s3.deleteObjects({
-                Bucket: bucketName,
-                Delete: {
-                    Objects: [
-                        { Key: `${bucketKeyPrefix}${photo}` },
-                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
-                        { Key: `${bucketKeyPrefix}small-${photo}` },
-                        { Key: `${bucketKeyPrefix}medium-${photo}` },
-                        { Key: `${bucketKeyPrefix}large-${photo}` },
-                        { Key: `${bucketKeyPrefix}xlarge-${photo}` },
-                        { Key: `${bucketKeyPrefix}orig-${photo}` },
-                    ]
-                }
-            }).promise()
+            let objects = [
+                { Key: `${bucketKeyPrefix}${photo}` },
+                { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                { Key: `${bucketKeyPrefix}small-${photo}` },
+                { Key: `${bucketKeyPrefix}medium-${photo}` },
+                { Key: `${bucketKeyPrefix}large-${photo}` },
+                { Key: `${bucketKeyPrefix}xlarge-${photo}` },
+                { Key: `${bucketKeyPrefix}orig-${photo}` },
+            ]
+            await S3_CLIENT.deleteObjects(bucketName, objects)
 
-            promises.push(promise)
+            await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+                $set: {
+                    profilePhoto: ''
+                }
+            })
+            flash.ok(req, 'employee', `"${employee.firstName} ${employee.lastName}" photo deleted.`)
+
         }
 
-        await Promise.all(promises)
-        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, { profilePhoto: '' })
-
-        flash.ok(req, 'employee', `"${employee.firstName} ${employee.lastName}" photo deleted.`)
         res.redirect(`/employee/${employee._id}/photo`);
     } catch (err) {
         next(err);
@@ -1554,28 +1565,26 @@ router.get('/employee/:employeeId/document/:documentId/delete', middlewares.guar
         const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
         let objectKey = document.key
         if (objectKey) {
-            let resx = await s3.deleteObjects({
-                Bucket: bucketName,
-                Delete: {
-                    Objects: [
-                        { Key: `${bucketKeyPrefix}${objectKey}` },
-                        { Key: `${bucketKeyPrefix}tiny-${objectKey}` },
-                        { Key: `${bucketKeyPrefix}small-${objectKey}` },
-                        { Key: `${bucketKeyPrefix}medium-${objectKey}` },
-                        { Key: `${bucketKeyPrefix}large-${objectKey}` },
-                    ]
-                }
-            }).promise()
-            // console.log(resx)
+            let objects = [
+                { Key: `${bucketKeyPrefix}${objectKey}` },
+                { Key: `${bucketKeyPrefix}tiny-${objectKey}` },
+                { Key: `${bucketKeyPrefix}small-${objectKey}` },
+                { Key: `${bucketKeyPrefix}medium-${objectKey}` },
+                { Key: `${bucketKeyPrefix}large-${objectKey}` },
+                { Key: `${bucketKeyPrefix}xlarge-${objectKey}` },
+                { Key: `${bucketKeyPrefix}orig-${objectKey}` },
+            ]
+            await S3_CLIENT.deleteObjects(bucketName, objects)
         }
 
         let documents = employee.documents.filter(o => {
             return o._id.toString() !== documentId
         })
-        await req.app.locals.db.main.Employee.updateOne({
-            _id: employee._id
-        }, {
-            documents: documents
+
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: {
+                documents: documents
+            }
         })
 
         flash.ok(req, 'employee', `Deleted document "${document.name} - ${document.docType}".`)
@@ -1730,8 +1739,8 @@ router.post('/employee/:employeeId/pds/family-background/children', middlewares.
         // return res.send(body)
 
         lodash.set(patch, 'personal.children', lodash.get(body, 'children', []))
-        
-        patch.personal.children = patch.personal.children.map(o=>{
+
+        patch.personal.children = patch.personal.children.map(o => {
             o.name = noCaps(o.name)
             return o
         })
@@ -1846,14 +1855,14 @@ router.post('/employee/:employeeId/pds/educational-background', middlewares.guar
             }
         })
 
-        patch = patch.map(o=>{
+        patch = patch.map(o => {
             o.name = noCaps(o.name)
             o.course = noCaps(o.course)
             o.unitsEarned = noCaps(o.unitsEarned)
             o.honors = noCaps(o.honors)
             return o
         })
-        
+
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
             $set: {
                 'personal.schools': patch
@@ -1887,7 +1896,7 @@ router.post('/employee/:employeeId/pds/csc-eligibility', middlewares.guardRoute(
     try {
         let employee = res.employee
         let patch = lodash.get(req, 'body.eligibilities', [])
-        
+
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
             $set: {
                 'personal.eligibilities': patch
@@ -1938,7 +1947,7 @@ router.post('/employee/:employeeId/pds/work-experience', middlewares.guardRoute(
             }
         })
 
-        patch = patch.map(o=>{
+        patch = patch.map(o => {
             o.positionTitle = noCaps(o.positionTitle)
             o.department = noCaps(o.department)
             o.appointmentStatus = noCaps(o.appointmentStatus)
@@ -2141,44 +2150,35 @@ router.get('/employee/delete/:employeeId', middlewares.guardRoute(['delete_emplo
 
         let promises = []
 
+        // Delete photo
         let photo = employee.profilePhoto
         if (photo) {
-            let promise = s3.deleteObjects({
-                Bucket: bucketName,
-                Delete: {
-                    Objects: [
-                        { Key: `${bucketKeyPrefix}${photo}` },
-                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
-                        { Key: `${bucketKeyPrefix}small-${photo}` },
-                        { Key: `${bucketKeyPrefix}medium-${photo}` },
-                        { Key: `${bucketKeyPrefix}large-${photo}` },
-                        { Key: `${bucketKeyPrefix}xlarge-${photo}` },
-                        { Key: `${bucketKeyPrefix}orig-${photo}` },
-                    ]
-                }
-            }).promise()
-
+            let objects = [
+                { Key: `${bucketKeyPrefix}${photo}` },
+                { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                { Key: `${bucketKeyPrefix}small-${photo}` },
+                { Key: `${bucketKeyPrefix}medium-${photo}` },
+                { Key: `${bucketKeyPrefix}large-${photo}` },
+                { Key: `${bucketKeyPrefix}xlarge-${photo}` },
+                { Key: `${bucketKeyPrefix}orig-${photo}` },
+            ]
+            let promise = S3_CLIENT.deleteObjects(bucketName, objects)
             promises.push(promise)
         }
 
         // Requirements
         lodash.each(employee.documents, (document) => {
-            lodash.each(document.files, (deadFile) => {
-                let bucketKey = deadFile
-                let promise = s3.deleteObjects({
-                    Bucket: bucketName,
-                    Delete: {
-                        Objects: [
-                            { Key: `${bucketKeyPrefix}${bucketKey}` },
-                            { Key: `${bucketKeyPrefix}tiny-${bucketKey}` },
-                            { Key: `${bucketKeyPrefix}small-${bucketKey}` },
-                            { Key: `${bucketKeyPrefix}medium-${bucketKey}` },
-                            { Key: `${bucketKeyPrefix}large-${bucketKey}` },
-                            { Key: `${bucketKeyPrefix}xlarge-${bucketKey}` },
-                            { Key: `${bucketKeyPrefix}orig-${bucketKey}` },
-                        ]
-                    }
-                }).promise()
+            lodash.each(document.files, (objectKey) => {
+                let objects = [
+                    { Key: `${bucketKeyPrefix}${objectKey}` },
+                    { Key: `${bucketKeyPrefix}tiny-${objectKey}` },
+                    { Key: `${bucketKeyPrefix}small-${objectKey}` },
+                    { Key: `${bucketKeyPrefix}medium-${objectKey}` },
+                    { Key: `${bucketKeyPrefix}large-${objectKey}` },
+                    { Key: `${bucketKeyPrefix}xlarge-${objectKey}` },
+                    { Key: `${bucketKeyPrefix}orig-${objectKey}` },
+                ]
+                let promise = S3_CLIENT.deleteObjects(bucketName, objects)
 
                 promises.push(promise)
             })

@@ -13,7 +13,7 @@ const moment = require('moment');
 
 //// Modules
 const logger = require('./logger')
-const s3 = require('./aws-s3')
+const S3_CLIENT = require('./aws-s3-client')  // V3 SDK
 
 const localPrefix = '__incomplete-' // Uploaded file prefix
 const _imageSizes = [
@@ -509,19 +509,14 @@ let uploadToS3Async = async (forUploads) => {
         for (let uploadIndex = 0; uploadIndex < forUploads.length; uploadIndex++) {
             let forUpload = forUploads[uploadIndex];
             promises.push(
-                s3.upload({
-                    Key: CONFIG.aws.bucket1.prefix + '/' + forUpload.key,
-                    Bucket: CONFIG.aws.bucket1.name,
-                    Body: fs.createReadStream(forUpload.filePath)
-                }).promise()
-            );
+                S3_CLIENT.putObject(CONFIG.aws.bucket1.name, CONFIG.aws.bucket1.prefix + '/' + forUpload.key, fs.createReadStream(forUpload.filePath))
+            )
         }
         results = await Promise.all(promises);
 
         return results;
     } catch (err) {
-        logger.error('Upload to s3 error');
-        logger.error(err);
+        console.error(err);
         throw new Error('Upload to cloud error')
     }
 }

@@ -7,7 +7,6 @@
 
     <form ref="form" v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/photo" method="POST" class="form-default">
         <div v-if="photo" class="text-center position-relative">
-
             <img v-bind:src="photo" id="preview" alt="photo">
         </div>
 
@@ -24,8 +23,7 @@
         <div class="form-row pt-3 pb-3">
             <div class="col-md-12">
                 <button class="btn btn-primary">Update Profile Photo</button>
-                <a v-if="photo" onclick="return confirm('Delete permanently?');" href="/employee/{{employee._id}}/photo/delete" class="btn btn-danger">X</a>
-
+                <a v-if="photo" href="/employee/{{employee._id}}/photo/delete" class="btn btn-danger">X</a>
             </div>
         </div>
     </form>

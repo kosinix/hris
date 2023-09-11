@@ -2028,22 +2028,18 @@ const templateFlagRaisingReport = async (attendances, query, dateGroups) => {
     await workbook.xlsx.readFile(`${CONFIG.app.dirs.view}/reports/pm/flag-raising/overall.xlsx`);
 
     let worksheet = null
+    worksheet = workbook.getWorksheet('PERMANENT FACULTY')
 
     if (query.employmentType == 'permanent' && query.group == 'faculty') {
-        worksheet = workbook.getWorksheet('PERMANENT FACULTY')
 
     } else if (query.employmentType == 'permanent' && query.group == 'staff') {
-        worksheet = workbook.getWorksheet('PERMANENT STAFF')
-
+        worksheet.name = 'PERMANENT STAFF'
     } else if (query.employmentType == 'cos' && query.group == 'staff') {
-        worksheet = workbook.getWorksheet('COS Staff')
-
+        worksheet.name = 'COS Staff'
     } else if (query.employmentType == 'cos' && query.group == 'faculty') {
-        worksheet = workbook.getWorksheet('COS Faculty')
-
+        worksheet.name = 'COS Faculty'
     } else if (query.employmentType == 'part-time' && query.group == 'faculty_staff') {
-        worksheet = workbook.getWorksheet('Part Time')
-
+        worksheet.name = 'Part Time'
     }
 
     let startRowIndex = 15
@@ -2057,22 +2053,21 @@ const templateFlagRaisingReport = async (attendances, query, dateGroups) => {
 
         worksheet.duplicateRow(startRowIndex, rowCount - 1, true);
 
-        // worksheet.getCell('A2').value = `Salary for the period ${moment(payroll.dateStart).format('MMMM DD')} - ${moment(payroll.dateEnd).format('DD, YYYY')}`
-
         let numbering = 0
-        let a = 'DEFGH'
         attendances.forEach((row, rowIndex) => {
 
             let curRowIndex = startRowIndex + rowIndex
-            let wsRow = worksheet.getRow(curRowIndex)
 
             worksheet.getCell(`A${curRowIndex}`).value = ++numbering
             worksheet.getCell(`B${curRowIndex}`).value = `${row.lastName}, ${row.firstName} ${row.suffix} ${row.middleName.at(0)}.`
-            worksheet.getCell(`C${curRowIndex}`).value = row.employment.position.replace('Admin Aide', 'AA').replace('Administrative Aide', 'AA').trim()
-            lodash.forEach(dateGroups, (monthObject, monthName) => {
-                monthObject.forEach((date, colIndex) => {
+            worksheet.getCell(`C${curRowIndex}`).value = row.employment.position.replace('Administrative Aide', 'Admin Aide').trim()
+
+            // 
+            Object.keys(dateGroups).forEach((monthName, i)=>{
+                let colIndex = i * 5 + i + 3
+                dateGroups[monthName].forEach((date, subColIndex) => {
                     if (row.attendanceFlags[monthName] && row.attendanceFlags[monthName][date]) {
-                        worksheet.getCell(`${a[colIndex]}${curRowIndex}`).value = '/'
+                        worksheet.getCell(`${nToAZ(colIndex+subColIndex)}${curRowIndex}`).value = '/'
                     }
                 })
             })
@@ -2080,11 +2075,11 @@ const templateFlagRaisingReport = async (attendances, query, dateGroups) => {
         })
         worksheet.getCell(`D12`).value = `MONTHS ${moment(query.date).format('YYYY')}`
 
-        lodash.forEach(dateGroups, (monthObject, monthName) => {
-            worksheet.getCell(`D13`).value = monthName
-
-            monthObject.forEach((date, colIndex) => {
-                worksheet.getCell(`${a[colIndex]}14`).value = moment(date).format('DD')
+        Object.keys(dateGroups).forEach((monthName, i)=>{
+            let colIndex = i * 5 + i + 3
+            worksheet.getCell(`${nToAZ(colIndex)}13`).value = monthName
+            dateGroups[monthName].forEach((date, subColIndex) => {
+                worksheet.getCell(`${nToAZ(colIndex+subColIndex)}14`).value = moment(date).format('DD')
             })
         })
 

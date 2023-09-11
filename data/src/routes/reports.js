@@ -908,13 +908,32 @@ router.get(['/reports/pm/tardiness/:employmentId/report', '/reports/pm/tardiness
 // PM - Flag Raising
 router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overall.xlsx'], middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
-        let date = lodash.get(req, 'query.date', moment().format('YYYY-MM-DD'))
-        let mDate = moment(date)
-        let mStartDate = mDate.clone().startOf('month')
-        let mEndDate = mDate.clone().endOf('month')
+        let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
+        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
+        
+        let mStartDate = moment(start, 'YYYY-MM-DD', true)
+        let mEndDate = moment(end, 'YYYY-MM-DD', true)
+
+        if(!mStartDate.isValid()){
+            throw new Error('Invalid start date.')
+        }
+        if(!mEndDate.isValid()){
+            throw new Error('Invalid end date.')
+        }
+
+        if(mEndDate.isBefore(mStartDate)){
+            throw new Error('End date must be more than start date.')
+        }
+        // throw new Error(mEndDate.diff(mStartDate, 'months'))
+        if(mEndDate.diff(mStartDate, 'months') > 5){
+            throw new Error('Max of 6 months range only.')
+        }
+
         let employmentType = lodash.get(req, 'query.employmentType', 'permanent')
         let group = lodash.get(req, 'query.group', 'faculty')
 
+        req.query.employmentType = employmentType
+        req.query.group = group
         employmentType = employmentType.split('_')
         group = group.split('_')
 
@@ -1024,6 +1043,7 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
                 'lastName': 1,
             }
         })
+        // console.dir(aggr, { depth:null})
         let employees = await req.app.locals.db.main.Employee.aggregate(aggr)
         employees = employees.map(a => {
             a.attendanceFlags = a.attendanceFlags.map(a => {
@@ -1079,9 +1099,7 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
             a.monthName = moment(a.date).format('MMMM')
             return a
         })
-        // dateGroups = Object.keys(lodash.groupBy(dateGroups, (o) => {
-        //     return o.monthName
-        // })).sort()
+        
         dateGroups = lodash.groupBy(dateGroups, (o) => {
             return o.monthName
         })
@@ -1092,19 +1110,12 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
         })
         // return res.send(dateGroups)
 
-        let months = Array.from(Array(12).keys()).map((e, i) => {
-            return mDate.clone().month(i).startOf('month')
-        }); // 1-count
 
-        let years = []
-        for (let y = parseInt(moment().format('YYYY')); y > 2020; y--) {
-            years.push(y)
-        }
         if (req.originalUrl.includes('.xlsx')) {
 
             let workbook = await excelGen.templateFlagRaisingReport(employees, req.query, dateGroups)
             let buffer = await workbook.xlsx.writeBuffer();
-            res.set('Content-Disposition', `attachment; filename="flag-${mDate.format('YYYY-MM')}.xlsx"`)
+            res.set('Content-Disposition', `attachment; filename="flag-raising-${mStartDate.format('MMM-DD-YYYY')}_${mStartDate.format('MMM-DD-YYYY')}.xlsx"`)
             res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             return res.send(buffer)
 
@@ -1112,11 +1123,9 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
 
         res.render('reports/pm/flag-raising/overall.html', {
             flash: flash.get(req, 'reports'),
-            mDate: mDate,
+            mDate: mStartDate,
             mStartDate: mStartDate,
             mEndDate: mEndDate,
-            months: months,
-            years: years,
             dateGroups: dateGroups,
             employees: employees,
             query: req.query,

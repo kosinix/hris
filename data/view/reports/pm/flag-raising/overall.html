@@ -14,46 +14,41 @@
         </div>
     </div>
     {% include 'parts/flash.html' %}
-    <div>
-        <ul class="nav nav-tabs">
-            {% for month in months %}
-            <li class="nav-item">
-                <a class="nav-link {% if mDate|format_date('MMM') == month|format_date('MMM') %} active {% endif%}" href="?{{query|query_string({date: month|format_date('YYYY-MM-DD')})}}">{{month|format_date('MMM')}}</a>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
+    
     <div class="tab-content pt-3 pb-2 pl-3 pr-3">
         <div class="form-row pb-3 align-items-center">
-            <div class="col-md-9 col-12">
-                <h2 class="h5 mb-md-0">Flag-raising Attendance for {{mDate|format_date('MMM YYYY')}}</h2>
+            <div class="col-md-6 col-12">
+                <h2 class="h6 mb-md-0">Attendance Period: {{mStartDate|format_date('MMM DD, YYYY')}} 
+                    {% if mStartDate|format_date('MMM DD, YYYY') != mEndDate|format_date('MMM DD, YYYY') %}
+                    - {{mEndDate|format_date('MMM DD, YYYY')}}</h2>
+                    {% endif %}
             </div>
-            <div class="col-md-3 col-12 text-md-right">
-                <form action="">
-                    <select onchange="this.form.submit()" name="date" class="form-control">
-                        {% for year in years %}
-                        <option value="{{year}}-01-01" {% if year == mDate|format_date('YYYY') %}selected{% endif %}>{{year}}</option>
-                        {% endfor %}
-                    </select>
+            <div class="col-md-6 col-12 text-md-right">
+                <form action="?{{query|query_string()}}" class="form-row">
+                    <input type="hidden" name="employmentType" value="{{query.employmentType}}">
+                    <input type="hidden" name="group" value="{{query.group}}">
+                    <input class="form-control col-4" type="date" value="{{mStartDate|format_date('YYYY-MM-DD')}}" name="start" />
+                    <input class="form-control col-4" type="date" value="{{mEndDate|format_date('YYYY-MM-DD')}}" name="end" />
+                    <button class="btn btn-primary col-4">Search</button>
                 </form>
             </div>
         </div>
         <div class="bg-light">
             <ul class="nav nav-tabs">
                 <li class="nav-item">
-                    <a class="nav-link {% if query.employmentType == 'permanent' and query.group == 'faculty' %} active {% endif%}" href="/reports/pm/flag-raising/overall?date={{mDate|format_date('YYYY-MM-DD')}}&employmentType=permanent&group=faculty">Permanent Faculty</a>
+                    <a class="nav-link {% if query.employmentType == 'permanent' and query.group == 'faculty' %} active {% endif%}" href="/reports/pm/flag-raising/overall?{{query|query_string({ start:mStartDate|format_date('YYYY-MM-DD'), end:mEndDate|format_date('YYYY-MM-DD'), employmentType: 'permanent', group: 'faculty' })}}">Permanent Faculty</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if query.employmentType == 'permanent' and query.group == 'staff' %} active {% endif%}" href="/reports/pm/flag-raising/overall?date={{mDate|format_date('YYYY-MM-DD')}}&employmentType=permanent&group=staff">Permanent Staff</a>
+                    <a class="nav-link {% if query.employmentType == 'permanent' and query.group == 'staff' %} active {% endif%}" href="/reports/pm/flag-raising/overall?{{query|query_string({ start:mStartDate|format_date('YYYY-MM-DD'), end:mEndDate|format_date('YYYY-MM-DD'), employmentType: 'permanent', group: 'staff' })}}">Permanent Staff</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if query.employmentType == 'cos' and query.group == 'staff' %} active {% endif%}" href="/reports/pm/flag-raising/overall?date={{mDate|format_date('YYYY-MM-DD')}}&employmentType=cos&group=staff">COS Staff</a>
+                    <a class="nav-link {% if query.employmentType == 'cos' and query.group == 'staff' %} active {% endif%}" href="/reports/pm/flag-raising/overall?{{query|query_string({ start:mStartDate|format_date('YYYY-MM-DD'), end:mEndDate|format_date('YYYY-MM-DD'), employmentType: 'cos', group: 'staff' })}}">COS Staff</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if query.employmentType == 'cos' and query.group == 'faculty' %} active {% endif%}" href="/reports/pm/flag-raising/overall?date={{mDate|format_date('YYYY-MM-DD')}}&employmentType=cos&group=faculty">COS Faculty</a>
+                    <a class="nav-link {% if query.employmentType == 'cos' and query.group == 'faculty' %} active {% endif%}" href="/reports/pm/flag-raising/overall?{{query|query_string({ start:mStartDate|format_date('YYYY-MM-DD'), end:mEndDate|format_date('YYYY-MM-DD'), employmentType: 'cos', group: 'faculty' })}}">COS Faculty</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if query.employmentType == 'part-time' and query.group == 'faculty_staff' %} active {% endif%}" href="/reports/pm/flag-raising/overall?date={{mDate|format_date('YYYY-MM-DD')}}&employmentType=part-time&group=faculty_staff">Part Time</a>
+                    <a class="nav-link {% if query.employmentType == 'part-time' and query.group == 'faculty_staff' %} active {% endif%}" href="/reports/pm/flag-raising/overall?{{query|query_string({ start:mStartDate|format_date('YYYY-MM-DD'), end:mEndDate|format_date('YYYY-MM-DD'), employmentType: 'part-time', group: 'faculty_staff' })}}">Part Time</a>
                 </li>
             </ul>
         </div>
@@ -66,7 +61,7 @@
                         <th width="14%">Name</th>
                         <th width="15%">Position</th>
                         {% for monthName, monthObject in dateGroups %}
-                            <th colspan="{{monthObject.length+1}}">{{monthName}}</th>
+                            <th colspan="{{monthObject.length}}">{{monthName}}</th>
                         {% endfor %}
                     </tr>
                     <tr>

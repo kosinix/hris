@@ -910,28 +910,28 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
     try {
         let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
         let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
-        
+
+        // Validation of inputs
         let mStartDate = moment(start, 'YYYY-MM-DD', true)
         let mEndDate = moment(end, 'YYYY-MM-DD', true)
 
-        if(!mStartDate.isValid()){
+        if (!mStartDate.isValid()) {
             throw new Error('Invalid start date.')
         }
-        if(!mEndDate.isValid()){
+        if (!mEndDate.isValid()) {
             throw new Error('Invalid end date.')
         }
 
-        if(mEndDate.isBefore(mStartDate)){
+        if (mEndDate.isBefore(mStartDate)) {
             throw new Error('End date must be more than start date.')
         }
-        // throw new Error(mEndDate.diff(mStartDate, 'months'))
-        if(mEndDate.diff(mStartDate, 'months') > 5){
+        if (mEndDate.diff(mStartDate, 'months') > 5) {
             throw new Error('Max of 6 months range only.')
         }
 
         mStartDate.startOf('day')
         mEndDate.endOf('day')
-        
+
         let employmentType = lodash.get(req, 'query.employmentType', 'permanent')
         let group = lodash.get(req, 'query.group', 'faculty')
 
@@ -940,6 +940,7 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
         employmentType = employmentType.split('_')
         group = group.split('_')
 
+        // Get employees joined with flag attendances
         let aggr = []
         aggr.push({
             $lookup: {
@@ -973,6 +974,8 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
                 as: "attendanceFlags"
             }
         })
+        // Filter out non active and non related employments
+        // Filter out flag attendances outside the date range
         aggr.push({
             $project: {
                 firstName: 1,
@@ -1067,7 +1070,6 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
         })
         // return res.send(employees)
 
-
         // DATE GROUPS
         aggr = []
         aggr.push({
@@ -1102,7 +1104,7 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
             a.monthName = moment(a.date).format('MMMM')
             return a
         })
-        
+
         dateGroups = lodash.groupBy(dateGroups, (o) => {
             return o.monthName
         })
@@ -1112,6 +1114,29 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
             }))
         })
         // return res.send(dateGroups)
+        // Sample output of dateGroups
+        /*
+        {
+            "January": [
+                "2023-01-09",
+                "2023-01-17",
+                "2023-01-23",
+                "2023-01-30"
+            ],
+            "February": [
+                "2023-02-06",
+                "2023-02-13",
+                "2023-02-20",
+                "2023-02-27"
+            ],
+            "March": [
+                "2023-03-06",
+                "2023-03-13",
+                "2023-03-20",
+                "2023-03-27"
+            ]
+        }
+        */
 
 
         if (req.originalUrl.includes('.xlsx')) {

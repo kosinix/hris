@@ -1,0 +1,74 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div id="vApp" v-cloak class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'employee/employee-header.html' %}
+
+    <form ref="form" v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/photo/delete" method="POST" class="form-default">
+        <input type="hidden" name="acsrf" value="{{acsrf}}">
+        <div v-if="photo" class="position-relative">
+            <div class="text-center p-3">
+                <img v-bind:src="medium" id="preview" alt="photo" class="mb-3" width="200" height="200">
+                <div class="alert alert-danger">This operation is irreversible.</div>
+                <button class="btn btn-danger">Delete Photo Permanently</button>
+            </div>
+            <p class="small">Included files:</p>
+            <ul class="small">
+                <li>${tiny}</li>
+                <li>${small}</li>
+                <li>${medium}</li>
+                <li>${large}</li>
+                <li>${xlarge}</li>
+                <li>${orig}</li>
+            </ul>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vue-file-upload.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            VueFileUpload.mixin, // vue-file-upload.js
+        ],
+        data: {
+            photo: '{{employee.profilePhoto|default('', true)|s3_url()}}',
+            tiny: '{{employee.profilePhoto|default('', true)|s3_url('tiny')}}',
+            small: '{{employee.profilePhoto|default('', true)|s3_url('small')}}',
+            medium: '{{employee.profilePhoto|default('', true)|s3_url('medium')}}',
+            large: '{{employee.profilePhoto|default('', true)|s3_url('large')}}',
+            xlarge: '{{employee.profilePhoto|default('', true)|s3_url('xlarge')}}',
+            orig: '{{employee.profilePhoto|default('', true)|s3_url()}}',
+        },
+        validations: {
+            photo: {
+                required: window.validators.required
+            },
+        },
+        methods: {
+            watermark: function(){ // vue-file-upload.js
+                return 'HRIS '+ moment().format('YYYY-MM-DD hh:mm:ss A');
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

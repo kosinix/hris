@@ -929,6 +929,9 @@ router.get(['/reports/pm/flag-raising/overall', '/reports/pm/flag-raising/overal
             throw new Error('Max of 6 months range only.')
         }
 
+        mStartDate.startOf('day')
+        mEndDate.endOf('day')
+        
         let employmentType = lodash.get(req, 'query.employmentType', 'permanent')
         let group = lodash.get(req, 'query.group', 'faculty')
 

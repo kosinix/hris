@@ -24,12 +24,21 @@
                     {% endif %}
             </div>
             <div class="col-md-6 col-12 text-md-right">
-                <form action="?{{query|query_string()}}" class="form-row">
+                <form action="?{{query|query_string()}}" class="form-row align-items-center">
                     <input type="hidden" name="employmentType" value="{{query.employmentType}}">
                     <input type="hidden" name="group" value="{{query.group}}">
-                    <input class="form-control col-4" type="date" value="{{mStartDate|format_date('YYYY-MM-DD')}}" name="start" />
-                    <input class="form-control col-4" type="date" value="{{mEndDate|format_date('YYYY-MM-DD')}}" name="end" />
-                    <button class="btn btn-primary col-4">Search</button>
+                    <label for="start1" class="mb-0 col-1 text-center">From</label>
+                    <div class="col-3">
+                        <input class="form-control" id="start1" type="date" value="{{mStartDate|format_date('YYYY-MM-DD')}}" name="start" />
+                    </div>
+                    
+                    <label for="end1" class="mb-0 col-1 text-center">to</label>
+                    <div class="col-4">
+                        <input class="form-control" id="end1" type="date" value="{{mEndDate|format_date('YYYY-MM-DD')}}" name="end" />
+                    </div>
+                    <div class="col-3">
+                        <button class="btn btn-primary btn-full-width">Search</button>
+                    </div>
                 </form>
             </div>
         </div>

@@ -5,11 +5,10 @@ const express = require('express')
 const lodash = require('lodash')
 
 //// Core modules
-const util = require('util')
 
 //// Modules
-const middlewares = require('../middlewares');
-const s3 = require('../aws-s3');
+const middlewares = require('../middlewares')
+const S3_CLIENT = require('../aws-s3-client')  // V3 SDK
 
 // Router
 let router = express.Router()
@@ -78,10 +77,7 @@ router.get('/file-viewer/:bucket/:prefix/:key', middlewares.requireAuthUser, asy
         let prefix = lodash.get(req, "params.prefix", "");
         let key = lodash.get(req, "params.key", "");
 
-        let url = s3.getSignedUrl('getObject', {
-            Bucket: bucket,
-            Key: prefix + '/' + key
-        })
+        const url = await S3_CLIENT.getSignedUrl(bucket, prefix + '/' + key);
 
         res.render('file-viewer.html', {
             url: url,
@@ -98,10 +94,7 @@ router.get('/file-getter/:bucket/:prefix/:key', async (req, res, next) => {
         let prefix = lodash.get(req, "params.prefix", "");
         let key = lodash.get(req, "params.key", "");
 
-        let url = s3.getSignedUrl('getObject', {
-            Bucket: bucket,
-            Key: prefix + '/' + key,
-        })
+        const url = await S3_CLIENT.getSignedUrl(bucket, prefix + '/' + key);
 
         res.redirect(url);
     } catch (err) {

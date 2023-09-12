@@ -2,25 +2,15 @@
 
 //// External modules
 const express = require('express')
-const fileUpload = require('express-fileupload')
 const flash = require('kisapmata')
 const lodash = require('lodash')
 const moment = require('moment')
 const momentRange = require('moment-range')
 const momentExt = momentRange.extendMoment(moment)
-const qr = require('qr-image')
 
 //// Modules
-const dtrHelper = require('../dtr-helper');
-const excelGen = require('../excel-gen');
-const middlewares = require('../middlewares');
-const nunjucksEnv = require('../nunjucks-env');
-const paginator = require('../paginator');
-const suffixes = require('../suffixes');
-const s3 = require('../aws-s3');
-const { AppError } = require('../errors');
-const uploader = require('../uploader');
-const workScheduler = require('../work-scheduler');
+const dtrHelper = require('../dtr-helper')
+const middlewares = require('../middlewares')
 
 // Router
 let router = express.Router()

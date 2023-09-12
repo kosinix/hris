@@ -21,7 +21,7 @@ const middlewares = require('../middlewares');
 const passwordMan = require('../password-man');
 const paginator = require('../paginator');
 const suffixes = require('../suffixes');
-const s3 = require('../aws-s3');
+const S3_CLIENT = require('../aws-s3-client')  // V3 SDK
 const { AppError } = require('../errors');
 const uploader = require('../uploader');
 const workScheduler = require('../work-scheduler');
@@ -2094,20 +2094,16 @@ router.post('/e-profile/photo', middlewares.guardRoute(['use_employee_profile'])
         const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
         let photo = employee.profilePhoto
         if (photo) {
-            await s3.deleteObjects({
-                Bucket: bucketName,
-                Delete: {
-                    Objects: [
-                        { Key: `${bucketKeyPrefix}${photo}` },
-                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
-                        { Key: `${bucketKeyPrefix}small-${photo}` },
-                        { Key: `${bucketKeyPrefix}medium-${photo}` },
-                        { Key: `${bucketKeyPrefix}large-${photo}` },
-                        { Key: `${bucketKeyPrefix}xlarge-${photo}` },
-                        { Key: `${bucketKeyPrefix}orig-${photo}` },
-                    ]
-                }
-            }).promise()
+            let objects = [
+                { Key: `${bucketKeyPrefix}${photo}` },
+                { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                { Key: `${bucketKeyPrefix}small-${photo}` },
+                { Key: `${bucketKeyPrefix}medium-${photo}` },
+                { Key: `${bucketKeyPrefix}large-${photo}` },
+                { Key: `${bucketKeyPrefix}xlarge-${photo}` },
+                { Key: `${bucketKeyPrefix}orig-${photo}` },
+            ]
+            await S3_CLIENT.deleteObjects(bucketName, objects)
         }
 
         employee.profilePhoto = lodash.get(req, 'saveList.photo[0]')
@@ -2128,20 +2124,16 @@ router.get('/e-profile/photo/delete', middlewares.guardRoute(['use_employee_prof
 
         let photo = employee.profilePhoto
         if (photo) {
-            await s3.deleteObjects({
-                Bucket: bucketName,
-                Delete: {
-                    Objects: [
-                        { Key: `${bucketKeyPrefix}${photo}` },
-                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
-                        { Key: `${bucketKeyPrefix}small-${photo}` },
-                        { Key: `${bucketKeyPrefix}medium-${photo}` },
-                        { Key: `${bucketKeyPrefix}large-${photo}` },
-                        { Key: `${bucketKeyPrefix}xlarge-${photo}` },
-                        { Key: `${bucketKeyPrefix}orig-${photo}` },
-                    ]
-                }
-            }).promise()
+            let objects = [
+                { Key: `${bucketKeyPrefix}${photo}` },
+                { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                { Key: `${bucketKeyPrefix}small-${photo}` },
+                { Key: `${bucketKeyPrefix}medium-${photo}` },
+                { Key: `${bucketKeyPrefix}large-${photo}` },
+                { Key: `${bucketKeyPrefix}xlarge-${photo}` },
+                { Key: `${bucketKeyPrefix}orig-${photo}` },
+            ]
+            await S3_CLIENT.deleteObjects(bucketName, objects)
         }
 
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, { profilePhoto: '' })
@@ -2174,18 +2166,16 @@ router.post('/e-profile/webcam', middlewares.guardRoute(['use_employee_profile']
         const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
         let photo = employee.profilePhoto
         if (photo) {
-            await s3.deleteObjects({
-                Bucket: bucketName,
-                Delete: {
-                    Objects: [
-                        { Key: `${bucketKeyPrefix}${photo}` },
-                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
-                        { Key: `${bucketKeyPrefix}small-${photo}` },
-                        { Key: `${bucketKeyPrefix}medium-${photo}` },
-                        { Key: `${bucketKeyPrefix}large-${photo}` },
-                    ]
-                }
-            }).promise()
+            let objects = [
+                { Key: `${bucketKeyPrefix}${photo}` },
+                { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                { Key: `${bucketKeyPrefix}small-${photo}` },
+                { Key: `${bucketKeyPrefix}medium-${photo}` },
+                { Key: `${bucketKeyPrefix}large-${photo}` },
+                { Key: `${bucketKeyPrefix}xlarge-${photo}` },
+                { Key: `${bucketKeyPrefix}orig-${photo}` },
+            ]
+            await S3_CLIENT.deleteObjects(bucketName, objects)
         }
 
         employee.profilePhoto = lodash.get(req, 'saveList.photo[0]')

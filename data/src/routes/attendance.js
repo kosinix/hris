@@ -13,7 +13,7 @@ const momentExt = momentRange.extendMoment(moment)
 const dtrHelper = require('../dtr-helper')
 const excelGen = require('../excel-gen')
 const middlewares = require('../middlewares')
-const s3 = require('../aws-s3');
+const S3_CLIENT = require('../aws-s3-client')  // V3 SDK
 const workScheduler = require('../work-scheduler')
 const flagRaising = require('../flag-raising')
 
@@ -753,18 +753,16 @@ router.post('/attendance/flag/:attendanceFlagId/delete', middlewares.antiCsrfChe
         const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
         let photo = lodash.get(attendance, 'extra.photo', lodash.get(attendance, 'source.photo'))
         if (photo) {
-            await s3.deleteObjects({
-                Bucket: bucketName,
-                Delete: {
-                    Objects: [
-                        { Key: `${bucketKeyPrefix}${photo}` },
-                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
-                        { Key: `${bucketKeyPrefix}small-${photo}` },
-                        { Key: `${bucketKeyPrefix}medium-${photo}` },
-                        { Key: `${bucketKeyPrefix}large-${photo}` },
-                    ]
-                }
-            }).promise()
+            let objects = [
+                { Key: `${bucketKeyPrefix}${photo}` },
+                { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                { Key: `${bucketKeyPrefix}small-${photo}` },
+                { Key: `${bucketKeyPrefix}medium-${photo}` },
+                { Key: `${bucketKeyPrefix}large-${photo}` },
+                { Key: `${bucketKeyPrefix}xlarge-${photo}` },
+                { Key: `${bucketKeyPrefix}orig-${photo}` },
+            ]
+            await S3_CLIENT.deleteObjects(bucketName, objects)
         }
 
 
@@ -1162,18 +1160,16 @@ router.post('/attendance/flag-lowering/:attendanceFlagLoweringId/delete', middle
         const bucketKeyPrefix = CONFIG.aws.bucket1.prefix + '/'
         let photo = lodash.get(attendance, 'extra.photo', lodash.get(attendance, 'source.photo'))
         if (photo) {
-            await s3.deleteObjects({
-                Bucket: bucketName,
-                Delete: {
-                    Objects: [
-                        { Key: `${bucketKeyPrefix}${photo}` },
-                        { Key: `${bucketKeyPrefix}tiny-${photo}` },
-                        { Key: `${bucketKeyPrefix}small-${photo}` },
-                        { Key: `${bucketKeyPrefix}medium-${photo}` },
-                        { Key: `${bucketKeyPrefix}large-${photo}` },
-                    ]
-                }
-            }).promise()
+            let objects = [
+                { Key: `${bucketKeyPrefix}${photo}` },
+                { Key: `${bucketKeyPrefix}tiny-${photo}` },
+                { Key: `${bucketKeyPrefix}small-${photo}` },
+                { Key: `${bucketKeyPrefix}medium-${photo}` },
+                { Key: `${bucketKeyPrefix}large-${photo}` },
+                { Key: `${bucketKeyPrefix}xlarge-${photo}` },
+                { Key: `${bucketKeyPrefix}orig-${photo}` },
+            ]
+            await S3_CLIENT.deleteObjects(bucketName, objects)
         }
 
 

@@ -21,7 +21,6 @@ const middlewares = require('../middlewares');
 const passwordMan = require('../password-man');
 const paginator = require('../paginator');
 const suffixes = require('../suffixes');
-const s3 = require('../aws-s3');
 const { AppError } = require('../errors');
 const uploader = require('../uploader');
 const workScheduler = require('../work-scheduler');

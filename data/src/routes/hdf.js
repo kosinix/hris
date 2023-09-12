@@ -13,7 +13,6 @@ const qr = require('qr-image')
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
-const s3 = require('../aws-s3');
 
 // Router
 let router = express.Router()

@@ -15,7 +15,6 @@ const mailer = require('../mailer');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
 const passwordMan = require('../password-man');
-const s3 = require('../aws-s3');
 
 // Router
 let router = express.Router()

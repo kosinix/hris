@@ -3,18 +3,12 @@ const fs = require('fs')
 
 //// External modules
 const express = require('express')
-const fileUpload = require('express-fileupload')
 const flash = require('kisapmata')
 const lodash = require('lodash')
-const moment = require('moment')
-const qr = require('qr-image')
 
 //// Modules
-const mailer = require('../mailer');
-const middlewares = require('../middlewares');
-const paginator = require('../paginator');
-const passwordMan = require('../password-man');
-const s3 = require('../aws-s3');
+const middlewares = require('../middlewares')
+const passwordMan = require('../password-man')
 
 // Router
 let router = express.Router()

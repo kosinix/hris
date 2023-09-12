@@ -3,9 +3,12 @@
 //// External modules
 const { 
     S3Client,
+    GetObjectCommand,
     PutObjectCommand,
     DeleteObjectsCommand
 } = require('@aws-sdk/client-s3') // V3 SDK
+
+const presigner = require("@aws-sdk/s3-request-presigner")
 
 //// Modules
 
@@ -17,6 +20,25 @@ const clientInstance = new S3Client({
     },
     region: `${CONFIG.aws.region}`,
 })
+
+/**
+ * getSignedUrl
+ * 
+ * @param {*} bucketName 
+ * @param {*} key 
+ * @param {*} expiresIn Seconds for link to expire. Default 15 mins (900s)
+ * @returns 
+ */
+const getSignedUrl = async (bucketName, key, expiresIn = 900) => {
+
+    const input = {
+        Bucket: bucketName,
+        Key: key,
+    };
+    
+    const command = new GetObjectCommand(input);
+    return presigner.getSignedUrl(clientInstance, command, { expiresIn: expiresIn });
+}
 
 const putObject = async (bucketName, key, body) => {
 
@@ -45,6 +67,7 @@ const deleteObjects = async (bucketName, objects) => {
 
 module.exports = {
     clientInstance: clientInstance,
+    getSignedUrl: getSignedUrl,
     putObject: putObject,
     deleteObjects: deleteObjects,
 }

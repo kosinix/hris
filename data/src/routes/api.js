@@ -180,6 +180,9 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
             let college = schools.find(o => {
                 return o.level === 'College'
             })
+            schools = schools.filter(o => {
+                return !/^(N\/A|na)/i.test(o.yearGraduated)
+            })
             let masters = schools.find(o => {
                 let course = o.course.replace(/(\s)+/g, ' ')
                 return o.level === 'Graduate Studies' && /^(master)/i.test(course)

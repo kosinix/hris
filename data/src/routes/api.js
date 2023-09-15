@@ -99,7 +99,7 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
         sort['lastName'] = 1
 
         let query = {}
-        // query[`lastName`] = ''
+        query[`lastName`] = req.query.lastName
         query[`employments`] = {
             $elemMatch: {
                 'active': true,
@@ -110,24 +110,6 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
                     $in: ['faculty']
                 }
             }
-        }
-
-        let project = {
-            lastName: 1,
-            firstName: 1,
-            middleName: 1,
-            suffix: 1,
-            gender: 1,
-            profilePhoto: 1,
-            email: 1,
-            address: 1,
-            mobileNumber: 1,
-            personal: {
-                schools: 1,
-                eligibilities: 1,
-                workExperiences: 1,
-            },
-            employments: 1,
         }
 
         let aggr = []
@@ -143,24 +125,38 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
         })
 
         aggr.push({ $match: query })
-        aggr.push({ $project: project })
+        aggr.push({ 
+            $project: {
+                lastName: 1,
+                firstName: 1,
+                middleName: 1,
+                suffix: 1,
+                gender: 1,
+                profilePhoto: 1,
+                email: 1,
+                address: 1,
+                mobileNumber: 1,
+                personal: {
+                    schools: 1,
+                    eligibilities: 1,
+                    workExperiences: 1,
+                },
+                employments: {
+                    $filter: {
+                        input: "$employments",
+                        as: "employment",
+                        cond: {
+                            $and: [
+                                { "$eq": ["$$employment.group", 'faculty'] },
+                                { "$eq": ["$$employment.active", true] },
+                            ]
+                        },
+                    }
+                },
+            } 
+        })
         aggr.push({ $sort: sort })
         let employees = await req.app.locals.db.main.Employee.aggregate(aggr)
-
-
-        const initials = (val) => {
-            val = new String(val)
-            val = val.replace(/(\s)+/, ' ').split(' ')
-            val = val.map(word => {
-                first = word.at(0)
-                if (first === first?.toUpperCase()) {
-                    return first
-                }
-                return ''
-            })
-            return val.join('.')
-        }
-
         const acronym = (val) => {
             val = new String(val)
             val = val.replace(/(\s)+/,' ').split(' ')
@@ -180,6 +176,7 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
             let college = schools.find(o => {
                 return o.level === 'College'
             })
+            // Remove schools that have "N/A or na" as year graduated
             schools = schools.filter(o => {
                 return !/^(N\/A|na)/i.test(o.yearGraduated)
             })
@@ -192,10 +189,8 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
                 return o.level === 'Graduate Studies' && /^(doctor)/i.test(course)
             })
 
+            // Get last
             let employments = e.employments ?? []
-            employments = employments.filter(o => {
-                return o.active
-            })
             let employment = employments.at(-1)
 
             return {

@@ -475,6 +475,16 @@ router.post('/schedule/:scheduleId', middlewares.guardRoute(['update_schedule'])
     }
 });
 
+router.get('/schedule/:scheduleId/delete', middlewares.guardRoute(['delete_schedule']), middlewares.getSchedule, async (req, res, next) => {
+    try {
+        // let workSchedule = res.schedule.toObject()
+        await res.schedule.remove()
+        return res.send('deleted')
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.post('/schedule/:scheduleId/members', middlewares.guardRoute(['update_schedule']), middlewares.getSchedule, async (req, res, next) => {
     try {
         let listIds = lodash.get(req, 'body.listIds', [])

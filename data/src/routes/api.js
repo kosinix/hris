@@ -99,7 +99,6 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
         sort['lastName'] = 1
 
         let query = {}
-        query[`lastName`] = req.query.lastName
         query[`employments`] = {
             $elemMatch: {
                 'active': true,

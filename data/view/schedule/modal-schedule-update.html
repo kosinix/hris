@@ -82,10 +82,10 @@
                                     </tr>
                                     <tr v-for="(br, i) in updateTimeSegment.breaks">
                                         <td>
-                                            <input v-model="br.start" name="start" id="start" type="time" class="form-control">
+                                            <input v-model="br.start" name="start" :id="'breakStart'+i" type="time" class="form-control">
                                         </td>
                                         <td>
-                                            <input v-model="br.end" name="end" id="end" type="time" class="form-control">
+                                            <input v-model="br.end" name="end" :id="'breakEnd'+i" type="time" class="form-control">
                                         </td>
                                         <td><button v-on:click.prevent="deleteBreak(br, i)" type="button" class="btn btn-sm btn-danger">X</button></td>
                                     </tr>

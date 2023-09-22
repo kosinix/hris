@@ -47,8 +47,7 @@ router.get('/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_s
         })
 
         aggr.push({
-            $project:
-            {
+            $project: {
                 name: 1,
                 timeSegments: 1,
                 members: 1,
@@ -65,6 +64,11 @@ router.get('/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_s
                     employeeId: 1,
                     employmentId: 1,
                 }
+            }
+        })
+        aggr.push({
+            $sort: {
+                locked: -1,
             }
         })
 

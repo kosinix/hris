@@ -66,7 +66,7 @@ let db = null; // Hold db here
         if (!schedule1) throw new Error('Could not find schedule 1')
 
         let schedule2 = await db.main.WorkSchedule.findOne({
-            name: '7:30AM-12NN,1PM-4:30PM'
+            name: /Flag Raising Early Out/i
         }).lean()
         if (!schedule2) throw new Error('Could not find schedule 2')
 

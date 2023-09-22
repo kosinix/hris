@@ -800,7 +800,7 @@ router.get('/attendance/flag/adjust', middlewares.guardRoute(['read_all_attendan
         if (!schedule1) throw new Error('Could not find schedule 1')
 
         let schedule2 = await req.app.locals.db.main.WorkSchedule.findOne({
-            name: '7:30AM-12NN,1PM-4:30PM'
+            name: /Flag Raising Early Out/i
         }).lean()
         if (!schedule2) throw new Error('Could not find schedule 2')
 
@@ -839,7 +839,7 @@ router.post('/attendance/flag/change', middlewares.guardRoute(['read_all_attenda
         if (!schedule1) throw new Error('Could not find schedule 1')
 
         let schedule2 = await req.app.locals.db.main.WorkSchedule.findOne({
-            name: '7:30AM-12NN,1PM-4:30PM'
+            name: /Flag Raising Early Out/i
         }).lean()
         if (!schedule2) throw new Error('Could not find schedule 2')
 

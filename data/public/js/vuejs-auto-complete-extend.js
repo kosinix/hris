@@ -1,8 +1,13 @@
 /**
  * Usage:
+ * <script src="{{app.url}}/js/vuejs-auto-complete-extend.js"></script>
+ * 
  * mixins: [
  *      window.vueJsAutoCompleteExtendMixin
  * ],
+ * components: {
+ *     'autocomplete': window["vuejs-autocomplete"]
+ * },
  */
 window.vueJsAutoCompleteExtendMixin = {
     // Same-name data are overwritten, component's data are prioritized

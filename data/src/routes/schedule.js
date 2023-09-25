@@ -37,6 +37,10 @@ router.get('/schedule/all', middlewares.guardRoute(['read_all_schedule', 'read_s
         let aggr = []
 
         aggr.push({
+            $match: search
+        })
+
+        aggr.push({
             $lookup:
             {
                 localField: "_id",

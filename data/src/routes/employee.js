@@ -695,21 +695,19 @@ router.get('/employee/:employeeId/employment/:employmentId/update', middlewares.
         ])
 
 
+        // Format for vue autocomplete
         workSchedules = workSchedules.map((w) => {
             return {
                 id: w._id,
                 name: w.name
             }
         })
-        const workSchedule = workSchedules.find(w=>{
-            return w.id.toString() === employment.workScheduleId.toString()
-        })
+        
 
         let data = {
             flash: flash.get(req, 'employee'),
             employee: employee,
             employment: employment.toObject(),
-            workSchedule: workSchedule,
             workSchedules: workSchedules,
         }
         // return res.send(data)

@@ -2011,6 +2011,13 @@ router.get('/attendance/employment/:employmentId/move', middlewares.guardRoute([
         ]
         compatibilityUrl = compatibilityUrl.join('&')
 
+        // Format for vue autocomplete
+        workSchedules = workSchedules.map((w) => {
+            return {
+                id: w._id,
+                name: w.name
+            }
+        })
 
         let data = {
             flash: flash.get(req, 'attendance'),

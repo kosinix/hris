@@ -35,11 +35,17 @@
                 <label for="workScheduleId">New Schedule</label>
                 <div class="form-row">
                     <div class="col-6">
-                        <select class="form-control" name="workScheduleId" id="workScheduleId">
-                            {% for workSchedule in workSchedules %}
-                            <option value="{{workSchedule._id}}">{{workSchedule.name}}</option>
-                            {% endfor %}
-                        </select>
+                        <autocomplete v-model="workScheduleId"
+                            name="workScheduleId"
+                            :initial-value="workSchedule.id"
+                            :initial-display="workSchedule.name"
+                            placeholder=""
+                            :source="workSchedules"
+                            input-class="form-control"
+                            :request-headers="headers"
+                            v-on:selected="onSelect"
+                            >
+                        </autocomplete>
                     </div>
                     <div class="col-6 d-flex">
                         <button class="btn btn-primary">Change Sched</button>
@@ -56,6 +62,7 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
+<script src="{{app.url}}/js/vuejs-auto-complete-extend.js"></script>
 <script>
     var vApp = new Vue({
         el: '#vApp',
@@ -63,12 +70,31 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
+            window.vueJsAutoCompleteExtendMixin
         ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
         data: {
             urlPath: '{{urlPath}}',
             startDate: '{{startMoment|format_date("YYYY-MM-DD")}}',
             endDate: '{{endMoment|format_date("YYYY-MM-DD")}}',
             showWeekDays: '{{showWeekDays}}',
+            workScheduleId: '{{employment.workScheduleId}}',
+            workSchedules: {{workSchedules|default([], true)|stringify|safe}},
+        },
+        computed: {
+            workSchedule: function(){
+                const me = this;
+                let found = me.workSchedules.find(w => w.id === me.workScheduleId)
+                if(found) {
+                    return found
+                }
+                return {
+                    id: '',
+                    name: ''
+                }
+            }
         },
         validations: {
             

@@ -94,12 +94,20 @@
             <div class="form-group">
                 <label for="workScheduleId">Work Schedule <span target="_blank" class="text-danger">*</span> <a href="/schedule/create" class="btn btn-sm btn-outline-secondary">Create Schedule</a></label>
                 <div>
-                    <select name="workScheduleId" id="workScheduleId" v-model="workScheduleId" class="form-control">
-                        {% set options = workSchedules %}
-                        {% for option in options %}
-                            <option value="{{option.value}}">{{option.text}}</option>
-                        {% endfor %}
-                    </select>
+                   
+
+                    <autocomplete v-model="workScheduleId"
+                        name="workScheduleId"
+                        :initial-value="workSchedule.id"
+                        :initial-display="workSchedule.name"
+                        placeholder=""
+                        :source="workSchedules"
+                        input-class="form-control"
+                        :request-headers="headers"
+                        v-on:selected="onSelect"
+                        >
+                    </autocomplete>
+
                     <small class="invalid-feedback">${getError('workScheduleId')}</small>
                 </div>
             </div>
@@ -159,6 +167,7 @@
 {% block scripts %}
 {{ super() }}
 {# {% include "parts/script-employment.html" %} #}
+<script src="{{app.url}}/js/vuejs-auto-complete-extend.js"></script>
 <script>
     var vApp = new Vue({
         el: '#vApp',
@@ -166,7 +175,11 @@
         mixins: [
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
+            window.vueJsAutoCompleteExtendMixin
         ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
         data: {
             active: '{{employment.active}}',
             campus: '{{employment.campus}}',
@@ -209,6 +222,19 @@
             sssDeduction: {
                 isMoneyFormat: window.customValidators.isMoneyFormat('Not a valid money format.')
             },
+        },
+        computed: {
+            workSchedule: function(){
+                const me = this;
+                let found = me.workSchedules.find(w => w.id === me.workScheduleId)
+                if(found) {
+                    return found
+                }
+                return {
+                    id: '',
+                    name: ''
+                }
+            }
         },
         methods: {
             guessPosition: function(){

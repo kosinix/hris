@@ -697,18 +697,23 @@ router.get('/employee/:employeeId/employment/:employmentId/update', middlewares.
 
         workSchedules = workSchedules.map((w) => {
             return {
-                value: w._id,
-                text: w.name
+                id: w._id,
+                name: w.name
             }
         })
+        const workSchedule = workSchedules.find(w=>{
+            return w.id.toString() === employment.workScheduleId.toString()
+        })
 
-        // return res.send(workSchedules)
-        res.render('employee/employment/update.html', {
+        let data = {
             flash: flash.get(req, 'employee'),
             employee: employee,
             employment: employment.toObject(),
+            workSchedule: workSchedule,
             workSchedules: workSchedules,
-        });
+        }
+        // return res.send(data)
+        res.render('employee/employment/update.html', data);
     } catch (err) {
         next(err);
     }

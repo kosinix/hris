@@ -2469,7 +2469,8 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
         }
     })
 
-    if(moment(attendance.createdAt).format('YYYY-MM-DD') === '2023-07-25'){
+    // Early out but still 8 hours
+    if(['2023-07-25', '2023-09-25'].includes(moment(attendance.createdAt).format('YYYY-MM-DD'))){
         dtr.totalMinutes = 480
         dtr.underTimeTotalMinutes = 0
     }

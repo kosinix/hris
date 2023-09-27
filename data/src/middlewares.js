@@ -1,17 +1,15 @@
 
 //// Core modules
-let { timingSafeEqual } = require('crypto')
+const { timingSafeEqual } = require('crypto')
 
 //// External modules
 const access = require('acrb')
-const flash = require('kisapmata')
 const jwt = require('jsonwebtoken')
 const lodash = require('lodash')
 const moment = require('moment')
 
 //// Modules
 const AppError = require('./errors').AppError
-const dtrHelper = require('./dtr-helper')
 const passwordMan = require('./password-man')
 const uploader = require('./uploader')
 
@@ -662,8 +660,8 @@ module.exports = {
             // Data privacy
             res.locals.acceptedDataPrivacy = lodash.get(res, 'employee.acceptedDataPrivacy', false)
 
-            if(!req.originalUrl.includes('/e/missing/u')){
-                if(employee.middleName.length <= 2){
+            if (!req.originalUrl.includes('/e/missing/u')) {
+                if (employee.middleName.length <= 2) {
                     // return res.redirect(`/e/missing/u/middleName`)
                 }
             }

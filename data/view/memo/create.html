@@ -11,7 +11,7 @@
         </div>
     </div>
     {% include 'parts/flash.html' %}
-    <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/memo/create" method="POST" class="form-default">
+    <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/memo/create" method="POST" data-pending="pending" class="form-default">
     
         <div class="form-group">
             <label for="number">Memo No.</label>
@@ -37,10 +37,12 @@
             </div>
         </div>
 
+        
         <div class="form-group">
-            <label for="url">Link to Google Drive</label>
+            <label for="url">PDF File of Memo</label>
             <div>
-                <input v-on:blur="format" name="url" id="url" v-model="url" type="text" class="form-control">
+                <input name="url" v-model="url" type="hidden">
+                <input id="url" v-on:change="readFile($event, 'url')" ref="url" type="file" class="form-control">
                 <small class="invalid-feedback">${getError('url')}</small>
             </div>
         </div>
@@ -104,6 +106,7 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
+<script src="{{app.url}}/js/vue-file-upload.js"></script>
 <script src="{{app.url}}/js/vuejs-auto-complete.js"></script>
 <script src="{{app.url}}/js/vuejs-auto-complete-extend.js"></script>
 <script>
@@ -114,17 +117,20 @@
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
             window.vueJsAutoCompleteExtendMixin,
+            VueFileUpload.mixin, // vue-file-upload.js
         ],
         components: {
             'autocomplete': window["vuejs-autocomplete"]
         },
         data: {
+            pending: false,
             number: '',
             subject: '',
             date: '',
             url: '',
             visibility: '',
             members: {{members|default([], true)|stringify|safe}},
+            acceptedMimeTypes: ['application/pdf'],
         },
         computed: {
             memberIds: function(){
@@ -148,7 +154,6 @@
                 required: window.validators.required
             },
         },
-
         methods: {
             format: function(value){
                 this.url = this.url.replace(/\/view\?usp=sharing$/, '/preview')

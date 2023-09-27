@@ -235,6 +235,10 @@ let toReqFile = (dataUrl) => {
  * @returns {Promise} Containing array of files uploaded.
  */
 let handleExpressUploadLocalAsync = async (files, uploadDir, allowedMimes = ["image/jpeg", "image/png", "application/pdf"], fxFileName = null) => {
+    const imageMimes = [
+        'image/avif', 'image/bmp', 'image/gif', 'image/jpeg', 'image/png', 'image/tiff', 'image/webp'
+    ]
+
     if (!files) {
         return {};
     }
@@ -276,10 +280,12 @@ let handleExpressUploadLocalAsync = async (files, uploadDir, allowedMimes = ["im
                 throw new Error("File type not allowed.");
             }
 
-            if (file.mv) {
-                await file.mv(destFile);
-            } else {
+            if (imageMimes.includes(file.mimetype)) {
                 await sharp(file.data).toFile(destFile)
+
+            } else {
+
+                fs.writeFileSync(destFile, Buffer.from(file.data, 'base64'))
             }
 
             let mimeType = await fileGuesser.guess(destFile);
@@ -454,7 +460,8 @@ let generateUploadList = (imageVariants, uploadFields) => {
         // Upload all sizes, including xlarge
         forUploads.push({
             key: fileName,
-            filePath: variant.filePath
+            filePath: variant.filePath,
+            mimeType: variant.mimeType,
         })
 
     });
@@ -465,7 +472,8 @@ let generateUploadList = (imageVariants, uploadFields) => {
             if (['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'].includes(file.mimeType)) {
                 forUploads.push({
                     key: file.fileName.replace(localPrefix, ''),
-                    filePath: file.filePath
+                    filePath: file.filePath,
+                    mimeType: file.mimeType,
                 })
             } else {
 
@@ -508,8 +516,18 @@ let uploadToS3Async = async (forUploads) => {
         let results = [];
         for (let uploadIndex = 0; uploadIndex < forUploads.length; uploadIndex++) {
             let forUpload = forUploads[uploadIndex];
+            let customPutObjectCommandParams = {} 
+            if(forUpload.mimeType === 'application/pdf'){
+                customPutObjectCommandParams['ContentType'] = forUpload.mimeType
+                customPutObjectCommandParams['ContentDisposition'] = 'inline' // View not download
+            }
             promises.push(
-                S3_CLIENT.putObject(CONFIG.aws.bucket1.name, CONFIG.aws.bucket1.prefix + '/' + forUpload.key, fs.createReadStream(forUpload.filePath))
+                S3_CLIENT.putObject(
+                    CONFIG.aws.bucket1.name, 
+                    CONFIG.aws.bucket1.prefix + '/' + forUpload.key, 
+                    fs.createReadStream(forUpload.filePath),
+                    customPutObjectCommandParams
+                )
             )
         }
         results = await Promise.all(promises);

@@ -10,12 +10,11 @@
             <div class="btn-group mr-2">
                 <a href="/memo/all" class="btn btn-sm btn-outline-primary">Back</a>
                 <a href="/memo/{{memo._id}}/delete" class="btn btn-sm btn-outline-danger">Delete</a>
-                <a href="/memo/{{memo._id}}/edit" class="btn btn-sm btn-outline-primary">Edit</a>
             </div>
         </div>
     </div>
     {% include 'parts/flash.html' %}
-    <iframe src="{{memo.url}}" width="100%" height="600px" frameborder="0"></iframe>
+    <iframe src="{{url}}" width="100%" height="600px" frameborder="0"></iframe>
 </div>
 {% endblock %}
 {% block scripts %}

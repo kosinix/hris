@@ -40,13 +40,19 @@ const getSignedUrl = async (bucketName, key, expiresIn = 900) => {
     return presigner.getSignedUrl(clientInstance, command, { expiresIn: expiresIn });
 }
 
-const putObject = async (bucketName, key, body) => {
+const putObject = async (bucketName, key, body, customPutObjectCommandParams) => {
 
-    const input = {
+    let input = {
         Bucket: bucketName,
         Key: key,
         Body: body,
     };
+    if(customPutObjectCommandParams['ContentDisposition']){
+        input['ContentDisposition'] = customPutObjectCommandParams['ContentDisposition']
+    }
+    if(customPutObjectCommandParams['ContentType']){
+        input['ContentType'] = customPutObjectCommandParams['ContentType']
+    }
     
     const command = new PutObjectCommand(input)
     return clientInstance.send(command) // Promise

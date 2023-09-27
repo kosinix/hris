@@ -9,7 +9,7 @@
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
                 <a href="/memo/all" class="btn btn-sm btn-outline-primary">Back</a>
-                <a href="/memo/{{memo._id}}/delete" class="btn btn-sm btn-outline-danger">Delete</a>
+                <a href="/memo/{{memo._id}}/delete" onclick="return confirm('Delete permanently?')" class="btn btn-sm btn-outline-danger">Delete</a>
             </div>
         </div>
     </div>

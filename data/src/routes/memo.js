@@ -188,6 +188,7 @@ router.get('/e/memo', middlewares.guardRoute(['use_employee_profile']), middlewa
         const memos = await req.app.locals.db.main.Memo.aggregate([
             {
                 $sort: {
+                    date: -1,
                     _id: -1,
                 }
             },

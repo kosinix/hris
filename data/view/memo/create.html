@@ -1,7 +1,7 @@
 {% extends "document.html" %}
 
 {% block body %}
-<div class="col-md-12">
+<div id="vApp" v-cloak :data-pending="pending" class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
             <h1 class="h3">Post Office Issuance (Memo)</h1>
@@ -11,8 +11,7 @@
         </div>
     </div>
     {% include 'parts/flash.html' %}
-    <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/memo/create" method="POST" data-pending="pending" class="form-default">
-    
+    <form ref="form" v-on:submit.prevent="onSubmit" action="/memo/create" method="POST" class="form-default p-4 tab-content">
         <div class="form-group">
             <label for="number">Memo No.</label>
             <div>
@@ -160,11 +159,13 @@
             },
             
             onSubmit: function(){
-                var me = this;
+                const me = this;
                 me.$v.$touch()
                 if (me.$v.$error) {
                     alert('Please correct the errors to continue.')
                 } else {
+                    me.pending = true
+
                     me.$nextTick(function() {
                         me.$refs.form.submit();
                     });

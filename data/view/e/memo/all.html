@@ -4,10 +4,10 @@
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
         <div class="d-flex align-items-start">
-            <h1 class="h3">All Office Issuances</h1>
+            <h1 class="h3">Office Issuances</h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="/memo/create" class="btn btn-sm btn-outline-primary">Post Memo</a>
+            <a href="/e/memo/create" class="btn btn-sm btn-outline-primary">Post Memo</a>
         </div>
     </div>
     {% include 'parts/flash.html' %}
@@ -47,7 +47,7 @@
                 {% for memo in memos %}
                     <tr>
                         <td>{{memo.number}}</td>
-                        <td><a href="/memo/{{memo._id}}">{{memo.subject}}</a></td>
+                        <td><a href="/e/memo/{{memo._id}}">{{memo.subject}}</a></td>
                         <td class="text-center">{{memo.date|format_date('YYYY')}}</td>
                         <td>{{memo.date|format_date('MMM DD, YYYY')}}</td>
                     </tr>
@@ -56,10 +56,10 @@
             </table>
         </div>
         <div class="text-center">
-            <a href="/memo/all?lastId={{memos.at(-1)._id}}" class="btn btn-light btn-sm">Previous</a>
+            <a href="/e/memo/all?lastId={{memos.at(-1)._id}}" class="btn btn-light btn-sm">Previous</a>
         </div>
     {% else %}
-        <p>Nothing to show. Go <a class="" href="/memo/all">Back</a>.</p>
+        <p>Nothing to show. Go <a class="" href="/e/memo/all">Back</a>.</p>
     {% endif %}
     
 </div>

@@ -2009,65 +2009,6 @@ router.post('/e-profile/account/password', middlewares.guardRoute(['use_employee
     }
 });
 
-router.get('/e-profile/memo', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-
-        let page = parseInt(lodash.get(req, 'query.page', 1))
-        let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
-        let sortBy = lodash.get(req, 'query.sortBy', 'date')
-        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', -1))
-        let customSort = parseInt(lodash.get(req, 'query.customSort'))
-        lodash.set(req, 'session.pagination.perPage', perPage)
-
-        let query = {}
-        let projection = {}
-
-        // Pagination
-        let totalDocs = await req.app.locals.db.main.Memo.countDocuments(query)
-        let pagination = paginator.paginate(
-            page,
-            totalDocs,
-            perPage,
-            '/e-profile/memo',
-            req.query
-        )
-
-        let options = { skip: (page - 1) * perPage, limit: perPage };
-        let sort = {}
-        sort = lodash.set(sort, sortBy, sortOrder)
-
-        // console.log(query, projection, options, sort)
-
-        let memos = await req.app.locals.db.main.Memo.find(query, projection, options).sort(sort).lean()
-
-        res.render('e-profile/memo.html', {
-            flash: flash.get(req, 'employee'),
-            employee: employee,
-            memos: memos,
-            pagination: pagination,
-            query: req.query,
-        });
-
-    } catch (err) {
-        next(err);
-    }
-});
-
-router.get('/e-profile/memo/:memoId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getMemo, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let memo = res.memo.toObject()
-
-        res.render('e-profile/memo-read.html', {
-            flash: flash.get(req, 'employee'),
-            employee: employee,
-            memo: memo,
-        });
-    } catch (err) {
-        next(err);
-    }
-});
 router.get('/e-profile/photo', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee

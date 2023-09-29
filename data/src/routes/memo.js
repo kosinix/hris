@@ -7,8 +7,7 @@ const lodash = require('lodash')
 const moment = require('moment')
 
 //// Modules
-const middlewares = require('../middlewares');
-const paginator = require('../paginator');
+const middlewares = require('../middlewares')
 const S3_CLIENT = require('../aws-s3-client')  // V3 SDK
 
 // Router
@@ -18,39 +17,33 @@ router.use('/memo', middlewares.requireAuthUser)
 
 router.get('/memo/all', middlewares.guardRoute(['read_all_memo', 'read_memo']), async (req, res, next) => {
     try {
-        let page = parseInt(lodash.get(req, 'query.page', 1))
-        let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
-        let sortBy = lodash.get(req, 'query.sortBy', 'date')
-        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', -1))
-        let customSort = parseInt(lodash.get(req, 'query.customSort'))
-        lodash.set(req, 'session.pagination.perPage', perPage)
+        const lastId = req.query?.lastId
+        let criteria = {}
+        if (lastId) {
+            criteria = {
+                _id: {
+                    $lt: req.app.locals.db.mongoose.Types.ObjectId(lastId)
+                }
+            }
+        }
 
-        let query = {}
-        let projection = {}
-
-        // Pagination
-        let totalDocs = await req.app.locals.db.main.Memo.countDocuments(query)
-        let pagination = paginator.paginate(
-            page,
-            totalDocs,
-            perPage,
-            '/memo/all',
-            req.query
-        )
-
-        let options = { skip: (page - 1) * perPage, limit: perPage };
-        let sort = {}
-        sort = lodash.set(sort, sortBy, sortOrder)
-
-        // console.log(query, projection, options, sort)
-
-        let memos = await req.app.locals.db.main.Memo.find(query, projection, options).sort(sort).lean()
+        const memos = await req.app.locals.db.main.Memo.aggregate([
+            {
+                $sort: {
+                    _id: -1,
+                }
+            },
+            {
+                $match: criteria
+            },
+            {
+                $limit: 10
+            },
+        ])
 
         res.render('memo/all.html', {
             flash: flash.get(req, 'memo'),
             memos: memos,
-            pagination: pagination,
-            query: req.query,
         });
     } catch (err) {
         next(err);
@@ -139,8 +132,11 @@ router.post('/memo/create', middlewares.guardRoute(['create_memo']), middlewares
 router.get('/memo/:memoId', middlewares.guardRoute(['read_all_memo', 'read_memo']), middlewares.getMemo, async (req, res, next) => {
     try {
         let memo = res.memo.toObject()
+        let url = memo.url
 
-        const url = await S3_CLIENT.getSignedUrl(CONFIG.aws.bucket1.name, CONFIG.aws.bucket1.prefix + '/' + memo.url);
+        if (!memo.url.includes('https://drive.google.com')) {
+            url = await S3_CLIENT.getSignedUrl(CONFIG.aws.bucket1.name, CONFIG.aws.bucket1.prefix + '/' + memo.url);
+        }
 
         res.render('memo/read.html', {
             flash: flash.get(req, 'memo'),
@@ -169,6 +165,66 @@ router.get('/memo/:memoId/delete', middlewares.guardRoute(['read_memo', 'delete_
         await memo.remove()
         flash.ok(req, 'memo', 'Memo removed.')
         res.redirect(`/memo/all`)
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/e/memo', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        const lastId = req.query?.lastId
+        let criteria = {}
+        if (lastId) {
+            criteria = {
+                _id: {
+                    $lt: req.app.locals.db.mongoose.Types.ObjectId(lastId)
+                }
+            }
+        }
+
+        const memos = await req.app.locals.db.main.Memo.aggregate([
+            {
+                $sort: {
+                    _id: -1,
+                }
+            },
+            {
+                $match: criteria
+            },
+            {
+                $limit: 10
+            },
+        ])
+
+        res.render('e/memo/all.html', {
+            flash: flash.get(req, 'memo'),
+            memos: memos,
+            employee: employee,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/e/memo/:memoId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getMemo, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let memo = res.memo.toObject()
+
+        let url = memo.url
+
+        if (!memo.url.includes('https://drive.google.com')) {
+            url = await S3_CLIENT.getSignedUrl(CONFIG.aws.bucket1.name, CONFIG.aws.bucket1.prefix + '/' + memo.url);
+        }
+
+        res.render('e/memo/read.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            memo: memo,
+            url: url,
+        });
     } catch (err) {
         next(err);
     }

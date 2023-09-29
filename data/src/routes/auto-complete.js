@@ -3,12 +3,8 @@
 //// External modules
 const express = require('express')
 const lodash = require('lodash')
+const moment = require('moment')
 
-/**
- * Use by the auto-complete field
- */
-//// Core modules
-const util = require('util')
 
 //// Modules
 const middlewares = require('../middlewares');
@@ -406,25 +402,24 @@ router.get('/auto-complete/emp', middlewares.guardRoute(['read_all_employee', 'r
 router.get('/auto-complete/search-memo', middlewares.guardRoute(['read_memo', 'use_employee_profile'], 'or'), async (req, res, next) => {
     try {
         let search = lodash.get(req, 'query.s', '')
-        let ignore = lodash.get(req, 'query.ignore', '')
 
         let words = lodash.trim(search)
-        if (words) {
-            words = new RegExp(words, "i")
-        }
-        // console.log(words)
+        words = words.replace(/(\s)+/, ' ')
 
         let query = {}
 
-        // Ignore employments with these IDs
-        if (ignore) {
-            query['_id'] = {
-                $nin: ignore.split(',').map(id => new req.app.locals.db.mongoose.Types.ObjectId(id))
-            }
-        }
-        
         if (words) {
-            query['subject'] = words
+            words = words.split(' ')
+            query['$or'] = [
+                {
+                    subject: new RegExp(words, "i")
+                }
+            ]
+            if (parseFloat(words) == words) {
+                query['$or'].push({
+                    number: parseInt(words)
+                })
+            }
         }
 
         // console.log(util.inspect(query, false, null, true /* enable colors */))
@@ -443,7 +438,7 @@ router.get('/auto-complete/search-memo', middlewares.guardRoute(['read_memo', 'u
         let results = memos.map((memo, i) => {
             return {
                 id: memo._id,
-                name: memo.subject
+                name: `${memo.number}: ${memo.subject}`
             }
         })
 

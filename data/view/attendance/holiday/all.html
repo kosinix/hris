@@ -2,7 +2,7 @@
 
 {% block body %}
 <div class="col-md-12">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
         <div class="d-flex align-items-center">
             <h1 class="h2 mr-3">Holidays <em>({{holidays.length}})</em></h1>
             <div>
@@ -31,41 +31,43 @@
     {% if holidays.length <= 0 %}
         <p>None found.</p>
     {% else %}
-        <div class="table-responsive">
-            <table class="table table-sm">
-                <tr>
-                    <th></th>
-                    <th>Name</th>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th></th>
-                </tr>
-                {% for holiday in holidays %}
-                <tr>
-                    <td>{{loop.index}}</td>
-                    <td><a href="/attendance/holiday/{{holiday._id}}">{{holiday.name}}</a></td>
-                    <td>{{holiday.date|format_date('MMM DD, YYYY ( ddd )')}}</td>
-                    <td>
-                    {% if holiday.type === 1 %}
-                    <span class="text-danger">Regular Holiday</span>
+        <div class="bg-white">
+            <div class="table-responsive tab-content">
+                <table class="table table-sm mb-0">
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th></th>
+                    </tr>
+                    {% for holiday in holidays %}
+                    <tr>
+                        <td>{{loop.index}}</td>
+                        <td><a href="/attendance/holiday/{{holiday._id}}">{{holiday.name}}</a></td>
+                        <td>{{holiday.date|format_date('MMM DD, YYYY ( ddd )')}}</td>
+                        <td>
+                        {% if holiday.type === 1 %}
+                        <span class="text-danger">Regular Holiday</span>
 
-                    {% elif holiday.type === 2%}
-                    Special Non-working Holiday
+                        {% elif holiday.type === 2%}
+                        Special Non-working Holiday
 
-                    {% else %}
-                    Other
+                        {% else %}
+                        Other
 
-                    {% endif %}
-                    
-                    </td>
-                    <td>
-                        <a class="text-primary p-1" href="/attendance/holiday/{{holiday._id}}/create-assoc-attendances">+ Att.</a> | 
-                        <a class="text-danger p-1" href="/attendance/holiday/{{holiday._id}}/delete-assoc-attendances">X Att.</a> | 
-                        <a class="text-danger p-1" href="/attendance/holiday/{{holiday._id}}/delete">X</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
+                        {% endif %}
+                        
+                        </td>
+                        <td>
+                            <!-- <a class="text-primary p-1" href="/attendance/holiday/{{holiday._id}}/create-assoc-attendances">+ Att.</a> |  -->
+                            <!-- <a class="text-danger p-1" href="/attendance/holiday/{{holiday._id}}/delete-assoc-attendances">X Att.</a> |  -->
+                            <a class="text-danger p-1" href="/attendance/holiday/{{holiday._id}}/delete">X</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
         </div>
     {% endif %}
 </div>

@@ -30,6 +30,7 @@ router.get('/memo/all', middlewares.guardRoute(['read_all_memo', 'read_memo']), 
         const memos = await req.app.locals.db.main.Memo.aggregate([
             {
                 $sort: {
+                    date: -1,
                     _id: -1,
                 }
             },

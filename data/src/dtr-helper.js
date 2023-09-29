@@ -2860,7 +2860,7 @@ const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) =
         const isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
         const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         const holidays = holidayList.filter(h => {
-            return h.date === date
+            return h.date === date && (h.type === 1 || h.type === 2) 
         })
         const isHoliday = (holidays.length > 0) ? true : false
         const isRestday = isHoliday || isWeekend

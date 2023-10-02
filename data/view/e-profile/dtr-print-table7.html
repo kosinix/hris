@@ -56,7 +56,7 @@
     </tr>
     {% for day in days %}
     {% set attendance = day.attendance %}
-    <tr class="position-relative {% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
+    <tr class="{% if day.date === momentNow|format_date('YYYY-MM-DD') %} selected {% endif %} {% if day.dtr.undertime === true %} undertime {% endif %}">
         <td class="text-center" width="10%">{{day.day}}</td>
         <td class="text-center weekday" width="10%">{{day.weekDay}}</td>
         {% if attendance.type === 'travel'  %}

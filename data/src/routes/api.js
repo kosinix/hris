@@ -185,7 +185,7 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
             })
             let doctoral = schools.find(o => {
                 let course = o.course.replace(/(\s)+/g, ' ')
-                return o.level === 'Graduate Studies' && /^(doctor)/i.test(course)
+                return o.level === 'Graduate Studies' && /(doctor)/i.test(course)
             })
 
             // Get last

@@ -277,14 +277,134 @@ router.get('/scanner/:scannerId/clients-sync', middlewares.guardRoute(['read_sca
         let scanner = res.scanner.toObject()
         scanner.user = await req.app.locals.db.main.User.findById(scanner.userId)
 
+        let momentDate = moment(req.query.date)
         let room = `scanner-${scanner._id}`
         let response = await req.app.locals.io.of("/hybrid-scanner").to(room).timeout(10000).emitWithAck('sendscanstoserver', {
             scannerId: scanner._id,
             scannerName: scanner.name,
             date: req.query.date
         })
-        // console.log('response', response.at(-1))
-        res.send(response.at(-1))
+        response = response.at(-1) // Ret val is inside an array so we pop it
+        if (!response?.scannerId) {
+            throw response
+        }
+        let scans = response.scans
+
+        let clients = lodash.groupBy(scans, (a) => {
+            return a.uid
+        })
+        // return res.send(clients)
+
+        for (let uid in clients) {
+            console.log(clients[uid])
+
+            let employee = await req.app.locals.db.main.Employee.findOne({
+                uid: uid
+            }, {
+                personal: 0,
+                addresses: 0,
+                documents: 0,
+                employments: 0,
+            }).lean()
+            let employments = []
+            if (employee) {
+                employments = await req.app.locals.db.main.Employment.find({
+                    active: true,
+                    employeeId: employee._id
+                }).lean()
+                // items[x]['employments'] = employments
+                // items[x]['attendances'] = []
+                for (let e = 0; e < employments.length; e++) {
+                    let employment = employments[e]
+                    let attendances = await req.app.locals.db.main.Attendance.find({
+                        employmentId: employment._id,
+                        createdAt: {
+                            $gte: momentDate.clone().startOf('day').toDate(),
+                            $lt: momentDate.clone().endOf('day').toDate(),
+                        }
+                    }).lean()
+                    // items[x]['attendances'] = attendances
+                    for (let a = 0; a < attendances.length; a++) {
+
+
+                        attendances[a].logs = attendances[a].logs.map((log) => {
+                            log['time'] = moment(log.dateTime).format('hh:mmA')
+                            log['unix'] = moment(log.dateTime).unix()
+                            return log
+                        })
+                        console.log(attendances[a].logs)
+                        clients[uid] = clients[uid].concat(attendances[a].logs)
+                    }
+
+                }
+
+
+            }
+
+            clients[uid].sort((a, b) => {
+                if (a.unix > b.unix) {
+                    return 1
+                }
+                if (b.unix > a.unix) {
+                    return -1
+                }
+                return 0
+            })
+
+            // let items = clients[uid]
+            // for (let x = 0; x < items.length; x++) {
+            //     let item = items[x]
+
+            //     // items[x]['employee'] = employee
+
+            // }
+
+            let finalLogs = clients[uid].slice(0, 4)
+            finalLogs = finalLogs.map((log, i) => {
+                if (!log.source) {
+                    return {
+                        dateTime: moment.unix(log.unix).toDate(),
+                        mode: (i + 1) % 2,
+                        type: 'normal',
+                        source: {
+                            id: scanner._id,
+                            type: 'scanner'
+                        },
+                        createdAt: moment.unix(log.unix).toDate(),
+                    }
+                }
+                return log
+            })
+            for (let e = 0; e < employments.length; e++) {
+                let employment = employments[e]
+                let attendance = await req.app.locals.db.main.Attendance.findOne({
+                    employeeId: employee._id,
+                    employmentId: employment._id,
+                    createdAt: {
+                        $gte: momentDate.clone().startOf('day').toDate(),
+                        $lt: momentDate.clone().endOf('day').toDate(),
+                    }
+                }).lean()
+                // UNCOMMENT FOR UPDATING
+                if (attendance.logs.length !== 4) {
+                    await req.app.locals.db.main.Attendance.updateOne({
+                        _id: attendance._id,
+                    }, {
+                        $set: {
+                            logs: finalLogs
+                        }
+                    })
+                }
+                // console.log('ATT', attendance)
+            }
+        }
+
+
+
+        return res.send(clients)
+
+        console.log('response from client callback', response)
+        res.send(response)
     } catch (err) {
         next(err);
     }

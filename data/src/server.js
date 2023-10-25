@@ -244,26 +244,27 @@
                     console.error(err)
                 }
             });
-            socket.on('scansfromclient', async (payload, callback) => {
+            socket.on('scansfromclient',  (payload, b, callback) => {
                 try {
 
-                    console.log('scansfromclient', callback)
+                    console.log('scansfromclient', payload, b, callback)
                     // console.log('sizebyts', Buffer.byteLength(payload.scans, 'utf8'))
                     if (payload.scannerId && payload.scans) {
                         let scannerId = payload.scannerId
-                        let scanner = await app.locals.db.main.Scanner.findById(scannerId).lean()
+                        let scanner = ''//await app.locals.db.main.Scanner.findById(scannerId).lean()
                         if (scanner) {
 
                             lodash.set(scanner.scans, payload.date, JSON.parse(payload.scans))
 
-                            await app.locals.db.main.Scanner.updateOne({ _id: scannerId }, {
-                                $set: {
-                                    'scans': scanner.scans
-                                }
-                            })
-                            callback('ok')
+                            // await app.locals.db.main.Scanner.updateOne({ _id: scannerId }, {
+                            //     $set: {
+                            //         'scans': scanner.scans
+                            //     }
+                            // })
                         }
                     }
+                    callback('ok')
+
                 } catch (err) {
                     console.error(err)
                 }

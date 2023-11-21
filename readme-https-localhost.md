@@ -10,6 +10,8 @@ For online certificates, use Let's Encrypt instead ([tutorial](https://gist.gith
 
 ## Certificate authority (CA)
 
+*Tip: Use git bash terminal to access openssl command*
+
 Generate `RootCA.pem`, `RootCA.key` & `RootCA.crt`:
 
 	MSYS_NO_PATHCONV=1 openssl req -x509 -nodes -new -sha256 -days 3650 -newkey rsa:2048 -keyout RootCA.key -out RootCA.pem -subj "/C=PH/CN=A-Local-Root-CA"

@@ -486,4 +486,63 @@ router.post('/e/dtr/:employmentId/schedule', middlewares.guardRoute(['use_employ
         next(err);
     }
 });
+
+// Delete
+router.get('/e/dtr/attendance/:attendanceId/delete', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeAttendance, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let attendance = res.attendance.toObject()
+        let employment = await req.app.locals.db.main.Employment.findById(lodash.get(attendance, 'employmentId'))
+        let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
+        let workSchedule = {}
+        let workScheduleTimeSegments = await req.app.locals.db.main.WorkSchedule.getWorkScheduleTimeSegments(req.app.locals.db, lodash.get(attendance, 'workScheduleId', employment.workScheduleId), attendance.createdAt)
+
+        // Normalize schema
+        attendance = dtrHelper.normalizeAttendance(attendance, employee, workScheduleTimeSegments)
+
+        // Schedule segments
+        let timeSegments = dtrHelper.buildTimeSegments(workScheduleTimeSegments)
+        let logSegments = dtrHelper.buildLogSegments(attendance.logs)
+        let options = {
+            ignoreZero: true,
+            noSpill: true
+        }
+        if (employment.employmentType === 'part-time' || attendance.type !== 'normal') {
+            options.noSpill = false
+        }
+        let timeWorked = dtrHelper.countWork(timeSegments, logSegments, options)
+        let readableSchedule = dtrHelper.readableSchedule(workScheduleTimeSegments)
+
+        // return res.send(dtrHelper.logSegmentsDtrFormat(logSegments))
+        res.render('e/dtr/delete.html', {
+            flash: flash.get(req, 'employee'),
+            attendanceTypes: CONFIG.attendance.types,
+            attendanceTypesList: CONFIG.attendance.types.map(o => o.value).filter(o => o !== 'normal'),
+            employee: employee,
+            employment: employment,
+            attendance: attendance,
+            workSchedules: workSchedules,
+            workSchedule: workSchedule,
+            timeSegments: timeSegments,
+            logSegments: logSegments,
+            logSegmentsDtr: dtrHelper.logSegmentsDtrFormat(logSegments),
+            timeWorked: timeWorked,
+            readableSchedule: readableSchedule,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e/dtr/attendance/:attendanceId/delete', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeAttendance, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employment = await req.app.locals.db.main.Employment.findById(lodash.get(res.attendance, 'employmentId'))
+        await res.attendance.remove()
+
+        flash.ok(req, 'employee', `Attendance deleted.`)
+        res.redirect(`/e/dtr/${employment._id}`)
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

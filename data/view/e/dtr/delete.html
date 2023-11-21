@@ -1,0 +1,30 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <div>
+                <h1 class="h4">Attendance</h1>
+                <p class="mb-0 pl-1"></p>
+            </div>
+        </div>
+    </div>
+    <div class="tab-content p-3">
+        <form action="/e/dtr/attendance/{{attendance._id}}/delete" method="POST" class="form-default">
+            <div class="form-group">
+                <label for="delete"></label>
+                <input type="hidden" class="form-control" name="acsrf" value="{{acsrf}}">
+                <div class="text-center">
+                    <p>Would you like to delete your attendance on <span class="text-info">{{attendance.createdAt|format_date('MMM DD, YYYY - dddd')}} ( <em>{{attendance.type|capitalize}}</em> )</span>?</p>
+                    <a href="/e-profile/home" class="btn btn-light">Cancel</a>
+                    <button class="btn btn-danger">Yes, Delete Attendance</button>
+                    
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+

@@ -32,6 +32,12 @@
             urlLeave: function() {
                 return `/e-profile/dtr/${this.employmentId}/attendance-set?date=${this.date}&type=leave`
             },
+            urlDel: function() {
+                if(this.attendanceId) {
+                    return '/e/dtr/attendance/' + this.attendanceId + '/delete'
+                }
+                return '#'
+            },
         }
     });
 </script>

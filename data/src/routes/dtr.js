@@ -492,6 +492,15 @@ router.get('/e/dtr/attendance/:attendanceId/delete', middlewares.guardRoute(['us
     try {
         let employee = res.employee.toObject()
         let attendance = res.attendance.toObject()
+
+        let attendanceReviews = await req.app.locals.db.main.AttendanceReview.findOne({
+            attendanceId: attendance._id
+        })
+        if(attendanceReviews){
+            throw new Error('Cannot delete attendance with application for correction.')
+        }
+
+
         let employment = await req.app.locals.db.main.Employment.findById(lodash.get(attendance, 'employmentId'))
         let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
         let workSchedule = {}

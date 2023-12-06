@@ -2693,6 +2693,9 @@ router.get('/attendance/review/all', middlewares.guardRoute(['read_all_attendanc
             }
         ]
         let attendanceReviews = await req.app.locals.db.main.AttendanceReview.aggregate(aggr)
+        attendanceReviews = attendanceReviews.filter( a => {
+            return a.attendance
+        })
         let attendanceReview = attendanceReviews[0]
 
         let workSchedules = await req.app.locals.db.main.WorkSchedule.find()

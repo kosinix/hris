@@ -1,0 +1,27 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="">
+            <h1 class="h2">Reports</h1>
+            <p class="m-1 mb-0">Learning and Development &raquo; Educational Attainment</p>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            
+        </div>
+    </div>
+    {% include 'parts/flash.html' %}
+    <div class="d-flex">
+        <div class="card text-white m-3" style="background: #2391a0; width: 25%;">
+            <div class="card-header">Permanent Faculty</div>
+            <div class="card-body">
+                <div class="text-center">
+                    <a href="/reports/lad/education/permanent-faculty" class="btn btn-sm btn-primary">View</a>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

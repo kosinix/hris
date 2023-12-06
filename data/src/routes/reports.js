@@ -1,5 +1,5 @@
 //// Core modules
-const fs = require('fs')
+const util = require('util')
 
 //// External modules
 const express = require('express')
@@ -398,6 +398,154 @@ router.get(['/reports/rsp/gender/table', `/reports/rsp/gender/table.xlsx`], midd
     }
 });
 
+router.get('/reports/lad/education/all', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
+    try {
+        res.render('reports/lad/education/all.html')
+    } catch (err) {
+        next(err);
+    }
+})
+
+router.get(`/reports/lad/education/permanent-faculty`, middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
+    try {
+        let page = parseInt(lodash.get(req, 'query.page', 1))
+        let perPage = 1000
+
+        let employmentType = 'permanent'
+        let employmentGroup = 'faculty'
+
+        let query = {}
+
+        // query[`lastName`] = 'Aliman-go'
+        // query[`campus`] = 'salvador'
+
+        lodash.set(query, 'employments.$elemMatch.active', true)
+
+        if (['permanent', 'cos', 'part-time'].includes(employmentType)) {
+
+            lodash.set(query, 'employments.$elemMatch.employmentType', employmentType)
+
+        }
+        if (['faculty', 'staff'].includes(employmentGroup)) {
+
+            lodash.set(query, 'employments.$elemMatch.group', employmentGroup)
+
+        }
+
+        let options = { skip: (page - 1) * perPage, limit: perPage };
+        let sort = {}
+        sort[`lastName`] = 1
+
+        let aggr = []
+
+        aggr.push({
+            $lookup: {
+                localField: "_id",
+                foreignField: "employeeId",
+                from: "employments",
+                as: "employments"
+            }
+        })
+
+        aggr.push({
+            $project: {
+                addresses: 0,
+                personal: {
+                    children: 0,
+                    vaccines: 0,
+                    references: 0,
+                    workExperiences: 0,
+                }
+            }
+        })
+
+        aggr.push({ $match: query })
+        aggr.push({ $sort: sort })
+
+        // Pagination
+        let countDocuments = await req.app.locals.db.main.Employee.aggregate(aggr)
+        let totalDocs = countDocuments.length
+        let pagination = paginator.paginate(
+            page,
+            totalDocs,
+            perPage,
+            '/reports/lad/training/all',
+            req.query
+        )
+
+        if (!isNaN(perPage)) {
+            aggr.push({ $skip: options.skip })
+            aggr.push({ $limit: options.limit })
+        }
+
+        let employees = await req.app.locals.db.main.Employee.aggregate(aggr)
+
+        employees = employees.map(e => {
+            let elementary = lodash.get(e, 'personal.schools', []).filter(s => s.level === 'Elementary')
+            let vocational = lodash.get(e, 'personal.schools', []).filter(s => s.level === 'Vocational')
+            let secondary = lodash.get(e, 'personal.schools', []).filter(s => s.level === 'Secondary')
+            let college = lodash.get(e, 'personal.schools', []).filter(s => s.level === 'College')
+            let masteral = lodash.get(e, 'personal.schools', []).filter(s => s.level === 'Graduate Studies' && /^Master/i.test(s.course))
+            let doctoral = lodash.get(e, 'personal.schools', []).filter(s => s.level === 'Graduate Studies' && /^Doctor/i.test(s.course))
+
+            e.educationalLevel = ''
+            if(elementary.length>0){
+                e.educationalLevel = 'elementary'
+            }
+            if(vocational.length>0){
+                e.educationalLevel = 'vocational'
+            }
+            if(secondary.length>0){
+                e.educationalLevel = 'secondary'
+            }
+            if(college.length>0){
+                e.educationalLevel = 'college'
+            }
+            if(masteral.length>0){
+                e.educationalLevel = 'masteral'
+            }
+            if(doctoral.length>0){
+                e.educationalLevel = 'doctoral'
+            }
+
+            // Sort
+            let schools = [
+                ...elementary,
+                ...vocational,
+                ...secondary,
+                ...college,
+                ...masteral,
+                ...doctoral
+            ]
+
+            // Remove invalid schools
+            schools = schools.filter(s => s.name !== '' && s.name !== 'N/A' && s.name !== 'n/a')
+            e.lastSchool = schools.pop()
+            
+            return e
+        })
+
+        let stats = {
+            total: employees.length,
+            masteral: employees.filter( e => e.educationalLevel === 'masteral' ).length,
+            doctoral: employees.filter( e => e.educationalLevel === 'doctoral' ).length,
+        }
+
+        // console.log(util.inspect(aggr, false, null, true))
+
+        // return res.send(employees)
+        res.render('reports/lad/education/permanent-faculty.html', {
+            flash: flash.get(req, 'employee'),
+            employees: employees,
+            pagination: pagination,
+            query: req.query,
+            stats: stats,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
 // LD
 // LD - trainings
 router.get('/reports/lad/all', middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
@@ -522,9 +670,13 @@ router.get(['/reports/lad/training/all', '/reports/lad/training/all.xlsx'], midd
                 schools.push(school)
             }
 
-            school = lodash.get(e, 'personal.schools', []).find(s => s.level === 'Graduate Studies')
-            if (school) {
-                schools.push(school)
+            let masters = lodash.get(e, 'personal.schools', []).find(s => s.level === 'Graduate Studies' && /^Master/.test(s.course))
+            if (masters) {
+                schools.push(masters)
+            }
+            let doctorate = lodash.get(e, 'personal.schools', []).find(s => s.level === 'Graduate Studies' && /^Doctor/.test(s.course) && /^([0-9]{4})$/.test(s.yearGraduated))
+            if (doctorate) {
+                schools.push(doctorate)
             }
 
             schools = schools.filter(s => s.name !== '' && s.name !== 'N/A' && s.name !== 'n/a')

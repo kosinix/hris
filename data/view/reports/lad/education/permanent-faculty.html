@@ -1,0 +1,129 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div id="vApp" v-cloak class="col-md-12">
+    <div
+        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h5">
+                Permanent Faculty
+            </h1>
+        </div>
+    </div>
+
+    {% if employees.length <= 0 %} 
+    
+        <p>None found.</p>
+
+    {% else %}
+        <div class="d-flex p-1 align-items-center">
+            <span class="mr-1">Filter by: </span>
+            <button class="btn btn-sm btn-light" type="button" @click="filter=''">None</button>
+            <button class="btn btn-sm btn-light" type="button" @click="filter='masteral'">Masteral</button>
+            <button class="btn btn-sm btn-light" type="button" @click="filter='doctoral'">Doctoral</button>
+        </div>
+        
+        <div class="tab-content p-3">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped border">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th width="10%">
+                                Last Name
+                            </th>
+                            <th width="10%">
+                                First Name
+                            </th>
+                            <th>Highest Educational Attainment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(employee, i) in getEmployees()">
+                            <td>${i+1}</td>
+                            <td>
+                                <a :href="`/employee/${employee._id}/personal`">${employee.lastName}</a>
+                            </td>
+                            <td>
+                                <a :href="`/employee/${employee._id}/personal`">${employee.firstName}</a>
+                            </td>
+                            <td>
+                                <template v-if="employee.lastSchool">
+                                <strong><a :href="`/employee/${employee._id}/pds/educational-background`">${employee.lastSchool.course}</a></strong> <br> 
+                                ${employee.lastSchool.name} (${employee.lastSchool.periodFrom}-${employee.lastSchool.periodTo})
+                                <em>${employee.lastSchool.honors}</em> - <em>${employee.lastSchool.level}</em>
+                            </template>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script> -->
+<script>
+    var EMPLOYEES = {{employees|default(true, [])|stringify|safe}}
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            filter: '',
+        },
+        computed: {
+            employees: function(){
+                
+            }
+        },
+        methods: {
+            getEmployees: function(){
+                var me = this;
+                if(me.filter === 'masteral'){
+                    return EMPLOYEES.filter(function(e){
+                        return e.educationalLevel === 'masteral'
+                    })
+                }
+                if(me.filter === 'doctoral'){
+                    return EMPLOYEES.filter(function(e){
+                        return e.educationalLevel === 'doctoral'
+                    })
+                }
+                return EMPLOYEES
+            }
+        }
+    })
+//     new Chart(document.getElementById("chartCount"), {
+//         type: 'bar',
+//         data: {
+//             labels: ['Faculty'],
+//             datasets: [{
+//                 label: '# of Faculty',
+//                 data: [{{ stats.total }}],
+//             borderWidth: 1
+//         },
+//             {
+//             label: 'With Masteral',
+//             data: [{{ stats.masteral }}],
+//         borderWidth: 1
+//             },
+//         {
+//             label: 'With Doctorate',
+//             data: [{{ stats.doctorate }}],
+//         borderWidth: 1
+//             }
+//         ]},
+//         options: {
+//         scales: {
+//             y: {
+//                 beginAtZero: true
+//             }
+//         }
+//     }
+//   });
+
+</script>
+{% endblock %}

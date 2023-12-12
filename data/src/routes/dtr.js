@@ -500,6 +500,15 @@ router.get('/e/dtr/attendance/:attendanceId/delete', middlewares.guardRoute(['us
             throw new Error('Cannot delete attendance with application for correction.')
         }
 
+        let log1 = lodash.get(attendance, 'logs[0].dateTime')
+        if(!log1){
+            throw new Error('Cannot delete.')
+        }
+        let diff = moment().diff(moment(log1), 'days')
+        if(diff > 1){
+            throw new Error('Cannot delete old attendance. Must delete a day after.')
+        }
+
 
         let employment = await req.app.locals.db.main.Employment.findById(lodash.get(attendance, 'employmentId'))
         let workSchedules = await req.app.locals.db.main.WorkSchedule.find().lean()
@@ -546,6 +555,24 @@ router.post('/e/dtr/attendance/:attendanceId/delete', middlewares.guardRoute(['u
     try {
         let employee = res.employee.toObject()
         let employment = await req.app.locals.db.main.Employment.findById(lodash.get(res.attendance, 'employmentId'))
+        let attendance = res.attendance.toObject()
+
+        let attendanceReviews = await req.app.locals.db.main.AttendanceReview.findOne({
+            attendanceId: attendance._id
+        })
+        if(attendanceReviews){
+            throw new Error('Cannot delete attendance with application for correction.')
+        }
+
+        let log1 = lodash.get(attendance, 'logs[0].dateTime')
+        if(!log1){
+            throw new Error('Cannot delete.')
+        }
+        let diff = moment().diff(moment(log1), 'days')
+        if(diff > 1){
+            throw new Error('Cannot delete old attendance. Must delete a day after.')
+        }
+
         await res.attendance.remove()
 
         flash.ok(req, 'employee', `Attendance deleted.`)

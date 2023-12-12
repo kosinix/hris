@@ -2333,9 +2333,6 @@ router.post('/attendance/employment/:employmentId/attendance/create', middleware
         lodash.set(patch, 'comment', lodash.get(body, 'comment'))
         lodash.set(patch, 'date', lodash.get(body, 'date'))
 
-
-
-
         let whiteList = CONFIG.attendance.types.map(o => o.value)
         if (!whiteList.includes(patch.type)) {
             throw new Error(`Invalid attendance type "${patch.type}".`)
@@ -2352,7 +2349,6 @@ router.post('/attendance/employment/:employmentId/attendance/create', middleware
 
         if (conflict) {
             throw new Error(`Already have attendance on this date. Please edit it instead.`)
-
         }
 
         let attendance = {

@@ -15,8 +15,8 @@
     <div class=" mb-5">
         {% include 'parts/flash.html' %}
         {% if attendanceDenied %}
-            <div class="alert alert-warning">
-                Previous application was denied: <strong>{{attendanceDenied.denyReason}}</strong>
+            <div class="alert alert-danger">
+                Previous application was denied for the following reason(s): <strong>{{attendanceDenied.denyReason}}</strong>
             </div>
         {% endif %}
         <div id="vApp" v-cloak v-bind:data-pending="pending" class="ml-auto mr-auto" >

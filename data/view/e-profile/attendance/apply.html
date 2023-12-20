@@ -93,8 +93,13 @@
                     </select>
                     <small class="invalid-feedback">${getError('correctionReason')}</small>
                 </div>
+                <div class="form-group" v-if="correctionReason==='Other reasons.'">
+                    <label for="otherReason" class="font-weight-bold">Specify reason: <span class="text-danger">*</span></label>
+                    <input type="text" v-model="otherReason" name="otherReason" id="otherReason" class="form-control" maxlength="100">
+                    <small class="invalid-feedback">${getError('otherReason')}</small>
+                </div>
                 <div class="form-group" v-if="['normal', 'pass'].includes(_.get(attendance, 'type'))">
-                    <label for="logsheetNumber" class="font-weight-bold">Your Number on the Attendance Sheet</label>
+                    <label for="logsheetNumber" class="font-weight-bold">Your Number on the Attendance Sheet <span class="text-danger">*</span></label>
                     <input type="number" v-model="logsheetNumber" name="logsheetNumber" id="logsheetNumber" class="form-control">
                     <small class="invalid-feedback">${getError('logsheetNumber')}</small>
                 </div>
@@ -169,6 +174,7 @@
             attendanceTypesList: {{attendanceTypesList|default([], true)|stringify|safe}},
             correctionReasons: {{correctionReasons|default([], true)|stringify|safe}},
             correctionReason: '',
+            otherReason: '',
             logsheetNumber: '',
             photo: '',
             photo2: '',
@@ -263,6 +269,24 @@
 
                     if(me.type === 'normal' && (!me.photo && !me.photo2)){
                         alert('Please select or upload a photo of the Attendance Sheet.')
+                        goodTime = false
+                    }
+
+                    if(me.correctionReason === 'Other reasons.'){
+                        var reasons = [
+                            'Please specify your reason.',
+                            'Please specify your reason in not less than 100 characters.',
+                            'Please specify another reason.',
+                        ]
+                        alert(reasons[Math.floor(Math.random() * reasons.length)])
+                        goodTime = false
+                    }
+                    if(me.correctionReason === 'Scanner did not register my log.'){
+                        var reasons = [
+                            'Please specify your reason in not less than 100 characters.',
+                            'Please describe why the scanner did not register your log.',
+                        ]
+                        alert(reasons[Math.floor(Math.random() * reasons.length)])
                         goodTime = false
                     }
                    

@@ -272,14 +272,15 @@
                         goodTime = false
                     }
 
-                    if(me.correctionReason === 'Other reasons.'){
-                        var reasons = [
-                            'Please specify your reason.',
-                            'Please specify your reason in not less than 100 characters.',
-                            'Please specify another reason.',
-                        ]
-                        alert(reasons[Math.floor(Math.random() * reasons.length)])
+                    if(me.correctionReason === 'Other reasons.' && _.trim(me.otherReason) === ''){
+                        // var reasons = [
+                        //     'Please specify your reason.',
+                        //     'Please specify your reason in not less than 100 characters.',
+                        //     'Please specify another reason.',
+                        // ]
+                        alert('Please specify your reason.')
                         goodTime = false
+
                     }
                     if(me.correctionReason === 'Scanner did not register my log.'){
                         var reasons = [
@@ -292,6 +293,7 @@
                    
                     if(goodTime){
                         me.pending = true
+                        
                         me.$nextTick(function() {
                             me.$refs.form.submit();
                         });

@@ -2226,7 +2226,7 @@ const getDtrByDateRange2 = async (db, employeeId, employmentId, startMoment, end
         let attendance = attendances[date] || null
         let holiday = holidays[date] || null
         let workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
-        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
+        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22', '2023-12-26'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         let dtr = {
             totalMinutes: 0,
             totalInHours: 0,
@@ -2626,7 +2626,7 @@ const getDtrByDateRange6 = async (db, employeeId, employmentId, _startMoment, _e
         const isWeekend = ['Sat', 'Sun'].includes(weekDay)
         const isPast = _moment.clone().startOf('day').isBefore(moment().startOf('day'))
         const isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
-        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22', '2023-06-01', '2023-06-02'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
+        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22', '2023-06-01', '2023-06-02', '2023-12-26'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         const holiday = holidays[date] || null
         const attendance = attendances[date] || null
         let workSchedule = lodash.get(attendance, 'workSchedule', defaultWorkSched)
@@ -2858,7 +2858,7 @@ const getDtrDays = async (db, employmentId, _startMoment, _endMoment, options) =
         const isWeekend = ['Sat', 'Sun'].includes(weekDay)
         const isPast = _moment.clone().startOf('day').isBefore(moment().startOf('day'))
         const isNow = (date === moment().format('YYYY-MM-DD')) ? true : false
-        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
+        const isForCorrection = ['2023-02-02', '2023-02-03', '2023-04-21', '2023-04-22', '2023-12-26'].includes(_moment.clone().startOf('day').format('YYYY-MM-DD')) ? true : false
         const holidays = holidayList.filter(h => {
             return h.date === date && (h.type === 1 || h.type === 2) 
         })

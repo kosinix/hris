@@ -513,7 +513,7 @@ router.post('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute(
         patch.attendanceId = attendance._id.toString()
         patch.attachments = attachments
         patch.type = body.type
-        patch.correctionReason = body.correctionReason + body.otherReason
+        patch.correctionReason = body.correctionReason + ' ' + body.otherReason
         patch.logsheetNumber = body.logsheetNumber
         patch.workScheduleId = body.workScheduleId
         patch.status = 'pending'
@@ -867,6 +867,7 @@ router.post('/e-profile/dtr/:employmentId/attendance/:date', middlewares.guardRo
         patch.attachments = attachments
         patch.type = body.type
         patch.correctionReason = body.correctionReason
+        patch.correctionReason = body.correctionReason + ' ' + body.otherReason
         patch.logsheetNumber = body.logsheetNumber
         patch.workScheduleId = body.workScheduleId
         patch.status = 'pending'

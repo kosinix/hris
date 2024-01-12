@@ -402,9 +402,45 @@ router.get('/attendance/monitoring', middlewares.guardRoute(['read_all_attendanc
             }
         })
 
+        aggr.push({
+            $lookup: {
+                from: "scanners",
+                localField: "log.source.id",
+                foreignField: "_id",
+                as: "scanners"
+            }
+        })
+
+        aggr.push({
+            $addFields: {
+                "scanner": {
+                    $arrayElemAt: ["$scanners", 0]
+                }
+            }
+        })
+
+        aggr.push({
+            $project: {
+                scanners: 0,
+                scanner: {
+                    scans: 0,
+                    userId: 0,
+                    createdAt: 0,
+                    updatedAt: 0,
+                    uuid: 0,
+                    uid: 0,
+                    __v: 0,
+                    device: 0,
+                    refresh: 0,
+                    verification: 0,
+                    useCam: 0,
+                    online: 0,
+                }
+            }
+        })
+
         //console.log(aggr)
         attendances = await req.app.locals.db.main.Attendance.aggregate(aggr)
-        // return res.send(attendances)
 
         res.render('attendance/monitoring.html', {
             flash: flash.get(req, 'attendance'),

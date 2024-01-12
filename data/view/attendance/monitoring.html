@@ -58,6 +58,7 @@
                         <template v-else>
                             <em class="text-secondary">${logMode(attendance.log.mode)}</em>
                         </template>
+                        <span v-if="user.username === 'gsc.mis.amarilla'">${attendance?.scanner?.campus}</span>
                         <a target="_blank" v-if="hasPhoto(attendance)" v-bind:href="viewPhoto(attendance)"><img width="30" height="30" v-bind:src="getPhoto(attendance, 'tiny')" alt="" /></a>
                     </td>
                 </tr>
@@ -99,6 +100,7 @@
             },
         },
         data: {
+            user: {{user|default({}, true)|stringify|safe}},
             aws: {{aws|default({}, true)|stringify|safe}},
             attendances: {{attendances|default([], true)|stringify|safe}},
             notify: false,

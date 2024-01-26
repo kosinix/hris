@@ -39,7 +39,7 @@
                         <div class="col-md-6 order-1 mb-3">
                             <div class="border border-success p-4">
                                 <p class="h6 pt-2 pb-3">{{item.title}} 
-                                    <br>{{item.employment.employmentType|capitalize}}
+                                    <br>{{item.employment.employmentType|capitalize|replace('Cos', 'COS')}}
                                     <br><em class="text-success">(Active)</em>
                                 </p>
 
@@ -56,7 +56,7 @@
                             <div class="border p-4">
                                 <div style="opacity:0.5">
                                     <p class="h6 pt-2 pb-3 font-style-italic text-dark">{{item.title}} 
-                                        <br>{{item.employment.employmentType|capitalize}}
+                                        <br>{{item.employment.employmentType|capitalize|replace('Cos', 'COS')}}
                                         <br><em class="text-danger">(Inactive)</em>
                                     </p>
                                     <a href="/e-profile/dtr/{{item.employment._id}}" class="mt-3 btn btn-light">

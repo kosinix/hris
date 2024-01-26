@@ -334,4 +334,12 @@ router.get('/users', middlewares.requireAuthUser, async (req, res, next) => {
         next(err);
     }
 });
+
+router.get('/help/onboard', async (req, res, next) => {
+    try {
+        res.render('e/help/onboard.html');
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

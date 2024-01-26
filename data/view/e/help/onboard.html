@@ -1,0 +1,55 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div>
+            <h1 class="h3 mb-0">Help</h1>
+            <p class="mb-0">Browse help topics</p>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/help" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+
+    {% include 'parts/flash.html' %}
+
+    <div class="tab-content mb-3 p-3">
+        <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6 text-center pb-5">
+                <h2 class="h5 mb-3">Welcome aboard!</h2>
+
+                <video id="my-video" class="video-js vjs-fluid" style="box-shadow: 0 0 3px lightgray; border-radius: 3px; overflow: hidden;" autoplay controls preload="auto" width="640" height="480" poster="/images/help/onboarding.jpg"
+                    data-setup="{}">
+                    <source src="/videos/onboarding.mp4" type="video/mp4" />
+                    <!-- <source src="/media/what.webm" type="video/webm" /> -->
+                    <p class="vjs-no-js">
+                        To view this video please enable JavaScript, and consider upgrading to a
+                        web browser that
+                        <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+                    </p>
+                </video>
+                <div class="pt-4 text-left">
+                    <h2 class="h6 mb-3">Further reading:</h2>
+                    <ol>
+                        <!-- <li>HRIS End User Manual</li> -->
+                        <li>Internal Guidelines for Using the Human Resource Information System &raquo; <a href="/e/memo/630449a724d20f638f962036">Read</a></li>
+                        <li>Attendance to And Conduct of The Flag Raising and Flag Lowering Ceremonies &raquo; <a href="/e/memo/65167c85c969bfcd1cd08746">Read</a></li>
+                        <li>Help Topics &raquo; <a href="/help">Browse</a></li>
+                    </ol>
+                </div>
+            </div>
+            <div class="col-md-3"></div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vjs.zencdn.net_8.5.2_video.min.js"></script>
+{% endblock %}
+

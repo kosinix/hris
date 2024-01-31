@@ -550,7 +550,7 @@ router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile'])
         }).lean()
         presentOnFlag = presentOnFlag > 0 ? true : false
 
-        if(presentOnFlag){
+        if (presentOnFlag) {
             return res.redirect('/hros/flag/all')
         }
 
@@ -991,6 +991,371 @@ router.post('/hros/flag/location', middlewares.guardRoute(['use_employee_profile
         res.send(found.name)
     } catch (err) {
         next(new AppError(err.message));
+    }
+});
+
+
+router.get('/hros/leave/all', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        let page = parseInt(lodash.get(req, 'query.page', 1))
+        let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
+        let sortBy = lodash.get(req, 'query.sortBy', '_id')
+        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', 1))
+        let customSort = lodash.get(req, 'query.customSort')
+        let customFilter = lodash.get(req, 'query.customFilter')
+        let customFilterValue = lodash.get(req, 'query.customFilterValue')
+        lodash.set(req, 'session.pagination.perPage', perPage)
+
+        let query = {
+            employeeId: employee._id
+        }
+        let projection = {}
+
+        let options = { skip: (page - 1) * perPage, limit: perPage };
+        let sort = {}
+        sort = lodash.set(sort, sortBy, sortOrder)
+
+        // console.log(query, projection, options, sort)
+
+        let aggr = []
+
+        aggr.push({
+            $lookup:
+            {
+                localField: "_id",
+                foreignField: "employeeId",
+                from: "employees",
+                as: "employees"
+            }
+        })
+        aggr.push({ $match: query })
+        aggr.push({ $sort: sort })
+
+        // Pagination
+        let countDocuments = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
+        let totalDocs = countDocuments.length
+        let pagination = paginator.paginate(
+            page,
+            totalDocs,
+            perPage,
+            '/hros/leave/all',
+            req.query
+        )
+
+        if (!isNaN(perPage)) {
+            aggr.push({ $skip: options.skip })
+            aggr.push({ $limit: options.limit })
+        }
+        let ats = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
+
+        let data = {
+            title: 'Human Resource Online Services (HROS) - Authority to Travel',
+            employee: employee,
+            flash: flash.get(req, 'hros'),
+            ats: ats,
+            pagination: pagination,
+            momentNow: moment(),
+        }
+        res.render('hros/leave/all.html', data);
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/hros/leave/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employments = employee.employments
+
+        const leaveTypes = {
+            vacation: false,
+            forced: false,
+            sick: false,
+            maternity: false,
+            paternity: false,
+            specialPrivilege: false,
+            soloParent: false,
+            study: false,
+            tenDayVawc: false,
+            rehabPrivilege: false,
+            specialLeaveWomen: false,
+            calamity: false,
+            adoptionLeave: false,
+            others: false,
+        }
+        let data = {
+            title: 'Human Resource Online Services (HROS) - Authority to Travel',
+            flash: flash.get(req, 'hros'),
+            employee: employee,
+            employments: employments,
+            employmentId: employments[0]._id,
+            momentNow: moment(),
+            leaveTypes: leaveTypes,
+        }
+        res.render('hros/leave/create.html', data);
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/hros/leave/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let user = res.user.toObject()
+        let body = req.body
+
+        // return res.send(body)
+        if (moment(body.periodOfTravelEnd).isBefore(moment(body.periodOfTravel))) {
+            flash.error(req, 'hros', 'Invalid period of travel. Please check your "To" and "From" dates.')
+            return res.redirect('/hros/leave/create')
+        }
+        if (moment(body.periodOfTravelEnd).diff(moment(body.periodOfTravel), 'days') > 60) {
+            flash.error(req, 'hros', 'Invalid period of travel. Duration exceeded 60 days.')
+            return res.redirect('/hros/leave/create')
+        }
+        if (lodash.toString(body.natureOfBusiness).length > 180) {
+            flash.error(req, 'hros', 'Nature Of Business must not exceed 180 characters.')
+            return res.redirect('/hros/leave/create')
+        }
+        let employmentId = lodash.get(body, 'employmentId')
+        let employment = await req.app.locals.db.main.Employment.findById(employmentId).lean()
+        if (!employment) {
+            flash.error(req, 'hros', 'Employment not found.')
+            return res.redirect('/hros/leave/create')
+        }
+
+        let ats = await req.app.locals.db.main.LeaveForm.find({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            $or: [
+                {
+                    periodOfTravel: {
+                        $gte: moment(body.periodOfTravel).toDate(),
+                        $lte: moment(body.periodOfTravelEnd).toDate(),
+                    },
+                },
+                {
+                    periodOfTravelEnd: {
+                        $gte: moment(body.periodOfTravel).toDate(),
+                        $lte: moment(body.periodOfTravelEnd).toDate(),
+                    }
+                }
+            ]
+
+        })
+        if (ats.length > 0) {
+            flash.error(req, 'hros', 'Cannot create Authority to Travel on the provided period. There is an overlap with another Authority to Travel.')
+            return res.redirect('/hros/leave/create')
+        }
+
+        // Latest Authority to Travel
+        let latest = await req.app.locals.db.main.LeaveForm.findOne({
+            periodOfTravel: {
+                $gte: moment().startOf('month').toDate(),
+            },
+            periodOfTravelEnd: {
+                $lte: moment().endOf('month').toDate(),
+            }
+        }).sort({
+            createdAt: -1
+        })
+
+        let generateControlNumber = (controlNumber) => {
+            controlNumber = controlNumber.replace(' (Online)', '')
+            let counter = parseInt(controlNumber.split('-')[2]) // Split '2022-01-002' and get '002' as 2
+            counter++ // increment
+            counter = new String(counter) // Convert to string
+            return moment().format('YY-MM-') + counter.padStart(3, '0') + ' (Online)'
+        }
+
+        let controlNumber = `${moment().format('YY-MM')}-001 (Online)`
+        if (latest) {
+            controlNumber = generateControlNumber(latest.controlNumber)
+        }
+
+        let leave = await req.app.locals.db.main.LeaveForm.create({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            status: 2, // 1 pending, 2 approved
+            periodOfTravel: moment(body.periodOfTravel).toDate(),
+            periodOfTravelEnd: moment(body.periodOfTravelEnd).toDate(),
+            controlNumber: controlNumber,
+            data: {
+                designation: body.designation,
+                officialStation: body.officialStation,
+                destination: body.destination,
+                natureOfBusiness: body.natureOfBusiness,
+                endorser: body.endorser,
+                endorserDesignation: body.endorserDesignation,
+                approver: body.approver,
+                approverDesignation: body.approverDesignation,
+            }
+        })
+
+        // Set given dates to travel
+        let a = body.periodOfTravel
+        let b = body.periodOfTravelEnd
+        // If you want an inclusive end date (fully-closed interval)
+        for (var m = moment(a); m.diff(b, 'days') <= 0; m.add(1, 'days')) {
+            // console.log(m.format('YYYY-MM-DD'));
+            let attendance = {
+                employeeId: employee._id,
+                employmentId: employment._id,
+                type: 'travel',
+                workScheduleId: employment.workScheduleId,
+                createdAt: m.toDate(),
+                logs: [],
+                changes: [],
+                comments: [],
+            }
+            let date = m.toDate()
+            attendance.changes.push({
+                summary: `${user.username} inserted a new attendance.`,
+                objectId: user._id,
+                createdAt: date
+            })
+            attendance.changes.push({
+                summary: `${user.username} added a new comment.`,
+                objectId: user._id,
+                createdAt: date
+            })
+            attendance.comments.push({
+                summary: `Nature of business: ${leave.data.natureOfBusiness}`,
+                objectId: user._id,
+                createdAt: date
+            })
+            await req.app.locals.db.main.Attendance.create(attendance)
+        }
+
+        let message = `Authority to Travel submitted. `
+        message += `1.) Please print your Authority to Travel and have it signed. `
+        message += `2.) Attached it when submitting your DTR. `
+        flash.ok(req, 'hros', message)
+        res.redirect(`/hros/leave/all`)
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/hros/leave/:authorityToTravelId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let leave = await req.app.locals.db.main.LeaveForm.findById(req.params.authorityToTravelId)
+        if (!leave) {
+            throw new Error('Authority To Travel not found.')
+        }
+
+
+        let words = leave.data.natureOfBusiness.replace(/\s\s+/g, ' ').split(' ')
+        if (words.length > 32) {
+            leave.data.natureOfBusiness1 = words.splice(0, 32).join(' ')
+            leave.data.natureOfBusiness2 = words.splice(0, 25).join(' ')
+
+        } else {
+            leave.data.natureOfBusiness1 = words.join(' ')
+            leave.data.natureOfBusiness2 = ''
+
+        }
+
+        let data = {
+            title: `Authority to Travel - ${employee.firstName} ${employee.lastName} - ${leave.controlNumber}`,
+            employee: employee,
+            leave: leave,
+            momentNow: moment(),
+        }
+        res.render('hros/leave/read.html', data);
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/hros/leave/:authorityToTravelId/print', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let leave = await req.app.locals.db.main.LeaveForm.findById(req.params.authorityToTravelId)
+        if (!leave) {
+            throw new Error('Authority To Travel not found.')
+        }
+
+        let words = leave.data.natureOfBusiness.replace(/\s\s+/g, ' ').split(' ')
+        if (words.length > 18) {
+            leave.data.natureOfBusiness1 = words.splice(0, 18).join(' ')
+            leave.data.natureOfBusiness2 = words.splice(0, 18).join(' ')
+
+        } else {
+            leave.data.natureOfBusiness1 = words.join(' ')
+            leave.data.natureOfBusiness2 = ''
+
+        }
+
+        let data = {
+            title: `Authority to Travel - ${employee.firstName} ${employee.lastName} - ${leave.controlNumber}`,
+            employee: employee,
+            leave: leave,
+            shared: false,
+            momentNow: moment(),
+        }
+        res.render('hros/leave/leave.html', data);
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/hros/leave/:authorityToTravelId/delete', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let leave = await req.app.locals.db.main.LeaveForm.findById(req.params.authorityToTravelId)
+        if (!leave) {
+            throw new Error('Authority To Travel not found.')
+        }
+        if (leave.status === 2) {
+            throw new Error('Cannot cancel Authority To Travel as it is already approved. Please have it corrected by the HRMO.')
+        }
+
+        await leave.remove()
+        flash.ok(req, 'hros', 'Application for Authority to Travel cancelled.')
+        res.redirect(`/hros/leave/all`)
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/hros/leave/:authorityToTravelId/share', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let leave = await req.app.locals.db.main.LeaveForm.findById(req.params.authorityToTravelId)
+        if (!leave) {
+            throw new Error('Authority To Travel not found.')
+        }
+
+
+        let secureKey = await passwordMan.randomStringAsync(12)
+        let url = `${CONFIG.app.url}/shared/leave/print/${secureKey}`
+        // let hash = passwordMan.hashSha256(url)
+        // url = url + '?hash=' + hash
+        let share = await req.app.locals.db.main.Share.create({
+            secureKey: secureKey,
+            expiredAt: moment().add(1, 'hour').toDate(),
+            createdBy: res.user._id,
+            payload: {
+                url: url,
+                employeeId: employee._id,
+                employmentId: leave.employmentId,
+                atId: leave._id,
+            }
+        })
+
+        let data = {
+            title: `Authority to Travel - ${employee.firstName} ${employee.lastName} - ${leave.controlNumber}`,
+            employee: employee,
+            share: share,
+            momentNow: moment(),
+        }
+        res.render('hros/leave/share.html', data);
+
+    } catch (err) {
+        next(err);
     }
 });
 module.exports = router;

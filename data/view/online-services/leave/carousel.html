@@ -1,0 +1,199 @@
+<div id="carousel-travel" class="carousel-travel carousel slide" data-ride="carousel" data-touch="false" data-interval="false">
+    <div class="carousel-inner">
+        {# 0 #}
+        <div class="carousel-item active">
+            <div class="form-group">
+                <div class="form-group">
+                    <label for="employmentId" class="font-weight-bold">Employment <span class="text-danger">*</span></label>
+                    <div>
+                        <select v-model="employmentId" name="employmentId" id="employmentId" class="form-control">
+                            <option v-for="employment in employments" v-bind:value="employment._id">${employment.position}</option>
+                        </select>
+                        <small class="invalid-feedback">${getError('employmentId')}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-12">
+                    <label for="periodOfTravel" class="font-weight-bold">Period of Travel <span class="text-danger">*</span></label>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="periodOfTravel">From</label>
+                        <div>
+                            <input v-on:change="syncDates" name="periodOfTravel" id="periodOfTravel" v-model="periodOfTravel" type="date" class="form-control">
+                            <small class="invalid-feedback">${getError('periodOfTravel')}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="periodOfTravelEnd">To</label>
+                        <div>
+                            <input name="periodOfTravelEnd" id="periodOfTravelEnd" v-model="periodOfTravelEnd" type="date" class="form-control">
+                            <small class="invalid-feedback">${getError('periodOfTravelEnd')}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" name="autoset" value="true">
+            <!-- <div class="form-group">
+                <div class="form-group">
+                    <label for="autoset" class="font-weight-bold">Auto Set Dates on DTR to Travel? <span class="text-danger">*</span></label>
+                    <div>
+                        <div class="form-check">
+                            <input name="autoset" id="autoset" v-model="autoset" class="form-check-input" type="checkbox" value="true">
+                            <label class="form-check-label" for="autoset">
+                                Check - to automatically mark the dates on your DTR as "Travel".
+                            </label>
+                        </div>
+                        <small class="invalid-feedback">${getError('autoset')}</small>
+                    </div>
+                </div>
+            </div> -->
+            <div class="form-group">
+                <div class="form-group">
+                    <label for="destination" class="font-weight-bold">Destination <span class="text-danger">*</span></label>
+                    <div>
+                        <input name="destination" id="destination" v-model="destination" type="text" class="form-control">
+                        <small class="invalid-feedback">${getError('destination')}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="form-group">
+                    <label for="natureOfBusiness" class="font-weight-bold">Nature of Business <em>(${charLength} characters left)</em> <span class="text-danger">*</span></label>
+                    <div>
+                        <textarea v-on:input="limitChars(180, $event)" v-on:change="limitChars(180, $event)" v-model="natureOfBusiness" name="natureOfBusiness" id="natureOfBusiness" cols="30" rows="2" class="form-control"></textarea>
+                        <small class="invalid-feedback">${getError('natureOfBusiness')}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="form-group">
+                    <label for="designation" class="font-weight-bold">Your Designation <span class="text-danger">*</span></label>
+                    <div>
+                        <input name="designation" id="designation" v-model="designation" type="text" class="form-control">
+                        <small class="invalid-feedback">${getError('designation')}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="form-group">
+                    <label for="officialStation" class="font-weight-bold">Your Official Station <span class="text-danger">*</span></label>
+                    <div>
+                        <input name="officialStation" id="officialStation" v-model="officialStation" type="text" class="form-control">
+                        <small class="invalid-feedback">${getError('officialStation')}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="endorser" class="font-weight-bold">Endorser/Supervisor</label>
+                        <div>
+                            <input name="endorser" id="endorser" v-model="endorser" type="text" class="form-control">
+                            <small class="invalid-feedback">${getError('endorser')}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="endorserDesignation" class="font-weight-bold">Endorser/Supervisor Designation </label>
+                        <div>
+                            <input name="endorserDesignation" id="endorserDesignation" v-model="endorserDesignation" type="text" class="form-control">
+                            <small class="invalid-feedback">${getError('endorserDesignation')}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="approver" class="font-weight-bold">Approver <span class="text-danger">*</span></label>
+                        <div>
+                            <input name="approver" id="approver" v-model="approver" type="text" class="form-control">
+                            <small class="invalid-feedback">${getError('approver')}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="approverDesignation" class="font-weight-bold">Approver Designation <span class="text-danger">*</span></label>
+                        <div>
+                            <input name="approverDesignation" id="approverDesignation" v-model="approverDesignation" type="text" class="form-control">
+                            <small class="invalid-feedback">${getError('approverDesignation')}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row pt-3 pb-3">
+                <div class="col-6 mb-3">
+                    <a href="/hros/at/all" class="btn btn-light">Cancel</a>
+                </div>
+                <div class="col-6 mb-3 text-right">
+                    <button v-on:click="nextPage(1)" class="btn btn-primary" type="button">Next</button>
+                </div>
+            </div>
+        </div>
+        {# 1 #}
+        <div class="carousel-item ">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <tr>
+                        <td class="font-weight-bold" width="30%">Name of Official</td>
+                        <td>{{employee.firstName}} {{employee.lastName}}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Designation</td>
+                        <td>${designation}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Official Station</td>
+                        <td>${officialStation}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Destination</td>
+                        <td>${destination}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Period of Travel</td>
+                        <td>${travelPeriod}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Nature of Business</td>
+                        <td>${natureOfBusiness}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Favorably endorsed for approval</td>
+                        <td>${endorser} - <em>${endorserDesignation}</em></td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Approved</td>
+                        <td>${approver} - <em>${approverDesignation}</em></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Auto Set Dates on DTR to Travel?</td>
+                        <td>
+                            <div v-if="autoset">Yes</div>
+                            <div v-else>No</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="form-row pt-3 pb-3">
+                <div class="col-6 mb-3">
+                    <button v-on:click="page=0"class="btn btn-light" type="button">Back</button>
+                </div>
+                <div class="col-6 mb-3 text-right">
+                    <button class="btn btn-primary">Apply</button>
+                </div>
+            </div>
+        </div>
+        {# 2 #}
+    </div>
+</div>

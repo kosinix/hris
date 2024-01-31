@@ -176,7 +176,7 @@ router.post('/scanner/:scannerId/edit', middlewares.guardRoute(['read_scanner', 
         next(err);
     }
 });
-router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner', 'update_scanner']), middlewares.getScanner, async (req, res, next) => {
+router.get('/scanner/:scannerId/status', middlewares.guardRoute(['read_scanner']), middlewares.getScanner, async (req, res, next) => {
     try {
         let scanner = res.scanner.toObject()
         scanner.user = await req.app.locals.db.main.User.findById(scanner.userId)

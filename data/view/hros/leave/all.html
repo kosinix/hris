@@ -3,16 +3,16 @@
 {% block body %}
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-3 mb-3 border-bottom">
-        <h1 class="h5 mb-0">Authority to Travel</h1>
+        <h1 class="h5 mb-0">Leave Form</h1>
         <div class="btn-group">
-            <a href="/hros/at/create" class="btn btn-sm btn-primary">Apply</a>
+            <a href="/hros/leave/create" class="btn btn-sm btn-primary">Generate</a>
         </div>
     </div>
 
     {% include 'parts/flash.html' %}
     
     {% if ats.length <= 0 %}
-        <p>No previous online "Authority to Travel" found. <a class="btn btn-success btn-sm" href="/hros/at/create">Apply Online</a></p>
+        <p>None found. <a class="btn btn-success btn-sm" href="/hros/leave/create">Generate </a></p>
     {% else %}
         <div class="tab-content p-3">
             <div class="d-flex justify-content-end">
@@ -20,7 +20,7 @@
                     Per page:
                 </div>
                 <div class=" pb-3">
-                    {% set url = '/hros/at/all' %}
+                    {% set url = '/hros/leave/all' %}
                     {% include 'parts/form-per-page.html' %}
                 </div>
             </div>
@@ -30,12 +30,10 @@
                         <tr>
                             <th></th>
                             <th>
-                                Travel Date
+                                Control #
                             </th>
-                            <th>
-                                Destination
-                            </th>
-                            <th>Status</th>
+                            <th>Generated On</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -43,23 +41,13 @@
                         <tr>
                             <td class="text-center">{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
                             <td>
-                                {{at.periodOfTravel|format_date('MMMM DD, YYYY')}}
-                                {% if at.periodOfTravel|format_date('MMMM DD, YYYY') !== at.periodOfTravelEnd|format_date('MMMM DD, YYYY') %}
-                                    to {{at.periodOfTravelEnd|format_date('MMMM DD, YYYY')}}
-                                {% endif%}
+                                {{at.controlNumber}}
                             </td>
                             <td>
-                                {{at.data.destination}}
+                                {{at.createdAt|format_date('MMM DD, YYYY hh:mm A')}}
                             </td>
-                            <td>
-                                {% if at.status === 1 %}
-                                    <span class="text-warning">Awaiting Control Number</span>
-                                    <a href="/hros/at/{{at._id}}/delete" onclick="return confirm('Are you sure you want to cancel your application?')" class="btn btn-sm btn-danger">Cancel</a>
-                                {% elif at.status === 2 %}
-                                    <span class="text-success">Approved</span>
-                                    <a href="/hros/at/{{at._id}}/print" class="btn btn-sm btn-success">Print</a>
-                                    <a href="/hros/at/{{at._id}}/share" class="btn btn-sm btn-success">Share</a>
-                                {% endif %}
+                            <td class="text-right">
+                                <a href="/hros/leave/{{at._id}}/print" class="btn btn-sm btn-success">Print</a>
                             </td>
                         </tr>
                     {% endfor %}

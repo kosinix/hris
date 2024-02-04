@@ -6,19 +6,25 @@ const mongoose = require('mongoose');
 //// Modules
 
 let schema = mongoose.Schema({
-    employeeId: {
-        $type: mongoose.Schema.Types.ObjectId
-    },
-    employmentId: {
-        $type: mongoose.Schema.Types.ObjectId
-    },
-    status: {
-        $type: Number, // 1 - pending, 2 - ok
-    },
+    employeeId: mongoose.Schema.Types.ObjectId,
+    employmentId:  mongoose.Schema.Types.ObjectId,
+    status: Number, // 1 - pending, 2 - ok
     controlNumber: String,
     periodOfTravel: Date,
     periodOfTravelEnd: Date,
-    data: {},
+    dates: [],
+    leaveAvailed: {},
+    otherLeaveSpecifics: String,
+    localDetails: String,
+    abroadDetails: String,
+    inHospitalDetails: String,
+    outPatientDetails: String,
+    specialLeaveWomenDetails: String,
+    mastersDegreeDetails: String,
+    examReviewDetails: String,
+    isMonet: Boolean,
+    isTerminalLeave: Boolean,
+    isCommutationRequested: Boolean,
 }, { timestamps: true, typeKey: '$type' })
 
 //// Instance methods

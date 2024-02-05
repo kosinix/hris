@@ -47,20 +47,17 @@
                             <th width="10%">
                                 Control No.
                             </th>
-                            <th width="10%">
-                                Date Applied
+                            <th width="15%">
+                                Date Generated
                             </th>
-                            <th width="10%">
+                            <th>
                                 Name
                             </th>
-                            <th width="10%">
-                                Travel Date
+                            <th>
+                                Dates
                             </th>
                             <th>
-                                Purpose
-                            </th>
-                            <th>
-                                Destination
+                                Leave
                             </th>
                         </tr>
                     </thead>
@@ -76,23 +73,15 @@
                                 {% endif %}
                             </td>
                             <td>{{at.controlNumber}}</td>
-                            <td>{{at.createdAt|format_date('MMMM DD, YYYY')}}</td>
+                            <td>{{at.createdAt|format_date('MMM DD, YYYY')}}</td>
                             <td>
                                 <a href="/online-services/leave/all?sortOrder={{sortOrder}}&lastName={{at.employee.lastName}}">{{at.employee.lastName}}, {{at.employee.firstName}}</a>
                             </td>
                             <td>
-                                <a href="/online-services/leave/{{at._id}}">
-                                    {{at.periodOfTravel|format_date('MMMM DD, YYYY')}}
-                                    {% if at.periodOfTravel|format_date('MMMM DD, YYYY') !== at.periodOfTravelEnd|format_date('MMMM DD, YYYY') %}
-                                        to {{at.periodOfTravelEnd|format_date('MMMM DD, YYYY')}}
-                                    {% endif%}
-                                </a>
+                                {{at.dates}}
                             </td>
                             <td>
-                                {{at.data.natureOfBusiness}}
-                            </td>
-                            <td>
-                                {{at.data.destination}}
+                                <a href="/online-services/leave/{{at._id}}">{{at.leaveAvailedList}}</a>
                             </td>
                         </tr>
                     {% endfor %}

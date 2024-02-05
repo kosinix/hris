@@ -89,7 +89,6 @@ router.get('/online-services/at/all', middlewares.guardRoute(['read_all_attendan
             }
         })
 
-
         if (lastName) {
             aggr.push({
                 $match: {
@@ -97,12 +96,11 @@ router.get('/online-services/at/all', middlewares.guardRoute(['read_all_attendan
                 }
             })
             aggr.push({ $limit: perPage })
-
         }
 
-        let util = require('util')
-        console.log(util.inspect(aggr, false, null, true))
-        let ats = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
+        // let util = require('util')
+        // console.log(util.inspect(aggr, false, null, true))
+        let ats = await req.app.locals.db.main.AuthorityToTravel.aggregate(aggr)
 
         //
         aggr = []
@@ -133,7 +131,7 @@ router.get('/online-services/at/all', middlewares.guardRoute(['read_all_attendan
             })
         }
 
-        let counts = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
+        let counts = await req.app.locals.db.main.AuthorityToTravel.aggregate(aggr)
 
         // return res.send(ats)
         let data = {
@@ -278,13 +276,19 @@ router.get('/online-services/leave/all', middlewares.guardRoute(['read_all_atten
 
         }
 
-        let util = require('util')
-        console.log(util.inspect(aggr, false, null, true))
+        // let util = require('util')
+        // console.log(util.inspect(aggr, false, null, true))
         let ats = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
-
+        ats = ats.map((l) => {
+            l.leaveAvailedList = CONFIG.leaveTypes.filter((o) => {
+                return l.leaveAvailed[o.key]
+            }).map(o => o.label).join(', ')
+            l.dates = l.dates.map( o => moment(o).format('MMM DD, YYYY') ).join(', ')
+            return l
+        })
         //
-        aggr = []
 
+        aggr = []
         // Sort by _id 
         aggr.push({ $sort: { _id: sortOrder } })
         if (lastName) {
@@ -310,7 +314,6 @@ router.get('/online-services/leave/all', middlewares.guardRoute(['read_all_atten
                 }
             })
         }
-
         let counts = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
 
         // return res.send(ats)
@@ -331,57 +334,37 @@ router.get('/online-services/leave/all', middlewares.guardRoute(['read_all_atten
         next(err);
     }
 });
-
 router.get('/online-services/leave/:atId', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
     try {
         let atId = req.params.atId
         let at = await req.app.locals.db.main.LeaveForm.findById(atId).lean()
         if (!at) {
-            throw new Error('Not found.')
+            throw new Error('Leave Form not found.')
         }
+        let employee = await req.app.locals.db.main.Employee.findById(at.employeeId).lean()
+        if (!employee) {
+            throw new Error('Employee not found.')
+        }
+        let employment = await req.app.locals.db.main.Employment.findById(at.employmentId).lean()
+        if (!employment) {
+            throw new Error('Employment not found.')
+        }
+        const leaveTypes = CONFIG.leaveTypes
+
         let data = {
             title: 'Edit Authority to Travel',
             flash: flash.get(req, 'online-services'),
             at: at,
+            employee: employee,
+            employment: employment,
+            leaveTypes: leaveTypes,
         }
-        res.render('online-services/authority-to-travel/update.html', data);
+        // return res.send(data)
+        res.render('online-services/leave/update.html', data);
 
     } catch (err) {
         next(err);
     }
 });
-router.post('/online-services/leave/:atId/update', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
-    try {
-        let atId = req.params.atId
-        let at = await req.app.locals.db.main.LeaveForm.findById(atId)
-        if (!at) {
-            throw new Error('Not found.')
-        }
-        at.periodOfTravel = moment(req.body.periodOfTravel).toDate()
-        at.periodOfTravelEnd = moment(req.body.periodOfTravelEnd).toDate()
-        await at.save()
 
-        flash.ok(req, 'online-services', `Authority to Travel updated.`)
-        res.redirect(`/online-services/at/${at._id}`)
-    } catch (err) {
-        next(err);
-    }
-});
-
-router.get('/online-services/leave/:atId/delete', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
-    try {
-        let atId = req.params.atId
-        let at = await req.app.locals.db.main.LeaveForm.findById(atId)
-        if (!at) {
-            throw new Error('Not found.')
-        }
-        console.log(at)
-        await at.remove()
-
-        flash.ok(req, 'online-services', `Authority to Travel deleted.`)
-        res.redirect(`/online-services/at/all`)
-    } catch (err) {
-        next(err);
-    }
-});
 module.exports = router;

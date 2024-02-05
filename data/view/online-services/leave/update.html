@@ -5,87 +5,177 @@
     <div
         class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div class="d-flex align-items-start">
-            <h1 class="h4">Edit Authority to Travel</h1>
+            <h1 class="h4">Leave Form Details</h1>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
-                <a href="/online-services/at/all" class="btn btn-sm btn-outline-primary">Back</a>
+                <a href="/online-services/leave/all" class="btn btn-sm btn-outline-primary">Back</a>
             </div>
         </div>
     </div>
     <div class="mb-5">
         {% include 'parts/flash.html' %}
-        <form ref="form" v-on:submit.prevent="onSubmit" action="/online-services/at/{{at._id}}/update" method="POST" class="form-default">
-            <div class="form-row">
-                <div class="col-md-12">
-                    <label for="periodOfTravel" class="font-weight-bold">Period of Travel <span class="text-danger">*</span></label>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="periodOfTravel">From</label>
-                        <div>
-                            <input v-on:change="syncDates" name="periodOfTravel" id="periodOfTravel" v-model="periodOfTravel" type="date" class="form-control">
-                            <small class="invalid-feedback">${getError('periodOfTravel')}</small>
+
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                
+                <tr>
+                    <td class="font-weight-bold">Control No.</td>
+                    <td>${controlNumber}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold" width="30%">Name</td>
+                    <td>{{employee.firstName}} {{employee.middleName|first}}. {{employee.lastName}}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Position</td>
+                    <td>${employment.position}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Office/Department</td>
+                    <td>${employment.department}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Salary</td>
+                    <td>${employment.salary}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Type of Leave</td>
+                    <td>
+                        <div v-if="leaveAvailed.vacation || leaveAvailed.specialPrivilege">
+                            <ul>
+                                <li>Vacation/Special Privilege Leave
+                                    <ul>
+                                        <li v-if="isLocal">Within the Philippines: ${localDetails}</li>
+                                        <li v-if="isAbroad">Abroad: ${abroadDetails}</li>
+                                    </ul>
+                                </li>
+                            </ul>
                         </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="periodOfTravelEnd">To</label>
-                        <div>
-                            <input name="periodOfTravelEnd" id="periodOfTravelEnd" v-model="periodOfTravelEnd" type="date" class="form-control">
-                            <small class="invalid-feedback">${getError('periodOfTravelEnd')}</small>
+                        <div v-if="leaveAvailed.sick">
+                            <ul>
+                                <li>Sick Leave
+                                    <ul>
+                                        <li v-if="isInHospital">In Hospital: ${inHospitalDetails}</li>
+                                        <li v-if="isOutPatient">Out Patient: ${outPatientDetails}</li>
+                                    </ul>
+                                </li>
+                            </ul>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <a onclick="return confirm('Delete permanently?')" href="/online-services/at/{{at._id}}/delete" class="text-danger">Delete</a>
-                </div>
-                <div class="col-md-6">
-                    <button class="btn btn-primary btn-full-width">Update</button>
-                </div>
-            </div>
-        </form>
+                        <div v-if="leaveAvailed.specialLeaveWomen">
+                            <ul>
+                                <li>Special Leave Benefits for Women
+                                    <ul>
+                                        <li>Illness: ${specialLeaveWomenDetails}</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div v-if="leaveAvailed.study">
+                            <ul>
+                                <li>Study Leave
+                                    <ul>
+                                        <li v-if="isMastersDegree">Completion of Master's Degree</li>
+                                        <li v-if="isExamReview">BAR/Board Examination Review</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div v-if="leaveAvailed.others">
+                            <ul>
+                                <li>Others
+                                    <ul>
+                                        <li v-if="otherLeaveSpecifics">${otherLeaveSpecifics}</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div v-for="leaveAvailed in leaveTypesAvailed">
+                            <ul>
+                                <li>${leaveAvailed}</li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Dates</td>
+                    <td>${datesString}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Monetization of Leave Credits?</td>
+                    <td>${isMonet|yesNo}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Terminal Leave?</td>
+                    <td>${isTerminalLeave|yesNo}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Commutation Requested?</td>
+                    <td>${isCommutationRequested|yesNo}</td>
+                </tr>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}
 {% block scripts %}
 {{ super() }}
 <script>
+    var leaveTypes = {{leaveTypes|default([], true)|stringify|safe}};
+    var employee = {{employee|default({}, true)|stringify|safe}};
+    var employment = {{employment|default({}, true)|stringify|safe}};
+    var at = {{at|default({}, true)|stringify|safe}};
+
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
-        mixins: [
-            window.vuelidate.validationMixin,
-            window.vuelidateExtendMixin,
-        ],
+        mixins: [],
+        filters: {
+            formatDate: function(date, format){
+                return moment(date).format(format)
+            },
+            yesNo: function(v){
+                return (v+'').replace('true', 'Yes').replace('false', 'No')
+            }
+        },
         data: {
             pending: false,
-            employmeeId: '{{at.employmeeId}}',
-            designation: '{{at.designation}}',
-            officialStation: '{{at.officialStation}}',
-            destination: '{{at.destination}}',
-            periodOfTravel: '{{at.periodOfTravel|format_date("YYYY-MM-DD")}}',
-            periodOfTravelEnd: '{{at.periodOfTravelEnd|format_date("YYYY-MM-DD")}}',
-            natureOfBusiness: '{{at.natureOfBusiness}}',
-            endorser: '{{at.endorser}}',
-            endorserDesignation: '{{at.endorserDesignation}}',
-            approver: '{{at.approver}}',
-            approverDesignation: '{{at.approverDesignation}}',
-            autoset: true,
-        },
-        validations: {
-            periodOfTravel: {
-                required: window.validators.required
-            },
-            periodOfTravelEnd: {
-                required: window.validators.required
-            },
+            leaveTypes: leaveTypes,
+            employee: employee,
+            employment: employment,
+            ...at,
         },
         computed: {
-            
+            salary: function(){
+                var me = this;
+                var employment = me.employments.find(function(e){
+                    return e._id === me.employmentId
+                })
+                return _.get(employment, 'salary', '') + ' ' + _.get(employment, 'salaryType', '') 
+            },
+            datesStringify: function(){
+                return this.dates.join(',')
+            },
+            leaveTypesAvailed: function () {
+                var me = this;
+                var keyNames = Object.keys(me.leaveAvailed)
+                var availed = keyNames.filter( k => me.leaveAvailed[k]) // all true
+                availed = availed.filter( k => !['vacation', 'specialPrivilege', 'sick', 'specialLeaveWomen', 'study', 'others'].includes(k)) // exclude these
+                var availed2 = me.leaveTypes.filter((l)=>{
+                    return availed.includes(l.key)
+                }).map((l)=>{
+                    return l.label
+                })
+               
+                return availed2
+            },
+            datesString: function(){
+                var me = this;
+                var dates = me.dates.map(function(d){
+                    return moment(d).format('MMM DD YYYY')
+                })
+                return dates.join(', ')
+            }
         },
         watch: {
             
@@ -116,15 +206,11 @@
             },
             onSubmit: function () {
                 var me = this;
-                me.$v.$touch()
-                if (me.$v.$error) {
-                    alert('Please correct the errors to continue.')
-                } else {
-                    me.pending = true
-                    me.$nextTick(function () {
-                        me.$refs.form.submit();
-                    });
-                }
+                // alert('Please correct the errors to continue.')
+                me.pending = true
+                me.$nextTick(function () {
+                    me.$refs.form.submit();
+                });
             }
         }
     });

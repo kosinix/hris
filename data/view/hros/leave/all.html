@@ -3,7 +3,7 @@
 {% block body %}
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-3 mb-3 border-bottom">
-        <h1 class="h5 mb-0">Leave Form</h1>
+        <h1 class="h5 mb-0">Leave Forms <em>({{count}})</em></h1>
         <div class="btn-group">
             <a href="/hros/leave/create" class="btn btn-sm btn-primary">Generate</a>
         </div>
@@ -12,39 +12,53 @@
     {% include 'parts/flash.html' %}
     
     {% if ats.length <= 0 %}
-        <p>None found. <a class="btn btn-success btn-sm" href="/hros/leave/create">Generate </a></p>
+        <p>None found. <a class="btn btn-success btn-sm" href="/hros/leave/all">Back </a></p>
     {% else %}
+
         <div class="tab-content p-3">
-            <div class="d-flex justify-content-end">
-                <div class=" pb-3 align-self-center pr-3">
-                    Per page:
-                </div>
-                <div class=" pb-3">
-                    {% set url = '/hros/leave/all' %}
-                    {% include 'parts/form-per-page.html' %}
+            <div class="row mb-3">
+                <div class="col-3 align-items-center">
+                    <span>Sort From: </span>
+                    <div class="btn-group">
+                        {% if sortOrder === -1 %}
+                            <a href="/hros/leave/all?sortOrder=-1" class="btn btn-primary">Newest</a>
+                            <a href="/hros/leave/all?sortOrder=1" class="btn btn-light">Oldest</a>
+                        {% elif sortOrder === 1 %}
+                            <a href="/hros/leave/all?sortOrder=-1" class="btn btn-light">Newest</a>
+                            <a href="/hros/leave/all?sortOrder=1" class="btn btn-primary">Oldest</a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-sm table-striped">
+                <table class="table table-sm table-striped border">
                     <thead>
                         <tr>
-                            <th></th>
+                            <th width="5%" class="text-center">Count</th>
+                            <th width="15%">Date Generated</th>
                             <th>
-                                Control #
+                                Control No.
                             </th>
-                            <th>Generated On</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
                     {% for at in ats %}
                         <tr>
-                            <td class="text-center">{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
-                            <td>
-                                {{at.controlNumber}}
+                            <td class="text-center">
+                                {% if sortOrder === 1 %}
+                                {{loop.index + (page - 1) * perPage}}
+                                {% endif %}
+                                {% if sortOrder === -1 %}
+                                {{count + 1 - (loop.index + (page - 1) * perPage) }}
+                                {% endif %}
                             </td>
                             <td>
-                                {{at.createdAt|format_date('MMM DD, YYYY hh:mm A')}}
+                                {{at.createdAt|format_date('MMM DD, YYYY')}}
+                                <small><em>{{at.createdAt|format_date('hh:mm A')}}</em></small>
+                            </td>
+                            <td>
+                                {{at.controlNumber}}
                             </td>
                             <td class="text-right">
                                 <a href="/hros/leave/{{at._id}}/print" class="btn btn-sm btn-success">Print</a>
@@ -56,8 +70,8 @@
             </div>
             
             <div class="row">
-                <div class="col-md-12 text-center text-md-left pt-3 pb-5">
-                    {% include "parts/pagination.html" %}
+                <div class="col-md-12 text-center pt-3 pb-5">
+                    <a href="/hros/leave/all?lastId={{ats.at(-1)._id}}&sortOrder={{sortOrder}}&page={{page+1}}" class="btn btn-light btn-sm">Show Next</a>
                 </div>
             </div>
         </div>

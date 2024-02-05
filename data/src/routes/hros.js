@@ -999,65 +999,86 @@ router.get('/hros/leave/all', middlewares.guardRoute(['use_employee_profile']), 
     try {
         let employee = res.employee.toObject()
 
+        let lastId = lodash.get(req, 'query.lastId', '')
+        let perPage = 10
+        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', -1))
         let page = parseInt(lodash.get(req, 'query.page', 1))
-        let perPage = parseInt(lodash.get(req, 'query.perPage', lodash.get(req, 'session.pagination.perPage', 10)))
-        let sortBy = lodash.get(req, 'query.sortBy', '_id')
-        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', 1))
-        let customSort = lodash.get(req, 'query.customSort')
-        let customFilter = lodash.get(req, 'query.customFilter')
-        let customFilterValue = lodash.get(req, 'query.customFilterValue')
+        let lastName = lodash.get(req, 'query.lastName')
         lodash.set(req, 'session.pagination.perPage', perPage)
 
         let query = {
             employeeId: employee._id
         }
-        let projection = {}
-
-        let options = { skip: (page - 1) * perPage, limit: perPage };
-        let sort = {}
-        sort = lodash.set(sort, sortBy, sortOrder)
-
-        // console.log(query, projection, options, sort)
+        
+        if (lastId) {
+            if (sortOrder === -1) {
+                query = {
+                    _id: {
+                        $lt: req.app.locals.db.mongoose.Types.ObjectId(lastId)
+                    }
+                }
+            } else {
+                query = {
+                    _id: {
+                        $gt: req.app.locals.db.mongoose.Types.ObjectId(lastId)
+                    }
+                }
+            }
+        }
 
         let aggr = []
 
+        // Sort by _id 
+        aggr.push({ $sort: { _id: sortOrder } })
+        aggr.push({ $match: query })
+        if (!lastName) {
+            aggr.push({ $limit: perPage })
+        }
         aggr.push({
             $lookup:
             {
-                localField: "_id",
-                foreignField: "employeeId",
+                localField: "employeeId",
+                foreignField: "_id",
                 from: "employees",
                 as: "employees"
             }
         })
-        aggr.push({ $match: query })
-        aggr.push({ $sort: sort })
-
-        // Pagination
-        let countDocuments = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
-        let totalDocs = countDocuments.length
-        let pagination = paginator.paginate(
-            page,
-            totalDocs,
-            perPage,
-            '/hros/leave/all',
-            req.query
-        )
-
-        if (!isNaN(perPage)) {
-            aggr.push({ $skip: options.skip })
-            aggr.push({ $limit: options.limit })
-        }
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                }
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+            }
+        })
         let ats = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
+
+        // 
+        aggr = []
+        // Sort by _id 
+        aggr.push({ $sort: { _id: sortOrder } })
+        let counts = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
+        // 
 
         let data = {
             title: 'Human Resource Online Services (HROS) - Authority to Travel',
             employee: employee,
             flash: flash.get(req, 'hros'),
             ats: ats,
-            pagination: pagination,
+            sortOrder: sortOrder,
+            lastName: lastName,
+            page: page,
+            perPage: perPage,
             momentNow: moment(),
+            count: counts.length
         }
+        // return res.send(data)
         res.render('hros/leave/all.html', data);
 
     } catch (err) {
@@ -1068,78 +1089,7 @@ router.get('/hros/leave/create', middlewares.guardRoute(['use_employee_profile']
     try {
         let employee = res.employee.toObject()
         let employments = employee.employments
-        const leaveTypes = [
-            {
-                key: 'vacation',
-                label: 'Vacation Leave',
-                ref: 'Sec. 51, Rule XVI, Omnibus Rules Implementing E.O. No. 292',
-            },
-            {
-                key: 'forced',
-                label: 'Mandatory/Forced Leave',
-                ref: 'Sec. 25, Rule XVI, Omnibus Rules Implementing E.O. No. 292'
-            },
-            {
-                key: 'sick',
-                label: 'Sick Leave',
-                ref: 'Sec. 43, Rule XVI, Omnibus Rules Implementing E.O. No. 292'
-            },
-            {
-                key: 'maternity',
-                label: 'Maternity Leave',
-                ref: 'R.A. No. 11210 / IRR issued by CSC, DOLE and SSS'
-            },
-            {
-                key: 'paternity',
-                label: 'Paternity Leave',
-                ref: 'R.A. No. 8187 / CSC MC No. 71, s. 1998, as amended'
-            },
-            {
-                key: 'specialPrivilege',
-                label: 'Special Privilege Leave',
-                ref: 'Sec. 21, Rule XVI, Omnibus Rules Implementing E.O. No. 292'
-            },
-            {
-                key: 'soloParent',
-                label: 'Solo Parent Leave',
-                ref: 'RA No. 8972 / CSC MC No. 8, s. 2004'
-            },
-            {
-                key: 'study',
-                label: 'Study Leave',
-                ref: 'Sec. 68, Rule XVI, Omnibus Rules Implementing E.O. No. 292'
-            },
-            {
-                key: 'tenDayVawc',
-                label: '10-Day VAWC Leave',
-                ref: 'RA No. 9262 / CSC MC No. 15, s. 2005'
-            },
-            {
-                key: 'rehabPrivilege',
-                label: 'Rehabilitation Privilege',
-                ref: 'Sec. 55, Rule XVI, Omnibus Rules Implementing E.O. No. 292'
-            },
-            {
-                key: 'specialLeaveWomen',
-                label: 'Special Leave Benefits for Women',
-                ref: 'RA No. 9710 / CSC MC No. 25, s. 2010'
-            },
-            {
-                key: 'calamity',
-                label: 'Special Emergency (Calamity) Leave',
-                ref: 'CSC MC No. 2, s. 2012, as amended'
-            },
-            {
-                key: 'adoptionLeave',
-                label: 'Adoption Leave',
-                ref: 'R.A. No. 8552'
-            },
-            {
-                key: 'others',
-                label: 'Others',
-                ref: ''
-            },
-        ]
+        const leaveTypes = CONFIG.leaveTypes
 
         // Schema: leaveAvailed.vacation = false, leaveAvailed.forced = false....
         let leaveAvailed = lodash.mapKeys(leaveTypes, (l)=>{
@@ -1244,7 +1194,7 @@ router.post('/hros/leave/create', middlewares.guardRoute(['use_employee_profile'
 
         let generateControlNumber = (latest) => {
             let controlNumber = latest.controlNumber.replace(' (Online)', '')
-            let counter = parseInt(controlNumber.split('-')[2]) // Split '2022-01-002' and get '002' as 2
+            let counter = parseInt(controlNumber.split('-')[2]) // Split '24-01-002' and get '002' as 2
             counter++ // increment
             counter = new String(counter) // Convert to string
             return moment().format('YY-MM-') + counter.padStart(3, '0') + ' (Online)'

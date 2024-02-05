@@ -258,5 +258,77 @@
     "enable": false,
     "clientKey": "6LcB1_scAAAAABxNHSvZ1gnl5ZpTKZCoWa_JcYkV"
   },
-  "loginDelay": 0
+  "loginDelay": 0,
+  "leaveTypes": [
+    {
+      "key": "vacation",
+      "label": "Vacation Leave",
+      "ref": "Sec. 51, Rule XVI, Omnibus Rules Implementing E.O. No. 292"
+    },
+    {
+      "key": "forced",
+      "label": "Mandatory/Forced Leave",
+      "ref": "Sec. 25, Rule XVI, Omnibus Rules Implementing E.O. No. 292"
+    },
+    {
+      "key": "sick",
+      "label": "Sick Leave",
+      "ref": "Sec. 43, Rule XVI, Omnibus Rules Implementing E.O. No. 292"
+    },
+    {
+      "key": "maternity",
+      "label": "Maternity Leave",
+      "ref": "R.A. No. 11210 / IRR issued by CSC, DOLE and SSS"
+    },
+    {
+      "key": "paternity",
+      "label": "Paternity Leave",
+      "ref": "R.A. No. 8187 / CSC MC No. 71, s. 1998, as amended"
+    },
+    {
+      "key": "specialPrivilege",
+      "label": "Special Privilege Leave",
+      "ref": "Sec. 21, Rule XVI, Omnibus Rules Implementing E.O. No. 292"
+    },
+    {
+      "key": "soloParent",
+      "label": "Solo Parent Leave",
+      "ref": "RA No. 8972 / CSC MC No. 8, s. 2004"
+    },
+    {
+      "key": "study",
+      "label": "Study Leave",
+      "ref": "Sec. 68, Rule XVI, Omnibus Rules Implementing E.O. No. 292"
+    },
+    {
+      "key": "tenDayVawc",
+      "label": "10-Day VAWC Leave",
+      "ref": "RA No. 9262 / CSC MC No. 15, s. 2005"
+    },
+    {
+      "key": "rehabPrivilege",
+      "label": "Rehabilitation Privilege",
+      "ref": "Sec. 55, Rule XVI, Omnibus Rules Implementing E.O. No. 292"
+    },
+    {
+      "key": "specialLeaveWomen",
+      "label": "Special Leave Benefits for Women",
+      "ref": "RA No. 9710 / CSC MC No. 25, s. 2010"
+    },
+    {
+      "key": "calamity",
+      "label": "Special Emergency (Calamity) Leave",
+      "ref": "CSC MC No. 2, s. 2012, as amended"
+    },
+    {
+      "key": "adoptionLeave",
+      "label": "Adoption Leave",
+      "ref": "R.A. No. 8552"
+    },
+    {
+      "key": "others",
+      "label": "Others",
+      "ref": ""
+    }
+  ]
 }

@@ -396,6 +396,20 @@
 {% include "parts/modal-consent-eprofile-script.html" %}
 {% include "e-profile/dtr/script-select-action.html" %}
 <script>
+    var periodMonthYearList = [];
+    var workSchedules = [];
+    var days = [];
+    var stats = {};
+    try {
+        periodMonthYearList = {{periodMonthYearList|default([], true)|stringify|safe}};
+        workSchedules = {{workSchedules|default([], true)|stringify|safe}};
+        days = {{days|default([], true)|stringify|safe}};
+        stats = {{stats|default({}, true)|stringify|safe}};
+    } catch (error) {
+        console.error(error)
+        alert(error)
+    }
+
     var geo = _.get(window, 'navigator.geolocation');
     var vApp = new Vue({
         el: '#vApp',
@@ -407,10 +421,10 @@
             pending: false,
             settingsEditable: false,
 
-            periodMonthYearList: {{periodMonthYearList|default([], true)|stringify|safe}},
-            workSchedules: {{workSchedules|default([], true)|stringify|safe}},
-            days: {{days|default([], true)|stringify|safe}},
-            stats: {{stats|default({}, true)|stringify|safe}},
+            periodMonthYearList: periodMonthYearList,
+            workSchedules: workSchedules,
+            days: days,
+            stats: stats,
 
             urlPath: '{{urlPath}}',
             workScheduleIdOrig: '{{employment.workScheduleId}}',

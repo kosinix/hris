@@ -1069,6 +1069,7 @@ router.get('/hros/leave/all', middlewares.guardRoute(['use_employee_profile']), 
         // 
         aggr = []
         // Sort by _id 
+        aggr.push({ $match: query })
         aggr.push({ $sort: { _id: sortOrder } })
         let counts = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
         // 

@@ -210,7 +210,7 @@ router.get('/online-services/leave/all', middlewares.guardRoute(['read_all_atten
     try {
         let lastId = lodash.get(req, 'query.lastId', '')
         let perPage = 100
-        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', 1))
+        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', -1))
         let page = parseInt(lodash.get(req, 'query.page', 1))
         let lastName = lodash.get(req, 'query.lastName')
         lodash.set(req, 'session.pagination.perPage', perPage)

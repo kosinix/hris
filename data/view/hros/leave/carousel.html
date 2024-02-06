@@ -1,0 +1,291 @@
+<div id="carousel-leave" class="carousel-travel carousel slide" data-ride="carousel" data-touch="false" data-interval="false">
+    <div class="carousel-inner">
+        {# 0 #}
+        <div class="carousel-item active">
+            <div class="form-group">
+                <label for="employmentId" class="font-weight-bold">Employment <span class="text-danger">*</span></label>
+                <div>
+                    <select v-model="employmentId" name="employmentId" id="employmentId" class="form-control">
+                        <option v-for="employment in employments" v-bind:value="employment._id">${employment.position}</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="destination" class="font-weight-bold">Type of Leave <span class="text-danger">*</span></label>
+                <div class="ml-1">
+                    <div v-for="leave in leaveTypes" class="custom-control custom-switch">
+                        <input v-model="leaveAvailed[leave.key]" :name="`leaveAvailed.${leave.key}`" :value="leaveAvailed[leave.key]" :id="leave.key" type="checkbox" class="custom-control-input">
+                        <label class="custom-control-label" :for="leave.key">${leave.label} </label>
+                    </div>
+                    <input v-if="leaveAvailed.others" v-model="otherLeaveSpecifics" name="otherLeaveSpecifics" type="text" class="form-control mt-1" placeholder="Please specify...">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="periodOfTravel" class="font-weight-bold">Date(s) <span class="text-danger">*</span></label>
+                <div class="form-row">
+                    <div class="col-md-12">
+                        <div class="d-flex flex-wrap ">
+                            <transition-group name="list" tag="div">
+                                <div v-for="(date, index) in dates" v-bind:key="date" class="list-item mr-1 mb-1 border pl-2 pb-1">
+                                    <span>${date|formatDate('MMM DD, YYYY')}</span> 
+                                    <button @click.prevent="deleteDate(index)" class="btn text-danger btn-sm p-1" type="button">X</button>
+                                </div>
+                            </transition-group>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <button @click="dateModal" type="button" class="ml-1 btn btn-sm btn-success">Add Date</button>
+                        <!-- <input @change="addDate" id="dateToAdd" v-model="dateToAdd" type="date" class="form-control mr-1"> -->
+                        <input name="dates" v-model="datesStringify" type="hidden" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="form-row pt-3 pb-3">
+                    <div class="col-6 mb-3">
+                        <a href="/hros/leave/all" class="btn btn-light">Cancel</a>
+                    </div>
+                    <div class="col-6 mb-3 text-right">
+                        <button class="btn btn-primary">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {# 1 #}
+        <div class="carousel-item">
+            <div class="form-group">
+                <label for="leave" class="font-weight-bold">Details of Leave <span class="text-danger">*</span></label>
+                <div v-if="leaveAvailed.vacation || leaveAvailed.specialPrivilege" class="form-group">
+                    <label for="leave">Vacation/Special Privilege Leave</label>
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            <div class="custom-control custom-switch">
+                                <input v-model="isLocal" id="isLocal" type="checkbox" class="custom-control-input">
+                                <label class="custom-control-label" for="isLocal">Within the Philippines</label>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <input maxlength="40" type="text" v-model="localDetails" :disabled="!isLocal" name="localDetails" id="localDetails" class="form-control" placeholder="Please specify...">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="custom-control custom-switch">
+                                <input v-model="isAbroad" id="isAbroad" type="checkbox" class="custom-control-input">
+                                <label class="custom-control-label" for="isAbroad">Abroad</label>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <input maxlength="40" type="text" v-model="abroadDetails" :disabled="!isAbroad" name="abroadDetails" id="abroadDetails" class="form-control" placeholder="Please specify..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div v-if="leaveAvailed.sick" class="form-group">
+                    <label for="leave">In case of Sick Leave:</label>
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            <div class="custom-control custom-switch">
+                                <input v-model="isInHospital" id="isInHospital" type="checkbox" class="custom-control-input">
+                                <label class="custom-control-label" for="isInHospital">In Hospital</label>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <input maxlength="40" type="text" v-model="inHospitalDetails" :disabled="!isInHospital" name="inHospitalDetails" id="inHospitalDetails" class="form-control" placeholder="Specify Illness..."></textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="custom-control custom-switch">
+                                <input v-model="isOutPatient" id="isOutPatient" type="checkbox" class="custom-control-input">
+                                <label class="custom-control-label" for="isOutPatient">Out Patient</label>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <input maxlength="40" type="text" v-model="outPatientDetails" :disabled="!isOutPatient" name="outPatientDetails" id="outPatientDetails" class="form-control" placeholder="Specify Illness..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div v-if="leaveAvailed.specialLeaveWomen" class="form-group">
+                    <label for="leave">In case of Special Leave Benefits for Women:</label>
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            <label class="custom-control-label" for="specialLeaveWomenDetails">(Specify Illness)</label>
+                        </div>
+                        <div class="col-md-9">
+                            <input maxlength="60" type="text" v-model="specialLeaveWomenDetails" name="specialLeaveWomenDetails" id="specialLeaveWomenDetails" class="form-control"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div v-if="leaveAvailed.study" class="form-group">
+                    <label for="leave">In case of Study Leave:</label>
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            <div class="custom-control custom-switch">
+                                <input v-model="isMastersDegree" id="isMastersDegree" type="checkbox" class="custom-control-input">
+                                <label class="custom-control-label" for="isMastersDegree">Completion of Master's Degree</label>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="custom-control custom-switch">
+                                <input v-model="isExamReview" id="isExamReview" type="checkbox" class="custom-control-input">
+                                <label class="custom-control-label" for="isExamReview">BAR/Board Examination Review</label>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="leave">Other purpose:</label>
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <div class="custom-control custom-switch">
+                                <input v-model="isMonet" name="isMonet" id="isMonet" value="true" type="checkbox" class="custom-control-input">
+                                <label class="custom-control-label" for="isMonet">Monetization of Leave Credits</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="custom-control custom-switch">
+                                <input v-model="isTerminalLeave" name="isTerminalLeave" value="true" id="isTerminalLeave" type="checkbox" class="custom-control-input">
+                                <label class="custom-control-label" for="isTerminalLeave">Terminal Leave </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="leave">Commutation</label>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="custom-control custom-switch">
+                                <input v-model="isCommutationRequested" name="isCommutationRequested" value="true" id="isCommutationRequested" type="checkbox" class="custom-control-input">
+                                <label class="custom-control-label" for="isCommutationRequested">Request Commutation</label>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row pt-3 pb-3">
+                <div class="col-6 mb-3">
+                    <button v-on:click="page='#0'" class="btn btn-light" type="button">Back</button>
+                </div>
+                <div class="col-6 mb-3 text-right">
+                    <button class="btn btn-primary">Next</button>
+                </div>
+            </div>
+        </div>
+        {# 2 #}
+        <div class="carousel-item ">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <tr>
+                        <td class="font-weight-bold" width="30%">Name</td>
+                        <td>{{employee.firstName}} {{employee.middleName|first}}. {{employee.lastName}}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Position</td>
+                        <td>${employmentPosition}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Office/Department</td>
+                        <td>${department}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Salary</td>
+                        <td>${salary}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Type of Leave</td>
+                        <td>
+                            <div v-if="leaveAvailed.vacation || leaveAvailed.specialPrivilege">
+                                <ul>
+                                    <li>Vacation/Special Privilege Leave
+                                        <ul>
+                                            <li v-if="isLocal">Within the Philippines: ${localDetails}</li>
+                                            <li v-if="isAbroad">Abroad: ${abroadDetails}</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div v-if="leaveAvailed.sick">
+                                <ul>
+                                    <li>Sick Leave
+                                        <ul>
+                                            <li v-if="isInHospital">In Hospital: ${inHospitalDetails}</li>
+                                            <li v-if="isOutPatient">Out Patient: ${outPatientDetails}</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div v-if="leaveAvailed.specialLeaveWomen">
+                                <ul>
+                                    <li>Special Leave Benefits for Women
+                                        <ul>
+                                            <li>Illness: ${specialLeaveWomenDetails}</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div v-if="leaveAvailed.study">
+                                <ul>
+                                    <li>Study Leave
+                                        <ul>
+                                            <li v-if="isMastersDegree">Completion of Master's Degree</li>
+                                            <li v-if="isExamReview">BAR/Board Examination Review</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div v-if="leaveAvailed.others">
+                                <ul>
+                                    <li>Others
+                                        <ul>
+                                            <li v-if="otherLeaveSpecifics">${otherLeaveSpecifics}</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div v-for="leaveAvailed in leaveTypesAvailed">
+                                <ul>
+                                    <li>${leaveAvailed}</li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Dates</td>
+                        <td>${datesString}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Monetization of Leave Credits?</td>
+                        <td>${isMonet|yesNo}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Terminal Leave?</td>
+                        <td>${isTerminalLeave|yesNo}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-weight-bold">Commutation Requested?</td>
+                        <td>${isCommutationRequested|yesNo}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="form-row pt-3 pb-3">
+                <div class="col-6 mb-3">
+                    <button v-on:click="page='#1'"class="btn btn-light" type="button">Back</button>
+                </div>
+                <div class="col-6 mb-3 text-right">
+                    <button class="btn btn-primary">Generate</button>
+                </div>
+            </div>
+        </div>
+        {# 2 #}
+    </div>
+</div>

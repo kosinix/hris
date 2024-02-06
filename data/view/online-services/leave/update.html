@@ -1,0 +1,218 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div id="vApp" v-cloak class="col-md-12">
+    <div
+        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h4">Leave Form Details</h1>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/online-services/leave/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    <div class="mb-5">
+        {% include 'parts/flash.html' %}
+
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                
+                <tr>
+                    <td class="font-weight-bold">Control No.</td>
+                    <td>${controlNumber}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold" width="30%">Name</td>
+                    <td>{{employee.firstName}} {{employee.middleName|first}}. {{employee.lastName}}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Position</td>
+                    <td>${employment.position}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Office/Department</td>
+                    <td>${employment.department}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Salary</td>
+                    <td>${employment.salary}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Type of Leave</td>
+                    <td>
+                        <div v-if="leaveAvailed.vacation || leaveAvailed.specialPrivilege">
+                            <ul>
+                                <li>Vacation/Special Privilege Leave
+                                    <ul>
+                                        <li v-if="isLocal">Within the Philippines: ${localDetails}</li>
+                                        <li v-if="isAbroad">Abroad: ${abroadDetails}</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div v-if="leaveAvailed.sick">
+                            <ul>
+                                <li>Sick Leave
+                                    <ul>
+                                        <li v-if="isInHospital">In Hospital: ${inHospitalDetails}</li>
+                                        <li v-if="isOutPatient">Out Patient: ${outPatientDetails}</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div v-if="leaveAvailed.specialLeaveWomen">
+                            <ul>
+                                <li>Special Leave Benefits for Women
+                                    <ul>
+                                        <li>Illness: ${specialLeaveWomenDetails}</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div v-if="leaveAvailed.study">
+                            <ul>
+                                <li>Study Leave
+                                    <ul>
+                                        <li v-if="isMastersDegree">Completion of Master's Degree</li>
+                                        <li v-if="isExamReview">BAR/Board Examination Review</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div v-if="leaveAvailed.others">
+                            <ul>
+                                <li>Others
+                                    <ul>
+                                        <li v-if="otherLeaveSpecifics">${otherLeaveSpecifics}</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div v-for="leaveAvailed in leaveTypesAvailed">
+                            <ul>
+                                <li>${leaveAvailed}</li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Dates</td>
+                    <td>${datesString}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Monetization of Leave Credits?</td>
+                    <td>${isMonet|yesNo}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Terminal Leave?</td>
+                    <td>${isTerminalLeave|yesNo}</td>
+                </tr>
+                <tr>
+                    <td class="font-weight-bold">Commutation Requested?</td>
+                    <td>${isCommutationRequested|yesNo}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var leaveTypes = {{leaveTypes|default([], true)|stringify|safe}};
+    var employee = {{employee|default({}, true)|stringify|safe}};
+    var employment = {{employment|default({}, true)|stringify|safe}};
+    var at = {{at|default({}, true)|stringify|safe}};
+
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        filters: {
+            formatDate: function(date, format){
+                return moment(date).format(format)
+            },
+            yesNo: function(v){
+                return (v+'').replace('true', 'Yes').replace('false', 'No')
+            }
+        },
+        data: {
+            pending: false,
+            leaveTypes: leaveTypes,
+            employee: employee,
+            employment: employment,
+            ...at,
+        },
+        computed: {
+            salary: function(){
+                var me = this;
+                var employment = me.employments.find(function(e){
+                    return e._id === me.employmentId
+                })
+                return _.get(employment, 'salary', '') + ' ' + _.get(employment, 'salaryType', '') 
+            },
+            datesStringify: function(){
+                return this.dates.join(',')
+            },
+            leaveTypesAvailed: function () {
+                var me = this;
+                var keyNames = Object.keys(me.leaveAvailed)
+                var availed = keyNames.filter( k => me.leaveAvailed[k]) // all true
+                availed = availed.filter( k => !['vacation', 'specialPrivilege', 'sick', 'specialLeaveWomen', 'study', 'others'].includes(k)) // exclude these
+                var availed2 = me.leaveTypes.filter((l)=>{
+                    return availed.includes(l.key)
+                }).map((l)=>{
+                    return l.label
+                })
+               
+                return availed2
+            },
+            datesString: function(){
+                var me = this;
+                var dates = me.dates.map(function(d){
+                    return moment(d).format('MMM DD YYYY')
+                })
+                return dates.join(', ')
+            }
+        },
+        watch: {
+            
+        },
+        mounted: function(){
+            this.charLength = 180 - ((this.natureOfBusiness + '').split('').length)
+        },
+        methods: {
+            delete: function(e, id){
+                return confirm("Delete?")
+            },
+            limitChars: function (max, e) {
+                if (e.target.value.length >= max) {
+                    this.natureOfBusiness = e.target.value.substring(0, max);
+                }
+                this.charLength = 180 - ((this.natureOfBusiness + '').split('').length)
+            },
+            syncDates: function () {
+                var me = this;
+                var mDate1 = moment(me.periodOfTravel)
+                var mDate2 = moment(me.periodOfTravelEnd)
+                if (mDate1.isValid() && !mDate2.isValid()) {
+                    me.periodOfTravelEnd = me.periodOfTravel
+                }
+                if (mDate1.isValid() && mDate1.isAfter(mDate2)) {
+                    me.periodOfTravelEnd = me.periodOfTravel
+                }
+            },
+            onSubmit: function () {
+                var me = this;
+                // alert('Please correct the errors to continue.')
+                me.pending = true
+                me.$nextTick(function () {
+                    me.$refs.form.submit();
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}

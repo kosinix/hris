@@ -1,0 +1,118 @@
+<div class="hros authority-to-travel">
+    <div class="row align-items-end mb-4 text-center">
+        <div class="col-2"><img src="/images/logo-md.png" alt="Logo"></div>
+        <div class="col-4">
+            <p>Republic of the Philippines </p>
+            <p class="font-weight-bold">State Universities and Colleges</p>
+            <p class="font-weight-bold">GUIMARAS STATE COLLEGE</p>
+            <p>Buenavista, Guimaras</p>
+        </div>
+        <div class="col-3">
+            <img src="/images/pab.jpg" alt="">
+        </div>
+        <div class="col-3">
+            Control No. {{at.controlNumber}}
+        </div>
+    </div>
+    <div class="row align-items-end">
+        <div class="col-12 text-center">
+            <h1>Authority to Travel</h1>
+        </div>
+    </div>
+    <div class="row mb-1 align-items-end">
+        <div class="col-10 text-center">
+        </div>
+        <div class="col-2 text-center">
+            <div class="underline">{{at.createdAt|format_date('MMMM DD, YYYY')}}</div>
+            <div>Date</div>
+        </div>
+    </div>
+    <div class="row align-items-end">
+        <div class="col-3">
+            <strong>Name of Official:</strong>
+        </div>
+        <div class="col-9">
+            <div class="underline pl-3">{{employee.firstName}} {{employee.middleName|first}}. {{employee.lastName}}</div>
+        </div>
+    </div>
+    <div class="row align-items-end">
+        <div class="col-3">
+            <strong>Designation:</strong>
+        </div>
+        <div class="col-9">
+            <div class="underline pl-3">{{at.data.designation}}</div>
+        </div>
+    </div>
+    <div class="row align-items-end">
+        <div class="col-3">
+            <strong>Official Station:</strong>
+        </div>
+        <div class="col-9">
+            <div class="underline pl-3">{{at.data.officialStation}}</div>
+        </div>
+    </div>
+    <div class="row align-items-end">
+        <div class="col-3">
+            <strong>Destination:</strong>
+        </div>
+        <div class="col-9">
+            <div class="underline pl-3">{{at.data.destination}}</div>
+        </div>
+    </div>
+    <div class="row align-items-end">
+        <div class="col-3">
+            <strong>Period of Travel:</strong>
+        </div>
+        <div class="col-9">
+            <div class="underline pl-3">{{at.periodOfTravel|format_date('MMMM DD, YYYY')}} 
+                {% if at.periodOfTravel|format_date('MMMM DD, YYYY') !== at.periodOfTravelEnd|format_date('MMMM DD, YYYY') %}
+                    to {{at.periodOfTravelEnd|format_date('MMMM DD, YYYY')}} 
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="row mb-4">
+        <div class="col-3 pt-2">
+            <strong>Nature of Business:</strong>
+        </div>
+        <div class="col-9">
+            <div class="underline pl-3">{{at.data.natureOfBusiness1}}</div>
+            <div class="underline pl-3">{{at.data.natureOfBusiness2}}&nbsp;</div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+            <div>Favorably endorsed for approval:</div>
+            <div class="underline text-center pt-4">{{at.data.endorser|upper|replace('PH.D.', 'Ph.D.')}}</div>
+            <div class="text-center">{{at.data.endorserDesignation}}</div>
+        </div>
+        <div class="col-4"></div>
+        <div class="col-4">
+            <div>Requested by:</div>
+            <div class="underline text-center text-uppercase pt-4">{{employee.firstName}} {{employee.middleName|first}}. {{employee.lastName}}</div>
+            <div class="text-center">Traveling Personnel</div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4 text-right">
+            <div>APPROVED:</div>
+            
+        </div>
+        <div class="col-4">
+            <div class="underline text-center pt-4">{{at.data.approver|upper|replace('PH.D.', 'Ph.D.')}}</div>
+            <div class="text-center">{{at.data.approverDesignation}}</div>
+        </div>
+        <div class="col-4">
+            
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+            <div class="legend">Legend: Original copy – Traveling Personnel   <br>
+            Duplicate – Personnel    
+            </div>
+        </div>
+        <div class="col-4"></div>
+        <div class="col-4"></div>
+    </div>
+</div>

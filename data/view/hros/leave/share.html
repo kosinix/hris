@@ -1,0 +1,55 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12" >
+    <div class="d-print-none d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="">
+            <h1 class="h3">Share</h1>
+            <p><em>Use this if you are going to print on another computer without sharing your password.</em></p>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/hros/at/all" class="btn btn-sm btn-outline-primary">Back</a>
+            </div>
+        </div>
+    </div>
+    
+    <div>
+        <h2 class="h6 mb-3">How to Open on Another Computer</h2>
+        <ol>
+            <li>Copy the link below: <br>
+                <div class="input-group mb-3 mt-3">
+                    <input id="sharedUrl" type="text" readonly class="form-control" value="{{share.payload.url}}" />
+                    <div class="input-group-append">
+                        <button id="copy" class="btn btn-light">Copy</button>
+                    </div>
+                </div>
+            </li>
+            <li>Open Messenger or any messaging app.</li>
+            <li>Paste the link and send to your recipient.</li>
+            <li>Link will auto expire after 1 hour.</li>
+        </ol>
+        {# {% for share in prevShares %}
+        <div>{{share.expiredAt}}</div>
+        {% endfor %} #}
+        
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    jQuery(document).ready(function ($) {
+        $('#sharedUrl').select()
+        $('#sharedUrl').on('focus', function(){
+            this.select()
+        })
+        $('#copy').on('click', function () {
+            $('#sharedUrl').select()
+            document.execCommand('copy');
+            alert('Link copied to clipboard.')
+        });
+    })
+</script>
+{% endblock %}
+

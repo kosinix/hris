@@ -1,0 +1,113 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex align-items-start">
+            <h1 class="h5">Leave Form <em>({{count}})</em></h1>
+        </div>
+        <!-- <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+                <a href="/online-services/leave/create" class="btn btn-sm btn-outline-primary">Apply for Authority to Travel</a>
+            </div>
+        </div> -->
+    </div>
+    {% include 'parts/flash.html' %}
+    
+    {% if ats.length <= 0 %}
+        <p>None found. <a href="/online-services/leave/all">Back</a>
+    {% else %}
+        <div class="tab-content p-3">
+            <div class="row mb-3">
+                <div class="col-3 align-items-center">
+                    <span>Sort From: </span>
+                    <div class="btn-group">
+                        {% if sortOrder === -1 %}
+                            <a href="/online-services/leave/all?sortOrder=-1&lastName={{lastName}}" class="btn btn-primary">Newest</a>
+                            <a href="/online-services/leave/all?sortOrder=1&lastName={{lastName}}" class="btn btn-light">Oldest</a>
+                        {% elif sortOrder === 1 %}
+                            <a href="/online-services/leave/all?sortOrder=-1&lastName={{lastName}}" class="btn btn-light">Newest</a>
+                            <a href="/online-services/leave/all?sortOrder=1&lastName={{lastName}}" class="btn btn-primary">Oldest</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-3">
+                    <form id="form" action="/online-services/leave/all" class="d-flex align-items-center">
+                        <input type="hidden" name="sortOrder" value="{{sortOrder}}">
+                        <input onsearch="form.submit()" value="{{lastName}}" placeholder="Last Name..." id="lastName" class="form-control" type="search" name="lastName">
+                        <button class="btn btn-light">Search</button>
+                    </form>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped table-travel">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th width="10%">
+                                Control No.
+                            </th>
+                            <th width="15%">
+                                Date Generated
+                            </th>
+                            <th>
+                                Name
+                            </th>
+                            <th>
+                                Dates
+                            </th>
+                            <th>
+                                Leave
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% set lastIndex = -1 %}
+                    {% for at in ats %}
+                        <tr>
+                            <td class="text-center">
+                                {% if sortOrder === 1 %}
+                                {{loop.index + (page - 1) * perPage}}
+                                {% endif %}
+                                {% if sortOrder === -1 %}
+                                {{count + 1 - (loop.index + (page - 1) * perPage) }}
+                                {% endif %}
+                            </td>
+                            <td>{{at.controlNumber}}</td>
+                            <td>{{at.createdAt|format_date('MMM DD, YYYY')}}</td>
+                            <td>
+                                <a href="/online-services/leave/all?sortOrder={{sortOrder}}&lastName={{at.employee.lastName}}">{{at.employee.lastName}}, {{at.employee.firstName}}</a>
+                            </td>
+                            <td>
+                                {{at.dates}}
+                            </td>
+                            <td>
+                                <a href="/online-services/leave/{{at._id}}">{{at.leaveAvailedList}}</a>
+                            </td>
+                        </tr>
+                        {% if sortOrder === 1 %}
+                            {% set lastIndex = loop.index + (page - 1) * perPage %}
+                        {% endif %}
+                        {% if sortOrder === -1 %}
+                            {% set lastIndex = count + 1 - (loop.index + (page - 1) * perPage) %}
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12 text-center pt-3 pb-5">
+                    {% if sortOrder === 1 and lastIndex < count %}
+                        <a href="/online-services/leave/all?lastId={{ats.at(-1)._id}}&sortOrder={{sortOrder}}&lastName={{lastName}}&page={{page+1}}" class="btn btn-light btn-sm">Show Next</a>
+                    {% endif %}
+                    {% if sortOrder === -1 and lastIndex > 1%}
+                        <a href="/online-services/leave/all?lastId={{ats.at(-1)._id}}&sortOrder={{sortOrder}}&lastName={{lastName}}&page={{page+1}}" class="btn btn-light btn-sm">Show Next</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

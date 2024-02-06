@@ -31,6 +31,7 @@ main.Bin = main.model('Bin', require('./models/bin'));
 main.Employee = main.model('Employee', require('./models/employee'));
 main.EmployeeList = main.model('EmployeeList', require('./models/employee-list'));
 main.Employment = main.model('Employment', require('./models/employment'));
+main.LeaveForm = main.model('LeaveForm', require('./models/leave-form'));
 main.Map = main.model('Map', require('./models/map'));
 main.Memo = main.model('Memo', require('./models/memo'));
 main.HealthDeclaration = main.model('HealthDeclaration', require('./models/health-declaration'));

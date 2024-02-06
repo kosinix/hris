@@ -550,7 +550,7 @@ router.get('/hros/flag/create', middlewares.guardRoute(['use_employee_profile'])
         }).lean()
         presentOnFlag = presentOnFlag > 0 ? true : false
 
-        if(presentOnFlag){
+        if (presentOnFlag) {
             return res.redirect('/hros/flag/all')
         }
 
@@ -993,4 +993,357 @@ router.post('/hros/flag/location', middlewares.guardRoute(['use_employee_profile
         next(new AppError(err.message));
     }
 });
+
+// Leave Form
+router.get('/hros/leave/all', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        let lastId = lodash.get(req, 'query.lastId', '')
+        let perPage = 100
+        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', -1))
+        let page = parseInt(lodash.get(req, 'query.page', 1))
+        let lastName = lodash.get(req, 'query.lastName')
+        lodash.set(req, 'session.pagination.perPage', perPage)
+
+        let query = {
+            employeeId: employee._id
+        }
+
+        if (lastId) {
+            if (sortOrder === -1) {
+                query = {
+                    _id: {
+                        $lt: req.app.locals.db.mongoose.Types.ObjectId(lastId)
+                    }
+                }
+            } else {
+                query = {
+                    _id: {
+                        $gt: req.app.locals.db.mongoose.Types.ObjectId(lastId)
+                    }
+                }
+            }
+        }
+
+        let aggr = []
+
+        // Sort by _id 
+        aggr.push({ $sort: { _id: sortOrder } })
+        aggr.push({ $match: query })
+        if (!lastName) {
+            aggr.push({ $limit: perPage })
+        }
+        aggr.push({
+            $lookup:
+            {
+                localField: "employeeId",
+                foreignField: "_id",
+                from: "employees",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                }
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+            }
+        })
+        let ats = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
+        ats = ats.map((l) => {
+            l.leaveAvailedList = CONFIG.leaveTypes.filter((o) => {
+                return l.leaveAvailed[o.key]
+            }).map(o => o.label).join(', ')
+            l.dates = l.dates.map( o => moment(o).format('MMM. DD, YYYY') ).join(', ')
+            return l
+        })
+
+        // 
+        aggr = []
+        // Sort by _id 
+        aggr.push({ $sort: { _id: sortOrder } })
+        let counts = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
+        // 
+
+        let data = {
+            title: 'Human Resource Online Services (HROS) - Authority to Travel',
+            employee: employee,
+            flash: flash.get(req, 'hros'),
+            ats: ats,
+            sortOrder: sortOrder,
+            lastName: lastName,
+            page: page,
+            perPage: perPage,
+            momentNow: moment(),
+            count: counts.length
+        }
+        // return res.send(data)
+        res.render('hros/leave/all.html', data);
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/hros/leave/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let employments = employee.employments
+        const leaveTypes = CONFIG.leaveTypes
+
+        // Schema: leaveAvailed.vacation = false, leaveAvailed.forced = false....
+        let leaveAvailed = lodash.mapKeys(leaveTypes, (l) => {
+            return l.key
+        })
+        leaveAvailed = lodash.mapValues(leaveAvailed, (l) => {
+            return false
+        })
+        let data = {
+            title: 'Human Resource Online Services (HROS) - Authority to Travel',
+            flash: flash.get(req, 'hros'),
+            employee: employee,
+            employments: employments,
+            employmentId: employments[0]._id,
+            momentNow: moment(),
+            leaveTypes: leaveTypes,
+            leaveAvailed: leaveAvailed,
+        }
+        res.render('hros/leave/create.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/hros/leave/create', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let user = res.user.toObject()
+        let body = req.body
+
+        let defaults = {
+            employmentId: "",
+            dates: "",
+            "leaveAvailed.vacation": false,
+            "leaveAvailed.forced": false,
+            "leaveAvailed.sick": false,
+            "leaveAvailed.maternity": false,
+            "leaveAvailed.paternity": false,
+            "leaveAvailed.specialPrivilege": false,
+            "leaveAvailed.soloParent": false,
+            "leaveAvailed.study": false,
+            "leaveAvailed.tenDayVawc": false,
+            "leaveAvailed.rehabPrivilege": false,
+            "leaveAvailed.specialLeaveWomen": false,
+            "leaveAvailed.calamity": false,
+            "leaveAvailed.adoptionLeave": false,
+            "leaveAvailed.others": false,
+            otherLeaveSpecifics: "",
+            isLocal: false,
+            localDetails: "",
+            isAbroad: false,
+            abroadDetails: "",
+            isInHospital: false,
+            inHospitalDetails: "",
+            isOutPatient: false,
+            outPatientDetails: "",
+            specialLeaveWomenDetails: "",
+            isMastersDegree: false,
+            isExamReview: false,
+            isMonet: false,
+            isTerminalLeave: false,
+            isCommutationRequested: false
+        }
+        body = {
+            ...defaults,
+            ...body
+        }
+        if (body.dates) {
+            body.dates = body.dates.split(',')
+        }
+        // return res.send(body)
+
+        let employmentId = lodash.get(body, 'employmentId')
+        let employment = await req.app.locals.db.main.Employment.findById(employmentId).lean()
+        if (!employment) {
+            flash.error(req, 'hros', 'Employment not found.')
+            return res.redirect('/hros/leave/create')
+        }
+
+        let ats = await req.app.locals.db.main.LeaveForm.find({
+            employmentId: employment._id,
+            dates: {
+                $in: body.dates.join(','), // @TODO: Remove need to rejoin
+            },
+
+        })
+        if (ats.length > 0) {
+            flash.error(req, 'hros', 'Cannot generate Leave Form using the provided date(s). There is an overlap with another Leave Form.')
+            return res.redirect('/hros/leave/create')
+        }
+
+        // Latest
+        let latest = await req.app.locals.db.main.LeaveForm.findOne({
+            createdAt: {
+                $gte: moment().startOf('month').toDate(),
+            },
+            createdAt: {
+                $lte: moment().endOf('month').toDate(),
+            }
+        }).sort({
+            createdAt: -1
+        })
+
+        let generateControlNumber = (latest) => {
+            let parsed = latest.controlNumber.replace(' (Online)', '').split('-') // Split '24-01-002' into array of 3 elements
+            let counter = parseInt(parsed.at(2)) // Get '002' as 2
+            counter++ // increment
+            const NOW = moment()
+            if (parsed.at(0) !== NOW.format('YY')) {
+                counter = 1
+            }
+            counter = new String(counter) // Convert to string
+            return NOW.format('YY-MM-') + counter.padStart(3, '0') + ' (Online)'
+        }
+
+        let controlNumber = `${moment().format('YY-MM')}-001 (Online)`
+        if (latest) {
+            controlNumber = generateControlNumber(latest)
+        }
+
+        let leave = await req.app.locals.db.main.LeaveForm.create({
+            employeeId: employee._id,
+            employmentId: employment._id,
+            status: 2, // 1 pending, 2 approved
+            controlNumber: controlNumber,
+            ...body
+        })
+
+        let message = `Leave Form generated. `
+        message += `1.) Please print your Leave Form with Control No. ${controlNumber}. `
+        message += `2.) Have it signed and approved. `
+
+        flash.ok(req, 'hros', message)
+        res.redirect(`/hros/leave/all`)
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/hros/leave/:leaveId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let leave = await req.app.locals.db.main.LeaveForm.findOne({
+            _id: req.params.leaveId,
+            employeeId: employee._id,
+        })
+        if (!leave) {
+            throw new Error('Leave Form not found.')
+        }
+
+
+        let words = leave.data.natureOfBusiness.replace(/\s\s+/g, ' ').split(' ')
+        if (words.length > 32) {
+            leave.data.natureOfBusiness1 = words.splice(0, 32).join(' ')
+            leave.data.natureOfBusiness2 = words.splice(0, 25).join(' ')
+
+        } else {
+            leave.data.natureOfBusiness1 = words.join(' ')
+            leave.data.natureOfBusiness2 = ''
+
+        }
+
+        let data = {
+            title: `Leave Form - ${employee.firstName} ${employee.lastName} - ${leave.controlNumber}`,
+            employee: employee,
+            leave: leave,
+            momentNow: moment(),
+        }
+        res.render('hros/leave/read.html', data);
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/hros/leave/:leaveId/print', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        let aggr = []
+        aggr.push({
+            $match: {
+                _id: req.app.locals.db.mongoose.Types.ObjectId(req.params.leaveId),
+                employeeId: req.app.locals.db.mongoose.Types.ObjectId(employee._id),
+            }
+        })
+        aggr.push({
+            $lookup: {
+                localField: "employeeId",
+                foreignField: "_id",
+                from: "employees",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $lookup: {
+                localField: "employmentId",
+                foreignField: "_id",
+                from: "employments",
+                as: "employments"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                },
+                "employment": {
+                    $arrayElemAt: ["$employments", 0]
+                }
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+                employments: 0,
+            }
+        })
+        let leaves = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
+        let leave = leaves.at(0)
+        if (!leave) {
+            throw new Error('Leave Form not found.')
+        }
+
+        let leaveTypes = CONFIG.leaveTypes.filter(o => o.key !== 'others').map(o => {
+            o.checked = leave.leaveAvailed[o.key]
+            return o
+        })
+
+        leave.datesString = leave.dates.map(d => {
+            return moment(d).format('MMM. DD, YYYY')
+        }).join(', ')
+
+        leave.leaveAvailedList = CONFIG.leaveTypes.filter((o) => {
+            return leave.leaveAvailed[o.key]
+        }).map(o => o.label).join(', ')
+
+        let data = {
+            title: `Leave Form - ${employee.firstName} ${employee.lastName} - ${leave.controlNumber}`,
+            employee: employee,
+            leave: leave,
+            leaveTypes: leaveTypes,
+            momentNow: moment(),
+        }
+        res.render('hros/leave/leave.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+
 module.exports = router;

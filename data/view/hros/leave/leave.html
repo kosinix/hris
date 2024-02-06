@@ -1,24 +1,305 @@
 {% extends "document-print.html" %}
 
 {% block body %}
-<div class="col-12" >
-    <div class="d-print-none d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <div class="">
-            <h1 class="h3 mb-3">Leave</h1>
-            <p class="alert alert-warning"><em>Press CTRL + P to open printer options. You must be on a laptop or desktop computer.</em></p>
-        </div>
-        {% if shared == false %}
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group mr-2">
-                <a href="/hros/leave/all" class="btn btn-sm btn-outline-primary">Back</a>
+<div class="container">
+    <div class="row">
+        <div class="col-12" >
+            <div class="d-print-none d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div class="">
+                    <h1 class="h3 mb-3">Leave</h1>
+                    <p class="alert alert-warning"><em>Press CTRL + P to open printer options. You must be on a laptop or desktop computer.</em></p>
+                </div>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group mr-2">
+                        <a href="/hros/leave/all" class="btn btn-sm btn-outline-primary">Go Back</a>
+                    </div>
+                </div>
+            </div>
+            <div class="d-none d-md-block d-print-block">
+                <div class="hros leave">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="font-weight-bold font-italic" style="font-size: 12px;">Civil Service Form No. 6 <br>Revised 2020</div>
+                        <div class="text-right font-weight-bold" style="font-size: 12px; padding: 5px 10px; border: 1px dashed #ccc;">Control No.: {{leave.controlNumber}}</div>
+                    </div>
+                    <div class="form-row align-items-center mb-4 text-center">
+                        <div class="col-4 text-right"><img style="width: 80px; height: auto;" src="/images/logo-md.png" alt="Logo"></div>
+                        <div class="col-4">
+                            <div>Republic of the Philippines</div>
+                            <div class="font-weight-bold">GUIMARAS STATE UNIVERSITY</div>
+                            <div>Mclain, Buenavista, Guimaras</div>
+                        </div>
+                        <div class="col-4 text-left">
+                            <img style="width: 114px; height: auto;" src="/images/pab.jpg" alt="">
+                        </div>
+                    </div>
+                    <div class="row align-items-end">
+                        <div class="col-12 text-center">
+                            <div class="font-weight-bold" style="font-size: 22px; margin-bottom: 10px;">APPLICATION FOR LEAVE</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row align-items-end">
+                        <div class="col-12">
+                            <div style="border: 1px solid #222;">
+                                <div class="d-flex" style="border-bottom: 1px solid #222;">
+                                    <div style="width: 36%;">
+                                        <div class="cell">1. OFFICE/DEPARTMENT</div>
+                                        <div class="cell text-uppercase pl-4">{{leave.employment.department}}</div>
+                                    </div>
+                                    <div style="width: 64%;">
+                                        <div class="d-flex cell">
+                                            <div style="width: 15%">2. NAME:</div>
+                                            <div style="width: 25%" class="text-center">(Last)</div>
+                                            <div style="width: 35%" class="text-center">(First)</div>
+                                            <div style="width: 25%" class="text-center">(Middle)</div>
+                                        </div>
+                                        <div class="d-flex cell text-center text-uppercase">
+                                            <div style="width: 40%">{{leave.employee.lastName}}</div>
+                                            <div style="width: 35%">{{leave.employee.firstName}}</div>
+                                            <div style="width: 25%">{{leave.employee.middleName}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex">
+                                    <div class="cell" style="width: 36%;">
+                                        <div>3. DATE OF FILING <span class="underline">{{leave.createdAt|format_date('MMMM DD, YYYY')}}</span></div>
+                                    </div>
+                                    <div class="cell" style="width: 36%;">
+                                        <div>4. POSITION <span class="underline">{{leave.employment.position}}</span></div>
+                                    </div>
+                                    <div class="cell" style="width: 28%;">
+                                        <div>5. SALARY <span class="underline">₱ {{leave.employment.salary}}</span></div>
+                                    </div>
+                                </div>
+                                <div style="border-top: 1px solid #222; padding-top: 3px; border-bottom: 1px solid #222; padding-bottom: 3px;">
+                                    <div class="text-center font-weight-bold" style="border-top: 1px solid #222; border-bottom: 1px solid #222; padding: 5px;">6. DETAILS OF APPLICATION</div>
+                                </div>
+                                <div class="d-flex" style="border-bottom: 1px solid #222;">
+                                    <div class="cell" style="width: 55%; border-right: 1px solid #222;">
+                                        <div class="pb-2">6.A TYPE OF LEAVE TO BE AVAILED OF</div>
+                                        {% for leaveType in leaveTypes%}
+                                        <div class="d-flex align-items-center flex-wrap">
+                                            <div class="checkbox">
+                                                {% if leaveType.checked %}
+                                                    <div class="check">✓</div>
+                                                {% endif %}
+                                            </div>
+                                            <span>{{leaveType.label}}</span> 
+                                            <span class="ml-1" style="font-size: 10px;">({{leaveType.ref}})</span>
+                                        </div>
+                                        {% endfor %}
+                                        <div class="pt-2" style="width: 70%;">
+                                            <div><em>Others:</em></div>
+                                            <div class="underline-min">{{leave.otherLeaveSpecifics}}&nbsp;</div>
+                                        </div>
+                                    </div>
+                                    <div class="cell" style="width: 45%;">
+                                        6.B DETAILS OF LEAVE
+                                        <div>
+                                            <div class="font-italic">In case of Vacation/Special Privilege Leave:</div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="checkbox">
+                                                    {% if leave.localDetails %}<div class="check">✓</div>{% endif %}
+                                                </div>
+                                                <div class="mr-1">Within the Philippines</div> 
+                                                <div class="underline flex-grow-1">&nbsp;{{leave.localDetails}}</div>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="checkbox">
+                                                    {% if leave.abroadDetails %}<div class="check">✓</div>{% endif %}
+                                                </div>
+                                                <div class="mr-1">Abroad (Specify)</div> 
+                                                <div class="underline flex-grow-1">&nbsp;{{leave.abroadDetails}}</div>
+                                            </div>
+                                            <div class="font-italic">In case of Sick Leave:</div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="checkbox">
+                                                    {% if leave.inHospitalDetails %}<div class="check">✓</div>{% endif %}
+                                                </div>
+                                                <div class="mr-1">In Hospital (Specify Illness)</div> 
+                                                <div class="underline flex-grow-1">&nbsp;{{leave.inHospitalDetails}}</div>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="checkbox">
+                                                    {% if leave.outPatientDetails %}<div class="check">✓</div>{% endif %}
+                                                </div>
+                                                <div class="mr-1">Out Patient (Specify Illness)</div> 
+                                                <span class="underline flex-grow-1">&nbsp;</span>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <span class="underline flex-grow-1 text-center">&nbsp;{{leave.outPatientDetails}} </span>
+                                            </div>
+                                            <div class="font-italic">In case of Special Leave Benefits for Women:</div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="mr-1">(Specify Illness)</div> 
+                                                <span class="underline flex-grow-1">&nbsp;</span>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <span class="underline flex-grow-1 text-center">&nbsp;{{leave.specialLeaveWomenDetails}} </span>
+                                            </div>
+                                            <div class="font-italic">In case of Study Leave:</div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="checkbox">
+                                                    {% if leave.isMastersDegree %}<div class="check">✓</div>{% endif %}
+                                                </div>
+                                                <div class="mr-1">Completion of Master's Degree</div> 
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="checkbox">
+                                                    {% if leave.isExamReview %}<div class="check">✓</div>{% endif %}
+                                                </div>
+                                                <div class="mr-1">BAR/Board Examination Review</div> 
+                                            </div>
+                                            <div class="font-italic">Other purpose:</div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="checkbox">
+                                                    {% if leave.isMonet %}<div class="check">✓</div>{% endif %}
+                                                </div>
+                                                <div class="mr-1">Monetization of Leave Credits</div> 
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="checkbox">
+                                                    {% if leave.isTerminalLeave %}<div class="check">✓</div>{% endif %}
+                                                </div>
+                                                <div class="mr-1">Terminal Leave</div> 
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--  -->
+                                <div class="d-flex">
+                                    <div class="cell" style="width: 55%; border-right: 1px solid #222;">
+                                        <div>6.C NUMBER OF WORKING DAYS APPLIED FOR</div>
+                                        <div class="pl-3">
+
+                                        
+                                            <div>({{leave.dates.length}}) day{% if leave.dates.length > 1 %}s{% endif %}</div>
+                                            <div>INCLUSIVE DATES </div>
+                                            <div style="font-size: 14px;">{{leave.datesString}}</div>
+                                        </div>
+                                    </div>
+                                    <div class="cell" style="width: 45%;">
+                                        6.D COMMUTATION
+                                        <div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="checkbox">
+                                                    {% if not leave.isCommutationRequested %}<div class="check">✓</div>{% endif %}
+                                                </div>
+                                                <div class="mr-1">Not Requested</div> 
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="checkbox">
+                                                    {% if leave.isCommutationRequested %}<div class="check">✓</div>{% endif %}
+                                                </div>
+                                                <div class="mr-1">Requested</div> 
+                                            </div>
+                                        </div>
+                                        <div class="text-center pt-3 pl-3 pr-3">
+                                            <div class="underline-min"></div>
+                                            <div>Signature of Applicant</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="border-top: 1px solid #222; padding-top: 3px; border-bottom: 1px solid #222; padding-bottom: 3px;">
+                                    <div class="text-center font-weight-bold" style="border-top: 1px solid #222; border-bottom: 1px solid #222; padding: 5px;">7. DETAILS OF ACTION ON APPLICATION</div>
+                                </div>
+                                <div class="d-flex" style="border-bottom: 1px solid #222; margin-bottom: 3px;">
+                                    <div class="cell" style="width: 55%; border-right: 1px solid #222;">
+                                        7.A CERTIFICATION OF LEAVE CREDITS
+                                        <div class="text-center">
+                                            <div class="mb-1">As of _______________________ </div>
+                                            <table class="w-100 text-center table-sm m-auto">
+                                                <tr>
+                                                    <td width="33%"></td>
+                                                    <td>Vacation Leave</td>
+                                                    <td>Sick Leave</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-italic">Total Earned</td>
+                                                    <td></td>
+                                                    <td></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-italic">Less this application </td>
+                                                    <td></td>
+                                                    <td></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="font-italic">Balance</td>
+                                                    <td></td>
+                                                    <td></td>
+                                                </tr>
+                                            </table>
+
+                                            <div class="text-center pt-4 pl-3 pr-3">
+                                                <div contenteditable="">MA. RECHEL A. PILLORA, MPA</div>
+                                                <div class="underline-min"></div>
+                                                <div contenteditable="">Administrative Officer V/ HRMO</div>
+                                            </div>
+
+                                            
+                                            
+                                        </div>
+                                    </div>
+                                    <div class="cell" style="width: 45%;">
+                                        7.B RECOMMENDATION
+                                        <div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="checkbox"></div>
+                                                <div class="mr-1">For approval</div> 
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="checkbox"></div>
+                                                <div class="mr-1">
+                                                    <div>For disapproval due to</div> 
+                                                </div>
+                                                <div class="underline-min flex-grow-1">&nbsp;</div>
+                                            </div>
+                                        </div>
+                                        <div class="underline-min">&nbsp;</div>
+                                        <div class="underline-min">&nbsp;</div>
+                                        <div class="underline-min">&nbsp;</div>
+                                        <div class="text-center pt-3 pl-3 pr-3">
+                                            <div contenteditable=""></div>
+                                            <div class="underline-min"></div>
+                                            <div contenteditable="">Department Head</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex" style="border-top: 1px solid #222;">
+                                    <div class="cell" style="width: 55%;">
+                                        7.C APPROVED FOR: 
+                                        <div class="d-flex">
+                                            <div class="underline-min" style="width: 100px;">&nbsp;</div>
+                                            <div>days with pay</div>
+                                        </div>
+                                        <div class="d-flex">
+                                            <div class="underline-min" style="width: 100px;">&nbsp;</div>
+                                            <div>days without pay</div>
+                                        </div>
+                                        <div class="d-flex">
+                                            <div class="underline-min" style="width: 100px;">&nbsp;</div>
+                                            <div>others (Specify)</div>
+                                        </div>
+                                    </div>
+                                    <div class="cell" style="width: 45%;">
+                                        7.D DISAPPROVED DUE TO:
+                                        <div class="underline-min">&nbsp;</div>
+                                        <div class="underline-min">&nbsp;</div>
+                                        <div class="underline-min">&nbsp;</div>
+                                    </div>
+                                </div>
+                                <div class="cell text-center pt-4">
+                                    <div contenteditable="" class="underline">LILIAN DIANA B. PARREÑO, Ph.D</div>
+                                    <div contenteditable="">SUC President III</div>
+                                </div>
+                            </div>
+                          
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        {% endif %}
-    </div>
-    <div class="d-none d-md-block d-print-block">
-        {% include 'hros/leave/leave-part.html' %}
-        <hr class="dashed">
-        {% include 'hros/leave/leave-part.html' %}
     </div>
 </div>
 {% endblock %}

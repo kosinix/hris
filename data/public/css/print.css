@@ -254,6 +254,49 @@ hr.dashed {
     vertical-align: middle;
 }
 
+/* Leave */
+.hros.leave {
+    line-height: 1.4;
+}
+.hros.leave .underline {
+    border-bottom: 1px solid #222 !important;
+    padding: 4px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    display: inline-block;
+}
+.hros.leave .underline-min {
+    border-bottom: 1px solid #000;
+    padding-top: 3px;
+    padding-left: 3px;
+    padding-bottom: 1px;
+}
+.hros.leave .cell {
+    padding: 10px 10px 8px 10px;
+}
+.hros.leave .checkbox {
+    width: 15px;
+    height: 15px;
+    border: 1px solid #222;
+    margin-right: 10px;
+    position: relative;
+}
+.hros.leave .checkbox .check {
+    position: absolute;
+    left: 1px;
+    top: -13px;
+    font-size: 20px;
+    font-weight: bold;
+}
+.hros.leave small{
+    font-size: 10px;
+}
+.hros.leave table td{
+    font-size: 14px;
+    border: 1px solid #222;
+    padding: 2px 4px;
+}
+
 /* Font Weights */
 .font-weight-bold {
     font-weight: bold;

@@ -62,6 +62,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                    {% set lastIndex = -1 %}
                     {% for at in ats %}
                         <tr>
                             <td class="text-center">
@@ -84,6 +85,12 @@
                                 <a href="/online-services/leave/{{at._id}}">{{at.leaveAvailedList}}</a>
                             </td>
                         </tr>
+                        {% if sortOrder === 1 %}
+                            {% set lastIndex = loop.index + (page - 1) * perPage %}
+                        {% endif %}
+                        {% if sortOrder === -1 %}
+                            {% set lastIndex = count + 1 - (loop.index + (page - 1) * perPage) %}
+                        {% endif %}
                     {% endfor %}
                     </tbody>
                 </table>
@@ -91,7 +98,12 @@
             
             <div class="row">
                 <div class="col-md-12 text-center pt-3 pb-5">
-                    <a href="/online-services/leave/all?lastId={{ats.at(-1)._id}}&sortOrder={{sortOrder}}&lastName={{lastName}}&page={{page+1}}" class="btn btn-light btn-sm">Show Next</a>
+                    {% if sortOrder === 1 and lastIndex < count %}
+                        <a href="/online-services/leave/all?lastId={{ats.at(-1)._id}}&sortOrder={{sortOrder}}&lastName={{lastName}}&page={{page+1}}" class="btn btn-light btn-sm">Show Next</a>
+                    {% endif %}
+                    {% if sortOrder === -1 and lastIndex > 1%}
+                        <a href="/online-services/leave/all?lastId={{ats.at(-1)._id}}&sortOrder={{sortOrder}}&lastName={{lastName}}&page={{page+1}}" class="btn btn-light btn-sm">Show Next</a>
+                    {% endif %}
                 </div>
             </div>
         </div>

@@ -994,13 +994,13 @@ router.post('/hros/flag/location', middlewares.guardRoute(['use_employee_profile
     }
 });
 
-
+// Leave Form
 router.get('/hros/leave/all', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
 
         let lastId = lodash.get(req, 'query.lastId', '')
-        let perPage = 10
+        let perPage = 100
         let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', -1))
         let page = parseInt(lodash.get(req, 'query.page', 1))
         let lastName = lodash.get(req, 'query.lastName')
@@ -1009,7 +1009,7 @@ router.get('/hros/leave/all', middlewares.guardRoute(['use_employee_profile']), 
         let query = {
             employeeId: employee._id
         }
-        
+
         if (lastId) {
             if (sortOrder === -1) {
                 query = {
@@ -1058,6 +1058,13 @@ router.get('/hros/leave/all', middlewares.guardRoute(['use_employee_profile']), 
             }
         })
         let ats = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
+        ats = ats.map((l) => {
+            l.leaveAvailedList = CONFIG.leaveTypes.filter((o) => {
+                return l.leaveAvailed[o.key]
+            }).map(o => o.label).join(', ')
+            l.dates = l.dates.map( o => moment(o).format('MMM. DD, YYYY') ).join(', ')
+            return l
+        })
 
         // 
         aggr = []
@@ -1092,10 +1099,10 @@ router.get('/hros/leave/create', middlewares.guardRoute(['use_employee_profile']
         const leaveTypes = CONFIG.leaveTypes
 
         // Schema: leaveAvailed.vacation = false, leaveAvailed.forced = false....
-        let leaveAvailed = lodash.mapKeys(leaveTypes, (l)=>{
+        let leaveAvailed = lodash.mapKeys(leaveTypes, (l) => {
             return l.key
         })
-        leaveAvailed = lodash.mapValues(leaveAvailed, (l)=>{
+        leaveAvailed = lodash.mapValues(leaveAvailed, (l) => {
             return false
         })
         let data = {
@@ -1156,11 +1163,11 @@ router.post('/hros/leave/create', middlewares.guardRoute(['use_employee_profile'
             ...defaults,
             ...body
         }
-        if(body.dates){
+        if (body.dates) {
             body.dates = body.dates.split(',')
         }
         // return res.send(body)
-        
+
         let employmentId = lodash.get(body, 'employmentId')
         let employment = await req.app.locals.db.main.Employment.findById(employmentId).lean()
         if (!employment) {
@@ -1173,7 +1180,7 @@ router.post('/hros/leave/create', middlewares.guardRoute(['use_employee_profile'
             dates: {
                 $in: body.dates.join(','), // @TODO: Remove need to rejoin
             },
-          
+
         })
         if (ats.length > 0) {
             flash.error(req, 'hros', 'Cannot generate Leave Form using the provided date(s). There is an overlap with another Leave Form.')
@@ -1193,11 +1200,15 @@ router.post('/hros/leave/create', middlewares.guardRoute(['use_employee_profile'
         })
 
         let generateControlNumber = (latest) => {
-            let controlNumber = latest.controlNumber.replace(' (Online)', '')
-            let counter = parseInt(controlNumber.split('-')[2]) // Split '24-01-002' and get '002' as 2
+            let parsed = latest.controlNumber.replace(' (Online)', '').split('-') // Split '24-01-002' into array of 3 elements
+            let counter = parseInt(parsed.at(2)) // Get '002' as 2
             counter++ // increment
+            const NOW = moment()
+            if (parsed.at(0) !== NOW.format('YY')) {
+                counter = 1
+            }
             counter = new String(counter) // Convert to string
-            return moment().format('YY-MM-') + counter.padStart(3, '0') + ' (Online)'
+            return NOW.format('YY-MM-') + counter.padStart(3, '0') + ' (Online)'
         }
 
         let controlNumber = `${moment().format('YY-MM')}-001 (Online)`
@@ -1212,21 +1223,26 @@ router.post('/hros/leave/create', middlewares.guardRoute(['use_employee_profile'
             controlNumber: controlNumber,
             ...body
         })
-       
+
         let message = `Leave Form generated. `
-        message += `Please print your Leave Form and have it approved. `
+        message += `1.) Please print your Leave Form with Control No. ${controlNumber}. `
+        message += `2.) Have it signed and approved. `
+
         flash.ok(req, 'hros', message)
         res.redirect(`/hros/leave/all`)
     } catch (err) {
         next(err);
     }
 });
-router.get('/hros/leave/:authorityToTravelId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.get('/hros/leave/:leaveId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let leave = await req.app.locals.db.main.LeaveForm.findById(req.params.authorityToTravelId)
+        let leave = await req.app.locals.db.main.LeaveForm.findOne({
+            _id: req.params.leaveId,
+            employeeId: employee._id,
+        })
         if (!leave) {
-            throw new Error('Authority To Travel not found.')
+            throw new Error('Leave Form not found.')
         }
 
 
@@ -1242,7 +1258,7 @@ router.get('/hros/leave/:authorityToTravelId', middlewares.guardRoute(['use_empl
         }
 
         let data = {
-            title: `Authority to Travel - ${employee.firstName} ${employee.lastName} - ${leave.controlNumber}`,
+            title: `Leave Form - ${employee.firstName} ${employee.lastName} - ${leave.controlNumber}`,
             employee: employee,
             leave: leave,
             momentNow: moment(),
@@ -1253,46 +1269,81 @@ router.get('/hros/leave/:authorityToTravelId', middlewares.guardRoute(['use_empl
         next(err);
     }
 });
-router.get('/hros/leave/:authorityToTravelId/print', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+router.get('/hros/leave/:leaveId/print', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
-        let leave = await req.app.locals.db.main.LeaveForm.findById(req.params.authorityToTravelId)
+
+        let aggr = []
+        aggr.push({
+            $match: {
+                _id: req.app.locals.db.mongoose.Types.ObjectId(req.params.leaveId),
+                employeeId: req.app.locals.db.mongoose.Types.ObjectId(employee._id),
+            }
+        })
+        aggr.push({
+            $lookup: {
+                localField: "employeeId",
+                foreignField: "_id",
+                from: "employees",
+                as: "employees"
+            }
+        })
+        aggr.push({
+            $lookup: {
+                localField: "employmentId",
+                foreignField: "_id",
+                from: "employments",
+                as: "employments"
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                },
+                "employment": {
+                    $arrayElemAt: ["$employments", 0]
+                }
+            }
+        })
+        // Turn array employees into field employee
+        // Add field employee
+        aggr.push({
+            $project: {
+                employees: 0,
+                employments: 0,
+            }
+        })
+        let leaves = await req.app.locals.db.main.LeaveForm.aggregate(aggr)
+        let leave = leaves.at(0)
         if (!leave) {
-            throw new Error('not found.')
+            throw new Error('Leave Form not found.')
         }
 
-        
+        let leaveTypes = CONFIG.leaveTypes.filter(o => o.key !== 'others').map(o => {
+            o.checked = leave.leaveAvailed[o.key]
+            return o
+        })
+
+        leave.datesString = leave.dates.map(d => {
+            return moment(d).format('MMM. DD, YYYY')
+        }).join(', ')
+
+        leave.leaveAvailedList = CONFIG.leaveTypes.filter((o) => {
+            return leave.leaveAvailed[o.key]
+        }).map(o => o.label).join(', ')
 
         let data = {
             title: `Leave Form - ${employee.firstName} ${employee.lastName} - ${leave.controlNumber}`,
             employee: employee,
             leave: leave,
-            shared: false,
+            leaveTypes: leaveTypes,
             momentNow: moment(),
         }
         res.render('hros/leave/leave.html', data);
-
     } catch (err) {
         next(err);
     }
 });
-router.get('/hros/leave/:authorityToTravelId/delete', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let leave = await req.app.locals.db.main.LeaveForm.findById(req.params.authorityToTravelId)
-        if (!leave) {
-            throw new Error('Authority To Travel not found.')
-        }
-        if (leave.status === 2) {
-            throw new Error('Cannot cancel Authority To Travel as it is already approved. Please have it corrected by the HRMO.')
-        }
 
-        await leave.remove()
-        flash.ok(req, 'hros', 'Application for Authority to Travel cancelled.')
-        res.redirect(`/hros/leave/all`)
-
-    } catch (err) {
-        next(err);
-    }
-});
 module.exports = router;

@@ -995,6 +995,23 @@ router.post('/hros/flag/location', middlewares.guardRoute(['use_employee_profile
 });
 
 // Leave Form
+router.use('/hros/leave', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, (req, res, next)=>{
+    try {
+        let employments = res.employee.employments
+        let permanent = employments.map(emp=> emp.employmentType === 'permanent' ).reduce((prev, cur) => {
+            return prev || cur 
+        }, false)
+
+        if(!permanent && req.originalUrl !== '/hros/leave/all'){
+            flash.error(req, 'hros', `For permanent employment only.`)
+            return res.redirect(`/hros/leave/all`)
+        }
+        
+        next()
+    } catch (err) {
+        next(err)
+    }
+})
 router.get('/hros/leave/all', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -1097,6 +1114,10 @@ router.get('/hros/leave/create', middlewares.guardRoute(['use_employee_profile']
     try {
         let employee = res.employee.toObject()
         let employments = employee.employments
+
+        employments = employments.filter((o)=>{
+            return o.employmentType === 'permanent'
+        })
         const leaveTypes = CONFIG.leaveTypes
 
         // Schema: leaveAvailed.vacation = false, leaveAvailed.forced = false....
@@ -1111,7 +1132,7 @@ router.get('/hros/leave/create', middlewares.guardRoute(['use_employee_profile']
             flash: flash.get(req, 'hros'),
             employee: employee,
             employments: employments,
-            employmentId: employments[0]._id,
+            employmentId: employments.at(0)?._id,
             momentNow: moment(),
             leaveTypes: leaveTypes,
             leaveAvailed: leaveAvailed,

@@ -342,4 +342,11 @@ router.get('/help/onboard', async (req, res, next) => {
         next(err);
     }
 });
+router.get('/help/leaveform', async (req, res, next) => {
+    try {
+        res.render('e/help/leaveform.html');
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

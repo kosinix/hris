@@ -1062,7 +1062,7 @@ router.get('/hros/leave/all', middlewares.guardRoute(['use_employee_profile']), 
             l.leaveAvailedList = CONFIG.leaveTypes.filter((o) => {
                 return l.leaveAvailed[o.key]
             }).map(o => o.label).join(', ')
-            l.dates = l.dates.map( o => moment(o).format('MMM. DD, YYYY') ).join(', ')
+            l.dates = l.dates.map(o => moment(o).format('MMM. DD, YYYY')).join(', ')
             return l
         })
 
@@ -1167,6 +1167,25 @@ router.post('/hros/leave/create', middlewares.guardRoute(['use_employee_profile'
         if (body.dates) {
             body.dates = body.dates.split(',')
         }
+        if (body.otherLeaveSpecifics) {
+            body.otherLeaveSpecifics = body.otherLeaveSpecifics.replace(/\s\s+/g, ' ').slice(0, 40)
+        }
+        if (body.localDetails) {
+            body.localDetails = body.localDetails.replace(/\s\s+/g, ' ').slice(0, 26)
+        }
+        if (body.abroadDetails) {
+            body.abroadDetails = body.abroadDetails.replace(/\s\s+/g, ' ').slice(0, 26)
+        }
+        if (body.inHospitalDetails) {
+            body.inHospitalDetails = body.inHospitalDetails.replace(/\s\s+/g, ' ').slice(0, 26)
+        }
+        if (body.outPatientDetails) {
+            body.outPatientDetails = body.outPatientDetails.replace(/\s\s+/g, ' ').slice(0, 26)
+        }
+        if (body.specialLeaveWomenDetails) {
+            body.specialLeaveWomenDetails = body.specialLeaveWomenDetails.replace(/\s\s+/g, ' ').slice(0, 40)
+        }
+
         // return res.send(body)
 
         let employmentId = lodash.get(body, 'employmentId')
@@ -1341,7 +1360,7 @@ router.get('/hros/leave/:leaveId/print', middlewares.guardRoute(['use_employee_p
             leaveTypes: leaveTypes,
             momentNow: moment(),
         }
-        res.render('hros/leave/leave.html', data);
+        res.render('hros/leave/print.html', data);
     } catch (err) {
         next(err);
     }

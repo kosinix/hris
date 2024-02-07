@@ -46,8 +46,8 @@
                             <ul>
                                 <li>Vacation/Special Privilege Leave
                                     <ul>
-                                        <li v-if="isLocal">Within the Philippines: ${localDetails}</li>
-                                        <li v-if="isAbroad">Abroad: ${abroadDetails}</li>
+                                        <li v-if="localDetails">Within the Philippines: ${localDetails}</li>
+                                        <li v-if="abroadDetails">Abroad: ${abroadDetails}</li>
                                     </ul>
                                 </li>
                             </ul>
@@ -56,8 +56,8 @@
                             <ul>
                                 <li>Sick Leave
                                     <ul>
-                                        <li v-if="isInHospital">In Hospital: ${inHospitalDetails}</li>
-                                        <li v-if="isOutPatient">Out Patient: ${outPatientDetails}</li>
+                                        <li v-if="inHospitalDetails">In Hospital: ${inHospitalDetails}</li>
+                                        <li v-if="outPatientDetails">Out Patient: ${outPatientDetails}</li>
                                     </ul>
                                 </li>
                             </ul>

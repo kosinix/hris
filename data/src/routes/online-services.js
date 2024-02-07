@@ -334,10 +334,10 @@ router.get('/online-services/leave/all', middlewares.guardRoute(['read_all_atten
         next(err);
     }
 });
-router.get('/online-services/leave/:atId', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
+router.get('/online-services/leave/:leaveId', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
     try {
-        let atId = req.params.atId
-        let at = await req.app.locals.db.main.LeaveForm.findById(atId).lean()
+        let leaveId = req.params.leaveId
+        let at = await req.app.locals.db.main.LeaveForm.findById(leaveId).lean()
         if (!at) {
             throw new Error('Leave Form not found.')
         }
@@ -352,7 +352,7 @@ router.get('/online-services/leave/:atId', middlewares.guardRoute(['read_all_att
         const leaveTypes = CONFIG.leaveTypes
 
         let data = {
-            title: 'Edit Authority to Travel',
+            title: 'Leave Form Details',
             flash: flash.get(req, 'online-services'),
             at: at,
             employee: employee,

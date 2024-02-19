@@ -1065,6 +1065,15 @@ let templatePds = async (employee) => {
         slex.getCell('D49').value(value || 'N/A')
 
         // III. EDUCATION
+        let appender = (value, defVal) =>{
+            if(value){
+                value += "\n"
+                value += defVal
+            } else {
+                value = defVal
+            }
+            return value
+        }
         for (let x = 0; x < 5; x++) {
             let school = lodash.get(employee, `personal.schools[${x}]`, { name: '', periodFrom: '', periodTo: '', unitsEarned: '', yearGraduated: '', honors: '' })
             let rowY = 0
@@ -1080,19 +1089,21 @@ let templatePds = async (employee) => {
                 rowY = 58
             }
             if (rowY > 0) {
+                
+                slex.getCell(`D${rowY}`).value(appender(worksheet.getCell(`D${rowY}`).value, school.name))
 
-                slex.getCell(`D${rowY}`).value(school.name)
-                slex.getCell(`G${rowY}`).value(school.course)
+                
+                slex.getCell(`G${rowY}`).value(appender(worksheet.getCell(`G${rowY}`).value, school.course))
 
-                value = school.periodFrom
-                slex.getCell(`J${rowY}`).value(value)
+                slex.getCell(`J${rowY}`).value(appender(worksheet.getCell(`J${rowY}`).value, school.periodFrom))
 
-                value = school.periodTo
-                slex.getCell(`K${rowY}`).value(value)
+                slex.getCell(`K${rowY}`).value(appender(worksheet.getCell(`K${rowY}`).value, school.periodTo))
 
-                slex.getCell(`L${rowY}`).value(school.unitsEarned)
-                slex.getCell(`M${rowY}`).value(school.yearGraduated)
-                slex.getCell(`N${rowY}`).value(school.honors)
+                slex.getCell(`L${rowY}`).value(appender(worksheet.getCell(`L${rowY}`).value, school.unitsEarned))
+
+                slex.getCell(`M${rowY}`).value(appender(worksheet.getCell(`M${rowY}`).value, school.yearGraduated))
+
+                slex.getCell(`N${rowY}`).value(appender(worksheet.getCell(`N${rowY}`).value, school.honors))
             }
         }
 

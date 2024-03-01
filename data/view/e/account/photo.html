@@ -3,8 +3,8 @@
 {% block body %}
 <div class="col-md-12">
 
-    {% include 'e-profile/account-header.html' %}
-    {% include 'e-profile/account-tabs.html' %}
+    {% include 'e/account/header.html' %}
+    {% include 'e/account/tabs.html' %}
     
     <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
 
@@ -13,17 +13,17 @@
         <div class="d-flex justify-content-end">
             <div class="btn-toolbar mb-2 mb-md-0">
                 <div class="btn-group mr-2">
-                    <a href="/e-profile/webcam" class="btn btn-sm btn-outline-primary">Use Webcam</a>
+                    <a href="/e/account/webcam" class="btn btn-sm btn-outline-primary">Use Webcam</a>
                 </div>
             </div>
         </div>
 
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/photo" method="POST" enctype="multipart/form-data" class="form-default">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e/account/photo" method="POST" enctype="multipart/form-data" class="form-default">
             <div class="text-center mb-3">
                 {% if employee.profilePhoto %}
                     <img src="{{employee.profilePhoto|s3_url('medium')}}" alt="">
                     <div>
-                        <a onclick="return confirm('Delete profile photo?')" href="/e-profile/photo/delete" class="text-danger">Delete</a>
+                        <a onclick="return confirm('Delete profile photo?')" href="/e/account/photo/delete" class="text-danger">Delete</a>
                     </div>
                 {% endif %}
             </div>

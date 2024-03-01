@@ -3,8 +3,8 @@
 {% block body %}
 <div class="col-md-12">
 
-    {% include 'e-profile/account-header.html' %}
-    {% include 'e-profile/account-tabs.html' %}
+    {% include 'e/account/header.html' %}
+    {% include 'e/account/tabs.html' %}
     
     <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
 
@@ -13,12 +13,12 @@
         <div class="d-flex justify-content-end">
             <div class="btn-toolbar mb-2 mb-md-0">
                 <div class="btn-group mr-2">
-                    <a href="/e-profile/photo" class="btn btn-sm btn-outline-primary">Use Uploader</a>
+                    <a href="/e/account/photo" class="btn btn-sm btn-outline-primary">Use Uploader</a>
                 </div>
             </div>
         </div>
         
-        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e-profile/webcam" method="POST" class="form-default">
+        <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/e/account/webcam" method="POST" class="form-default">
             <div class="text-center mb-3">
                 <div v-if="error" class="alert alert-danger">${error}</div>
                 <div v-else>
@@ -41,7 +41,7 @@
 
             {# <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
-                    <a style="float:right" href="/e-profile/photo/delete" class="text-danger">Delete</a>
+                    <a style="float:right" href="/e/account/photo/delete" class="text-danger">Delete</a>
                     <button class="btn btn-primary">Update Profile Photo</button>
                 </div>
             </div> #}

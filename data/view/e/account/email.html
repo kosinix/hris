@@ -1,0 +1,67 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div id="vApp" v-cloak :data-pending="pending" class="col-md-12">
+    
+    {% include 'e/account/header.html' %}
+    {% include 'e/account/tabs.html' %}
+
+    <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+        {% include 'parts/flash.html' %}
+        <div class="table-responsive mb-4">
+            <table class="table table-sm table-striped">
+                <tr>
+                    <td class="text-right align-middle" style="width: 15%;">
+                        Email
+                    </td>
+                    <td class="align-middle">
+                        <div class="d-flex align-items-center">
+                            <div v-if="editEmail">
+                                <div class="form-group">
+                                    <label for="">New Email</label>
+                                    <input placeholder="New Email" v-model="email" type="email" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="">Current Password</label>
+                                    <input v-model="email" type="email" class="form-control">
+                                </div>
+                            </div>
+                            <a v-else class="mr-1" href="/employee/61513763e1d53f182a5d7b66/user/615137773c885e183d123fa4/update">mis+diwa.rhia2@gsu.edu.ph</a> 
+                            <button @click.prevent="editEmail=true" class="btn btn-sm btn-success" type="button">Edit</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right" style="width: 10%;">
+                        Log Reminder
+                    </td>
+                    <td><a href="/employee/61513763e1d53f182a5d7b66/user/615137773c885e183d123fa4/update">On</a></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            pending: false,
+            editEmail: false,
+            email: '',
+            logReminder: false,
+        },
+        methods: {
+            onSubmit: function(){
+                var me = this;
+                
+            }
+        }
+    });
+</script>
+{% endblock %}
+

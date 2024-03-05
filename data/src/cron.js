@@ -148,8 +148,8 @@ module.exports = {
             // cronJob()
 
             // https://crontab.cronhub.io/
-            console.log('Running flagraising task 11:50AM everyday.')
-            cron.schedule('50 11 * * *', cronFlag)
+            console.log('Running flagraising task 10:00AM everyday.')
+            cron.schedule('0 10 * * *', cronFlag)
             // cronFlag()
         }
     }

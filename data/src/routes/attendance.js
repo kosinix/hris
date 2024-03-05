@@ -16,7 +16,8 @@ const middlewares = require('../middlewares')
 const S3_CLIENT = require('../aws-s3-client')  // V3 SDK
 const workScheduler = require('../work-scheduler')
 const flagRaising = require('../flag-raising')
-
+const mailer = require('../mailer')
+const nunjucksEnv = require('../nunjucks-env')
 
 // Router
 let router = express.Router()
@@ -842,6 +843,16 @@ router.get('/attendance/flag/adjust', middlewares.guardRoute(['read_all_attendan
 
         flagAttendances = await flagRaising.getCandidates(req.app.locals.db, date, schedule1, schedule2, rollback)
         const ATTENDANCE_IDS = flagAttendances.map(a => a.attendanceId)
+
+        let userEmails = flagAttendances.map(a => req.app.locals.db.main.User.findById(a.employee.userId))
+        userEmails = await Promise.all(userEmails)
+        userEmails = userEmails.map((user, index) => {
+            return {
+                email: user.email,
+                firstName: flagAttendances[index].employee.firstName
+            }
+        }).filter(user => user.email.includes('@gsu.edu.ph'))
+
         // return res.send(ATTENDANCE_IDS)
         // return res.send(flagAttendances)
 
@@ -856,6 +867,7 @@ router.get('/attendance/flag/adjust', middlewares.guardRoute(['read_all_attendan
             serverUrl: CONFIG.app.url,
             next: mCalendar.clone().startOf('isoWeek').add(1, 'week').day("monday").format('YYYY-MM-DD'),
             prev: mCalendar.clone().startOf('isoWeek').subtract(1, 'week').day("monday").format('YYYY-MM-DD'),
+            userEmails: userEmails
         });
     } catch (err) {
         next(err);
@@ -867,6 +879,9 @@ router.post('/attendance/flag/change', middlewares.guardRoute(['read_all_attenda
         let rollback = lodash.get(req, 'query.rollback', false) === 'true' ? true : false
 
         let attendanceIds = (new String(req.body.attendanceIds)).split(',')
+        let notify = lodash.get(req, 'body.notify', false) ? true : false
+        let userEmails = (new String(req.body.userEmails))
+        userEmails = JSON.parse(userEmails)
 
         // 1. Schedules
         let schedule1 = await req.app.locals.db.main.WorkSchedule.findOne({
@@ -881,6 +896,36 @@ router.post('/attendance/flag/change', middlewares.guardRoute(['read_all_attenda
 
         let flashMessage = await flagRaising.adjustCandidates(req.app.locals.db, user.username, attendanceIds, schedule1, schedule2, rollback)
 
+        if (!rollback && notify) {
+            for (let x = 0; x < userEmails.length; x++) {
+                let firstName = userEmails[x].firstName
+                let email = userEmails[x].email
+                let data = {
+                    firstName: firstName,
+                    subject: 'Early Out Eligibility'
+                }
+                let mailOptions = {
+                    from: `${CONFIG.school.acronym} HRIS <hris-noreply@gsu.edu.ph>`,
+                    to: email,
+                    bcc: 'amarillanico@gmail.com',
+                    subject: 'Early Out Eligibility',
+                    text: nunjucksEnv.render('emails/flag-raising.txt', data),
+                    html: nunjucksEnv.render('emails/flag-raising.html', data),
+                }
+
+                if (ENV === 'dev') {
+                    console.log('Email content:')
+                    mailOptions.html = ''
+                    console.log(mailOptions)
+                } else {
+                    mailer.transport2.sendMail(mailOptions).then(function (result) {
+                        // console.log(result, 'Email sent')
+                    }).catch(err => {
+                        console.error(err)
+                    })
+                }
+            }
+        }
         flash.ok(req, 'attendance', flashMessage)
         res.redirect('/attendance/flag/all')
     } catch (err) {
@@ -2725,7 +2770,7 @@ router.get('/attendance/review/all', middlewares.guardRoute(['read_all_attendanc
             }
         ]
         let attendanceReviews = await req.app.locals.db.main.AttendanceReview.aggregate(aggr)
-        attendanceReviews = attendanceReviews.filter( a => {
+        attendanceReviews = attendanceReviews.filter(a => {
             return a.attendance
         })
         let attendanceReview = attendanceReviews[0]

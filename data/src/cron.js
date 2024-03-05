@@ -93,6 +93,15 @@ module.exports = {
 
         const cronFlag = () => {
             let mDate = moment()
+            /**
+             * Sun - 0
+             * Mon - 1
+             * ...
+             * Sat - 6
+             */
+            if (mDate.weekday() !== 1) { // Memo applies to monday only
+                return false
+            }
             const cmd = `node cron/flag-raising.js ${mDate.format('YYYY-MM-DD')} false`
             const opt = { cwd: APP_DIR }
 
@@ -119,11 +128,16 @@ module.exports = {
                         subject: 'HRIS Cron',
                         text: output,
                     }
-                    mailer.transport2.sendMail(mailOptions).then(function (result) {
-                        // console.log(result, 'Email sent')
-                    }).catch(err => {
-                        console.error(err)
-                    })
+                    if (ENV === 'dev') {
+                        console.log('Email content:')
+                        console.log(mailOptions)
+                    } else {
+                        mailer.transport2.sendMail(mailOptions).then(function (result) {
+                            // console.log(result, 'Email sent')
+                        }).catch(err => {
+                            console.error(err)
+                        })
+                    }
                 }
             });
         }

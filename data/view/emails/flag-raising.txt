@@ -1,0 +1,24 @@
+Dear {{firstName}},
+Thank you for attending the Flag Raising Ceremony.
+
+** You are qualified for an early out at 4:30PM! **
+
+Your eligibility is based on:
+-- Attendance at Monday's Flag Raising Ceremony
+-- Having a regular 8am-5pm work schedule
+-- Morning-in of not later than 7:30AM
+-- A non-faculty
+
+
+Reference: Memo. No. 108 Series of 2023
+
+----
+Best regards,
+The HRIS
+
+Did you encounter any problems? Or do you have questions? 
+You can reach us at any of these channels:
+
+Attendance Concerns - hrmo@gsu.edu.ph - Human Resource Management Office
+Technical Issues - mis@gsu.edu.ph - Management Information System
+Browse Help Topics - {{baseUrl}}/help

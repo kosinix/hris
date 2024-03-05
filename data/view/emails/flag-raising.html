@@ -1,0 +1,51 @@
+{% extends "document-email.html" %}
+
+{% block body %}
+<p>Dear {{firstName}},</p>
+<p>Thank you for attending the Flag Raising Ceremony.</p>
+<div style="border: 1px dashed gray; padding: 10px 5px; border-radius: 5px">
+    <p style="text-align: center; color: #6aa02c; font-size: 18px;"><strong>You are qualified for an early out at 4:30PM!</strong></p>
+</div>
+
+<p style="margin-bottom: 0;">Your eligibility is based on:</p>
+<ol>
+    <li>Attendance at Monday's Flag Raising Ceremony</li>
+    <li>Having a regular 8am-5pm work schedule</li>
+    <li>Morning-in of not later than 7:30AM</li>
+    <li>A non-faculty </li>
+</ol>
+<p style="font-size:10px; font-style: italic; margin-bottom: 20px; text-align: right;">Reference: Memo. No. 108 Series of 2023</p>
+<p>----</p>
+<p style="font-style: italic;">Best regards, <br>
+The HRIS</p>
+
+<p style="margin-top: 100px; text-align: center; font-size: 14px">Did you encounter any problems? Or do you have questions? <br>You can reach us via these channels:</p>
+<table style="font-size: 11px;" aria-hidden="true" cellspacing="0" cellpadding="0" border="0" align="center" width="100%">
+    <tr>
+        <td style="text-align: center;  padding: 5px">
+            <a href="mailto:hrmo@gsu.edu.ph"><img src="{{baseUrl}}/images/email.png" alt="email"></a>
+            <span style="display: block; text-align: center">   
+                <span style="font-size: 11px;">for Attendance Concerns</span> 
+                <br><a href="mailto:hrmo@gsu.edu.ph"><em>hrmo@gsu.edu.ph</em></a>
+                <br><span style="font-size: 10px;">Human Resource Management Office</span> 
+            </span> 
+        </td>
+        <td style="text-align: center;  padding: 5px">
+            <a href="mailto:mis@gsu.edu.ph"><img src="{{baseUrl}}/images/technical.png" alt="email"></a>
+            <span style="display: block; text-align: center">   
+                <span style="font-size: 11px;">for Technical Issues</span> 
+                <br><a href="mailto:mis@gsu.edu.ph"><em>mis@gsu.edu.ph</em></a>
+                <br><span style="font-size: 10px;">Management Information System</span> 
+            </span> 
+        </td>
+        <td style="text-align: center;  padding: 5px">
+            <a href="{{baseUrl}}/help"><img src="{{baseUrl}}/images/help.png" alt="email"></a>
+            <span style="display: block; text-align: center">   
+                <span style="font-size: 11px;">Browse Help Topics</span> 
+                <br><a href="{{baseUrl}}/help"><em>/help</em></a>
+            </span> 
+        </td>
+    </tr>
+</table>
+{% endblock %}
+

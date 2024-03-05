@@ -94,7 +94,9 @@ const getCandidates = async (db, date, schedule1, schedule2, rollback = false) =
                 $match: {
                     active: true,
                     group: 'staff',
-                    employmentType: 'cos',
+                    employmentType:  {
+                        $in: ['cos', 'permanent']
+                    },
                     workScheduleId: schedule1._id, // Regular Working Hours
                     employeeId: {
                         $in: FLAG_EMPLOYEE_IDS

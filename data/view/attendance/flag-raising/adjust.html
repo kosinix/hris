@@ -71,9 +71,12 @@
             <form class="text-right pt-3 pb-3 pr-0" action="/attendance/flag/change?date={{mCalendar|format_date('YYYY-MM-DD')}}&rollback={{rollback}}" method="POST">
                 <input type="hidden" name="acsrf" value="{{acsrf}}">
                 <input type="hidden" name="attendanceIds" value="{{ATTENDANCE_IDS}}">
+                <input type="hidden" name="userEmails" value="{{userEmails|stringify}}">
                 {% if rollback %}
                     <button class="btn btn-primary">Revert to 5PM Afternoon Out Schedule</button>
                 {% else %}
+                    <label for="notify"><input type="checkbox" checked name="notify" value="true" id="notify"> Notify</label>
+
                     <button class="btn btn-primary">Change to 4:30PM Afternoon Out Schedule</button>
                 {% endif %}
             </form>

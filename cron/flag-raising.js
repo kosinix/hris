@@ -42,6 +42,7 @@ let db = null; // Hold db here
 
 ; (async () => {
     try {
+        const nunjucksEnv = require('../data/src/nunjucks-env')
         db = await dbModule.connect()
 
         let date, rollback, rest
@@ -72,9 +73,42 @@ let db = null; // Hold db here
 
         // Get candidates
         const flagAttendances = await flagRaising.getCandidates(db, date, schedule1, schedule2, rollback)
-        const attendanceIds = flagAttendances.map(a => a.attendanceId)
+
+        // Emails
+        let userEmails = flagAttendances.map(a => db.main.User.findById(a.employee.userId))
+        userEmails = await Promise.all(userEmails)
+        userEmails = userEmails.map((user, index) => {
+            return {
+                email: user.email,
+                firstName: flagAttendances[index].employee.firstName
+            }
+        }).filter(user => user.email.includes('@gsu.edu.ph'))
+        for (let x = 0; x < userEmails.length; x++) {
+            let firstName = userEmails[x].firstName
+            let email = userEmails[x].email
+            let data = {
+                firstName: firstName,
+                subject: 'Early Out Eligibility'
+            }
+            let mailOptions = {
+                from: `GSU HRIS <hris-noreply@gsu.edu.ph>`,
+                to: email,
+                subject: 'Early Out Eligibility',
+                text: nunjucksEnv.render('emails/flag-raising.txt', data),
+                html: nunjucksEnv.render('emails/flag-raising.html', data),
+            }
+
+            if (ENV !== 'dev') {
+                mailer.transport2.sendMail(mailOptions).then(function (result) {
+                    // console.log(result, 'Email sent')
+                }).catch(err => {
+                    console.error(err)
+                })
+            }
+        }
 
         // Adjust
+        const attendanceIds = flagAttendances.map(a => a.attendanceId)
         let flashMessage = await flagRaising.adjustCandidates(db, 'gsc.mis.amarilla', attendanceIds, schedule1, schedule2, rollback)
        
         console.log(flashMessage)

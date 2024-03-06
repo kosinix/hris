@@ -48,11 +48,16 @@
                                 <a :href="`/employee/${employee._id}/personal`">${employee.firstName}</a>
                             </td>
                             <td>
-                                <template v-if="employee.lastSchool">
-                                <strong><a :href="`/employee/${employee._id}/pds/educational-background`">${employee.lastSchool.course}</a></strong> <br> 
-                                ${employee.lastSchool.name} (${employee.lastSchool.periodFrom}-${employee.lastSchool.periodTo})
-                                <em>${employee.lastSchool.honors}</em> - <em>${employee.lastSchool.level}</em>
-                            </template>
+                                <!-- <template v-if="employee.lastSchool">
+                                    <strong><a :href="`/employee/${employee._id}/pds/educational-background`">${employee.lastSchool.course}</a></strong> <br> 
+                                    ${employee.lastSchool.name} (${employee.lastSchool.periodFrom}-${employee.lastSchool.periodTo})
+                                    <em>${employee.lastSchool.honors}</em> - <em>${employee.lastSchool.level}</em>
+                                </template> -->
+                                <div v-for="ed in employee.highEducation">
+                                    <strong><a :href="`/employee/${employee._id}/pds/educational-background`">${ed.course}</a></strong> <em>(${ed.level})</em><br> 
+                                    ${ed.name} (${ed.periodFrom}-${ed.periodTo})
+                                    <em v-if="ed.honors">Honors: ${ed.honors}</em>
+                                </div>
                             </td>
                         </tr>
                     </tbody>

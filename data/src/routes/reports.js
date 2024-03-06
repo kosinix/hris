@@ -406,13 +406,16 @@ router.get('/reports/lad/education/all', middlewares.guardRoute(['read_all_repor
     }
 })
 
-router.get(`/reports/lad/education/permanent-faculty`, middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
+router.get([`/reports/lad/education/permanent-faculty`, `/reports/lad/education/permanent-staff`], middlewares.guardRoute(['read_all_report']), async (req, res, next) => {
     try {
         let page = parseInt(lodash.get(req, 'query.page', 1))
         let perPage = 1000
 
         let employmentType = 'permanent'
         let employmentGroup = 'faculty'
+        if(req.originalUrl.includes('staff')){
+            employmentGroup = 'staff'
+        }
 
         let query = {}
 
@@ -521,6 +524,12 @@ router.get(`/reports/lad/education/permanent-faculty`, middlewares.guardRoute(['
             // Remove invalid schools
             schools = schools.filter(s => s.name !== '' && s.name !== 'N/A' && s.name !== 'n/a')
             e.lastSchool = schools.pop()
+          
+            e.highEducation = [
+                ...doctoral,
+                ...masteral,
+                ...college,
+            ]
             
             return e
         })

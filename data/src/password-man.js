@@ -54,5 +54,19 @@ module.exports = {
         }
 
         return newChars.join('')
+    },
+    genPassphrase: (totalWords = 6) => {
+        let passphrases = require('./passphrase-words')
+        passphrases = passphrases.split("\n")
+
+        let words = []
+        for (let x = 0; x < totalWords; x++) {
+            let index = `${crypto.randomInt(1, 6)}${crypto.randomInt(1, 6)}${crypto.randomInt(1, 6)}${crypto.randomInt(1, 6)}${crypto.randomInt(1, 6)}`
+            let word = passphrases.find(w => w.includes(index))
+            if(word) word = word.replace(index+' ','')
+            words.push(word)
+        }
+
+        return words.join(' ')
     }
 }

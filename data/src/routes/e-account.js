@@ -35,16 +35,48 @@ router.get('/e/account/password', middlewares.guardRoute(['use_employee_profile'
     try {
         let employee = res.employee.toObject()
 
+        let passphrase = passwordMan.genPassphrase(3)
         res.render('e/account/password.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
             momentNow: moment(),
+            passphrase: passphrase
         });
 
     } catch (err) {
         next(err);
     }
 });
+router.get('/e/account/gen-passphrase', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        res.send(passwordMan.genPassphrase(3))
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e/account/check-password', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        const { timingSafeEqual } = require('crypto')
+
+        let user = res.user
+        let body = lodash.get(req, 'body')
+
+        let password = lodash.trim(lodash.get(body, 'password'))
+
+        // Check 
+        let passwordHash = passwordMan.hashPassword(password, user.salt);
+        if (!timingSafeEqual(Buffer.from(passwordHash, 'utf8'), Buffer.from(user.passwordHash, 'utf8'))) {
+            throw new Error('Incorrect password.');
+        }
+
+        res.send({
+            correct: true
+        })
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.post('/e/account/password', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let user = res.user

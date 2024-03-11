@@ -905,6 +905,7 @@ router.post('/attendance/flag/change', middlewares.guardRoute(['read_all_attenda
                     subject: 'Early Out Eligibility'
                 }
                 let mailOptions = {
+                    baseUrl: `${CONFIG.app.url}`,
                     from: `${CONFIG.school.acronym} HRIS <hris-noreply@gsu.edu.ph>`,
                     to: email,
                     bcc: 'amarillanico@gmail.com',

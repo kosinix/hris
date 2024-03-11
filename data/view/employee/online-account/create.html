@@ -19,7 +19,7 @@
             </div>
 
             <div class="form-group">
-                <label for="password">New Password (Passphrase) <span class="text-danger">*</span></label>
+                <label for="password">New Password/Passphrase <span class="text-danger">*</span></label>
                 <div>
                     <div v-bind:data-error="errors['password']!==''" v-on:click="errors['password']=''" class="toggled-password-group">
                         <input id="password" placeholder="Type your current password..." name="password" v-model="password" v-bind:type="passwordType" class="form-control">

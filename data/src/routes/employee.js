@@ -1083,7 +1083,7 @@ router.get('/employee/:employeeId/user/create', middlewares.guardRoute(['read_em
         }
 
         let username = passwordMan.genUsername(employee.firstName, employee.lastName)
-        let password = passwordMan.genPassword()
+        let password = passwordMan.genPassphrase(3)
 
         res.render('employee/online-account/create.html', {
             flash: flash.get(req, 'employee'),
@@ -1368,7 +1368,7 @@ router.get('/employee/:employeeId/user/password-reset', middlewares.guardRoute([
         }
 
         let username = passwordMan.genUsername(employee.firstName, employee.lastName)
-        let password = passwordMan.genPassword()
+        let password = passwordMan.genPassphrase(3)
 
         res.render('employee/online-account/password-reset.html', {
             flash: flash.get(req, 'employee'),

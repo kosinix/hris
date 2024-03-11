@@ -47,13 +47,7 @@ router.get('/e/account/password', middlewares.guardRoute(['use_employee_profile'
         next(err);
     }
 });
-router.get('/e/account/gen-passphrase', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
-    try {
-        res.send(passwordMan.genPassphrase(3))
-    } catch (err) {
-        next(err);
-    }
-});
+
 router.post('/e/account/check-password', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         const { timingSafeEqual } = require('crypto')

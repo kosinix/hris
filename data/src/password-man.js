@@ -55,7 +55,7 @@ module.exports = {
 
         return newChars.join('')
     },
-    genPassphrase: (totalWords = 6) => {
+    genPassphrase: (totalWords = 6, separator = '-') => {
         let passphrases = require('./passphrase-words')
         passphrases = passphrases.split("\n")
 
@@ -67,6 +67,6 @@ module.exports = {
             words.push(word)
         }
 
-        return words.join(' ')
+        return words.join(separator)
     }
 }

@@ -102,6 +102,16 @@ router.get('/file-getter/:bucket/:prefix/:key', async (req, res, next) => {
     }
 });
 
+router.get('/generate-passphrase', middlewares.requireAuthUser, async (req, res, next) => {
+    try {
+        const passwordMan = require('../password-man')  // V3 SDK
+        const totalWords = lodash.get(req, 'query.length', 6)
+        res.send(passwordMan.genPassphrase(totalWords))
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/address', middlewares.requireAuthUser, async (req, res, next) => {
     try {
         let search = lodash.get(req, 'query.s', '');

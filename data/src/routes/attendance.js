@@ -901,11 +901,11 @@ router.post('/attendance/flag/change', middlewares.guardRoute(['read_all_attenda
                 let firstName = userEmails[x].firstName
                 let email = userEmails[x].email
                 let data = {
+                    baseUrl: `${CONFIG.app.url}`,
                     firstName: firstName,
                     subject: 'Early Out Eligibility'
                 }
                 let mailOptions = {
-                    baseUrl: `${CONFIG.app.url}`,
                     from: `${CONFIG.school.acronym} HRIS <hris-noreply@gsu.edu.ph>`,
                     to: email,
                     bcc: 'amarillanico@gmail.com',

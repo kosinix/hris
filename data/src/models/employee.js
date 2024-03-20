@@ -1,14 +1,15 @@
 //// Core modules
 
 //// External modules
-const mongoose = require('mongoose');
-const lodash = require('lodash');
-const uuid = require('uuid');
+const mongoose = require('mongoose')
+const moment = require('moment')
+const lodash = require('lodash')
+const uuid = require('uuid')
 
 //// Modules
-const uid = require('../uid');
+const uid = require('../uid')
 
-const Schema = mongoose.Schema;
+const Schema = mongoose.Schema
 
 const schema = new Schema({
     uuid: {
@@ -388,6 +389,10 @@ schema.pre('save', function (next) {
         this.uid = uid.gen()
     }
     next();
+});
+
+schema.post('findOne', function(result) {
+    if(result.birthDate) result.birthDate = moment(result.birthDate).format('YYYY-MM-DD')
 });
 
 module.exports = schema

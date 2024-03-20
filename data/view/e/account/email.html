@@ -9,34 +9,38 @@
     <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
         {% include 'parts/flash.html' %}
         <div class="table-responsive mb-4">
-            <table class="table table-sm table-striped">
+            <table class="table table-sm bg-light border">
                 <tr>
-                    <td class="text-right align-middle" style="width: 15%;">
+                    <td class="text-right align-middle" style="width: 20%;">
                         Email
                     </td>
                     <td class="align-middle">
                         <div class="d-flex align-items-center">
-                            <div v-if="editEmail">
-                                <div class="form-group">
-                                    <label for="">New Email</label>
-                                    <input placeholder="New Email" v-model="email" type="email" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label for="">Current Password</label>
-                                    <input v-model="email" type="email" class="form-control">
-                                </div>
-                            </div>
-                            <a v-else class="mr-1" href="/employee/61513763e1d53f182a5d7b66/user/615137773c885e183d123fa4/update">mis+diwa.rhia2@gsu.edu.ph</a> 
-                            <button @click.prevent="editEmail=true" class="btn btn-sm btn-success" type="button">Edit</button>
+                            <em>mis+diwa.rhia2@gsu.edu.ph</em>
                         </div>
                     </td>
-                </tr>
-                <tr>
-                    <td class="text-right" style="width: 10%;">
-                        Log Reminder
+                    <td class="text-right">
+                        <a href="#" class="btn btn-sm btn-light d-inline-flex align-items-center text-success">
+                            <span class="mr-1 text-success">Edit</span>
+                            <svg width="22px" height="22px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Next</title><path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+                        </a>
                     </td>
-                    <td><a href="/employee/61513763e1d53f182a5d7b66/user/615137773c885e183d123fa4/update">On</a></td>
                 </tr>
+                
+                <!-- <tr>
+                    <td class="text-right">
+                        Reminders
+                    </td>
+                    <td>
+                        <span class="text-success">Enabled (Email) </span>
+                    </td>
+                    <td class="text-right">
+                        <a href="#" class="btn btn-sm btn-light d-inline-flex align-items-center">
+                            <span class="mr-1">Edit</span>
+                            <svg width="22px" height="22px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Next</title><path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+                        </a>
+                    </td>
+                </tr> -->
             </table>
         </div>
     </div>

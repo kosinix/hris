@@ -23,6 +23,7 @@ const suffixes = require('../suffixes')
 const uploader = require('../uploader')
 const { noCaps } = require('../utils')
 const S3_CLIENT = require('../aws-s3-client')  // V3 SDK
+const { patchHistory } = require('../historian')  // V3 SDK
 
 // Router
 let router = express.Router()
@@ -573,18 +574,33 @@ router.post('/employee/:employeeId/personal', middlewares.guardRoute(['update_em
     try {
         let employee = res.employee
         let body = req.body
-        let patch = {}
-        lodash.set(patch, 'firstName', lodash.get(body, 'firstName'))
-        lodash.set(patch, 'middleName', lodash.get(body, 'middleName'))
-        lodash.set(patch, 'lastName', lodash.get(body, 'lastName'))
-        lodash.set(patch, 'suffix', lodash.get(body, 'suffix'))
-        lodash.set(patch, 'birthDate', lodash.get(body, 'birthDate'))
-        lodash.set(patch, 'gender', lodash.get(body, 'gender'))
-        lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
-        lodash.set(patch, 'speechSynthesisName', lodash.get(body, 'speechSynthesisName'))
-        lodash.set(patch, 'personal.agencyEmployeeNumber', lodash.get(body, 'agencyEmployeeNumber'))
+        let patch = {
+            firstName: lodash.get(body, 'firstName'),
+            middleName: lodash.get(body, 'middleName'),
+            lastName: lodash.get(body, 'lastName'),
+            suffix: lodash.get(body, 'suffix'),
+            birthDate: lodash.get(body, 'birthDate'),
+            gender: lodash.get(body, 'gender'),
+            civilStatus: lodash.get(body, 'civilStatus'),
+            speechSynthesisName: lodash.get(body, 'speechSynthesisName'),
+            'personal.agencyEmployeeNumber': lodash.get(body, 'agencyEmployeeNumber'),
+        }
 
-        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
+        let histories = patchHistory(patch, employee, res.user.username)
+
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: patch
+        })
+        if (histories.length) {
+            await req.app.locals.db.main.EmployeeHistory.create({
+                employeeId: employee._id,
+                description: histories.join(', '),
+                alert: `text-success`,
+                userId: res.user._id,
+                username: res.user.username,
+                op: 'c',
+            })
+        }
 
         flash.ok(req, 'employee', `Updated employee's info.`)
         res.redirect(`/employee/${employee._id}/personal`)
@@ -670,7 +686,7 @@ router.post('/employee/:employeeId/employment/create', middlewares.guardRoute(['
     }
 });
 // RU
-router.get('/employee/:employeeId/employment/:employmentId/update', middlewares.guardRoute(['read_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+router.get('/employee/:employeeId/employment/:employmentId/update', middlewares.guardRoute(['read_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmploymentLean, async (req, res, next) => {
     try {
         let employee = res.employee
         let employment = res.employment
@@ -694,7 +710,6 @@ router.get('/employee/:employeeId/employment/:employmentId/update', middlewares.
             },
         ])
 
-
         // Format for vue autocomplete
         workSchedules = workSchedules.map((w) => {
             return {
@@ -702,12 +717,12 @@ router.get('/employee/:employeeId/employment/:employmentId/update', middlewares.
                 name: w.name
             }
         })
-        
+
 
         let data = {
             flash: flash.get(req, 'employee'),
             employee: employee,
-            employment: employment.toObject(),
+            employment: employment,
             workSchedules: workSchedules,
         }
         // return res.send(data)
@@ -716,29 +731,45 @@ router.get('/employee/:employeeId/employment/:employmentId/update', middlewares.
         next(err);
     }
 });
-router.post('/employee/:employeeId/employment/:employmentId/update', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+router.post('/employee/:employeeId/employment/:employmentId/update', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmploymentLean, async (req, res, next) => {
     try {
         let employee = res.employee
         let employment = res.employment
         let body = req.body
-        let patch = employment.toObject()
 
-        lodash.set(patch, `campus`, lodash.get(body, 'campus'))
-        lodash.set(patch, `group`, lodash.get(body, 'group'))
-        lodash.set(patch, `position`, lodash.get(body, 'position'))
-        lodash.set(patch, `department`, lodash.get(body, 'department'))
-        lodash.set(patch, `employmentType`, lodash.get(body, 'employmentType'))
-        lodash.set(patch, `employmentStart`, lodash.get(body, 'employmentStart'))
-        lodash.set(patch, `salary`, lodash.get(body, 'salary').replace(/,/g, ''))
-        lodash.set(patch, `salaryType`, lodash.get(body, 'salaryType'))
-        lodash.set(patch, `fundSource`, lodash.get(body, 'fundSource'))
-        lodash.set(patch, `sssDeduction`, lodash.get(body, 'sssDeduction'))
-        lodash.set(patch, `workScheduleId`, lodash.get(body, 'workScheduleId'))
-        lodash.set(patch, `active`, lodash.get(body, 'active'))
+        let patch = {
+            campus: lodash.get(body, 'campus'),
+            group: lodash.get(body, 'group'),
+            position: lodash.get(body, 'position'),
+            department: lodash.get(body, 'department'),
+            employmentType: lodash.get(body, 'employmentType'),
+            employmentStart: lodash.get(body, 'employmentStart') || null,
+            salary: parseFloat(lodash.get(body, 'salary').replace(/,/g, '')),
+            salaryType: lodash.get(body, 'salaryType'),
+            fundSource: lodash.get(body, 'fundSource'),
+            sssDeduction: lodash.get(body, 'sssDeduction', null),
+            workScheduleId: lodash.get(body, 'workScheduleId'),
+            active: lodash.get(body, 'active') === 'true' ? true : false,
+        }
 
-        await req.app.locals.db.main.Employment.updateOne({ _id: employment._id }, patch)
+        let histories = patchHistory(patch, employment, res.user.username)
 
-        flash.ok(req, 'employee', `Updated employment "${employment.position}".`)
+        // return res.send(histories)
+        await req.app.locals.db.main.Employment.updateOne({ _id: employment._id }, {
+            $set: patch
+        })
+        if (histories.length) {
+            await req.app.locals.db.main.EmployeeHistory.create({
+                employeeId: employee._id,
+                description: histories.join(', '),
+                alert: `text-success`,
+                userId: res.user._id,
+                username: res.user.username,
+                op: 'c',
+            })
+            flash.ok(req, 'employee', `Updated employment "${employment.position}".`)
+        }
+
         res.redirect(`/employee/${employee._id}/employment`)
 
     } catch (err) {
@@ -746,10 +777,10 @@ router.post('/employee/:employeeId/employment/:employmentId/update', middlewares
     }
 });
 // D
-router.get('/employee/:employeeId/employment/:employmentId/delete', middlewares.guardRoute(['delete_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+router.get('/employee/:employeeId/employment/:employmentId/delete', middlewares.guardRoute(['delete_employee']), middlewares.getEmployee, middlewares.getEmploymentLean, async (req, res, next) => {
     try {
         let employee = res.employee
-        let employment = res.employment.toObject()
+        let employment = res.employment
 
         res.render('employee/employment/delete.html', {
             flash: flash.get(req, 'employee'),
@@ -760,7 +791,7 @@ router.get('/employee/:employeeId/employment/:employmentId/delete', middlewares.
         next(err);
     }
 });
-router.post('/employee/:employeeId/employment/:employmentId/delete', middlewares.guardRoute(['delete_employee']), middlewares.antiCsrfCheck, middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+router.post('/employee/:employeeId/employment/:employmentId/delete', middlewares.guardRoute(['delete_employee']), middlewares.antiCsrfCheck, middlewares.getEmployee, middlewares.getEmploymentLean, async (req, res, next) => {
     try {
         let employee = res.employee
         let employment = res.employment
@@ -773,7 +804,9 @@ router.post('/employee/:employeeId/employment/:employmentId/delete', middlewares
             username: res.user.username,
             op: 'd',
         })
-        await employment.remove()
+        await req.app.locals.db.main.Employment.deleteOne({
+            _id: employment._id
+        })
 
         flash.ok(req, 'employee', `Deleted "${employee.firstName} ${employee.lastName}'s" employment.`)
         res.redirect(`/employee/${employee._id}/employment`)
@@ -784,7 +817,7 @@ router.post('/employee/:employeeId/employment/:employmentId/delete', middlewares
 
 // Promote
 // C
-router.get('/employee/:employeeId/employment/:employmentId/promote', middlewares.guardRoute(['read_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+router.get('/employee/:employeeId/employment/:employmentId/promote', middlewares.guardRoute(['read_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmploymentLean, async (req, res, next) => {
     try {
         let employee = res.employee
         let employment = res.employment
@@ -801,14 +834,14 @@ router.get('/employee/:employeeId/employment/:employmentId/promote', middlewares
         res.render('employee/employment/promote.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
-            employment: employment.toObject(),
+            employment: employment,
             workSchedules: workSchedules,
         });
     } catch (err) {
         next(err);
     }
 });
-router.post('/employee/:employeeId/employment/:employmentId/promote', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmployment, async (req, res, next) => {
+router.post('/employee/:employeeId/employment/:employmentId/promote', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, middlewares.getEmploymentLean, async (req, res, next) => {
     try {
         let employee = res.employee
         let employment = res.employment
@@ -816,8 +849,10 @@ router.post('/employee/:employeeId/employment/:employmentId/promote', middleware
 
         // Deactivate employment
         await req.app.locals.db.main.Employment.updateOne({ _id: employment._id }, {
-            active: false,
-            employmentEnd: moment(lodash.get(body, 'employmentStart')).subtract(1, 'day').endOf('day').toDate()
+            $set: {
+                active: false,
+                employmentEnd: moment(lodash.get(body, 'employmentStart')).subtract(1, 'day').endOf('day').toDate()
+            }
         })
 
 
@@ -874,64 +909,76 @@ router.post('/employee/:employeeId/address', middlewares.guardRoute(['create_emp
     try {
         let employee = await req.app.locals.db.main.Employee.findById(res.employee._id)
         let body = req.body
-        let patch = {}
+
 
         if (!body.psgc0) {
             throw new Error('Invalid address.')
         }
 
-        // TODO: Should generate new id every save??
-        lodash.set(patch, 'addresses.0._id', req.app.locals.db.mongoose.Types.ObjectId())
-        lodash.set(patch, 'addresses.0.unit', lodash.get(body, 'unit0'))
-        lodash.set(patch, 'addresses.0.street', lodash.get(body, 'street0'))
-        lodash.set(patch, 'addresses.0.village', lodash.get(body, 'village0'))
-        lodash.set(patch, 'addresses.0.psgc', lodash.get(body, 'psgc0'))
-        lodash.set(patch, 'addresses.0.zipCode', lodash.get(body, 'zipCode0'))
-        lodash.set(patch, 'addressPermanent', lodash.get(patch, 'addresses.0._id'))
         let address0 = await req.app.locals.db.main.Address.findOne({
             code: lodash.get(body, 'psgc0', '')
         })
+        let full = ''
         if (address0) {
-            let full = address.build(
-                lodash.get(patch, 'addresses.0.unit'),
-                lodash.get(patch, 'addresses.0.street'),
-                lodash.get(patch, 'addresses.0.village'),
+            full = address.build(
+                lodash.get(address0, 'unit'),
+                lodash.get(address0, 'street'),
+                lodash.get(address0, 'village'),
                 lodash.get(address0, 'full'),
             )
-
-            lodash.set(patch, 'address', full)
-            lodash.set(patch, 'addresses.0.full', lodash.get(address0, 'full'))
-            lodash.set(patch, 'addresses.0.brgy', address0.name)
-            lodash.set(patch, 'addresses.0.cityMun', address0.cityMunName)
-            lodash.set(patch, 'addresses.0.province', address0.provName)
         }
 
-        // TODO: Should generate new id every save??
-        lodash.set(patch, 'addresses.1._id', req.app.locals.db.mongoose.Types.ObjectId())
-        lodash.set(patch, 'addresses.1.unit', lodash.get(body, 'unit1'))
-        lodash.set(patch, 'addresses.1.street', lodash.get(body, 'street1'))
-        lodash.set(patch, 'addresses.1.village', lodash.get(body, 'village1'))
-        lodash.set(patch, 'addresses.1.psgc', lodash.get(body, 'psgc1'))
-        lodash.set(patch, 'addresses.1.zipCode', lodash.get(body, 'zipCode1'))
-        lodash.set(patch, 'addressPresent', lodash.get(patch, 'addresses.1._id'))
         let address1 = await req.app.locals.db.main.Address.findOne({
             code: lodash.get(body, 'psgc1', '')
         })
         if (address1) {
-            let full = address.build(
-                lodash.get(patch, 'addresses.1.unit'),
-                lodash.get(patch, 'addresses.1.street'),
-                lodash.get(patch, 'addresses.1.village'),
+            full = address.build(
+                lodash.get(address1, 'unit'),
+                lodash.get(address1, 'street'),
+                lodash.get(address1, 'village'),
                 lodash.get(address1, 'full'),
             )
-            lodash.set(patch, 'address', full)
-            lodash.set(patch, 'addresses.1.full', lodash.get(address1, 'full'))
-            lodash.set(patch, 'addresses.1.brgy', address1.name)
-            lodash.set(patch, 'addresses.1.cityMun', address1.cityMunName)
-            lodash.set(patch, 'addresses.1.province', address1.provName)
         }
 
-        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
+        let id0 = lodash.get(employee, 'addresses.0._id')
+        if (!id0) {
+            id0 = req.app.locals.db.mongoose.Types.ObjectId()
+        }
+        let id1 = lodash.get(employee, 'addresses.1._id')
+        if (!id1) {
+            id1 = req.app.locals.db.mongoose.Types.ObjectId()
+        }
+        let patch = {
+            'address': full,
+
+            'addressPermanent': id0,
+            'addresses.0._id': id0,
+            'addresses.0.unit': lodash.get(body, 'unit0'),
+            'addresses.0.street': lodash.get(body, 'street0'),
+            'addresses.0.village': lodash.get(body, 'village0'),
+            'addresses.0.psgc': lodash.get(body, 'psgc0'),
+            'addresses.0.zipCode': lodash.get(body, 'zipCode0'),
+            'addresses.0.full': lodash.get(address0, 'full'),
+            'addresses.0.brgy': address0.name,
+            'addresses.0.cityMun': address0.cityMunName,
+            'addresses.0.province': address0.provName,
+
+            'addressPresent': id1,
+            'addresses.1._id': id1,
+            'addresses.1.unit': lodash.get(body, 'unit1'),
+            'addresses.1.street': lodash.get(body, 'street1'),
+            'addresses.1.village': lodash.get(body, 'village1'),
+            'addresses.1.psgc': lodash.get(body, 'psgc1'),
+            'addresses.1.zipCode': lodash.get(body, 'zipCode1'),
+            'addresses.1.full': address1?.full,
+            'addresses.1.brgy': address1?.name,
+            'addresses.1.cityMun': address1?.cityMunName,
+            'addresses.1.province': address1?.provName,
+        }
+
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: patch
+        })
 
         flash.ok(req, 'employee', `Updated ${employee.firstName} ${employee.lastName} address.`)
         res.redirect(`/employee/${employee._id}/address`)
@@ -1175,10 +1222,12 @@ router.post('/employee/:employeeId/user/create', middlewares.guardRoute(['update
             });
             await employeeUser.save()
             employee.userId = employeeUser._id
-            let patch = {
-                userId: employeeUser._id
-            }
-            await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
+
+            await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+                $set: {
+                    userId: employeeUser._id
+                }
+            })
         }
         let data = {
             to: employeeUser.email,
@@ -1543,7 +1592,9 @@ router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['cr
             mimeType: '',
             docType: docType,
         })
-        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: patch
+        })
 
         flash.ok(req, 'employee', `Uploaded document "${name} - ${docType}".`)
         res.redirect(`/employee/${employee._id}/document/all`);
@@ -1619,27 +1670,34 @@ router.get('/employee/:employeeId/pds/personal-info', middlewares.guardRoute(['r
 router.post('/employee/:employeeId/pds/personal-info', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
-        let patch = res.employee
         let body = lodash.get(req, 'body')
         // return res.send(body)
 
-        lodash.set(patch, 'lastName', lodash.get(body, 'lastName'))
-        lodash.set(patch, 'firstName', lodash.get(body, 'firstName'))
-        lodash.set(patch, 'middleName', lodash.get(body, 'middleName'))
-        lodash.set(patch, 'suffix', lodash.get(body, 'suffix'))
-        lodash.set(patch, 'birthDate', lodash.get(body, 'birthDate'))
-        lodash.set(patch, 'gender', lodash.get(body, 'gender'))
-        lodash.set(patch, 'civilStatus', lodash.get(body, 'civilStatus'))
-        lodash.set(patch, 'mobileNumber', lodash.get(body, 'mobileNumber'))
-        lodash.set(patch, 'phoneNumber', lodash.get(body, 'phoneNumber'))
-        lodash.set(patch, 'email', lodash.get(body, 'email'))
+        let patch = {
+            firstName: lodash.get(body, 'firstName'),
+            middleName: lodash.get(body, 'middleName'),
+            lastName: lodash.get(body, 'lastName'),
+            suffix: lodash.get(body, 'suffix'),
+            birthDate: lodash.get(body, 'birthDate'),
+            gender: lodash.get(body, 'gender'),
+            civilStatus: lodash.get(body, 'civilStatus'),
+            mobileNumber: lodash.get(body, 'mobileNumber'),
+            phoneNumber: lodash.get(body, 'phoneNumber'),
+            email: lodash.get(body, 'email'),
 
-        patch.history = employee.history
-        if (patch.gender !== employee.gender) {
-            patch.history.push({
-                comment: `Changed gender from ${employee.gender} to ${patch.gender}.`,
-                createdAt: moment().toDate()
-            })
+            'personal.birthPlace': noCaps(lodash.get(body, 'birthPlace')),
+            'personal.height': lodash.get(body, 'height'),
+            'personal.weight': lodash.get(body, 'weight'),
+            'personal.bloodType': lodash.get(body, 'bloodType'),
+            'personal.gsis': lodash.get(body, 'gsis'),
+            'personal.sss': lodash.get(body, 'sss'),
+            'personal.philHealth': lodash.get(body, 'philHealth'),
+            'personal.tin': lodash.get(body, 'tin'),
+            'personal.pagibig': lodash.get(body, 'pagibig'),
+            'personal.agencyEmployeeNumber': lodash.get(body, 'agencyEmployeeNumber'),
+            'personal.citizenship': lodash.get(body, 'citizenship', []),
+            'personal.citizenshipCountry': lodash.get(body, 'citizenshipCountry', ''),
+            'personal.citizenshipSource': lodash.get(body, 'citizenshipSource', [])
         }
 
         // TODO: Should generate new id every save??
@@ -1693,22 +1751,10 @@ router.post('/employee/:employeeId/pds/personal-info', middlewares.guardRoute(['
             lodash.set(patch, 'addresses.1.province', address1.provName)
         }
 
-        lodash.set(patch, 'personal.birthPlace', noCaps(lodash.get(body, 'birthPlace')))
-        lodash.set(patch, 'personal.height', lodash.get(body, 'height'))
-        lodash.set(patch, 'personal.weight', lodash.get(body, 'weight'))
-        lodash.set(patch, 'personal.bloodType', lodash.get(body, 'bloodType'))
-        lodash.set(patch, 'personal.gsis', lodash.get(body, 'gsis'))
-        lodash.set(patch, 'personal.sss', lodash.get(body, 'sss'))
-        lodash.set(patch, 'personal.philHealth', lodash.get(body, 'philHealth'))
-        lodash.set(patch, 'personal.tin', lodash.get(body, 'tin'))
-        lodash.set(patch, 'personal.pagibig', lodash.get(body, 'pagibig'))
-        lodash.set(patch, 'personal.agencyEmployeeNumber', lodash.get(body, 'agencyEmployeeNumber'))
-        lodash.set(patch, 'personal.citizenship', lodash.get(body, 'citizenship', []))
-        lodash.set(patch, 'personal.citizenshipCountry', lodash.get(body, 'citizenshipCountry', ''))
-        lodash.set(patch, 'personal.citizenshipSource', lodash.get(body, 'citizenshipSource', []))
-
         // return res.send(patch)
-        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: patch
+        })
 
         flash.ok(req, 'employee', `Personal Information updated..`)
         res.redirect(`/employee/${employee._id}/pds/family-background`)
@@ -1737,24 +1783,22 @@ router.post('/employee/:employeeId/pds/family-background/children', middlewares.
     try {
 
         let employee = res.employee
-        let patch = employee
         let body = lodash.get(req, 'body')
         // return res.send(body)
 
-        lodash.set(patch, 'personal.children', lodash.get(body, 'children', []))
-
-        patch.personal.children = patch.personal.children.map(o => {
+        let children = lodash.get(body, 'children', [])
+        children = children.map(o => {
             o.name = noCaps(o.name)
             return o
         })
 
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
             $set: {
-                'personal.children': patch.personal.children
+                'personal.children': children
             }
         })
 
-        res.send(patch.personal.children)
+        res.send(children)
     } catch (err) {
         next(err);
     }
@@ -2096,42 +2140,44 @@ router.get('/employee/:employeeId/pds/more-info', middlewares.guardRoute(['updat
 router.post('/employee/:employeeId/pds/more-info', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
-        let patch = res.employee
         let body = lodash.get(req, 'body')
         // return res.send(body)
 
-        lodash.set(patch, 'personal.relatedThirdDegree', lodash.get(body, 'relatedThirdDegree'))
-        lodash.set(patch, 'personal.relatedFourthDegree', lodash.get(body, 'relatedFourthDegree'))
-        lodash.set(patch, 'personal.relatedFourthDegreeDetails', lodash.get(body, 'relatedFourthDegreeDetails'))
-        lodash.set(patch, 'personal.guiltyAdmin', lodash.get(body, 'guiltyAdmin'))
-        lodash.set(patch, 'personal.guiltyAdminDetails', lodash.get(body, 'guiltyAdminDetails'))
-        lodash.set(patch, 'personal.criminalCharge', lodash.get(body, 'criminalCharge'))
-        lodash.set(patch, 'personal.criminalChargeDetails', lodash.get(body, 'criminalChargeDetails'))
-        lodash.set(patch, 'personal.criminalChargeDate', lodash.get(body, 'criminalChargeDate'))
-        lodash.set(patch, 'personal.convicted', lodash.get(body, 'convicted'))
-        lodash.set(patch, 'personal.convictedDetails', lodash.get(body, 'convictedDetails'))
-        lodash.set(patch, 'personal.problematicHistory', lodash.get(body, 'problematicHistory'))
-        lodash.set(patch, 'personal.problematicHistoryDetails', lodash.get(body, 'problematicHistoryDetails'))
-        lodash.set(patch, 'personal.electionCandidate', lodash.get(body, 'electionCandidate'))
-        lodash.set(patch, 'personal.electionCandidateDetails', lodash.get(body, 'electionCandidateDetails'))
-        lodash.set(patch, 'personal.electionResigned', lodash.get(body, 'electionResigned'))
-        lodash.set(patch, 'personal.electionResignedDetails', lodash.get(body, 'electionResignedDetails'))
-        lodash.set(patch, 'personal.dualCitizen', lodash.get(body, 'dualCitizen'))
-        lodash.set(patch, 'personal.dualCitizenDetails', lodash.get(body, 'dualCitizenDetails'))
-        lodash.set(patch, 'personal.indigenousGroup', lodash.get(body, 'indigenousGroup'))
-        lodash.set(patch, 'personal.indigenousGroupDetails', lodash.get(body, 'indigenousGroupDetails'))
-        lodash.set(patch, 'personal.pwd', lodash.get(body, 'pwd'))
-        lodash.set(patch, 'personal.pwdDetails', lodash.get(body, 'pwdDetails'))
-        lodash.set(patch, 'personal.soloParent', lodash.get(body, 'soloParent'))
-        lodash.set(patch, 'personal.soloParentDetails', lodash.get(body, 'soloParentDetails'))
-        lodash.set(patch, 'personal.references', lodash.get(body, 'references', []))
-        lodash.set(patch, 'personal.governmentId', lodash.get(body, 'governmentId'))
-        lodash.set(patch, 'personal.governmentIdNumber', lodash.get(body, 'governmentIdNumber'))
-        lodash.set(patch, 'personal.governmentIdDatePlace', lodash.get(body, 'governmentIdDatePlace'))
-        lodash.set(patch, 'personal.datePdsFilled', lodash.get(body, 'datePdsFilled'))
-        lodash.set(patch, 'personal.personAdministeringOath', lodash.get(body, 'personAdministeringOath'))
-
-        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
+        let patch = {
+            'personal.relatedThirdDegree': lodash.get(body, 'relatedThirdDegree'),
+            'personal.relatedFourthDegree': lodash.get(body, 'relatedFourthDegree'),
+            'personal.relatedFourthDegreeDetails': lodash.get(body, 'relatedFourthDegreeDetails'),
+            'personal.guiltyAdmin': lodash.get(body, 'guiltyAdmin'),
+            'personal.guiltyAdminDetails': lodash.get(body, 'guiltyAdminDetails'),
+            'personal.criminalCharge': lodash.get(body, 'criminalCharge'),
+            'personal.criminalChargeDetails': lodash.get(body, 'criminalChargeDetails'),
+            'personal.criminalChargeDate': lodash.get(body, 'criminalChargeDate'),
+            'personal.convicted': lodash.get(body, 'convicted'),
+            'personal.convictedDetails': lodash.get(body, 'convictedDetails'),
+            'personal.problematicHistory': lodash.get(body, 'problematicHistory'),
+            'personal.problematicHistoryDetails': lodash.get(body, 'problematicHistoryDetails'),
+            'personal.electionCandidate': lodash.get(body, 'electionCandidate'),
+            'personal.electionCandidateDetails': lodash.get(body, 'electionCandidateDetails'),
+            'personal.electionResigned': lodash.get(body, 'electionResigned'),
+            'personal.electionResignedDetails': lodash.get(body, 'electionResignedDetails'),
+            'personal.dualCitizen': lodash.get(body, 'dualCitizen'),
+            'personal.dualCitizenDetails': lodash.get(body, 'dualCitizenDetails'),
+            'personal.indigenousGroup': lodash.get(body, 'indigenousGroup'),
+            'personal.indigenousGroupDetails': lodash.get(body, 'indigenousGroupDetails'),
+            'personal.pwd': lodash.get(body, 'pwd'),
+            'personal.pwdDetails': lodash.get(body, 'pwdDetails'),
+            'personal.soloParent': lodash.get(body, 'soloParent'),
+            'personal.soloParentDetails': lodash.get(body, 'soloParentDetails'),
+            'personal.references': lodash.get(body, 'references', []),
+            'personal.governmentId': lodash.get(body, 'governmentId'),
+            'personal.governmentIdNumber': lodash.get(body, 'governmentIdNumber'),
+            'personal.governmentIdDatePlace': lodash.get(body, 'governmentIdDatePlace'),
+            'personal.datePdsFilled': lodash.get(body, 'datePdsFilled'),
+            'personal.personAdministeringOath': lodash.get(body, 'personAdministeringOath'),
+        }
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: patch
+        })
 
         flash.ok(req, 'employee', `PDS updated.`)
 

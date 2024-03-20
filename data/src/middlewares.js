@@ -363,7 +363,9 @@ module.exports = {
     getEmployee: async (req, res, next) => {
         try {
             let employeeId = req.params.employeeId || ''
-            let employee = await req.app.locals.db.main.Employee.findById(employeeId).lean()
+            let employee = await req.app.locals.db.main.Employee.findOne({
+                _id: employeeId
+            }).lean()
             if (!employee) {
                 return res.render('error.html', { error: "Sorry, employee not found." })
             }
@@ -448,6 +450,21 @@ module.exports = {
         try {
             let employmentId = req.params.employmentId || ''
             let employment = await req.app.locals.db.main.Employment.findById(employmentId);
+            if (!employment) {
+                return res.render('error.html', { error: "Sorry, employment not found." })
+            }
+            res.employment = employment
+            next();
+        } catch (err) {
+            next(err);
+        }
+    },
+    getEmploymentLean: async (req, res, next) => {
+        try {
+            let employmentId = req.params.employmentId || ''
+            let employment = await req.app.locals.db.main.Employment.findOne({
+                _id: employmentId
+            }).lean()
             if (!employment) {
                 return res.render('error.html', { error: "Sorry, employment not found." })
             }

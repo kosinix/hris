@@ -1,0 +1,122 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'attendance/header.html' %}
+    <div id="vApp" v-cloak style="background: #e3ecf2" class="tab-content pt-3 pb-2 pl-3 pr-3">
+        <div class="d-flex mb-3">
+            {% if employee.profilePhoto %}
+                <img class="mr-3 privy-photo" width="100px" src="{{employee.profilePhoto|s3_url('small')}}" alt="photo">
+            {% else %}
+            {% endif %}
+            <div class="mt-2">
+                <h1 class="privy-name">  
+                    <a href="/employee/{{employee._id}}/personal">
+                        {{employee.lastName}},
+                        {{employee.firstName}}
+                    </a>
+                </h1>
+                <h2><a class="privy-employment" href="/employee/{{employee._id}}/employment/{{employment._id}}/update">{{employment.position}} - {{employment.employmentType|capitalize}}</a></h2>
+            </div>
+        </div>
+       
+
+        <h2 class="h5 mb-4">
+            {{startMoment|format_date('MMM DD, YYYY')}}
+            {% if startMoment|format_date('MMM DD, YYYY') != endMoment|format_date('MMM DD, YYYY') %}
+                to {{endMoment|format_date('MMM DD, YYYY')}}
+            {% endif %}
+        </h2>
+       
+        <form action="/attendance/employment/{{employment._id}}/copy?start={{startMoment|format_date('YYYY-MM-DD')}}&end={{endMoment|format_date('YYYY-MM-DD')}}&showWeekDays={{showWeekDays}}" method="post">
+            <div class="alert alert-info">Change employment for {{attendances.length}} attendance(s)?</div>
+            <div class="form-group">
+                <label for="employmentId">Employment</label>
+                <div class="form-row">
+                    <div class="col-6">
+                        <autocomplete v-model="employmentId"
+                            name="employmentId"
+                            :initial-value="employment.id"
+                            :initial-display="employment.position"
+                            placeholder=""
+                            :source="employments"
+                            input-class="form-control"
+                            :request-headers="headers"
+                            v-on:selected="onSelect"
+                            >
+                        </autocomplete>
+                    </div>
+                    <div class="col-6 d-flex">
+                        <button name="action" value="transfer" class="btn btn-primary">Transfer Attendance</button>
+                        <!-- <button name="action" value="copy" class="btn btn-primary">Copy Attendance</button> -->
+                        <a href="/attendance/employment/{{employment._id}}?start={{startMoment|format_date('YYYY-MM-DD')}}&end={{endMoment|format_date('YYYY-MM-DD')}}&showWeekDays={{showWeekDays}}" class="btn btn-light">Cancel</a>
+                    </div>
+                </div>
+            </div>
+            <textarea style="visibility: hidden;" name="attendanceIds" id="attendanceIds" class="form-control">{{attendanceIds|safe}}</textarea>
+
+        </form>
+        
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{app.url}}/js/vuejs-auto-complete-extend.js"></script>
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [
+            window.vuelidate.validationMixin,
+            window.vuelidateExtendMixin,
+            window.vueJsAutoCompleteExtendMixin
+        ],
+        components: {
+            'autocomplete': window["vuejs-autocomplete"]
+        },
+        data: {
+            urlPath: '{{urlPath}}',
+            startDate: '{{startMoment|format_date("YYYY-MM-DD")}}',
+            endDate: '{{endMoment|format_date("YYYY-MM-DD")}}',
+            showWeekDays: '{{showWeekDays}}',
+            employmentId: '{{employment._id}}',
+            employments: {{employments|default([], true)|stringify|safe}},
+        },
+        computed: {
+            employment: function(){
+                const me = this;
+                let found = me.employments.find(w => w.id === me.employmentId)
+                if(found) {
+                    return found
+                }
+                return {
+                    id: '',
+                    name: ''
+                }
+            }
+        },
+        validations: {
+            
+        },
+        methods: {
+            reloado: function(){
+                window.location.href = this.urlPath + '?start=' + this.startDate + '&end=' + this.endDate + '&showWeekDays=' + this.showWeekDays
+            },
+            onSubmit: function(){
+                var me = this;
+                me.$v.$touch()
+                if (me.$v.$error) {
+                    alert('Please correct the errors to continue.')
+                } else {
+                    me.$nextTick(function() {
+                        me.$refs.form.submit();
+                    });
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

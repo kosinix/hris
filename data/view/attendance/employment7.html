@@ -61,6 +61,7 @@
                     <div class="d-flex justify-content-end flex-wrap">
                         <a href="/attendance/employment/{{employment._id}}/attendance/create" class="btn btn-primary btn-sm ml-1 mb-1">Insert Attendance</a>
                         <a href="/attendance/employment/{{employment._id}}/move?{{query|query_string|safe}}" class="btn btn-primary btn-sm ml-1 mb-1">Change Schedule</a>
+                        <a href="/attendance/employment/{{employment._id}}/copy?{{query|query_string|safe}}" class="btn btn-primary btn-sm ml-1 mb-1">Transfer Attendance</a>
                         <a href="/attendance/employment/{{employment._id}}/print?start={{startMoment|format_date('YYYY-MM-DD')}}&end={{endMoment|format_date('YYYY-MM-DD')}}&showDays={{showDays}}" class="btn btn-outline-secondary btn-sm ml-1 mb-1" target="_blank">Print DTR</a>
                         <a href="/attendance/employment/{{employment._id}}/overtime?start={{startMoment|format_date('YYYY-MM-DD')}}&end={{endMoment|format_date('YYYY-MM-DD')}}&showDays={{showDays}}" class="btn btn-outline-secondary btn-sm ml-1 mb-1" target="_blank">View Extended</a>
                     </div>

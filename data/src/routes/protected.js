@@ -279,6 +279,9 @@ router.get('/employee', middlewares.requireAuthUser, async (req, res, next) => {
 
             employee.employments.forEach((employment, i) => {
                 let final = `${full} - ${employment.position}`
+                if(!employment.active){
+                    final += ' (Inactive)'
+                }
                 if (showSalary == 1) {
                     final += ` (${employment.salary})`
                 }

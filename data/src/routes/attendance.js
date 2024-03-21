@@ -2428,6 +2428,10 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
         if (employment.employmentType === 'part-time' || attendance.type !== 'normal') {
             options.noSpill = false
         }
+        // @todo: Remove and make dynamic
+        if(workSchedule.name.includes('Arnold')){
+            options.noSpill = false
+        }
         let timeWorked = dtrHelper.countWork(timeSegments, logSegments, options)
 
         let readableSchedule = workScheduleTimeSegments.map(o => {

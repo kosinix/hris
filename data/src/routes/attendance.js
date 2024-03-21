@@ -2356,13 +2356,32 @@ router.post('/attendance/employment/:employmentId/copy', middlewares.guardRoute(
                 },
                 {
                     $set: {
-                        employmentId: req.body.workScheduleId
+                        employmentId: req.body.employmentId
                     },
                 },
                 {
                     multi: true
                 }
             )
+        } else if(req.body.action === 'copy'){
+            let attendances = await req.app.locals.db.main.Attendance.find(
+                {
+                    _id: {
+                        $in: attendanceIds
+                    }
+                }
+            ).lean()
+
+            let promises = attendances.map((attendance) => {
+                let newAttendance = JSON.parse(JSON.stringify(attendance))
+                delete newAttendance._id
+                delete newAttendance.updatedAt
+                delete newAttendance._v
+                newAttendance.employmentId = req.body.employmentId
+                return req.app.locals.db.main.Attendance.create(newAttendance)
+            })
+            await Promise.all(promises)
+
         }
 
         flash.ok(req, 'attendance', `Changed employment of attendance(s).`)

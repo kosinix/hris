@@ -2442,6 +2442,10 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
     if (attendance.type === 'holiday') {
         options.noSpill = false
     }
+    // @todo: Remove and make dynamic
+    if(workSchedule.name.includes('Driver')){
+        options.noSpill = false
+    }
     let timeWorked = countWork(timeSegments, logSegments, options)
 
     // console.dir(timeWorked, { depth: null })

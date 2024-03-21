@@ -2363,7 +2363,7 @@ router.post('/attendance/employment/:employmentId/copy', middlewares.guardRoute(
                     multi: true
                 }
             )
-        } else if(req.body.action === 'copy'){
+        } else if (req.body.action === 'copy') {
             let attendances = await req.app.locals.db.main.Attendance.find(
                 {
                     _id: {
@@ -2429,7 +2429,7 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
             options.noSpill = false
         }
         // @todo: Remove and make dynamic
-        if(workSchedule.name.includes('Arnold')){
+        if (workSchedule.name.includes('Driver')) {
             options.noSpill = false
         }
         let timeWorked = dtrHelper.countWork(timeSegments, logSegments, options)

@@ -335,8 +335,8 @@ router.get('/forgotten/:secureKey', async (req, res, next) => {
         }
 
         // Gen password
-        let password = passwordMan.genPassword()
-        let passwordHash = passwordMan.hashPassword(password, user.salt)
+        let passphrase = passwordMan.genPassphrase(3)
+        let passwordHash = passwordMan.hashPassword(passphrase, user.salt)
         user.passwordHash = passwordHash
         await user.save()
         await passwordReset.remove()
@@ -352,7 +352,7 @@ router.get('/forgotten/:secureKey', async (req, res, next) => {
         })
         return res.render('sent-done.html', {
             username: user.username,
-            password: password,
+            password: passphrase,
         });
     } catch (err) {
         console.error(err)

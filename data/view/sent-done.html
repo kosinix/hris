@@ -10,13 +10,13 @@
                         <svg style="width:24px;height:24px" viewBox="0 0 24 24">    <path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
                     </a>
                 </div>
-                <div class="text-center">
-                    <img class="mb-4" style="width:200px; height:auto;" src="/images/sent.png" width="400" height="400" alt="Logo">
-                    <h1 class="h6 mb-3">We generated a password for you: </h1>
-                    <h2 class="h4 mb-3 text-dark">{{password}}</h2>
-                    <p class="text-danger h6 mb-5"><em>Please copy and save it.</em></p>
-                </div>
                 <div id="vApp" v-cloak>
+                    <div class="text-center">
+                        <img class="mb-4" style="width:200px; height:auto;" src="/images/sent.png" width="400" height="400" alt="Logo">
+                        <h1 class="h6 mb-3">Here is your new <a title="A passphrase is an easy to remember password." href="#" onclick="alert('A passphrase is an easy to remember password.')">passphrase</a>: </h1>
+                        <h2 class="h3 mb-3 text-dark">{{password}} </h2>
+                        <p class="text-danger h6 mb-5"><em>Please save it.<br>This is only shown ONCE!</em></p>
+                    </div>
                     {% include 'parts/flash.html' %}
                     <form ref="form" v-on:submit.prevent="onSubmit" action="/login" method="POST" novalidate>
                         <input type="hidden" name="username" v-model="username">
@@ -38,6 +38,7 @@
 <script src="https://www.google.com/recaptcha/api.js?render=6LcB1_scAAAAABxNHSvZ1gnl5ZpTKZCoWa_JcYkV"></script>
 {% endif %}
 <script>
+    
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
@@ -87,9 +88,13 @@
                             });
                         });
                     } else {
-                        me.$nextTick(function() {
-                            me.$refs.form.submit();
-                        });
+                        let ok = confirm('Did you take note of your new passphrase? If yes press OK.')
+                        if(ok){
+                            me.$nextTick(function() {
+                                me.$refs.form.submit();
+                            });
+                        }
+                        me.pending = false
                     }
                 }
             }

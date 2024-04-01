@@ -108,7 +108,12 @@ const templates = {
             text: nunjucksEnv.render('emails/reset.txt', data),
             html: nunjucksEnv.render('emails/reset.html', data),
         }
-        let info = await transport2.sendMail(mailOptions)
+        let info = ''
+        if (ENV === 'dev') {
+            console.log(mailOptions.text)
+        } else {
+            info = await transport2.sendMail(mailOptions)
+        }
         // console.log(info.response)
         return info
     },

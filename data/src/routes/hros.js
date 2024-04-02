@@ -1148,6 +1148,9 @@ router.post('/hros/leave/create', middlewares.guardRoute(['use_employee_profile'
         let user = res.user.toObject()
         let body = req.body
 
+        if(!body.employmentId){
+            throw new Error('No employment selected.')
+        }
         let defaults = {
             employmentId: "",
             dates: "",

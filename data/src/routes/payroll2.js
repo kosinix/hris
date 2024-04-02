@@ -62,21 +62,21 @@ router.get('/payroll2/all', middlewares.guardRoute(['read_all_payroll', 'read_pa
         let query = {}
         let projection = {}
 
-        if (res.user.roles.includes('hrmo')) {
-            query = {
-                status: 1
-            }
-        } else if (res.user.roles.includes('accountant')) {
-            query = {
-                status: 2
-            }
-        } else if (res.user.roles.includes('cashier')) {
-            query = {
-                status: {
-                    $in: [3, 4]
-                }
-            }
-        }
+        // if (res.user.roles.includes('hrmo')) {
+        //     query = {
+        //         status: 1
+        //     }
+        // } else if (res.user.roles.includes('accountant')) {
+        //     query = {
+        //         status: 2
+        //     }
+        // } else if (res.user.roles.includes('cashier')) {
+        //     query = {
+        //         status: {
+        //             $in: [3, 4]
+        //         }
+        //     }
+        // }
         // Pagination
         let totalDocs = await req.app.locals.db.main.Payroll2.countDocuments(query)
         let pagination = paginator.paginate(

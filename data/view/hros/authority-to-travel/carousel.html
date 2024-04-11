@@ -3,36 +3,29 @@
         {# 0 #}
         <div class="carousel-item active">
             <div class="form-group">
-                <div class="form-group">
-                    <label for="employmentId" class="font-weight-bold">Employment <span class="text-danger">*</span></label>
-                    <div>
-                        <select v-model="employmentId" name="employmentId" id="employmentId" class="form-control">
-                            <option v-for="employment in employments" v-bind:value="employment._id">${employment.position}</option>
-                        </select>
-                        <small class="invalid-feedback">${getError('employmentId')}</small>
-                    </div>
+                <label for="employmentId" class="font-weight-bold">Employment <span class="text-danger">*</span></label>
+                <div>
+                    <select v-model="employmentId" name="employmentId" id="employmentId" class="form-control">
+                        <option v-for="employment in employments" v-bind:value="employment._id">${employment.position}</option>
+                    </select>
                 </div>
             </div>
-            <div class="form-row">
-                <div class="col-md-12">
-                    <label for="periodOfTravel" class="font-weight-bold">Period of Travel <span class="text-danger">*</span></label>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="periodOfTravel">From</label>
-                        <div>
-                            <input v-on:change="syncDates" name="periodOfTravel" id="periodOfTravel" v-model="periodOfTravel" type="date" class="form-control">
-                            <small class="invalid-feedback">${getError('periodOfTravel')}</small>
+            <div class="form-group">
+                <label for="periodOfTravel" class="font-weight-bold">Period of Travel <span class="text-danger">*</span></label>
+                <div class="form-row">
+                    <div class="col-md-12">
+                        <div class="d-flex flex-wrap ">
+                            <transition-group name="list" tag="div">
+                                <div v-for="(date, index) in dates" v-bind:key="date" class="list-item mr-1 mb-1 border pl-2 pb-1">
+                                    <span>${date|formatDate('MMM DD, YYYY')}</span> 
+                                    <button @click.prevent="deleteDate(index)" class="btn text-danger btn-sm p-1" type="button">X</button>
+                                </div>
+                            </transition-group>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="periodOfTravelEnd">To</label>
-                        <div>
-                            <input name="periodOfTravelEnd" id="periodOfTravelEnd" v-model="periodOfTravelEnd" type="date" class="form-control">
-                            <small class="invalid-feedback">${getError('periodOfTravelEnd')}</small>
-                        </div>
+                    <div class="col-md-6">
+                        <button @click="dateModal" type="button" class="ml-1 btn btn-sm btn-success">Add Date</button>
+                        <input name="dates" v-model="datesStringify" type="hidden" class="form-control">
                     </div>
                 </div>
             </div>
@@ -47,54 +40,83 @@
                                 Check - to automatically mark the dates on your DTR as "Travel".
                             </label>
                         </div>
-                        <small class="invalid-feedback">${getError('autoset')}</small>
                     </div>
                 </div>
             </div> -->
             <div class="form-group">
-                <div class="form-group">
-                    <label for="destination" class="font-weight-bold">Destination <span class="text-danger">*</span></label>
-                    <div>
-                        <input name="destination" id="destination" v-model="destination" type="text" class="form-control">
-                        <small class="invalid-feedback">${getError('destination')}</small>
-                    </div>
+                <label for="destination" class="font-weight-bold">Destination Venue <em class="font-weight-normal">(${destinationCharRemaining} characters left)</em> <span class="text-danger">*</span></label>
+                <div>
+                    <input v-on:input="limitFieldChars($event, 'destination', destinationMaxLength)" v-on:change="limitFieldChars($event, 'destination', destinationMaxLength)" name="destination" id="destination" v-model="destination" type="text" class="mb-1 form-control">
+                    <!-- <span v-on:click="destination='GSU-Mosqueda Campus'" class="btn btn-sm btn-outline-secondary m-1"><em>Example 1: GSU-Mosqueda Campus</em></span>
+                    <span v-on:click="destination='Commission on Higher Education'" class="btn btn-sm btn-outline-secondary m-1"><em>Example 2: Commission on Higher Education</em></span>
+                    <span v-on:click="destination='Park Inn by Radisson'" class="btn btn-sm btn-outline-secondary m-1"><em>Example 3: Park Inn by Radisson</em></span> -->
                 </div>
             </div>
             <div class="form-group">
-                <div class="form-group">
-                    <label for="natureOfBusiness" class="font-weight-bold">Nature of Business <em>(${charLength} characters left)</em> <span class="text-danger">*</span></label>
-                    <div>
-                        <textarea v-on:input="limitChars(180, $event)" v-on:change="limitChars(180, $event)" v-model="natureOfBusiness" name="natureOfBusiness" id="natureOfBusiness" cols="30" rows="2" class="form-control"></textarea>
-                        <small class="invalid-feedback">${getError('natureOfBusiness')}</small>
-                    </div>
+                <label for="destinationAddress" class="font-weight-bold">Destination Address <em class="font-weight-normal">(${destinationAddressCharRemaining} characters left)</em> <span class="text-danger">*</span></label>
+                <div>
+                    <input v-on:input="limitFieldChars($event, 'destinationAddress', destinationAddressMaxLength)" v-on:change="limitFieldChars($event, 'destinationAddress', destinationAddressMaxLength)" name="destinationAddress" id="destinationAddress" v-model="destinationAddress" type="text" class="mb-1 form-control">
+                    <!-- <span v-on:click="destinationAddress='Alaguisoc, Jordan, Guimaras'" class="btn btn-sm btn-outline-secondary m-1"><em>Example 1: Alaguisoc, Jordan, Guimaras</em></span>
+                    <span v-on:click="destinationAddress='Diliman, Quezon City, Philippines'" class="btn btn-sm btn-outline-secondary m-1"><em>Example 2: Diliman, Quezon City, Philippines</em></span>
+                    <span v-on:click="destinationAddress='Mandurriao, Iloilo City'" class="btn btn-sm btn-outline-secondary m-1"><em>Example 3: Mandurriao, Iloilo City</em></span> -->
                 </div>
             </div>
-            <div class="form-group">
-                <div class="form-group">
-                    <label for="designation" class="font-weight-bold">Your Designation <span class="text-danger">*</span></label>
-                    <div>
-                        <input name="designation" id="designation" v-model="designation" type="text" class="form-control">
-                        <small class="invalid-feedback">${getError('designation')}</small>
-                    </div>
+            <div class="form-row pt-3 pb-3">
+                <div class="col-6 mb-3">
+                    <a href="/hros/at/all" class="btn btn-danger">Cancel</a>
+                </div>
+                <div class="col-6 mb-3 text-right">
+                    <button class="btn btn-primary">Next</button>
                 </div>
             </div>
+        </div>
+        {# 1 #}
+        <div class="carousel-item">
             <div class="form-group">
-                <div class="form-group">
-                    <label for="officialStation" class="font-weight-bold">Your Official Station <span class="text-danger">*</span></label>
+                <label for="natureOfBusiness" class="font-weight-bold">Nature of Business <em class="font-weight-normal">(${natureOfBusinessCharRemaining} characters left)</em> <span class="text-danger">*</span></label>
+                <div>
                     <div>
-                        <input name="officialStation" id="officialStation" v-model="officialStation" type="text" class="form-control">
-                        <small class="invalid-feedback">${getError('officialStation')}</small>
+                        I am going to ${destination} <br>
+                        at ${destinationAddress} <br>
+                        <div class="d-flex mb-1">
+                            <div class="pr-1">to</div>
+                            <input v-on:input="limitFieldChars($event, 'natureOfBusiness', natureOfBusinessMaxLength)" v-on:change="limitFieldChars($event, 'natureOfBusiness', natureOfBusinessMaxLength)" v-model="natureOfBusiness" name="natureOfBusiness" id="natureOfBusiness" type="text" style="border:0; border-bottom: 1px solid #ccc; width: 80%;">
+                        </div> 
+                        <div>on ${datesString}</div>
                     </div>
                 </div>
             </div>
             
-            <div class="form-row">
+            <div class="form-row pt-3 pb-3">
+                <div class="col-6 mb-3">
+                    <button @click="page='#0'" class="btn btn-light" type="button">Previous</button>
+                </div>
+                <div class="col-6 mb-3 text-right">
+                    <button class="btn btn-primary">Next</button>
+                </div>
+            </div>
+        </div>
+        {# 2 #}
+        <div class="carousel-item">
+            <div class="form-group">
+                <label for="designation" class="font-weight-bold">Your Designation <span class="text-danger">*</span></label>
+                <div>
+                    <input name="designation" id="designation" v-model="designation" type="text" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="officialStation" class="font-weight-bold">Your Official Station <span class="text-danger">*</span></label>
+                <div>
+                    <input name="officialStation" id="officialStation" v-model="officialStation" type="text" class="form-control">
+                </div>
+            </div>
+            
+            <div class="form-row mb-2">
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="endorser" class="font-weight-bold">Endorser/Supervisor</label>
                         <div>
                             <input name="endorser" id="endorser" v-model="endorser" type="text" class="form-control">
-                            <small class="invalid-feedback">${getError('endorser')}</small>
                         </div>
                     </div>
                 </div>
@@ -103,7 +125,6 @@
                         <label for="endorserDesignation" class="font-weight-bold">Endorser/Supervisor Designation </label>
                         <div>
                             <input name="endorserDesignation" id="endorserDesignation" v-model="endorserDesignation" type="text" class="form-control">
-                            <small class="invalid-feedback">${getError('endorserDesignation')}</small>
                         </div>
                     </div>
                 </div>
@@ -114,7 +135,6 @@
                         <label for="approver" class="font-weight-bold">Approver <span class="text-danger">*</span></label>
                         <div>
                             <input name="approver" id="approver" v-model="approver" type="text" class="form-control">
-                            <small class="invalid-feedback">${getError('approver')}</small>
                         </div>
                     </div>
                 </div>
@@ -123,22 +143,23 @@
                         <label for="approverDesignation" class="font-weight-bold">Approver Designation <span class="text-danger">*</span></label>
                         <div>
                             <input name="approverDesignation" id="approverDesignation" v-model="approverDesignation" type="text" class="form-control">
-                            <small class="invalid-feedback">${getError('approverDesignation')}</small>
                         </div>
                     </div>
                 </div>
             </div>
+            <!--  -->
             <div class="form-row pt-3 pb-3">
                 <div class="col-6 mb-3">
-                    <a href="/hros/at/all" class="btn btn-light">Cancel</a>
+                    <button @click="page='#1'" class="btn btn-light" type="button">Previous</button>
                 </div>
                 <div class="col-6 mb-3 text-right">
-                    <button v-on:click="nextPage(1)" class="btn btn-primary" type="button">Next</button>
+                    <button class="btn btn-primary">Next</button>
                 </div>
             </div>
         </div>
-        {# 1 #}
-        <div class="carousel-item ">
+        {# 3 #}
+        <div class="carousel-item">
+            <div class="alert alert-info"><em>Please review your details below.</em></div>
             <div class="table-responsive">
                 <table class="table table-sm table-striped">
                     <tr>
@@ -159,7 +180,7 @@
                     </tr>
                     <tr>
                         <td class="font-weight-bold">Period of Travel</td>
-                        <td>${travelPeriod}</td>
+                        <td>${datesString}</td>
                     </tr>
                     <tr>
                         <td class="font-weight-bold">Nature of Business</td>
@@ -173,9 +194,9 @@
                         <td class="font-weight-bold">Approved</td>
                         <td>${approver} - <em>${approverDesignation}</em></td>
                     </tr>
-                    <tr>
+                    <!-- <tr>
                         <td colspan="2">&nbsp;</td>
-                    </tr>
+                    </tr> -->
                     <tr>
                         <td class="font-weight-bold">Auto Set Dates on DTR to Travel?</td>
                         <td>
@@ -187,7 +208,7 @@
             </div>
             <div class="form-row pt-3 pb-3">
                 <div class="col-6 mb-3">
-                    <button v-on:click="page=0"class="btn btn-light" type="button">Back</button>
+                    <button v-on:click="page='#2'"class="btn btn-light" type="button">Previous</button>
                 </div>
                 <div class="col-6 mb-3 text-right">
                     <button class="btn btn-primary">Apply</button>

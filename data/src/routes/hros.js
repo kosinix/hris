@@ -111,6 +111,10 @@ router.get('/hros/at/create', middlewares.guardRoute(['use_employee_profile']), 
         let employee = res.employee.toObject()
         let employments = employee.employments
 
+        employments = employments.filter((o) => {
+            return o.active
+        })
+
         let data = {
             title: 'Human Resource Online Services (HROS) - Authority to Travel',
             flash: flash.get(req, 'hros'),
@@ -131,15 +135,25 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
         let user = res.user.toObject()
         let body = req.body
 
+        body.dates = lodash.get(body, 'dates', [])
+        if (typeof body.dates === 'string') body.dates = body.dates.split(',')
+        body.dates = lodash.uniq(body.dates)
+        // body.dates.push('aaa')
+        body.dates.forEach((e, i) => {
+            if (!moment(e).isValid()) {
+                throw new Error(`Invalid date ${e}.`)
+            }
+        })
+        // console.log(body.dates)
         // return res.send(body)
-        if (moment(body.periodOfTravelEnd).isBefore(moment(body.periodOfTravel))) {
-            flash.error(req, 'hros', 'Invalid period of travel. Please check your "To" and "From" dates.')
+        if (body.dates.length > 30) {
+            flash.error(req, 'hros', 'Invalid period of travel. Duration exceeded 30 days.')
             return res.redirect('/hros/at/create')
         }
-        if (moment(body.periodOfTravelEnd).diff(moment(body.periodOfTravel), 'days') > 60) {
-            flash.error(req, 'hros', 'Invalid period of travel. Duration exceeded 60 days.')
-            return res.redirect('/hros/at/create')
-        }
+
+        body.periodOfTravel = body.dates.at(0)
+        body.periodOfTravelEnd = body.dates.at(-1)
+
         if (lodash.toString(body.natureOfBusiness).length > 180) {
             flash.error(req, 'hros', 'Nature Of Business must not exceed 180 characters.')
             return res.redirect('/hros/at/create')
@@ -166,12 +180,17 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
                         $gte: moment(body.periodOfTravel).toDate(),
                         $lte: moment(body.periodOfTravelEnd).toDate(),
                     }
+                },
+                {
+                    dates: {
+                        $in: body.dates
+                    }
                 }
             ]
 
         })
         if (ats.length > 0) {
-            flash.error(req, 'hros', 'Cannot create Authority to Travel on the provided period. There is an overlap with another Authority to Travel.')
+            flash.error(req, 'hros', 'Cannot create Authority to Travel on the provided period. There is an overlap with another Authority to Travel with Control # ' + ats.at(0).controlNumber + '.')
             return res.redirect('/hros/at/create')
         }
 
@@ -206,6 +225,7 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             status: 2, // 1 pending, 2 approved
             periodOfTravel: moment(body.periodOfTravel).toDate(),
             periodOfTravelEnd: moment(body.periodOfTravelEnd).toDate(),
+            dates: body.dates,
             controlNumber: controlNumber,
             data: {
                 designation: body.designation,
@@ -263,89 +283,6 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
         next(err);
     }
 });
-router.get('/hros/at/:authorityToTravelId', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let at = await req.app.locals.db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
-        if (!at) {
-            throw new Error('Authority To Travel not found.')
-        }
-
-
-        let words = at.data.natureOfBusiness.replace(/\s\s+/g, ' ').split(' ')
-        if (words.length > 32) {
-            at.data.natureOfBusiness1 = words.splice(0, 32).join(' ')
-            at.data.natureOfBusiness2 = words.splice(0, 25).join(' ')
-
-        } else {
-            at.data.natureOfBusiness1 = words.join(' ')
-            at.data.natureOfBusiness2 = ''
-
-        }
-
-        let data = {
-            title: `Authority to Travel - ${employee.firstName} ${employee.lastName} - ${at.controlNumber}`,
-            employee: employee,
-            at: at,
-            momentNow: moment(),
-        }
-        res.render('hros/authority-to-travel/read.html', data);
-
-    } catch (err) {
-        next(err);
-    }
-});
-router.get('/hros/at/:authorityToTravelId/print', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let at = await req.app.locals.db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
-        if (!at) {
-            throw new Error('Authority To Travel not found.')
-        }
-
-        let words = at.data.natureOfBusiness.replace(/\s\s+/g, ' ').split(' ')
-        if (words.length > 18) {
-            at.data.natureOfBusiness1 = words.splice(0, 18).join(' ')
-            at.data.natureOfBusiness2 = words.splice(0, 18).join(' ')
-
-        } else {
-            at.data.natureOfBusiness1 = words.join(' ')
-            at.data.natureOfBusiness2 = ''
-
-        }
-
-        let data = {
-            title: `Authority to Travel - ${employee.firstName} ${employee.lastName} - ${at.controlNumber}`,
-            employee: employee,
-            at: at,
-            shared: false,
-            momentNow: moment(),
-        }
-        res.render('hros/authority-to-travel/authority-to-travel.html', data);
-
-    } catch (err) {
-        next(err);
-    }
-});
-router.get('/hros/at/:authorityToTravelId/delete', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee.toObject()
-        let at = await req.app.locals.db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
-        if (!at) {
-            throw new Error('Authority To Travel not found.')
-        }
-        if (at.status === 2) {
-            throw new Error('Cannot cancel Authority To Travel as it is already approved. Please have it corrected by the HRMO.')
-        }
-
-        await at.remove()
-        flash.ok(req, 'hros', 'Application for Authority to Travel cancelled.')
-        res.redirect(`/hros/at/all`)
-
-    } catch (err) {
-        next(err);
-    }
-});
 router.get('/hros/at/:authorityToTravelId/share', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -383,8 +320,150 @@ router.get('/hros/at/:authorityToTravelId/share', middlewares.guardRoute(['use_e
         next(err);
     }
 });
+router.get('/hros/at/:authorityToTravelId/print', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let at = await req.app.locals.db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
+        if (!at) {
+            throw new Error('Authority To Travel not found.')
+        }
+
+        let words = at.data.natureOfBusiness.replace(/\s\s+/g, ' ').split(' ')
+        if (words.length > 18) {
+            at.data.natureOfBusiness1 = words.splice(0, 18).join(' ')
+            at.data.natureOfBusiness2 = words.splice(0, 18).join(' ')
+
+        } else {
+            at.data.natureOfBusiness1 = words.join(' ')
+            at.data.natureOfBusiness2 = ''
+
+        }
+        at.data.natureOfBusiness1 = at.data.natureOfBusiness1.at(0).toUpperCase() + at.data.natureOfBusiness1.slice(1)
+
+        if (!at.dates || (Array.isArray(at.dates) && at.dates.length === 0)) {
+            at.dates = []
+            at.dates.push(moment(at.periodOfTravel).format('YYYY-MM-DD'))
+            at.dates.push(moment(at.periodOfTravelEnd).format('YYYY-MM-DD'))
+        }
+
+        const { datesString } = require('../date-helper')
+
+        let data = {
+            title: `Authority to Travel - ${employee.firstName} ${employee.lastName} - ${at.controlNumber}`,
+            employee: employee,
+            at: at,
+            datesString: datesString(at.dates),
+            shared: false,
+            momentNow: moment(),
+        }
+        res.render('hros/authority-to-travel/authority-to-travel.html', data);
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/shared/authority-to-travel/print/:secureKey', middlewares.decodeSharedResource, async (req, res, next) => {
+    try {
+
+        let payload = res.payload
+        let employeeId = payload.employeeId
+        let employmentId = payload.employmentId
+
+        // Employee
+        let employee = await req.app.locals.db.main.Employee.findById(employeeId).lean()
+        if (!employee) {
+            throw new Error('Employee not found.')
+        }
+
+        // Employment
+        let employment = await req.app.locals.db.main.Employment.findById(employmentId).lean()
+        if (!employment) {
+            throw new Error('Employment not found.')
+        }
+
+        let at = await req.app.locals.db.main.AuthorityToTravel.findById(payload.atId)
+        if (!at) {
+            throw new Error('Authority To Travel not found.')
+        }
+
+        let words = at.data.natureOfBusiness.replace(/\s\s+/g, ' ').split(' ')
+        if (words.length > 18) {
+            at.data.natureOfBusiness1 = words.splice(0, 18).join(' ')
+            at.data.natureOfBusiness2 = words.splice(0, 18).join(' ')
+
+        } else {
+            at.data.natureOfBusiness1 = words.join(' ')
+            at.data.natureOfBusiness2 = ''
+
+        }
+        at.data.natureOfBusiness1 = at.data.natureOfBusiness1.at(0).toUpperCase() + at.data.natureOfBusiness1.slice(1)
+        if (!at.dates || (Array.isArray(at.dates) && at.dates.length === 0)) {
+            at.dates = []
+            at.dates.push(moment(at.periodOfTravel).format('YYYY-MM-DD'))
+            at.dates.push(moment(at.periodOfTravelEnd).format('YYYY-MM-DD'))
+        }
+
+        const { datesString } = require('../date-helper')
+
+        let data = {
+            title: `Authority to Travel - ${employee.firstName} ${employee.lastName} - ${at.controlNumber}`,
+            employee: employee,
+            at: at,
+            datesString: datesString(at.dates),
+            shared: true,
+            momentNow: moment(),
+        }
+        res.render('hros/authority-to-travel/authority-to-travel.html', data);
+
+    } catch (err) {
+        next(err);
+    }
+});
 
 // Cert of appearance
+router.get('/hros/at/:authorityToTravelId/coa', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let at = await req.app.locals.db.main.AuthorityToTravel.findById(req.params.authorityToTravelId)
+        if (!at) {
+            throw new Error('Authority To Travel not found.')
+        }
+
+        let words = at.data.natureOfBusiness.replace(/\s\s+/g, ' ').split(' ')
+        if (words.length > 18) {
+            at.data.natureOfBusiness1 = words.splice(0, 18).join(' ')
+            at.data.natureOfBusiness2 = words.splice(0, 18).join(' ')
+
+        } else {
+            at.data.natureOfBusiness1 = words.join(' ')
+            at.data.natureOfBusiness2 = ''
+
+
+        }
+
+        if (!at.dates || (Array.isArray(at.dates) && at.dates.length === 0)) {
+            at.dates = []
+            at.dates.push(moment(at.periodOfTravel).format('YYYY-MM-DD'))
+            at.dates.push(moment(at.periodOfTravelEnd).format('YYYY-MM-DD'))
+        }
+
+        const { datesString } = require('../date-helper')
+
+        let data = {
+            title: `Certificate of Appearance - ${employee.firstName} ${employee.lastName}`,
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            at: at,
+            dateString: datesString(at.dates),
+            shared: false,
+            momentNow: moment(),
+        }
+        // return res.send(data)
+        res.render('hros/certificate-of-appearance/certificate-of-appearance.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
 router.get('/hros/coa', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
@@ -429,7 +508,30 @@ router.get('/hros/coa/share', middlewares.guardRoute(['use_employee_profile']), 
         next(err);
     }
 });
+router.get('/shared/certificate-of-appearance/print/:secureKey', middlewares.decodeSharedResource, async (req, res, next) => {
+    try {
 
+        let payload = res.payload
+        let employeeId = payload.employeeId
+
+        // Employee
+        let employee = await req.app.locals.db.main.Employee.findById(employeeId).lean()
+        if (!employee) {
+            throw new Error('Employee not found.')
+        }
+
+        let data = {
+            title: `Certificate of Appearance - ${employee.firstName} ${employee.lastName}`,
+            employee: employee,
+            shared: true,
+            momentNow: moment(),
+        }
+        res.render('hros/certificate-of-appearance/certificate-of-appearance.html', data);
+
+    } catch (err) {
+        next(err);
+    }
+});
 
 // Flag raising
 router.get('/hros/flag/all', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
@@ -995,18 +1097,18 @@ router.post('/hros/flag/location', middlewares.guardRoute(['use_employee_profile
 });
 
 // Leave Form
-router.use('/hros/leave', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, (req, res, next)=>{
+router.use('/hros/leave', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, (req, res, next) => {
     try {
         let employments = res.employee.employments
-        let permanent = employments.map(emp=> emp.employmentType === 'permanent' ).reduce((prev, cur) => {
-            return prev || cur 
+        let permanent = employments.map(emp => emp.employmentType === 'permanent').reduce((prev, cur) => {
+            return prev || cur
         }, false)
 
-        if(!permanent && req.originalUrl !== '/hros/leave/all'){
+        if (!permanent && req.originalUrl !== '/hros/leave/all') {
             flash.error(req, 'hros', `For permanent employment only.`)
             return res.redirect(`/hros/leave/all`)
         }
-        
+
         next()
     } catch (err) {
         next(err)
@@ -1115,8 +1217,8 @@ router.get('/hros/leave/create', middlewares.guardRoute(['use_employee_profile']
         let employee = res.employee.toObject()
         let employments = employee.employments
 
-        employments = employments.filter((o)=>{
-            return o.employmentType === 'permanent'
+        employments = employments.filter((o) => {
+            return o.employmentType === 'permanent' && o.active
         })
         const leaveTypes = CONFIG.leaveTypes
 
@@ -1148,7 +1250,7 @@ router.post('/hros/leave/create', middlewares.guardRoute(['use_employee_profile'
         let user = res.user.toObject()
         let body = req.body
 
-        if(!body.employmentId){
+        if (!body.employmentId) {
             throw new Error('No employment selected.')
         }
         let defaults = {

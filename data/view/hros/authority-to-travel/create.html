@@ -4,6 +4,9 @@
 <div id="vApp" v-cloak class="col-md-12" v-bind:data-pending="pending">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-3 mb-3 border-bottom">
         <h1 class="h5 mb-0">Apply for Authority to Travel</h1>
+        <div class="btn-group">
+            <a href="/hros/at/all" class="btn btn-sm btn-light">Go Back</a>
+        </div>
     </div>
     {% include 'parts/flash.html' %}
     <div class="tab-content p-3 mb-5">
@@ -12,6 +15,7 @@
         </form>
     </div>
 </div>
+{% include "hros/leave/modal-date.html" %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
@@ -19,18 +23,25 @@
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
-        mixins: [
-            window.vuelidate.validationMixin,
-            window.vuelidateExtendMixin,
-        ],
+        mixins: [],
+        filters: {
+            formatDate: function(date, format){
+                return moment(date).format(format)
+            },
+            yesNo: function(v){
+                return (v+'').replace('true', 'Yes').replace('false', 'No')
+            }
+        },
         data: {
             pending: false,
-            page: 0,
+            page: '#0',
             employments: {{employments|default([], true)|stringify|safe}},
             employmentId: '{{employmentId}}',
             designation: '',
             officialStation: '',
             destination: '',
+            destinationAddress: '',
+            dates: [],
             periodOfTravel: '',
             periodOfTravelEnd: '',
             natureOfBusiness: '',
@@ -39,35 +50,24 @@
             approver: '',
             approverDesignation: '',
             autoset: true,
-            charLength: 180
+            destinationMaxLength: 50,
+            destinationAddressMaxLength: 50,
+            natureOfBusinessMaxLength: 180,
         },
-        validations: {
-            designation: {
-                required: window.validators.required
-            },
-            officialStation: {
-                required: window.validators.required
-            },
-            destination: {
-                required: window.validators.required
-            },
-            periodOfTravel: {
-                required: window.validators.required
-            },
-            periodOfTravelEnd: {
-                required: window.validators.required
-            },
-            natureOfBusiness: {
-                required: window.validators.required
-            },
-            approver: {
-                required: window.validators.required
-            },
-            approverDesignation: {
-                required: window.validators.required
-            },
-        },
+        
         computed: {
+            destinationCharRemaining: function(){
+                return this.destinationMaxLength - this.destination.length
+            },
+            destinationAddressCharRemaining: function(){
+                return this.destinationAddressMaxLength - this.destinationAddress.length
+            },
+            natureOfBusinessCharRemaining: function(){
+                return this.natureOfBusinessMaxLength - this.natureOfBusiness.length
+            },
+            datesStringify: function(){
+                return this.dates.join(',')
+            },
             travelPeriod: function () {
                 var me = this;
                 var mDate1 = moment(me.periodOfTravel)
@@ -80,70 +80,213 @@
                 }
                 return d1 + ' to ' + d2
 
+            },
+            datesString: function() {
+                const me = this;
+                const dates = me.groupDates(me.dates, true).map(row => {
+
+                    return row.map(d => {
+                        return moment(d).format('MMMM DD YYYY')
+                    }).join(' to ')
+                })
+                return dates.join(', ')
             }
         },
         watch: {
             page: function (newPage, oldPage) {
                 var me = this;
-                jQuery('#carousel-travel').carousel(newPage)
 
-                if (newPage === 0) {
-
-                } else if (newPage === 1) {
-
-
-                } else if (newPage === 2) {
-
-
-                } else if (newPage === 3) {
-
-
+                try {
+                    if (newPage === '#' || !newPage) {
+                        newPage = '#0';
+                    }
+                    
+                    me.page = newPage;
+                    var newPageInt = parseInt((newPage + '').replace('#', ''))
+                    jQuery('#carousel-travel').carousel(newPageInt)
+                    
+                } catch (error) {
+                    alert(error)
                 }
-            }
+            },
         },
         mounted: function(){
-            this.charLength = 180 - ((this.natureOfBusiness + '').split('').length)
+            const me = this;
+
+            // me.page = '#1'
+            // me.dates = ['2024-04-04', '2024-04-05', '2024-04-06', '2024-04-08', '2024-04-09']
+            // me.destination = 'GSU-Mosqueda Campus'
+            // me.destinationAddress = 'Alaguisoc, Jordan, Guimaras'
+            // me.natureOfBusiness = 'be a resource person at CST Bootcamp'
+            // me.designation = 'Computer Programmer I'
+            // me.officialStation = 'Management Information System Office'
+            // me.endorser = 'JO Ann T. GERADA'
+            // me.endorserDesignation = 'Director, Management Information System Office'
+            // me.approver = 'LILIAN DIANA B. PARREÑO'
+            // me.approverDesignation = 'SUC President III'
+            
         },
         methods: {
-            limitChars: function (max, e) {
+            groupDates: function(dates, simplify=false) {
+                let basket = [[]]
+                let group = 0
+                dates.forEach((d, currentIndex, dates)=>{
+                    if(currentIndex <= 0){
+                        basket[group].push(d)
+                    } else if(currentIndex > 0){
+                        let date1 = moment(dates[currentIndex - 1])
+                        let date2 = moment(d)
+
+                        if(date2.isAfter(date1)){
+                            if(date2.diff(date1, 'days') <= 1){
+                                basket[group].push(d)
+
+                            } else {
+                                group++
+                                basket.push([])
+                                basket[group].push(d)
+                            }
+                        }
+                    }
+
+                })
+                if(simplify){
+                    basket = basket.map(row=>{
+                        let shorten = []
+                        shorten.push(row.at(0))
+                        if(row.length > 1){
+                            shorten.push(row.at(-1))
+                        }
+                        return shorten
+                    })
+                }
+                return basket
+            },
+            dateModal: function(){
+                jQuery('#vAppModalDate').modal('show')
+            },
+            addDate: function(){
+                var me = this;
+
+                try {
+                    console.log(moment(me.dateToAdd).diff(moment(), 'days'))
+                    if(moment(me.dateToAdd).diff(moment(), 'days') < -365){
+                        throw new Error('Date too far.')
+                    } 
+                    if(moment(me.dateToAdd).diff(moment(), 'days') > 365){
+                        throw new Error('Date too far.')
+                    } 
+                    if(!me.dates.includes(me.dateToAdd)){
+                        me.dates.push(me.dateToAdd)
+                        me.dates.sort()
+                    }
+                    me.dateToAdd = ''
+                } catch(error){
+                    alert(error)
+                    me.dateToAdd = ''
+                }
+            },
+            deleteDate: function(index){
+                var me = this;
+                me.dates.splice(index, 1)
+                me.dateToAdd = ''
+            },
+            limitFieldChars: function (e, propName, max) {
                 if (e.target.value.length >= max) {
-                    this.natureOfBusiness = e.target.value.substring(0, max);
-                }
-                this.charLength = 180 - ((this.natureOfBusiness + '').split('').length)
-            },
-            nextPage: function (page) {
-                var me = this;
-                me.$v.$touch()
-                if (me.$v.$error) {
-                    alert('Please correct the errors to continue.')
-                } else {
-                    me.page = page
-                }
-            },
-            syncDates: function () {
-                var me = this;
-                var mDate1 = moment(me.periodOfTravel)
-                var mDate2 = moment(me.periodOfTravelEnd)
-                if (mDate1.isValid() && !mDate2.isValid()) {
-                    me.periodOfTravelEnd = me.periodOfTravel
-                }
-                if (mDate1.isValid() && mDate1.isAfter(mDate2)) {
-                    me.periodOfTravelEnd = me.periodOfTravel
+                    this[propName] = e.target.value.substring(0, max);
                 }
             },
             onSubmit: function () {
                 var me = this;
-                me.$v.$touch()
-                if (me.$v.$error) {
-                    alert('Please correct the errors to continue.')
-                } else {
-                    me.pending = true
-                    me.$nextTick(function () {
-                        me.$refs.form.submit();
-                    });
+                try {
+                    if(me.page === '#0'){
+                        
+                        if(me.dates.length <= 0){
+                            throw new Error('Please provide the date(s) of your travel.')
+                        }
+                        if(!me.destination){
+                            throw new Error('Please provide the Destination Venue.')
+                        }
+                        if(!me.destinationAddress){
+                            throw new Error('Please provide the Destination Address.')
+                        }
+                        me.page = '#1'
+
+                    } else if(me.page === '#1'){
+                        if(!me.natureOfBusiness){
+                            document.getElementById("natureOfBusiness")?.focus();
+                            throw new Error('Please provide the Nature of Business.')
+                        }
+                        me.page = '#2'
+                        
+                    } else if (me.page === '#2'){
+                        if(!me.designation){
+                            throw new Error('Please provide the Designation.')
+                        }
+                        if(!me.officialStation){
+                            throw new Error('Please provide the Official Station.')
+                        }
+                        if(!me.endorser){
+                            throw new Error('Please provide the Endorser.')
+                        }
+                        if(!me.endorserDesignation){
+                            throw new Error('Please provide the Endorser Designation.')
+                        }
+                        if(!me.approver){
+                            throw new Error('Please provide the Approver.')
+                        }
+                        if(!me.approverDesignation){
+                            throw new Error('Please provide the Approver Designation.')
+                        }
+                        
+                        me.page = '#3'
+                    } else if (me.page === '#3'){
+                        me.pending = true
+                        me.$nextTick(function () {
+                            me.$refs.form.submit();
+                        });
+                    }
+                } catch(error){
+                    alert(error)
                 }
             }
         }
     });
+
+    var vAppModal = new Vue({
+        el: '#vAppModalDate',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            dateToAdd: '',
+        },
+        methods: {
+            addDate: function(){
+                var me = this;
+
+                try {
+                    if(me.dateToAdd){
+                        if(!moment(me.dateToAdd, true).isValid()){
+                            throw new Error('Invalid date')
+                        }
+                        if(moment(me.dateToAdd).diff(moment(), 'days') < -365){
+                            throw new Error('Date too far.')
+                        } 
+                        if(moment(me.dateToAdd).diff(moment(), 'days') > 365){
+                            throw new Error('Date too far.')
+                        } 
+                        if(!vApp.dates.includes(me.dateToAdd)){
+                            vApp.dates.push(me.dateToAdd)
+                            vApp.dates.sort()
+                        }
+                        me.dateToAdd = ''
+                        jQuery('#vAppModalDate').modal('hide')
+                    }
+                } catch(error){
+                    alert(error)
+                }
+            },
+        }
+    })
 </script>
 {% endblock %}

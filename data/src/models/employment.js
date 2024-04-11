@@ -97,8 +97,8 @@ const schema = new Schema({
 //// Middlewares
 schema.post('findOne', function(result) {
 
-    if(result.employmentStart) result.employmentStart = moment(result.employmentStart).format('YYYY-MM-DD')
-    if(result.employmentEnd) result.employmentEnd = moment(result.employmentEnd).format('YYYY-MM-DD')
+    if(result?.employmentStart) result.employmentStart = moment(result.employmentStart).format('YYYY-MM-DD')
+    if(result?.employmentEnd) result.employmentEnd = moment(result.employmentEnd).format('YYYY-MM-DD')
 });
 
 module.exports = schema

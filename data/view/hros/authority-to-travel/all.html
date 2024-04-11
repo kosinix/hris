@@ -35,7 +35,8 @@
                             <th>
                                 Destination
                             </th>
-                            <th>Status</th>
+                            <!-- <th class="text-center d-none d-md-table-cell">Status</th> -->
+                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -51,14 +52,29 @@
                             <td>
                                 {{at.data.destination}}
                             </td>
-                            <td>
+                            <!-- <td class="text-center d-none d-md-table-cell">
                                 {% if at.status === 1 %}
                                     <span class="text-warning">Awaiting Control Number</span>
-                                    <a href="/hros/at/{{at._id}}/delete" onclick="return confirm('Are you sure you want to cancel your application?')" class="btn btn-sm btn-danger">Cancel</a>
                                 {% elif at.status === 2 %}
                                     <span class="text-success">Approved</span>
-                                    <a href="/hros/at/{{at._id}}/print" class="btn btn-sm btn-success">Print</a>
-                                    <a href="/hros/at/{{at._id}}/share" class="btn btn-sm btn-success">Share</a>
+                                {% endif %}
+                            </td> -->
+                            <td class="text-center">
+                                {% if at.status === 1 %}
+                                    <a href="/hros/at/{{at._id}}/delete" onclick="return confirm('Are you sure you want to cancel your application?')" class="btn btn-sm btn-danger">Cancel</a>
+                                {% elif at.status === 2 %}
+                                    <div class="dropdown">
+                                        
+                                        <button class="btn btn-outline-success btn-sm" type="button" data-toggle="dropdown" aria-expanded="false">
+                                            <svg width="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>View Actions</title><path fill="currentColor" d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z" /></svg>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a href="/hros/at/{{at._id}}/print" class="dropdown-item">Print</a>
+                                            <a href="/hros/at/{{at._id}}/coa" class="dropdown-item">Print CA</a>
+                                            <div class="dropdown-divider"></div>
+                                            <a href="/hros/at/{{at._id}}/share" class="dropdown-item">Share</a>
+                                        </div>
+                                    </div>
                                 {% endif %}
                             </td>
                         </tr>

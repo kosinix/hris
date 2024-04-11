@@ -65,10 +65,7 @@
             <strong>Period of Travel:</strong>
         </div>
         <div class="col-9">
-            <div class="underline pl-3">{{at.periodOfTravel|format_date('MMMM DD, YYYY')}} 
-                {% if at.periodOfTravel|format_date('MMMM DD, YYYY') !== at.periodOfTravelEnd|format_date('MMMM DD, YYYY') %}
-                    to {{at.periodOfTravelEnd|format_date('MMMM DD, YYYY')}} 
-                {% endif %}
+            <div class="underline pl-3">{{datesString}}
             </div>
         </div>
     </div>

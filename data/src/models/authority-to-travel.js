@@ -18,6 +18,7 @@ let schema = mongoose.Schema({
     controlNumber: String,
     periodOfTravel: Date,
     periodOfTravelEnd: Date,
+    dates:[],
     data: {},
 }, { timestamps: true, typeKey: '$type' })
 

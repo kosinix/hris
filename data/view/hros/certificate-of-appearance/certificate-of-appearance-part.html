@@ -22,8 +22,11 @@
         <div class="row align-items-end">
             <div class="col-12">
                 <p class="text-uppercase font-weight-bold mb-5">To Whom it May Concern:</p>
-                <p class="pl-5">This is to certify that <span class="underline text-center min-w-200"> {{employee.firstName}} {{employee.middleName|first}}. {{employee.lastName}}</span> of <span class="underline min-w-200" contenteditable="true">&nbsp;</span> has personally appeared in this office to <span class="underline min-w-300" contenteditable="true"></span> on <span class="underline min-w-200" contenteditable="true"></span>.</p>
-                <p class="pl-5">Issued this <span class="underline min-w-100" contenteditable="true"></span> day of <span class="underline min-w-100" contenteditable="true"></span> at <span class="underline min-w-100" contenteditable="true"></span>.</p>
+                <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; This is to certify that <span class="underline text-center min-w-200"> {{employee.firstName}} {{employee.middleName|first}}. {{employee.lastName}}</span> of <span class="underline text-center min-w-200" contenteditable="true">Guimaras State University</span> has personally appeared in this office to <span class="underline min-w-300" contenteditable="true">{{at.data.natureOfBusiness1}}&nbsp;{{at.data.natureOfBusiness2}}</span> on 
+                    <span class="underline min-w-200" contenteditable="true">
+                        {{dateString}}
+                    </span>.</p>
+                <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Issued this <span class="underline min-w-100" contenteditable="true">&nbsp;</span> day of <span class="underline min-w-100" contenteditable="true">&nbsp;</span> at <span class="underline min-w-200" contenteditable="true">{{at.data.destination}}</span>.</p>
                 <p class="text-right">
                     <span class="underline min-w-300" contenteditable="true"></span>
                 </p>

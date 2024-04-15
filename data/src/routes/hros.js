@@ -138,7 +138,6 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
         body.dates = lodash.get(body, 'dates', [])
         if (typeof body.dates === 'string') body.dates = body.dates.split(',')
         body.dates = lodash.uniq(body.dates)
-        // body.dates.push('aaa')
         body.dates.forEach((e, i) => {
             if (!moment(e).isValid()) {
                 throw new Error(`Invalid date ${e}.`)
@@ -230,7 +229,7 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             data: {
                 designation: body.designation,
                 officialStation: body.officialStation,
-                destination: body.destination,
+                destination: body.destination + ' - ' + body.destinationAddress,
                 natureOfBusiness: body.natureOfBusiness,
                 endorser: body.endorser,
                 endorserDesignation: body.endorserDesignation,

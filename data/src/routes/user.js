@@ -87,7 +87,7 @@ router.get('/user/create', middlewares.guardRoute(['create_user']), async (req, 
 
         let roles = await req.app.locals.db.main.Role.find()
         let permissions = await req.app.locals.db.main.Role.find()
-        let password = passwordMan.randomString(10)
+        let password = passwordMan.genPassphrase(4)
         // return res.send(roles)
         res.render('user/create.html', {
             roles: roles,

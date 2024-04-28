@@ -392,7 +392,7 @@ schema.pre('save', function (next) {
 });
 
 schema.post('findOne', function(result) {
-    if(result.birthDate) result.birthDate = moment(result.birthDate).format('YYYY-MM-DD')
+    if(result?.birthDate) result.birthDate = moment(result.birthDate).format('YYYY-MM-DD')
 });
 
 module.exports = schema

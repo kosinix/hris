@@ -370,6 +370,31 @@ router.get('/data-privacy', async (req, res, next) => {
     }
 });
 
+
+router.get('/identify/:uid', async (req, res, next) => {
+    try {
+        if (CONFIG.loginDelay > 0) {
+            await new Promise(resolve => setTimeout(resolve, CONFIG.loginDelay)) // Rate limit 
+        }
+
+        let employee = await req.app.locals.db.main.Employee.findOne({
+            'personal.agencyEmployeeNumber': req.params.uid
+        });
+        
+
+        let data = {
+            employee: {
+                firstName: employee?.firstName,
+                lastName: employee?.lastName,
+            },
+            idNumber: req.params.uid,
+            verified: (!employee) ? false : true
+        }
+        res.render('identity.html', data)
+    } catch (err) {
+        next(err);
+    }
+});
 // TODO: Remove when done
 /*
 router.get('/query/employment', async (req, res, next) => {

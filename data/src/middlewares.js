@@ -59,9 +59,15 @@ let antiCsrfCheck = async (req, res, next) => {
 let dataUrlToReqFiles = (names = []) => {
     return async (req, res, next) => {
         try {
-
+            /**
+             * @TODO: Remove double fields "photo" when empty. Becomes array ['', ''] when no photo selected.
+             * Temporary hack
+             * */
             names.forEach((fieldName) => {
                 let fieldValue = lodash.get(req, `body.${fieldName}`)
+                if(Array.isArray(fieldValue)){
+                    fieldValue = ''
+                }
                 if (fieldValue) {
                     lodash.set(req, `files.${fieldName}`, [
                         uploader.toReqFile(fieldValue)

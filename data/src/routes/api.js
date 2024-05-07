@@ -65,7 +65,7 @@ router.post('/api/login', async (req, res, next) => {
             throw new Error('Incorrect password.')
         }
 
-        if(!user?.settings?.api){
+        if (!user?.settings?.api) {
             throw new Error('API access not allowed.')
         }
 
@@ -124,7 +124,7 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
         })
 
         aggr.push({ $match: query })
-        aggr.push({ 
+        aggr.push({
             $project: {
                 lastName: 1,
                 firstName: 1,
@@ -152,16 +152,16 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
                         },
                     }
                 },
-            } 
+            }
         })
         aggr.push({ $sort: sort })
         let employees = await req.app.locals.db.main.Employee.aggregate(aggr)
         const acronym = (val) => {
             val = new String(val)
-            val = val.replace(/(\s)+/,' ').split(' ')
+            val = val.replace(/(\s)+/, ' ').split(' ')
             val = val.map(word => {
                 first = word.at(0)
-                if (first === first?.toUpperCase()){
+                if (first === first?.toUpperCase()) {
                     return first
                 }
                 return ''
@@ -227,6 +227,151 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
         })
 
         res.send(employees)
+    } catch (err) {
+        next(err)
+    }
+})
+
+router.post('/api/app/biometric/scans', async (req, res, next) => {
+    try {
+        let momentNow = moment()
+
+        let logs = req.body
+
+        let todayLogs = logs[momentNow.format('YYYY-MM-DD')]
+        if (todayLogs && Array.isArray(todayLogs)) {
+            for (let x = 0; x < todayLogs.length; x++) {
+                const [bid, date, time] = todayLogs[x]
+
+                let momentThisLog = moment(`${date} ${time}`, 'YYYY-MM-DD hh:mm:ss A')
+
+                // console.log(bid, date, time)
+
+                // Get employee assoc with code
+                let employee = await req.app.locals.db.main.Employee.findOne({
+                    biometricsId: bid
+                }).lean()
+                if (!employee) {
+                    throw new Error(`Error, user with biometrics ID ${bid} was not found.`)
+                }
+
+                // Get all active employments
+                let employments = await req.app.locals.db.main.Employment.find({
+                    employeeId: employee._id,
+                    active: true,
+                }).lean()
+                if (employments.length <= 0) {
+                    throw new Error(`Error, user ${employee.lastName} has no active employments.`)
+                }
+
+                // Log for every active employment
+                for (let c = 0; c < employments.length; c++) {
+                    let employment = employments[c]
+
+                    let attendance = await req.app.locals.db.main.Attendance.findOne({
+                        employeeId: employee._id,
+                        employmentId: employment._id,
+                        createdAt: {
+                            $gte: momentThisLog.clone().startOf('day').toDate(),
+                            $lt: momentThisLog.clone().endOf('day').toDate(),
+                        }
+                    }).lean()
+
+                    let logSource = {
+                        type: 'biometric',
+                    }
+
+                    if (!attendance) {
+                        console.log(`BID ${bid} ${employee.lastName} at ${date} ${time} no attendance for employment ${employment.position}... adding attendance`)
+                        // console.log(momentThisLog.format('hh:mm:ss A'))
+
+                        let logs = []
+                        logs.push({
+                            dateTime: momentThisLog.toDate(),
+                            mode: 1, // 1 = in, 0 = out
+                            type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
+                            source: logSource,
+                            createdAt: momentThisLog.toDate(),
+                        })
+
+                        attendance = await req.app.locals.db.main.Attendance.create({
+                            employeeId: employee._id,
+                            employmentId: employment._id,
+                            workScheduleId: employment.workScheduleId,
+                            type: 'normal',
+                            logs: logs,
+                        })
+
+
+                    } else {
+                        console.log(`BID ${bid} ${employee.lastName} at ${date} ${time} HAVE attendance for employment ${employment.position}... adding logs`)
+                        // console.log(momentThisLog.format('hh:mm:ss A'))
+
+
+                        attendance.logs = attendance.logs.map(log => {
+                            log.dateTime = moment(log.dateTime).format('YYYY-MM-DD hh:mm:ss A')
+                            return log
+                        })
+
+                        // Removing dupes
+                        let dupeCount = 0
+                        attendance.logs = attendance.logs.filter((log, index, array) => {
+
+                            // Logic, loop on array
+                            // Find a datetime that is the same 
+                            // Look on all elements after the current element
+                            let i = array.findIndex((a, k) => {
+                                return log.dateTime === a.dateTime && k > index
+                            })
+                            if(i >= 0){
+                                dupeCount++
+                            }
+                            return i < 0
+                        })
+                        // console.log(`Removed ${dupeCount} duplicates..`)
+
+                        let found = attendance.logs.find((a, k) => {
+                            return momentThisLog.format('YYYY-MM-DD hh:mm:ss A') === a.dateTime
+                        })
+                        if(!found){
+                            let lastLog = attendance.logs.at(-1)
+                            let mode = lastLog?.mode === 1 ? 0 : 1 // Toggle 1 or 0
+    
+                            let log = {
+                                dateTime: momentThisLog.toDate(),
+                                mode: mode,
+                                type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
+                                source: logSource,
+                                createdAt: momentThisLog.toDate(),
+                            }
+                            attendance.logs.push(log)
+    
+                        }
+
+                        attendance.logs = attendance.logs.map(log => {
+                            log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
+                            return log
+                        })
+                       
+                        // console.log(attendance.logs)
+
+                        let dbOpRes = await req.app.locals.db.main.Attendance.collection.updateOne({
+                            _id: attendance._id
+                        }, {
+                            $set: {
+                                logs: attendance.logs
+                            }
+                        })
+                       
+                        // console.log(`DB OP done, modified ${dbOpRes.modifiedCount} with matched count ${dbOpRes.matchedCount}`)
+
+                    }
+                }
+
+
+            }
+        }
+        res.send('Scans uploaded.')
     } catch (err) {
         next(err)
     }

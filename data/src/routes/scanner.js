@@ -95,12 +95,15 @@ router.post('/scanner/create', middlewares.guardRoute(['create_scanner']), async
             let passwordHash = passwordMan.hashPassword(password, salt)
             user = await req.app.locals.db.main.User.create({
                 username: body.username,
-                email: 'mis+scanner@gsc.edu.ph',
+                email: 'mis+scanner@gsu.edu.ph',
                 firstName: body.name,
                 lastName: 'Scanner',
                 passwordHash: passwordHash,
                 salt: salt,
                 active: true,
+                settings: {
+                    api: true
+                },
                 roles: [
                     'checker'
                 ]

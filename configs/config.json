@@ -213,6 +213,10 @@
       {
         "value": "rfid",
         "text": "RFID Card Scanner"
+      },
+      {
+        "value": "fingerprint",
+        "text": "Fingerprint Scanner"
       }
     ]
   },

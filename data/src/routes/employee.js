@@ -319,7 +319,8 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json', '/employ
                 mobileNumber: 1,
                 personal: {
                     pwd: 1,
-                    pwdDetails: 1
+                    pwdDetails: 1,
+                    agencyEmployeeNumber: 1
                 },
                 employments: 1,
                 // Remove employees with 1 or more inactive employments
@@ -392,15 +393,16 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json', '/employ
                 let email = i.email || ''
                 let mobileNumber = i.mobileNumber || ''
                 let pwdDetails = lodash.get(i, 'personal.pwdDetails', '') ?? ''
+                let agencyEmployeeNumber = lodash.get(i, 'personal.agencyEmployeeNumber', '') ?? ''
                 let position = lodash.get(i, 'employments[0].position', '')
                 let department = lodash.get(i, 'employments[0].department', '')
                 let campus = lodash.get(i, 'employments[0].campus', '')
                 let employmentType = lodash.capitalize(lodash.get(i, 'employments[0].employmentType', '')).replace(/^jo$/i, 'Job Order').replace(/^cos$/i, 'COS')
                 let group = lodash.capitalize(lodash.get(i, 'employments[0].group', ''))
                 mobileNumber = mobileNumber.replace(/^0/, '+63').replace(',', '')
-                return `${index + 1}, ${lastName}, ${firstName}, ${middleName}, ${gender}, ${position}, ${department}, ${campus}, ${employmentType}, ${group}, ${email}, "${mobileNumber}", "${pwdDetails}"`
+                return `${index + 1}, ${agencyEmployeeNumber}, ${lastName}, ${firstName}, ${middleName}, ${gender}, ${position}, ${department}, ${campus}, ${employmentType}, ${group}, ${email}, "${mobileNumber}", "${pwdDetails}"`
             })
-            csv.unshift(`#, Last Name, First Name, Middle, Gender, Position, Department, Campus, Employment Type, Group, Email, Mobile Number, PWD ID`)
+            csv.unshift(`#, ID, Last Name, First Name, Middle, Gender, Position, Department, Campus, Employment Type, Group, Email, Mobile Number, PWD ID`)
             res.set('Content-Type', 'text/csv')
             return res.send(csv.join("\n"))
         } else if (req.query.qr == 1) {

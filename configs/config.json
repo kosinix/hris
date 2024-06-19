@@ -239,11 +239,11 @@
       "weekDay": "Mon",
       "start": {
         "hour": 7,
-        "minute": 0
+        "minute": 45
       },
       "end": {
         "hour": 8,
-        "minute": 10
+        "minute": 15
       }
     },
     "flagLowering": {

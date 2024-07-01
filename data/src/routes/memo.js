@@ -31,7 +31,7 @@ router.get('/memo/all', middlewares.guardRoute(['read_all_memo', 'read_memo']), 
             {
                 $sort: {
                     date: -1,
-                    _id: -1,
+                    number: -1,
                 }
             },
             {

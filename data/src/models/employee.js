@@ -137,6 +137,9 @@ const schema = new Schema({
     userId: {
         $type: mongoose.Schema.Types.ObjectId, // assoc. user account 
     },
+    biometricsId: {
+        $type: Number
+    },
     group: {
         $type: String,
         trim: true,

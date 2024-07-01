@@ -1717,6 +1717,7 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
             stats: stats,
 
             showTotalAs: showTotalAs,
+            showDays: showDays,
             inCharge: employment.inCharge,
             countTimeBy: countTimeBy,
 

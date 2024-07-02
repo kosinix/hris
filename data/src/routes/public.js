@@ -32,11 +32,14 @@ router.get('/start', async (req, res, next) => {
 });
 router.get('/login', async (req, res, next) => {
     try {
+        if (CONFIG.ipCheck && !CONFIG.ip.allowed.includes(req.ip)) {
+            throw new Error(`Please login using the campus network. Your internet address "${req.ip}" is not allowed.`)
+        }
         if (lodash.get(req, 'session.authUserId')) {
             return res.redirect(`/`)
         }
-        // console.log(req.session)
-        let ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
+        // console.log(req.ip)
+        let ip = req.ip;
         res.render('login.html', {
             flash: flash.get(req, 'login'),
             ip: ip,
@@ -51,6 +54,13 @@ router.post('/login', async (req, res, next) => {
         if (CONFIG.loginDelay > 0) {
             await new Promise(resolve => setTimeout(resolve, CONFIG.loginDelay)) // Rate limit 
         }
+        if (CONFIG.ipCheck && !CONFIG.ip.allowed.includes(req.ip)) {
+            throw new Error(`IP "${req.ip}" is not allowed.`)
+        }
+    } catch (err) {
+        return next(err);
+    }
+    try {
 
         let post = req.body;
 
@@ -380,7 +390,7 @@ router.get('/identify/:uid', async (req, res, next) => {
         let employee = await req.app.locals.db.main.Employee.findOne({
             'personal.agencyEmployeeNumber': req.params.uid
         });
-        
+
 
         let data = {
             employee: {

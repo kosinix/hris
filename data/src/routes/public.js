@@ -32,14 +32,14 @@ router.get('/start', async (req, res, next) => {
 });
 router.get('/login', async (req, res, next) => {
     try {
-        if (CONFIG.ipCheck && !CONFIG.ip.allowed.includes(req.ip)) {
-            throw new Error(`Please login using the campus network. Your internet address "${req.ip}" is not allowed.`)
+        let ip = req.headers['x-real-ip'] || req.socket.remoteAddress;
+        // console.log(ip)
+        if (CONFIG.ipCheck && !CONFIG.ip.allowed.includes(ip)) {
+            throw new Error(`Please login using the campus network. Your internet address "${ip}" is not allowed.`)
         }
         if (lodash.get(req, 'session.authUserId')) {
             return res.redirect(`/`)
         }
-        // console.log(req.ip)
-        let ip = req.ip;
         res.render('login.html', {
             flash: flash.get(req, 'login'),
             ip: ip,

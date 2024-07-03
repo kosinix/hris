@@ -54,8 +54,9 @@ router.post('/login', async (req, res, next) => {
         if (CONFIG.loginDelay > 0) {
             await new Promise(resolve => setTimeout(resolve, CONFIG.loginDelay)) // Rate limit 
         }
-        if (CONFIG.ipCheck && !CONFIG.ip.allowed.includes(req.ip)) {
-            throw new Error(`IP "${req.ip}" is not allowed.`)
+        let ip = req.headers['x-real-ip'] || req.socket.remoteAddress;
+        if (CONFIG.ipCheck && !CONFIG.ip.allowed.includes(ip)) {
+            throw new Error(`IP "${ip}" is not allowed.`)
         }
     } catch (err) {
         return next(err);

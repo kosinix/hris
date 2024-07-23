@@ -168,18 +168,18 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
             employeeId: employee._id,
             employmentId: employment._id,
             $or: [
-                {
-                    periodOfTravel: {
-                        $gte: moment(body.periodOfTravel).toDate(),
-                        $lte: moment(body.periodOfTravelEnd).toDate(),
-                    },
-                },
-                {
-                    periodOfTravelEnd: {
-                        $gte: moment(body.periodOfTravel).toDate(),
-                        $lte: moment(body.periodOfTravelEnd).toDate(),
-                    }
-                },
+                // {
+                //     periodOfTravel: {
+                //         $gte: moment(body.periodOfTravel).toDate(),
+                //         $lte: moment(body.periodOfTravelEnd).toDate(),
+                //     },
+                // },
+                // {
+                //     periodOfTravelEnd: {
+                //         $gte: moment(body.periodOfTravel).toDate(),
+                //         $lte: moment(body.periodOfTravelEnd).toDate(),
+                //     }
+                // },
                 {
                     dates: {
                         $in: body.dates
@@ -242,8 +242,10 @@ router.post('/hros/at/create', middlewares.guardRoute(['use_employee_profile']),
         let a = body.periodOfTravel
         let b = body.periodOfTravelEnd
         // If you want an inclusive end date (fully-closed interval)
-        for (var m = moment(a); m.diff(b, 'days') <= 0; m.add(1, 'days')) {
+        // for (var m = moment(a); m.diff(b, 'days') <= 0; m.add(1, 'days')) {
+        for (let x = 0; x < body.dates.length; x++) {
             // console.log(m.format('YYYY-MM-DD'));
+            let m = moment(body.dates[x])
             let attendance = {
                 employeeId: employee._id,
                 employmentId: employment._id,

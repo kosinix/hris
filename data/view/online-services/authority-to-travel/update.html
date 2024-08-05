@@ -16,26 +16,22 @@
     <div class="mb-5">
         {% include 'parts/flash.html' %}
         <form ref="form" v-on:submit.prevent="onSubmit" action="/online-services/at/{{at._id}}/update" method="POST" class="form-default">
-            <div class="form-row">
-                <div class="col-md-12">
-                    <label for="periodOfTravel" class="font-weight-bold">Period of Travel <span class="text-danger">*</span></label>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="periodOfTravel">From</label>
-                        <div>
-                            <input v-on:change="syncDates" name="periodOfTravel" id="periodOfTravel" v-model="periodOfTravel" type="date" class="form-control">
-                            <small class="invalid-feedback">${getError('periodOfTravel')}</small>
+            <div class="form-group">
+                <label for="periodOfTravel" class="font-weight-bold">Period of Travel <span class="text-danger">*</span></label>
+                <div class="form-row">
+                    <div class="col-md-12">
+                        <div class="d-flex flex-wrap ">
+                            <transition-group name="list" tag="div">
+                                <div v-for="(date, index) in dates" v-bind:key="date" class="list-item mr-1 mb-1 border pl-2 pb-1">
+                                    <span>${date|formatDate('MMM DD, YYYY')}</span> 
+                                    <button @click.prevent="deleteDate(index)" class="btn text-danger btn-sm p-1" type="button">X</button>
+                                </div>
+                            </transition-group>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="periodOfTravelEnd">To</label>
-                        <div>
-                            <input name="periodOfTravelEnd" id="periodOfTravelEnd" v-model="periodOfTravelEnd" type="date" class="form-control">
-                            <small class="invalid-feedback">${getError('periodOfTravelEnd')}</small>
-                        </div>
+                    <div class="col-md-6">
+                        <button @click="dateModal" type="button" class="ml-1 btn btn-sm btn-success">Add Date</button>
+                        <input name="dates" v-model="datesStringify" type="hidden" class="form-control">
                     </div>
                 </div>
             </div>
@@ -50,6 +46,7 @@
         </form>
     </div>
 </div>
+{% include "hros/leave/modal-date.html" %}
 {% endblock %}
 {% block scripts %}
 {{ super() }}
@@ -61,12 +58,21 @@
             window.vuelidate.validationMixin,
             window.vuelidateExtendMixin,
         ],
+        filters: {
+            formatDate: function(date, format){
+                return moment(date).format(format)
+            },
+            yesNo: function(v){
+                return (v+'').replace('true', 'Yes').replace('false', 'No')
+            }
+        },
         data: {
             pending: false,
             employmeeId: '{{at.employmeeId}}',
             designation: '{{at.designation}}',
             officialStation: '{{at.officialStation}}',
             destination: '{{at.destination}}',
+            dates: {{at.dates|default([], true)|stringify|safe}},
             periodOfTravel: '{{at.periodOfTravel|format_date("YYYY-MM-DD")}}',
             periodOfTravelEnd: '{{at.periodOfTravelEnd|format_date("YYYY-MM-DD")}}',
             natureOfBusiness: '{{at.natureOfBusiness}}',
@@ -85,7 +91,19 @@
             },
         },
         computed: {
-            
+            datesStringify: function(){
+                return this.dates.join(',')
+            },
+            datesString: function() {
+                const me = this;
+                const dates = me.groupDates(me.dates, true).map(row => {
+
+                    return row.map(d => {
+                        return moment(d).format('MMMM DD YYYY')
+                    }).join(' to ')
+                })
+                return dates.join(', ')
+            }
         },
         watch: {
             
@@ -103,17 +121,73 @@
                 }
                 this.charLength = 180 - ((this.natureOfBusiness + '').split('').length)
             },
-            syncDates: function () {
-                var me = this;
-                var mDate1 = moment(me.periodOfTravel)
-                var mDate2 = moment(me.periodOfTravelEnd)
-                if (mDate1.isValid() && !mDate2.isValid()) {
-                    me.periodOfTravelEnd = me.periodOfTravel
+            
+            // 
+            groupDates: function(dates, simplify=false) {
+                let basket = [[]]
+                let group = 0
+                dates.forEach((d, currentIndex, dates)=>{
+                    if(currentIndex <= 0){
+                        basket[group].push(d)
+                    } else if(currentIndex > 0){
+                        let date1 = moment(dates[currentIndex - 1])
+                        let date2 = moment(d)
+
+                        if(date2.isAfter(date1)){
+                            if(date2.diff(date1, 'days') <= 1){
+                                basket[group].push(d)
+
+                            } else {
+                                group++
+                                basket.push([])
+                                basket[group].push(d)
+                            }
+                        }
+                    }
+
+                })
+                if(simplify){
+                    basket = basket.map(row=>{
+                        let shorten = []
+                        shorten.push(row.at(0))
+                        if(row.length > 1){
+                            shorten.push(row.at(-1))
+                        }
+                        return shorten
+                    })
                 }
-                if (mDate1.isValid() && mDate1.isAfter(mDate2)) {
-                    me.periodOfTravelEnd = me.periodOfTravel
+                return basket
+            },
+            dateModal: function(){
+                jQuery('#vAppModalDate').modal('show')
+            },
+            addDate: function(){
+                var me = this;
+
+                try {
+                    console.log(moment(me.dateToAdd).diff(moment(), 'days'))
+                    if(moment(me.dateToAdd).diff(moment(), 'days') < -365){
+                        throw new Error('Date too far.')
+                    } 
+                    if(moment(me.dateToAdd).diff(moment(), 'days') > 365){
+                        throw new Error('Date too far.')
+                    } 
+                    if(!me.dates.includes(me.dateToAdd)){
+                        me.dates.push(me.dateToAdd)
+                        me.dates.sort()
+                    }
+                    me.dateToAdd = ''
+                } catch(error){
+                    alert(error)
+                    me.dateToAdd = ''
                 }
             },
+            deleteDate: function(index){
+                var me = this;
+                me.dates.splice(index, 1)
+                me.dateToAdd = ''
+            },
+            // 
             onSubmit: function () {
                 var me = this;
                 me.$v.$touch()
@@ -128,5 +202,41 @@
             }
         }
     });
+
+    var vAppModal = new Vue({
+        el: '#vAppModalDate',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            dateToAdd: '',
+        },
+        methods: {
+            addDate: function(){
+                var me = this;
+
+                try {
+                    if(me.dateToAdd){
+                        if(!moment(me.dateToAdd, true).isValid()){
+                            throw new Error('Invalid date')
+                        }
+                        if(moment(me.dateToAdd).diff(moment(), 'days') < -365){
+                            throw new Error('Date too far.')
+                        } 
+                        if(moment(me.dateToAdd).diff(moment(), 'days') > 365){
+                            throw new Error('Date too far.')
+                        } 
+                        if(!vApp.dates.includes(me.dateToAdd)){
+                            vApp.dates.push(me.dateToAdd)
+                            vApp.dates.sort()
+                        }
+                        me.dateToAdd = ''
+                        jQuery('#vAppModalDate').modal('hide')
+                    }
+                } catch(error){
+                    alert(error)
+                }
+            },
+        }
+    })
 </script>
 {% endblock %}

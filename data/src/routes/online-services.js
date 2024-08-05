@@ -34,7 +34,7 @@ router.get('/online-services/at/all', middlewares.guardRoute(['read_all_attendan
     try {
         let lastId = lodash.get(req, 'query.lastId', '')
         let perPage = 100
-        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', 1))
+        let sortOrder = parseInt(lodash.get(req, 'query.sortOrder', -1))
         let page = parseInt(lodash.get(req, 'query.page', 1))
         let lastName = lodash.get(req, 'query.lastName')
         lodash.set(req, 'session.pagination.perPage', perPage)
@@ -172,13 +172,31 @@ router.get('/online-services/at/:atId', middlewares.guardRoute(['read_all_attend
 });
 router.post('/online-services/at/:atId/update', middlewares.guardRoute(['read_all_attendance']), async (req, res, next) => {
     try {
+        let body = req.body
+
+        body.dates = lodash.get(body, 'dates', [])
+        if (typeof body.dates === 'string') body.dates = body.dates.split(',')
+        body.dates = lodash.uniq(body.dates) // Remove dupe
+        body.dates = body.dates.filter(d => d) // Remove empty
+        if (body.dates.length <= 0) {
+            throw new Error(`No date specified.`)
+        }
+        body.dates.forEach((e, i) => {
+            if (!moment(e).isValid()) {
+                throw new Error(`Invalid date ${e}.`)
+            }
+        })
+
+        // return res.send(body)
         let atId = req.params.atId
         let at = await req.app.locals.db.main.AuthorityToTravel.findById(atId)
         if (!at) {
             throw new Error('Not found.')
         }
-        at.periodOfTravel = moment(req.body.periodOfTravel).toDate()
-        at.periodOfTravelEnd = moment(req.body.periodOfTravelEnd).toDate()
+        at.periodOfTravel = body.dates.at(0)
+        at.periodOfTravelEnd = body.dates.at(-1)
+        at.dates = body.dates
+
         await at.save()
 
         flash.ok(req, 'online-services', `Authority to Travel updated.`)
@@ -283,7 +301,7 @@ router.get('/online-services/leave/all', middlewares.guardRoute(['read_all_atten
             l.leaveAvailedList = CONFIG.leaveTypes.filter((o) => {
                 return l.leaveAvailed[o.key]
             }).map(o => o.label).join(', ')
-            l.dates = l.dates.map( o => moment(o).format('MMM DD, YYYY') ).join(', ')
+            l.dates = l.dates.map(o => moment(o).format('MMM DD, YYYY')).join(', ')
             return l
         })
         //

@@ -85,6 +85,9 @@ env.addFilter('scheduleBreaks', function (breaks) {
     })
     return breaks.join(', ')
 })
+env.addFilter('date_diff', function (date1, date2, unit = 'days') {
+    return moment(date1).diff(moment(date2), unit)
+})
 /**
  * @param {number} hour 24-hour time from 0 -23
  */

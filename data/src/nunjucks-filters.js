@@ -42,6 +42,13 @@ const extended = (env)=>{
     })
 
     /**
+     * Get difference in years from a given date.
+     */
+    env.addFilter('date_diff', function (date1, date2, unit = 'days') {
+        return moment(date1).diff(moment(date2), unit)
+    })
+
+    /**
      * Camel-case.
      */
     env.addFilter('camel_case', (value) => {

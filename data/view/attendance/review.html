@@ -19,24 +19,42 @@
         <p>None found.</p>
     {% else %}
         <div class="table-responsive">
-            <table class="table table-sm">
+            <table class="table table-sm text-center">
                 <tr>
-                    <th></th>
-                    <th>Name</th>
-                    <th>Date</th>
-                    <th>Date Applied</th>
-                    <th>Status</th>
-                    <th></th>
+                    <th width="3%" class="text-left"></th>
+                    <th width="25%" class="text-left">Name</th>
+                    <th width="25%" class="text-left">Date</th>
+                    <th width="25%" class="text-left">Date Applied</th>
+                    <th width="22%"></th>
                 </tr>
                 {% for attendanceReview in attendanceReviews%}
                 {% set review = attendanceReview %}
                 {% set attendance = review.attendance %}
                 <tr>
-                    <td>{{loop.index}}</td>
-                    <td><a href="/attendance/review/{{review._id}}">{{review.employee.lastName}}, {{review.employee.firstName}}</a></td>
-                    <td>{{attendance.createdAt|format_date('ddd - MMM DD, YYYY')}}</td>
-                    <td>{{review.createdAt|format_date('MMM DD, YYYY')}} <em>{{review.createdAt|from_now}}</em></td>
-                    <td>{{review.status}}</td>
+                    <td class="text-left">{{loop.index}}</td>
+                    <td class="text-left"><a href="/attendance/review/{{review._id}}">{{review.employee.lastName}}, {{review.employee.firstName}}</a></td>
+                    <td class="text-left">{{attendance.createdAt|format_date('ddd - MMM DD, YYYY')}}</td>
+                    <td class="text-left">
+                        <div>
+                            {{review.createdAt|format_date('MMM DD, YYYY')}} at <em>{{review.createdAt|format_date('hh:mm A')}} </em>
+                            {% set diff = review.createdAt|date_diff(attendance.createdAt) %}
+
+                            {% if diff <= 0 %}
+                            {% elif diff <= 1 %}
+                                <sup class="text-success font-weight-bold">{{diff}} day</sup>
+
+                            {% elif diff <= 2 %}
+                                <sup class="text-success font-weight-bold">{{diff}} days</sup>
+
+                            {% elif diff == 3 %}
+                                <sup class="text-warning font-weight-bold" style="color: #ff9800;">{{diff}} days</sup>
+                            
+                                {% else %}
+                                <sup class="text-danger font-weight-bold">{{diff}} days</sup>
+
+                            {% endif %}
+                        </div>
+                    </td>
                     <td><a href="/attendance/review/{{review._id}}">Review</a></td>
                 </tr>
                 {% endfor %}

@@ -323,7 +323,7 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                             let i = array.findIndex((a, k) => {
                                 return log.dateTime === a.dateTime && k > index
                             })
-                            if(i >= 0){
+                            if (i >= 0) {
                                 dupeCount++
                             }
                             return i < 0
@@ -333,10 +333,10 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                         let found = attendance.logs.find((a, k) => {
                             return momentThisLog.format('YYYY-MM-DD hh:mm:ss A') === a.dateTime
                         })
-                        if(!found){
+                        if (!found) {
                             let lastLog = attendance.logs.at(-1)
                             let mode = lastLog?.mode === 1 ? 0 : 1 // Toggle 1 or 0
-    
+
                             let log = {
                                 dateTime: momentThisLog.toDate(),
                                 mode: mode,
@@ -345,14 +345,14 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                 createdAt: momentThisLog.toDate(),
                             }
                             attendance.logs.push(log)
-    
+
                         }
 
                         attendance.logs = attendance.logs.map(log => {
                             log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
                             return log
                         })
-                       
+
                         // console.log(attendance.logs)
 
                         let dbOpRes = await req.app.locals.db.main.Attendance.collection.updateOne({
@@ -362,7 +362,7 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                 logs: attendance.logs
                             }
                         })
-                       
+
                         // console.log(`DB OP done, modified ${dbOpRes.modifiedCount} with matched count ${dbOpRes.matchedCount}`)
 
                     }

@@ -8,7 +8,13 @@
                 </button>
             </div>
             <div class="modal-body pl-4 pr-4">
-                <input id="dateToAdd" v-model="dateToAdd" type="date" class="form-control mr-1">
+                <div class="alert alert-warning">
+                    <p>
+                        <strong>Select Each Date Individually</strong> <br>
+                        <em>For example, if you are traveling from January 15 to January 17, select January 15, January 16, and January 17 separately.</em>
+                    </p>
+                    <input id="dateToAdd" v-model="dateToAdd" type="date" class="form-control mr-1">
+                </div>
             </div>
             <div class="modal-footer justify-content-center">
                 <button @click="addDate" class="ml-2 btn btn-success align-items-center d-flex" type="button">Add</button>

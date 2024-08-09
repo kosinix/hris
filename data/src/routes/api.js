@@ -252,123 +252,124 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                     biometricsId: bid
                 }).lean()
                 if (!employee) {
-                    throw new Error(`Error, user with biometrics ID ${bid} was not found.`)
-                }
+                    console.error(`Error, user with biometrics ID ${bid} was not found.`)
+                } else {
 
-                // Get all active employments
-                let employments = await req.app.locals.db.main.Employment.find({
-                    employeeId: employee._id,
-                    active: true,
-                }).lean()
-                if (employments.length <= 0) {
-                    throw new Error(`Error, user ${employee.lastName} has no active employments.`)
-                }
-
-                // Log for every active employment
-                for (let c = 0; c < employments.length; c++) {
-                    let employment = employments[c]
-
-                    let attendance = await req.app.locals.db.main.Attendance.findOne({
+                    // Get all active employments
+                    let employments = await req.app.locals.db.main.Employment.find({
                         employeeId: employee._id,
-                        employmentId: employment._id,
-                        createdAt: {
-                            $gte: momentThisLog.clone().startOf('day').toDate(),
-                            $lt: momentThisLog.clone().endOf('day').toDate(),
-                        }
+                        active: true,
                     }).lean()
-
-                    let logSource = {
-                        type: 'biometric',
-                    }
-
-                    if (!attendance) {
-                        console.log(`BID ${bid} ${employee.lastName} at ${date} ${time} no attendance for employment ${employment.position}... adding attendance`)
-                        // console.log(momentThisLog.format('hh:mm:ss A'))
-
-                        let logs = []
-                        logs.push({
-                            dateTime: momentThisLog.toDate(),
-                            mode: 1, // 1 = in, 0 = out
-                            type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
-                            source: logSource,
-                            createdAt: momentThisLog.toDate(),
-                        })
-
-                        attendance = await req.app.locals.db.main.Attendance.create({
-                            employeeId: employee._id,
-                            employmentId: employment._id,
-                            workScheduleId: employment.workScheduleId,
-                            type: 'normal',
-                            logs: logs,
-                        })
-
-
+                    if (employments.length <= 0) {
+                        console.error(`Error, user ${employee.lastName} has no active employments.`)
                     } else {
-                        console.log(`BID ${bid} ${employee.lastName} at ${date} ${time} HAVE attendance for employment ${employment.position}... adding logs`)
-                        // console.log(momentThisLog.format('hh:mm:ss A'))
 
+                        // Log for every active employment
+                        for (let c = 0; c < employments.length; c++) {
+                            let employment = employments[c]
 
-                        attendance.logs = attendance.logs.map(log => {
-                            log.dateTime = moment(log.dateTime).format('YYYY-MM-DD hh:mm:ss A')
-                            return log
-                        })
+                            let attendance = await req.app.locals.db.main.Attendance.findOne({
+                                employeeId: employee._id,
+                                employmentId: employment._id,
+                                createdAt: {
+                                    $gte: momentThisLog.clone().startOf('day').toDate(),
+                                    $lt: momentThisLog.clone().endOf('day').toDate(),
+                                }
+                            }).lean()
 
-                        // Removing dupes
-                        let dupeCount = 0
-                        attendance.logs = attendance.logs.filter((log, index, array) => {
-
-                            // Logic, loop on array
-                            // Find a datetime that is the same 
-                            // Look on all elements after the current element
-                            let i = array.findIndex((a, k) => {
-                                return log.dateTime === a.dateTime && k > index
-                            })
-                            if (i >= 0) {
-                                dupeCount++
+                            let logSource = {
+                                type: 'biometric',
                             }
-                            return i < 0
-                        })
-                        // console.log(`Removed ${dupeCount} duplicates..`)
 
-                        let found = attendance.logs.find((a, k) => {
-                            return momentThisLog.format('YYYY-MM-DD hh:mm:ss A') === a.dateTime
-                        })
-                        if (!found) {
-                            let lastLog = attendance.logs.at(-1)
-                            let mode = lastLog?.mode === 1 ? 0 : 1 // Toggle 1 or 0
+                            if (!attendance) {
+                                console.log(`BID ${bid} ${employee.lastName} at ${date} ${time} no attendance for employment ${employment.position}... adding attendance`)
+                                // console.log(momentThisLog.format('hh:mm:ss A'))
 
-                            let log = {
-                                dateTime: momentThisLog.toDate(),
-                                mode: mode,
-                                type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
-                                source: logSource,
-                                createdAt: momentThisLog.toDate(),
+                                let logs = []
+                                logs.push({
+                                    dateTime: momentThisLog.toDate(),
+                                    mode: 1, // 1 = in, 0 = out
+                                    type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
+                                    source: logSource,
+                                    createdAt: momentThisLog.toDate(),
+                                })
+
+                                attendance = await req.app.locals.db.main.Attendance.create({
+                                    employeeId: employee._id,
+                                    employmentId: employment._id,
+                                    workScheduleId: employment.workScheduleId,
+                                    type: 'normal',
+                                    logs: logs,
+                                })
+
+
+                            } else {
+                                console.log(`BID ${bid} ${employee.lastName} at ${date} ${time} HAVE attendance for employment ${employment.position}... adding logs`)
+                                // console.log(momentThisLog.format('hh:mm:ss A'))
+
+
+                                attendance.logs = attendance.logs.map(log => {
+                                    log.dateTime = moment(log.dateTime).format('YYYY-MM-DD hh:mm:ss A')
+                                    return log
+                                })
+
+                                // Removing dupes
+                                let dupeCount = 0
+                                attendance.logs = attendance.logs.filter((log, index, array) => {
+
+                                    // Logic, loop on array
+                                    // Find a datetime that is the same 
+                                    // Look on all elements after the current element
+                                    let i = array.findIndex((a, k) => {
+                                        return log.dateTime === a.dateTime && k > index
+                                    })
+                                    if (i >= 0) {
+                                        dupeCount++
+                                    }
+                                    return i < 0
+                                })
+                                // console.log(`Removed ${dupeCount} duplicates..`)
+
+                                let found = attendance.logs.find((a, k) => {
+                                    return momentThisLog.format('YYYY-MM-DD hh:mm:ss A') === a.dateTime
+                                })
+                                if (!found) {
+                                    let lastLog = attendance.logs.at(-1)
+                                    let mode = lastLog?.mode === 1 ? 0 : 1 // Toggle 1 or 0
+
+                                    let log = {
+                                        dateTime: momentThisLog.toDate(),
+                                        mode: mode,
+                                        type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
+                                        source: logSource,
+                                        createdAt: momentThisLog.toDate(),
+                                    }
+                                    attendance.logs.push(log)
+
+                                }
+
+                                attendance.logs = attendance.logs.map(log => {
+                                    log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
+                                    return log
+                                })
+
+                                // console.log(attendance.logs)
+
+                                let dbOpRes = await req.app.locals.db.main.Attendance.collection.updateOne({
+                                    _id: attendance._id
+                                }, {
+                                    $set: {
+                                        logs: attendance.logs
+                                    }
+                                })
+
+                                // console.log(`DB OP done, modified ${dbOpRes.modifiedCount} with matched count ${dbOpRes.matchedCount}`)
+
                             }
-                            attendance.logs.push(log)
-
                         }
-
-                        attendance.logs = attendance.logs.map(log => {
-                            log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
-                            return log
-                        })
-
-                        // console.log(attendance.logs)
-
-                        let dbOpRes = await req.app.locals.db.main.Attendance.collection.updateOne({
-                            _id: attendance._id
-                        }, {
-                            $set: {
-                                logs: attendance.logs
-                            }
-                        })
-
-                        // console.log(`DB OP done, modified ${dbOpRes.modifiedCount} with matched count ${dbOpRes.matchedCount}`)
 
                     }
                 }
-
-
             }
         }
         res.send('Scans uploaded.')

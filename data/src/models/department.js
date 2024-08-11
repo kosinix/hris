@@ -22,7 +22,7 @@ const schema = new Schema({
             employmentId: {
                 $type: mongoose.Schema.Types.ObjectId,
             },
-            role: String, // director, member
+            role: String, // director, head, member, staff, 
             firstName: String,
             middleName: String,
             lastName: String,

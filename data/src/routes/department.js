@@ -32,14 +32,11 @@ router.get('/department/all', middlewares.guardRoute(['read_all_employee', 'read
         const departments = await req.app.locals.db.main.Department.aggregate([
             {
                 $sort: {
-                    _id: -1
+                    _id: 1
                 }
             },
             {
                 $match: criteria
-            },
-            {
-                $limit: 10
             },
         ])
 

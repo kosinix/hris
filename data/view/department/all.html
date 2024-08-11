@@ -5,24 +5,27 @@
     {% include 'parts/flash.html' %}
 
     <div id="vApp" v-cloak data-pending="pending" class="tab-content p-3 mb-5">
-        <div class="d-flex align-items-center mb-4">
-            <h1 class="h4 mr-3 mb-0">Departments</h1>
-            <a href="/department/create" class="btn btn-sm btn-success">Add</a>
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h1 class="h4 mr-3 mb-0">Departments</h1>
+                <p>Departments, Units or Offices under the 2024 Organizational Structure</p>
+            </div>
+            <a href="/department/create" class="btn btn-sm btn-success">Add Department</a>
         </div>
         <div v-if="departments.length > 0" class="table-responsive">
             <table class="table table-sm table-striped">
                 <thead>
                     <tr>
                         <th></th>
-                        <th>Name</th>
-                        <th>Acronym</th>
+                        <th>Official Name</th>
+                        <th>Acronym / Short Name / Common Name</th>
                         <th>Members</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="department in departments">
-                        <td></td>
+                    <tr v-for="department,i in departments">
+                        <td>${i+1}</td>
                         <td><a :href="`/department/read/${department._id}`">${department.name}</a></td>
                         <td>${department.acronym}</td>
                         <td>${department.members.length}</td>

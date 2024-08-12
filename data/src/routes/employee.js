@@ -322,6 +322,7 @@ router.get(['/employee/all', '/employee/all.csv', '/employee/all.json', '/employ
                     pwdDetails: 1,
                     agencyEmployeeNumber: 1
                 },
+                biometricsId: 1,
                 employments: 1,
                 // Remove employees with 1 or more inactive employments
                 // employments: {

@@ -371,8 +371,9 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                     }
                 }
             }
+            return res.send(`${moment().format('MMM-DD-YYYY hh:mmA')}: Uploaded ${todayLogs.length} logs.`)
         }
-        res.send('Scans uploaded.')
+        res.send(`${moment().format('MMM-DD-YYYY hh:mmA')}: No logs to upload.`)
     } catch (err) {
         next(err)
     }

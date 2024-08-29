@@ -31,14 +31,14 @@ router.post('/support/register', middlewares.guardRoute(['can_register_rfid']), 
         let employmentId = lodash.get(body, 'employmentId')
 
         let employment = await req.app.locals.db.main.Employment.findById(employmentId)
-        if(!employment){
+        if (!employment) {
             throw new Error('Employment not found.')
         }
         let employee = await req.app.locals.db.main.Employee.findOne({
             _id: employment.employeeId
         })
 
-        if((employee.uid + '').length === 10) {
+        if ((employee.uid + '').length === 10) {
             throw new Error('Employee already has a registered ID.')
         }
 
@@ -51,7 +51,7 @@ router.post('/support/register', middlewares.guardRoute(['can_register_rfid']), 
 router.get('/support/register/:employmentId', middlewares.guardRoute(['can_register_rfid']), middlewares.getEmployment, async (req, res, next) => {
     try {
         let employment = res.employment
-        if(!employment){
+        if (!employment) {
             throw new Error('Employment not found.')
         }
         let employee = await req.app.locals.db.main.Employee.findOne({
@@ -73,11 +73,11 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
         let employee = await req.app.locals.db.main.Employee.findOne({
             _id: employment.employeeId
         }).lean()
-        if(!employee){
+        if (!employee) {
             throw new Error('Employee not found.')
         }
 
-        if((employee.uid + '').length === 10) {
+        if ((employee.uid + '').length === 10) {
             throw new Error('Employee already has a registered ID.')
         }
 
@@ -87,10 +87,10 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
         let employmentId = employment._id
 
 
-        if(lodash.isNaN(rfid)){
+        if (lodash.isNaN(rfid)) {
             throw new Error('Invalid RFID format.')
         }
-        if(lodash.size(rfid) !== 10){
+        if (lodash.size(rfid) !== 10) {
             throw new Error('Invalid RFID length.')
         }
 
@@ -100,7 +100,7 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
             throw new Error('You dont have an user account.')
         }
         let email = userAccount.email
-        
+
         let registrationForm = await req.app.locals.db.main.RegistrationForm.findOne({
             uid: rfid,
         })
@@ -121,7 +121,7 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
             })
         }
 
-        
+
 
         registrationForm.employment = employment
         registrationForm.employee = employee
@@ -167,18 +167,18 @@ router.get('/support/dtr/:employmentId', middlewares.guardRoute(['read_attendanc
     try {
 
         let employment = await req.app.locals.db.main.Employment.findById(req.params.employmentId)
-        if(!employment){
+        if (!employment) {
             throw new Error('Employment not found.')
         }
         let employee = await req.app.locals.db.main.Employee.findOne({
-            _id: employment.employeeId 
+            _id: employment.employeeId
         })
-        if(!employee){
+        if (!employee) {
             throw new Error('Employee not found.')
         }
 
         return res.redirect(`/attendance/employment/${employment._id}`)
-        
+
     } catch (err) {
         next(err);
     }
@@ -198,13 +198,13 @@ router.get('/support/id-change/:employmentId', middlewares.guardRoute(['read_att
     try {
 
         let employment = await req.app.locals.db.main.Employment.findById(req.params.employmentId)
-        if(!employment){
+        if (!employment) {
             throw new Error('Employment not found.')
         }
         let employee = await req.app.locals.db.main.Employee.findOne({
-            _id: employment.employeeId 
+            _id: employment.employeeId
         })
-        if(!employee){
+        if (!employee) {
             throw new Error('Employee not found.')
         }
 
@@ -213,7 +213,7 @@ router.get('/support/id-change/:employmentId', middlewares.guardRoute(['read_att
             employment: employment,
             employee: employee,
         });
-        
+
     } catch (err) {
         next(err);
     }
@@ -224,7 +224,7 @@ router.post('/support/id-change/:employmentId', middlewares.guardRoute(['can_reg
         let employee = await req.app.locals.db.main.Employee.findOne({
             _id: employment.employeeId
         }).lean()
-        if(!employee){
+        if (!employee) {
             throw new Error('Employee not found.')
         }
 
@@ -232,10 +232,10 @@ router.post('/support/id-change/:employmentId', middlewares.guardRoute(['can_reg
         let employmentId = employment._id
 
 
-        if(lodash.isNaN(rfid)){
+        if (lodash.isNaN(rfid)) {
             throw new Error('Invalid RFID format.')
         }
-        if(lodash.size(rfid) !== 10){
+        if (lodash.size(rfid) !== 10) {
             throw new Error('Invalid RFID length.')
         }
 

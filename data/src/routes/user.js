@@ -193,6 +193,11 @@ router.post('/user/:userId/password', middlewares.guardRoute(['read_user']), mid
                 flash.ok(req, 'user', `Updated "${user.username}" password.`)
             }
 
+            // Logout all sessions
+            await req.app.locals.db.main.collection('sessions').deleteMany({
+                'session.authUserId': req.app.locals.db.mongoose.Types.ObjectId(user._id)
+            })
+
             await req.app.locals.db.main.User.updateOne({ _id: user._id }, patch)
 
         }

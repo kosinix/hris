@@ -744,7 +744,7 @@ router.post('/attendance/flag/create', middlewares.antiCsrfCheck, middlewares.gu
         next(err);
     }
 });
-router.get('/attendance/flag/:attendanceFlagId/delete', middlewares.guardRoute(['read_attendance', 'update_attendance']), async (req, res, next) => {
+router.get('/attendance/flag/:attendanceFlagId/delete', middlewares.guardRoute(['read_attendance', 'delete_attendance']), async (req, res, next) => {
     try {
         let attendanceFlagId = lodash.get(req, 'params.attendanceFlagId')
         let attendance = await req.app.locals.db.main.AttendanceFlag.findById(attendanceFlagId)
@@ -1196,7 +1196,7 @@ router.post('/attendance/flag-lowering/create', middlewares.antiCsrfCheck, middl
         next(err);
     }
 });
-router.get('/attendance/flag-lowering/:attendanceFlagLoweringId/delete', middlewares.guardRoute(['read_attendance', 'update_attendance']), async (req, res, next) => {
+router.get('/attendance/flag-lowering/:attendanceFlagLoweringId/delete', middlewares.guardRoute(['read_attendance', 'delete_attendance']), async (req, res, next) => {
     try {
         let attendanceFlagLoweringId = lodash.get(req, 'params.attendanceFlagLoweringId')
         let attendance = await req.app.locals.db.main.AttendanceFlagLowering.findById(attendanceFlagLoweringId)
@@ -1532,6 +1532,24 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
 router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
     try {
         let employment = res.employment.toObject()
+
+        if(res.user.roles.includes('support')){
+            let department = await req.app.locals.db.main.Department.findOne({
+                name: 'Information and Communications Technology Unit'
+            }).lean()
+            let members = department?.members
+            let employmentIds = members.map(m => m.employmentId)
+    
+            employment = await req.app.locals.db.main.Employment.findOne({
+                _id: {
+                    $eq: res.employment._id,
+                    $in: employmentIds,
+                }
+            }).lean()
+            if(!employment){
+                throw new Error('Not found')
+            }
+        }
         let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
 
         let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
@@ -1655,6 +1673,25 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
 router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, middlewares.getDtrQueries, async (req, res, next) => {
     try {
         let employment = res.employment
+
+        if(res.user.roles.includes('support')){
+            let department = await req.app.locals.db.main.Department.findOne({
+                name: 'Information and Communications Technology Unit'
+            }).lean()
+            let members = department?.members
+            let employmentIds = members.map(m => m.employmentId)
+    
+            employment = await req.app.locals.db.main.Employment.findOne({
+                _id: {
+                    $eq: res.employment._id,
+                    $in: employmentIds,
+                }
+            }).lean()
+            if(!employment){
+                throw new Error('Not found')
+            }
+        }
+
         let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
 
         let start = lodash.get(req, 'query.start', moment().startOf('month').format('YYYY-MM-DD'))
@@ -1996,7 +2033,7 @@ router.get('/attendance/tardy/:employmentId', middlewares.guardRoute(['read_atte
 });
 
 // Move 
-router.get('/attendance/employment/:employmentId/move', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
+router.get('/attendance/employment/:employmentId/move', middlewares.guardRoute(['update_attendance']), middlewares.getEmployment, async (req, res, next) => {
     try {
         let employment = res.employment.toObject()
         let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
@@ -2127,7 +2164,7 @@ router.get('/attendance/employment/:employmentId/move', middlewares.guardRoute([
         next(err);
     }
 });
-router.post('/attendance/employment/:employmentId/move', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
+router.post('/attendance/employment/:employmentId/move', middlewares.guardRoute(['update_attendance']), middlewares.getEmployment, async (req, res, next) => {
     try {
         let employment = res.employment.toObject()
         // let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
@@ -2178,7 +2215,7 @@ router.post('/attendance/employment/:employmentId/move', middlewares.guardRoute(
     }
 })
 
-router.get('/attendance/employment/:employmentId/copy', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
+router.get('/attendance/employment/:employmentId/copy', middlewares.guardRoute(['update_attendance']), middlewares.getEmployment, async (req, res, next) => {
     try {
         let employment = res.employment.toObject()
         let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()
@@ -2320,7 +2357,7 @@ router.get('/attendance/employment/:employmentId/copy', middlewares.guardRoute([
         next(err);
     }
 });
-router.post('/attendance/employment/:employmentId/copy', middlewares.guardRoute(['read_attendance']), middlewares.getEmployment, async (req, res, next) => {
+router.post('/attendance/employment/:employmentId/copy', middlewares.guardRoute(['update_attendance']), middlewares.getEmployment, async (req, res, next) => {
     try {
         let employment = res.employment.toObject()
         // let employee = await req.app.locals.db.main.Employee.findById(employment.employeeId).lean()

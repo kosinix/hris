@@ -1542,7 +1542,7 @@ router.get('/e/document/all', middlewares.guardRoute(['use_employee_profile']), 
             flash: flash.get(req, 'employee'),
             employee: employee,
             momentNow: moment(),
-            title: '201 Files'
+            title: 'Documents'
         }
         res.render('e-profile/document/all.html', data);
     } catch (err) {

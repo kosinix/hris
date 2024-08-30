@@ -7,45 +7,38 @@
     {% include 'employee/employee-view-tabs.html' %}
 
     <div id="vApp" v-cloak v-bind:data-pending="pending" class="tab-content p-3 pt-4 min-height-500">
-        <div class="d-flex align-items-center">
-            <h1 class="h4 mr-3 mb-3">Add Document</h1>
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="h6 mr-3 mb-0"><a href="/employee/{{employee._id}}/document/all">Documents</a> &raquo; Upload</h5>
         </div>
+        <hr>
         <form ref="form" v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/document/create" method="POST" enctype="multipart/form-data" class="form-default">
-            <div class="form-group">
-                <label for="document">Accepted File <span class="text-danger">*</span>: ${acceptList}</label>
+            <div class="form-group" v-bind:data-error="errors['document']" v-on:click="errors.document=false">
+                <label for="document">Accepted File: <em>Images (JPEG, PNG), PDF, Word</em></label>
                 <div>
                     <input v-on:change="readFile" name="document" id="document" ref="fileDocument" v-bind:accept="acceptList" type="file" class="form-control">
-                    <small class="invalid-feedback">${getError('filesLength')}</small>
                 </div>
             </div>
-            <div class="form-group">
+            <div class="form-group" v-bind:data-error="errors['name']" v-on:click="errors.name=false">
                 <label for="name">Document Name <span class="text-danger">*</span></label>
                 <div>
                     <input v-model="name" name="name" id="name" type="text" class="form-control">
-                    <small class="invalid-feedback">${getError('name')}</small>
                 </div>
             </div>
             <div class="form-group">
                 <div class="form-row">
-                    <div class="col-md-6">
+                    <div class="col-md-6" v-bind:data-error="errors['docTypeSelect']" v-on:click="errors.docTypeSelect=false">
                         <label for="docTypeSelect">Document Type <span class="text-danger">*</span></label>
-                        <div>
-                            <select v-on:change="onDocTypeChange" v-model="docTypeSelect" name="docTypeSelect" id="docTypeSelect" class="form-control">
-                                <option value=""></option>
-                                {% for option in CONFIG.e201Types %}
-                                    <option value="{{option}}">{{option}}</option>
-                                {% endfor %}
-                                <option value="others">Others</option>
-                            </select>
-                            <small class="invalid-feedback">${getError('docTypeSelect')}</small>
-                        </div>
+                        <select v-on:change="onDocTypeChange" v-model="docTypeSelect" name="docTypeSelect" id="docTypeSelect" class="form-control">
+                            <option value=""></option>
+                            <option v-for="option in e201Types">${option}</option>
+                            <option value="others">Others</option>
+                        </select>
                     </div>
                     <div class="col-md-6">
-                         <div v-if="docTypeSelect==='others'" class="form-group">
+                         <div v-if="docTypeSelect==='others'" class="form-group" v-bind:data-error="errors['docType']" v-on:click="errors.docType=false">
                             <label for="docTypeSelect">Please specify document type<span class="text-danger">*</span>:</label>
                             <div>
                                 <input type="text" v-model="docType" name="docType" id="docType" class="form-control">
-                                <small class="invalid-feedback">${getError('docType')}</small>
                             </div>
                         </div>
                         <input v-else type="hidden" v-model="docType" name="docType" id="docType">
@@ -63,36 +56,26 @@
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-<script src="{{app.url}}/js/vue-ph-address.js"></script>
 <script>
+    const e201Types = {{e201Types|default([], true)|stringify|safe}}
     var vApp = new Vue({
         el: '#vApp',
         delimiters: ["${", "}"],
-        mixins: [
-            window.vuelidate.validationMixin,
-            window.vuelidateExtendMixin,
-        ],
+        mixins: [],
         data: {
             pending: false,
+            errors: {
+                document: false,
+                name: false,
+                docTypeSelect: false,
+                docType: false,
+            },
+            e201Types: e201Types,
             accept: ['image/jpeg', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
             name: '',
             docType: '',
             docTypeSelect: '',
             filesLength: 0,
-        },
-        validations: {
-            name: {
-                required: window.validators.required
-            },
-            docTypeSelect: {
-                required: window.validators.required
-            },
-            docType: {
-                required: window.validators.required
-            },
-            filesLength: {
-                required: window.validators.minValue(1)
-            },
         },
         computed: {
             acceptList: function(){
@@ -129,22 +112,45 @@
                             return alert('File type not allowed. Must be one of the following: ' + me.accept.join(', '));
                         }
 
-                        me.name = files.item(i).name
+                        me.name = (me.name) ? me.name : files.item(i).name
 
                     }
                     
                 }
             },
             onSubmit: function(){
-                var me = this;
-                me.$v.$touch()
-                if (me.$v.$error) {
-                    alert('Please correct the errors to continue.')
-                } else {
+                try {
+                    const me = this;
+                    Object.keys(this.$data).forEach(key => {
+                        if(typeof this[key] === 'string'){
+                            this[key] = this[key].trim()
+                        }
+                    });
+                    if (me.filesLength <= 0) {
+                        me.errors['document'] = true
+                        throw new Error('Please specify the File.')
+                    }
+                    if (!me.name) {
+                        me.errors['name'] = true
+                        throw new Error('Please specify the Document Name.')
+                    }
+                    if (!me.docTypeSelect) {
+                        me.errors['docTypeSelect'] = true
+                        throw new Error('Please select the Document Type.')
+                    }
+                    
+                    if (!me.docType && me.docTypeSelect === 'others') {
+                        me.errors['docType'] = true
+                        throw new Error('Please specify the Document Type.')
+                    }
+
+                    me.pending = true;
                     me.$nextTick(function() {
-                        me.pending = true;
                         me.$refs.form.submit();
                     });
+
+                } catch (err) {
+                    alert(err)
                 }
             }
         }

@@ -87,7 +87,7 @@
             <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" />
             </svg>
-            <span>201 Files</span>
+            <span>Documents</span>
             <button class="nav-expander" type="button">
                 <svg style="width:24px;height:24px" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
@@ -99,15 +99,16 @@
         </a>
         <ul class="nav flex-column">
             <li class="nav-item">
+                <a class="nav-link {{urlPath|active_class([r/^\/e\/document\/all/])}}" href="/e/document/all">
+                    All Documents
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link {{urlPath|active_class([r/^\/e-profile\/pds/])}}" href="/e-profile/pds">
                     Personal Data Sheet
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link {{urlPath|active_class([r/^\/e\/document\/create/])}}" href="/e/document/create">
-                    Upload Document
-                </a>
-            </li>
+            
         </ul>
     </li>
     <li class="nav-item {{urlPath|active_class([r/^\/e\/clinic\/(.)+/], 'expanded')}}" id="nav-item-clinic">

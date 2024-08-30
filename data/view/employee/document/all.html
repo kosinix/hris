@@ -7,9 +7,9 @@
     {% include 'employee/employee-profile-photo.html' %}
     {% include 'employee/employee-view-tabs.html' %}
     <div class="tab-content p-3 pt-4 min-height-500">
-        <div class="d-flex align-items-center">
-            <h1 class="h4 mr-3 mb-0">E-201 Documents</h1>
-            <a href="/employee/{{employee._id}}/document/create" class="btn btn-sm btn-primary">Add Document</a>
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="h6 mr-3 mb-0">Documents</h5>
+            <a href="/employee/{{employee._id}}/document/create" class="btn btn-sm btn-success">Upload</a>
         </div>
         <hr>
         <div class="form-inline mb-4 align-items-stretch">
@@ -21,6 +21,12 @@
                 </a>
                 <p>Personal Data Sheet</p>
                 <div><a href="/employee/{{employee._id}}/document/pds" class="btn btn-sm btn-light">Download</a> <a href="/employee/{{employee._id}}/pds/personal-info" class="btn btn-sm btn-success">Edit</a></div>
+            </div>
+            <div class="col-md-3 col-lg-2 text-center m-2 p-2 border">
+                <a href="/employee/{{employee._id}}/document/payslips">
+                    <svg style="width:64px;height:64px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Payslips</title><path fill="currentColor" d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" /></svg>
+                </a>
+                <p>Payslips</p>
             </div>
            
             {% for document in employee.documents %}

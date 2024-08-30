@@ -1545,7 +1545,21 @@ router.get('/employee/:employeeId/document/all', middlewares.guardRoute(['read_e
     try {
         let employee = res.employee
 
+        employee.documents = employee.documents.filter(d => d.docType !== 'Payslip')
         res.render('employee/document/all.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/employee/:employeeId/document/payslips', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee
+
+        employee.documents = employee.documents.filter(d => d.docType === 'Payslip')
+        res.render('employee/document/payslips.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
         });
@@ -1571,10 +1585,16 @@ router.get('/employee/:employeeId/document/pds', middlewares.guardRoute(['read_e
 router.get('/employee/:employeeId/document/create', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
-
+        let e201Types = await req.app.locals.db.main.Option.findOne({
+            key: 'e201Types'
+        })
+        if (!e201Types) {
+            throw new Error('Missing e201Types from options.')
+        }
         let data = {
             flash: flash.get(req, 'employee'),
             employee: employee,
+            e201Types: e201Types?.value
         }
         res.render('employee/document/create.html', data);
     } catch (err) {

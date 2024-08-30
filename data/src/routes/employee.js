@@ -1559,6 +1559,27 @@ router.get('/employee/:employeeId/document/payslips', middlewares.guardRoute(['r
         let employee = res.employee
 
         employee.documents = employee.documents.filter(d => d.docType === 'Payslip')
+
+        employee.documents.sort((a, b) => {
+            try {
+                let A = moment(b.date)
+                let B = moment(a.date)
+                if (A.isValid() && B.isValid()) {
+                    if (A.isBefore(B)) {
+                        return -1;
+                    }
+                    if (A.isAfter(B)) {
+                        return 1;
+                    }
+                }
+                // Must be equal
+                return 0;
+            } catch (err) {
+                // Must be equal
+                return 0;
+            }
+        });
+
         res.render('employee/document/payslips.html', {
             flash: flash.get(req, 'employee'),
             employee: employee,
@@ -1594,6 +1615,7 @@ router.get('/employee/:employeeId/document/create', middlewares.guardRoute(['rea
         let data = {
             flash: flash.get(req, 'employee'),
             employee: employee,
+            docType: req.query?.docType,
             e201Types: e201Types?.value
         }
         res.render('employee/document/create.html', data);
@@ -1607,6 +1629,7 @@ router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['cr
 
         let name = lodash.get(req, 'body.name')
         let docType = lodash.get(req, 'body.docType')
+        let date = lodash.get(req, 'body.date')
         let patch = {
             documents: lodash.get(employee, 'documents', [])
         }
@@ -1615,12 +1638,16 @@ router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['cr
             key: lodash.get(req, 'saveList.document[0]'),
             mimeType: '',
             docType: docType,
+            date: moment(date).toDate(),
         })
         await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
             $set: patch
         })
 
         flash.ok(req, 'employee', `Uploaded document "${name} - ${docType}".`)
+        if (docType === 'Payslip') {
+            return res.redirect(`/employee/${employee._id}/document/payslips`)
+        }
         res.redirect(`/employee/${employee._id}/document/all`);
     } catch (err) {
         next(err);
@@ -1666,6 +1693,9 @@ router.get('/employee/:employeeId/document/:documentId/delete', middlewares.guar
         })
 
         flash.ok(req, 'employee', `Deleted document "${document.name} - ${document.docType}".`)
+        if (document.docType === 'Payslip') {
+            return res.redirect(`/employee/${employee._id}/document/payslips`)
+        }
         res.redirect(`/employee/${employee._id}/document/all`);
     } catch (err) {
         next(err);

@@ -132,6 +132,7 @@ const schema = new Schema({
             key: String,
             mimeType: String,
             docType: String,
+            date: Date,
         }
     ],
     userId: {

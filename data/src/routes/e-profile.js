@@ -1538,6 +1538,7 @@ router.get('/e/document/all', middlewares.guardRoute(['use_employee_profile']), 
     try {
         let employee = res.employee.toObject()
 
+        employee.documents = employee.documents.filter(d => d.docType !== 'Payslip')
         let data = {
             flash: flash.get(req, 'employee'),
             employee: employee,
@@ -1545,6 +1546,41 @@ router.get('/e/document/all', middlewares.guardRoute(['use_employee_profile']), 
             title: 'Documents'
         }
         res.render('e-profile/document/all.html', data);
+    } catch (err) {
+        next(err);
+    }
+});
+router.get('/e/document/payslips', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        employee.documents = employee.documents.filter(d => d.docType === 'Payslip')
+        employee.documents.sort((a, b) => {
+            try {
+                let A = moment(b.date)
+                let B = moment(a.date)
+                if (A.isValid() && B.isValid()) {
+                    if (A.isBefore(B)) {
+                        return -1;
+                    }
+                    if (A.isAfter(B)) {
+                        return 1;
+                    }
+                }
+                // Must be equal
+                return 0;
+            } catch (err) {
+                // Must be equal
+                return 0;
+            }
+        });
+
+        let data = {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            momentNow: moment(),
+            title: 'Documents'
+        }
+        res.render('e/document/payslips.html', data);
     } catch (err) {
         next(err);
     }
@@ -1562,6 +1598,7 @@ router.get('/e/document/create', middlewares.guardRoute(['use_employee_profile']
         let data = {
             flash: flash.get(req, 'employee'),
             employee: employee,
+            docType: req.query?.docType,
             momentNow: moment(),
             title: 'Add 201 File',
             e201Types: e201Types?.value
@@ -1577,6 +1614,7 @@ router.post('/e/document/create', middlewares.guardRoute(['use_employee_profile'
 
         let name = lodash.get(req, 'body.name')
         let docType = lodash.get(req, 'body.docType')
+        let date = lodash.get(req, 'body.date')
         let patch = {
             documents: lodash.get(employee, 'documents', [])
         }
@@ -1584,11 +1622,17 @@ router.post('/e/document/create', middlewares.guardRoute(['use_employee_profile'
             name: name,
             key: lodash.get(req, 'saveList.document[0]'),
             mimeType: '',
-            docType: docType
+            docType: docType,
+            date: moment(date).toDate(),
         })
-        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, patch)
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: patch
+        })
 
         flash.ok(req, 'employee', `Uploaded document "${name}".`)
+        if (docType === 'Payslip') {
+            return res.redirect(`/e/document/payslips`)
+        }
         res.redirect(`/e/document/all`);
     } catch (err) {
         next(err);

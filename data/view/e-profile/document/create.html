@@ -10,41 +10,47 @@
 
     <div class="tab-content p-3 mb-5 min-height-500">
         <form ref="form" id="vApp" v-cloak v-bind:data-pending="pending" v-on:submit.prevent="onSubmit" action="/e/document/create" method="POST" enctype="multipart/form-data" class="form-default">
-            <div class="form-group" v-bind:data-error="errors['document']" v-on:click="errors.document=false">
-                <label for="document">Accepted File: <em>Images (JPEG, PNG), PDF, Word</em></label>
-                <div>
-                    <input v-on:change="readFile" name="document" id="document" ref="fileDocument" v-bind:accept="acceptList" type="file" class="form-control">
-                </div>
-            </div>
-            <div class="form-group" v-bind:data-error="errors['name']" v-on:click="errors.name=false">
-                <label for="name">Document Name</label>
-                <div>
-                    <input v-model="name" name="name" id="name" type="text" class="form-control">
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="form-row">
-                    <div class="col-md-6" v-bind:data-error="errors['docTypeSelect']" v-on:click="errors.docTypeSelect=false">
-                        <label for="docTypeSelect">Document Type <span class="text-danger">*</span></label>
-                        <select v-on:change="onDocTypeChange" v-model="docTypeSelect" name="docTypeSelect" id="docTypeSelect" class="form-control">
-                            <option value=""></option>
-                            <option v-for="option in e201Types">${option}</option>
-                            <option value="others">Others</option>
-                        </select>
+            <div class="form-row">
+                <div class="col-md-6 form-group" v-bind:data-error="errors['document']" v-on:click="errors.document=false">
+                    <label for="document">Accepted File: <em>Images (JPEG, PNG), PDF, Word</em></label>
+                    <div>
+                        <input v-on:change="readFile" name="document" id="document" ref="fileDocument" v-bind:accept="acceptList" type="file" class="form-control">
                     </div>
-                    <div class="col-md-6">
-                         <div v-if="docTypeSelect==='others'" class="form-group" v-bind:data-error="errors['docType']" v-on:click="errors.docType=false">
-                            <label for="docTypeSelect">Please specify document type<span class="text-danger">*</span>:</label>
-                            <div>
-                                <input type="text" v-model="docType" name="docType" id="docType" class="form-control">
-                            </div>
-                        </div>
-                        <input v-else type="hidden" v-model="docType" name="docType" id="docType">
+                </div>
+                <div class="col-md-6 form-group" v-bind:data-error="errors['name']" v-on:click="errors.name=false">
+                    <label for="name">Document Name</label>
+                    <div>
+                        <input v-model="name" name="name" id="name" type="text" class="form-control">
                     </div>
                 </div>
             </div>
-            <div class="form-group">
-                <div class="text-center">
+            <div class="form-row">
+                <div class="col-md-6 form-group" v-bind:data-error="errors['docTypeSelect']" v-on:click="errors.docTypeSelect=false">
+                    <label for="docTypeSelect">Document Type</label>
+                    <select v-on:change="onDocTypeChange" v-model="docTypeSelect" name="docTypeSelect" id="docTypeSelect" class="form-control">
+                        <option value=""></option>
+                        <option v-for="option in e201Types">${option}</option>
+                        <option value="others">Others</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-6" v-bind:data-error="errors['date']" v-on:click="errors.date=false">
+                    <label for="date">Date <em>(For sorting by date, eg. Payslips)</em></label>
+                    <input v-model="date" name="date" id="date" type="date" class="form-control">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-6 form-group">
+                    <div v-if="docTypeSelect==='others'" class="form-group" v-bind:data-error="errors['docType']" v-on:click="errors.docType=false">
+                    <label for="docTypeSelect">Please specify the document type</label>
+                    <div>
+                        <input type="text" v-model="docType" name="docType" id="docType" class="form-control">
+                    </div>
+                </div>
+                <input v-else type="hidden" v-model="docType" name="docType" id="docType">
+            </div>
+            </div>
+            <div class="form-row pt-3 pb-3">
+                <div class="col-md-12">
                     <button class="btn btn-primary">Upload</button>
                 </div>
             </div>
@@ -67,12 +73,14 @@
                 name: false,
                 docTypeSelect: false,
                 docType: false,
+                date: false,
             },
             e201Types: e201Types,
             accept: ['image/jpeg', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
             name: '',
-            docType: '',
-            docTypeSelect: '',
+            docType: '{{docType}}',
+            docTypeSelect: '{{docType}}',
+            date: '',
             filesLength: 0,
         },
         computed: {
@@ -136,10 +144,13 @@
                         me.errors['docTypeSelect'] = true
                         throw new Error('Please select the Document Type.')
                     }
-                    
                     if (!me.docType && me.docTypeSelect === 'others') {
                         me.errors['docType'] = true
                         throw new Error('Please specify the Document Type.')
+                    }
+                    if (!me.date) {
+                        me.errors['date'] = true
+                        throw new Error('Please specify the Date.')
                     }
 
                     me.pending = true;

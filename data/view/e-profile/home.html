@@ -1,5 +1,9 @@
 {% extends "document.html" %}
 
+{% block styles %}
+    <link rel="stylesheet" href="/css/driver.css"/>
+{% endblock %}
+
 {% block body %}
 <div class="col-md-12 min-height-500 bg-white">
     {% include 'parts/flash.html' %}
@@ -36,14 +40,14 @@
                 <div class="form-row justify-content-center">
                     {% for item in carouselItems %}
                         {% if item.employment.active %}
-                        <div class="col-md-6 order-1 mb-3">
+                        <div id="my-dtr-{{loop.index}}" class="my-dtr active col-md-6 order-1 mb-3">
                             <div class="border border-success p-4">
                                 <p class="h6 pt-2 pb-3">{{item.title}} 
                                     <br>{{item.employment.employmentType|capitalize|replace('Cos', 'COS')}}
                                     <br><em class="text-success">(Active)</em>
                                 </p>
 
-                                <a href="/e-profile/dtr/{{item.employment._id}}" class="mt-3 btn btn-success">
+                                <a id="" href="/e-profile/dtr/{{item.employment._id}}" class="mt-3 btn btn-success btn-view-dtr">
                                     <svg style="width:16px;height:16px" viewBox="0 0 24 24">
                                         <path fill="currentColor" d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19Z" />
                                     </svg>
@@ -52,7 +56,7 @@
                             </div>
                         </div>
                         {% else %}
-                        <div class="col-md-6 order-2 mb-3">
+                        <div id="my-dtr-{{loop.index}}" class="my-dtr col-md-6 order-2 mb-3">
                             <div class="border p-4">
                                 <div style="opacity:0.5">
                                     <p class="h6 pt-2 pb-3 font-style-italic text-dark">{{item.title}} 
@@ -83,6 +87,9 @@
 {{ super() }}
 <script src="{{app.url}}/js/axios.min.js"></script>
 {% include "parts/modal-consent-eprofile-script.html" %}
-<script></script>
+{%- if firstRun === 'true' %}
+    <script src="{{app.url}}/js/driver.js.iife.js"></script>
+    <script src="{{app.url}}/js/script-first-run.js"></script>
+{% endif -%}
 {% endblock %}
 

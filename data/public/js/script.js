@@ -1,4 +1,4 @@
-jQuery(document).ready(function ($) {
+jQuery(function ($) {
     var $body = $('body');
 
     $('.toggler').on('click', function () {

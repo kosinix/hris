@@ -628,6 +628,7 @@ module.exports = {
             res.locals.bodyClass = bodyClass; // global body class css
 
             res.locals.hideNav = lodash.get(req, 'cookies.hideNav', 'true')
+            res.locals.firstRun = lodash.get(req, 'cookies.firstRun', 'true')
 
             next();
         } catch (error) {

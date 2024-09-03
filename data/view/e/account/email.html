@@ -6,39 +6,50 @@
     {% include 'e/account/header.html' %}
     {% include 'e/account/tabs.html' %}
 
-    <div class="tab-content pt-3 pb-2 pl-3 pr-3 mb-5">
+    <div class="tab-content p-3 mb-5">
         {% include 'parts/flash.html' %}
-        <div class="table-responsive mb-4">
-            <table class="table table-sm bg-light border">
+        {% if user.settings.emailPendingStatus %}
+        <div class="alert alert-warning">Pending email change. Open your inbox at "{{user.settings.emailPendingValue}}".</div>
+        {% endif %}
+
+        
+        <div class="table-responsive">
+            <table class="table table-striped table-sm border mb-0 ml-auto mr-auto" style="max-width: 600px;">
                 <tr>
-                    <td class="text-right align-middle" style="width: 20%;">
-                        Email
+                    <td class="text-right align-middle" style="width: 25%;">
+                        <strong>Current Email</strong>
                     </td>
-                    <td class="align-middle">
-                        <div class="d-flex align-items-center">
-                            <em>mis+diwa.rhia2@gsu.edu.ph</em>
-                        </div>
+                    <td class="pt-2">
+                        <em>${email}</em>
                     </td>
                     <td class="text-right">
-                        <a href="#" class="btn btn-sm btn-light d-inline-flex align-items-center text-success">
-                            <span class="mr-1 text-success">Edit</span>
-                            <svg width="22px" height="22px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Next</title><path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
-                        </a>
+                        {% if user.settings.emailPendingStatus %}
+                            <button disabled class="btn btn-sm btn-outline-success font-italic d-inline-flex align-items-center">
+                                <span class="mr-1">Pending Change</span>
+                                <svg width="22px" height="22px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Edit</title><path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+                            </button>
+                        {% else %}
+                            <a href="/e/account/email-change" class="btn btn-sm btn-outline-success d-inline-flex align-items-center">
+                                <span class="mr-1">Change</span>
+                                <svg width="22px" height="22px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Edit</title><path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+                            </a>
+                        {% endif %}
+
                     </td>
                 </tr>
-                
                 <!-- <tr>
                     <td class="text-right">
-                        Reminders
+                        <strong>Reminders</strong>   
                     </td>
                     <td>
-                        <span class="text-success">Enabled (Email) </span>
-                    </td>
-                    <td class="text-right">
-                        <a href="#" class="btn btn-sm btn-light d-inline-flex align-items-center">
-                            <span class="mr-1">Edit</span>
-                            <svg width="22px" height="22px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Next</title><path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
-                        </a>
+                        <div class="custom-control custom-switch">
+                            <input v-model="logReminder" type="checkbox" class="custom-control-input" id="logReminder">
+                            <label class="custom-control-label" for="logReminder">Log</label>
+                        </div>
+                        <div class="custom-control custom-switch">
+                            <input v-model="earlyOutReminder" type="checkbox" class="custom-control-input" id="earlyOutReminder">
+                            <label class="custom-control-label" for="earlyOutReminder">Early-out</label>
+                        </div>
                     </td>
                 </tr> -->
             </table>
@@ -56,8 +67,9 @@
         data: {
             pending: false,
             editEmail: false,
-            email: '',
+            email: '{{user.email}}',
             logReminder: false,
+            earlyOutReminder: false,
         },
         methods: {
             onSubmit: function(){

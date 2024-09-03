@@ -1,0 +1,90 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div id="vApp" v-cloak :data-pending="pending" class="col-md-12">
+    
+    {% include 'e/account/header.html' %}
+    {% include 'e/account/tabs.html' %}
+
+    <div class="tab-content p-3 mb-5">
+        {% include 'parts/flash.html' %}
+        <div class="p-3 ml-auto mr-auto bg-light border" style="max-width: 500px;">
+            <form ref="form" v-on:submit.prevent="onSubmit" action="" method="POST">
+                <div class="form-group" v-bind:data-error="errors['email']" v-on:click="errors.email=false; errors.emailError=''" id="some-element" >
+                    <label for="email" class="mr-1">New Email</label>
+                    <input v-model="email" name="email" id="email" type="text" class="form-control" >
+                    <small v-if="errors['emailError']" class="invalid-feedback">${errors['emailError']}</small>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-4">
+                        <a href="/e/account/email" class="btn btn-light">Cancel</a>
+                    </div>
+                    <div class="col-md-8">
+                        <button id="btnSubmit" class="btn btn-full-width btn-primary">Request Email Change</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            errors: {
+                email: false,
+                emailError: '',
+            },
+            pending: false,
+            email: '',
+        },
+        mounted: function(){
+           
+        },
+        methods: {
+            onSubmit: function (e) {
+                try {
+                    const me = this;
+                    Object.keys(this.$data).forEach(key => {
+                        if (typeof this[key] === 'string') {
+                            this[key] = this[key].trim()
+                        }
+                    });
+
+                    if (!me.email) {
+                        me.errors['email'] = true
+                        me.errors['emailError'] = 'Please specify Email.'
+                        throw new Error(me.errors['emailError'])
+                    } else {
+                        if (/^[\w-\.+]+@([\w-]+\.)+[\w-]{2,4}$/g.test(me.email) === false) {
+                            me.errors['email'] = true
+                            me.errors['emailError'] = 'Invalid email.'
+                            throw new Error(me.errors['emailError'])
+                        } else {
+                            let domain = me.email?.split('@')?.at(-1)
+                            if (!['gsu.edu.ph'].includes(domain)) {
+                                me.errors['email'] = true
+                                me.errors['emailError'] = 'Please use your GSU email.'
+                                throw new Error(me.errors['emailError'])
+                            }
+                        }
+                    }
+
+                    me.$nextTick(function () {
+                        me.$refs.form.submit();
+                    });
+                    
+                } catch (err) {
+                    alert(err)
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

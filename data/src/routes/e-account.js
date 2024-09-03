@@ -9,22 +9,13 @@ const lodash = require('lodash')
 const moment = require('moment')
 const momentRange = require('moment-range')
 const momentExt = momentRange.extendMoment(moment)
-const qr = require('qr-image')
-const sharp = require('sharp')
 
 //// Modules
-const address = require('../address');
-const countries = require('../countries');
-const dtrHelper = require('../dtr-helper');
-const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
 const passwordMan = require('../password-man');
-const paginator = require('../paginator');
-const suffixes = require('../suffixes');
 const S3_CLIENT = require('../aws-s3-client')  // V3 SDK
-const { AppError } = require('../errors');
-const uploader = require('../uploader');
-const workScheduler = require('../work-scheduler');
+const mailer = require('../mailer');
+const nunjucksEnv = require('../nunjucks-env');
 
 // Router
 let router = express.Router()
@@ -238,33 +229,83 @@ router.get('/e/account/email', middlewares.guardRoute(['use_employee_profile']),
         next(err);
     }
 });
-router.post('/e/account/email', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+
+router.get('/e/account/email-change', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+
+        res.render('e/account/email-change.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+            momentNow: moment(),
+        });
+
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/e/account/email-change', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let user = res.user
         let body = lodash.get(req, 'body')
 
-        let password = lodash.trim(lodash.get(body, 'oldPassword'))
+        let email = lodash.trim(lodash.get(body, 'email'))
 
-        // Check password
-        let passwordHash = passwordMan.hashPassword(password, user.salt);
-        if (passwordHash !== user.passwordHash) {
-            flash.error(req, 'employee', `Current Password is incorrect.`)
-            return res.redirect(`/e/account/email`)
+        if (email === user.email) {
+            throw new Error('Nothing to change. Same email.')
         }
 
-        user.passwordHash = passwordMan.hashPassword(lodash.get(body, 'newPassword'), user.salt);
+        // Timeout
+        let expiry = moment(user.settings?.emailPendingChangeUrlExpiry)
+        let diff = expiry.diff(moment(), 'days')
+        if(diff <= 1){
+            throw new Error(`Pending request, please wait after ${expiry.format('MMM DD, YYYY hh:mm A')} and try again.`)
+        }
+
+        // Check email availability
+        let existingEmail = await req.app.locals.db.main.User.findOne({
+            email: email,
+            _id: {
+                $ne: user._id
+            }
+        })
+        if (existingEmail) {
+            throw new Error(`Email "${email}" already exists. Please choose a different one.`)
+        }
+
+        
+        user.settings.emailPendingChangeUrl = `${CONFIG.app.url}/change-email/${user._id}/${passwordMan.hashSha256(passwordMan.randomString())}`
+        user.settings.emailPendingChangeUrlExpiry = moment().add(1, 'day').toDate()
+
+        let firstName = user.firstName
+        let data = {
+            firstName: firstName,
+            subject: 'Email Change Request',
+            link: user.settings.emailPendingChangeUrl,
+        }
+        let mailOptions = {
+            from: `GSU HRIS <hris-noreply@gsu.edu.ph>`,
+            to: email,
+            subject: 'Email Change Request',
+            text: nunjucksEnv.render('emails/change-email.txt', data),
+            html: nunjucksEnv.render('emails/change-email.html', data),
+        }
+
+        // if (ENV !== 'dev') {
+            mailer.transport2.sendMail(mailOptions).then(function (result) {
+                // console.log(result, 'Email sent')
+            }).catch(err => {
+                console.error(err)
+            })
+        // } else {
+        //     console.log(mailOptions.text)
+        // }
+
+        user.settings.emailPendingValue = email
+        user.settings.emailPendingStatus = true
         await user.save()
 
-        let employee = await req.app.locals.db.main.Employee.findOne({ userId: user._id });
-        await req.app.locals.db.main.EmployeeHistory.create({
-            employeeId: employee?._id || null,
-            description: `User "${user.username}" changed the password.`,
-            alert: `text-info`,
-            userId: user._id,
-            username: user.username,
-            op: 'u',
-        })
-        flash.ok(req, 'employee', `Password changed successfully.`)
+        flash.ok(req, 'employee', `Email change requested.`)
         return res.redirect(`/e/account/email`)
     } catch (err) {
         next(err);

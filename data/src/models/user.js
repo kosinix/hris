@@ -51,6 +51,21 @@ let schema = mongoose.Schema({
             $type: Boolean,
             default: false
         },
+        emailPendingStatus: {
+            $type: Boolean,
+            default: false
+        },
+        emailPendingValue: {
+            $type: String,
+            default: ''
+        },
+        emailPendingChangeUrl: {
+            $type: String,
+            default: ''
+        },
+        emailPendingChangeUrlExpiry: {
+            $type: Date,
+        },
         api: { // API access 
             $type: Boolean,
             default: false

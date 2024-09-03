@@ -1,0 +1,43 @@
+{% extends "document-email.html" %}
+
+{% block body %}
+<p>Dear {{firstName}},</p>
+<p>You have requested an email change. Please open the link below. <br>Please ignore if you did not make this request.</p>
+<div style="border: 1px dashed gray; padding: 10px 5px; border-radius: 5px">
+    <a href="{{link}}">{{link}}</a>
+</div>
+
+<p>----</p>
+<p style="font-style: italic;">Best regards, <br>
+The HRIS</p>
+
+<p style="margin-top: 100px; text-align: center; font-size: 14px">Did you encounter any problems? Or do you have questions? <br>You can reach us via these channels:</p>
+<table style="font-size: 11px;" aria-hidden="true" cellspacing="0" cellpadding="0" border="0" align="center" width="100%">
+    <tr>
+        <td style="text-align: center;  padding: 5px">
+            <a href="mailto:hrmo@gsu.edu.ph"><img src="{{baseUrl}}/images/email.png" alt="email"></a>
+            <span style="display: block; text-align: center">   
+                <span style="font-size: 11px;">for Attendance Concerns</span> 
+                <br><a href="mailto:hrmo@gsu.edu.ph"><em>hrmo@gsu.edu.ph</em></a>
+                <br><span style="font-size: 10px;">Human Resource Management Office</span> 
+            </span> 
+        </td>
+        <td style="text-align: center;  padding: 5px">
+            <a href="mailto:ict@gsu.edu.ph"><img src="{{baseUrl}}/images/technical.png" alt="email"></a>
+            <span style="display: block; text-align: center">   
+                <span style="font-size: 11px;">for Technical Issues</span> 
+                <br><a href="mailto:ict@gsu.edu.ph"><em>ict@gsu.edu.ph</em></a>
+                <br><span style="font-size: 10px;">ICT Unit</span> 
+            </span> 
+        </td>
+        <td style="text-align: center;  padding: 5px">
+            <a href="{{baseUrl}}/help"><img src="{{baseUrl}}/images/help.png" alt="email"></a>
+            <span style="display: block; text-align: center">   
+                <span style="font-size: 11px;">Browse Help Topics</span> 
+                <br><a href="{{baseUrl}}/help"><em>/help</em></a>
+            </span> 
+        </td>
+    </tr>
+</table>
+{% endblock %}
+

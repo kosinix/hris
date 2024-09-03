@@ -372,6 +372,62 @@ router.get('/forgotten/:secureKey', async (req, res, next) => {
     }
 });
 
+// Change email confirmation
+router.get('/change-email/:userId/:hash', async (req, res, next) => {
+    try {
+        if (CONFIG.loginDelay > 0) {
+            await new Promise(resolve => setTimeout(resolve, CONFIG.loginDelay)) // Rate limit 
+        }
+
+        // Find 
+        let user = await req.app.locals.db.main.User.findOne({ _id: req.params?.userId });
+        if (!user) {
+            throw new Error('User not found.')
+        }
+
+        if (!user.active) {
+            throw new Error('User not found.')
+        }
+
+        // Delete expired
+        let expiry = moment(user.settings.emailPendingChangeUrlExpiry)
+        let diff = expiry.diff(moment(), 'days')
+        if(diff > 1){
+            throw new Error('Expired request.')
+        }
+
+        // Find
+        if (user.settings.emailPendingChangeUrl !== `${CONFIG.app.url}/change-email/${user._id}/${req.params?.hash}`) {
+            throw new Error('Link not found.')
+        }
+
+        if(!user.settings.emailPendingValue){
+            throw new Error('Missing new email to use.')
+        }
+        await req.app.locals.db.main.User.updateOne({ _id: user._id }, {
+            $set: {
+                email: user.settings.emailPendingValue,
+                settings: {
+                    emailPendingStatus: false,
+                    emailPendingValue: '',
+                    emailPendingChangeUrl: '',
+                    emailPendingChangeUrlExpiry: null,
+                }
+            }
+        })
+        
+        return res.render('email-change-done.html', {
+            username: user.email,
+            password: req.params?.hash,
+        });
+    } catch (err) {
+        console.error(err)
+        next(err)
+        // flash.error(req, 'forgot', err.message);
+        // return res.redirect('/forgot');
+    }
+});
+
 // Privacy
 router.get('/data-privacy', async (req, res, next) => {
     try {

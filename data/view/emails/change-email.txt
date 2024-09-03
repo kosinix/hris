@@ -1,0 +1,17 @@
+Dear {{firstName}},
+
+You have requested an email change. Please open the link below.
+Please ignore if you did not make this request.
+
+Link: {{link}}
+
+----
+Best regards,
+The HRIS
+
+Did you encounter any problems? Or do you have questions? 
+You can reach us at any of these channels:
+
+Attendance Concerns - hrmo@gsu.edu.ph - Human Resource Management Office
+Technical Issues - ict@gsu.edu.ph - ICT Unit
+Browse Help Topics - {{baseUrl}}/help

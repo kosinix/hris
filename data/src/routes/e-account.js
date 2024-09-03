@@ -291,15 +291,15 @@ router.post('/e/account/email-change', middlewares.guardRoute(['use_employee_pro
             html: nunjucksEnv.render('emails/change-email.html', data),
         }
 
-        // if (ENV !== 'dev') {
+        if (ENV !== 'dev') {
             mailer.transport2.sendMail(mailOptions).then(function (result) {
                 // console.log(result, 'Email sent')
             }).catch(err => {
                 console.error(err)
             })
-        // } else {
-        //     console.log(mailOptions.text)
-        // }
+        } else {
+            console.log(mailOptions.text)
+        }
 
         user.settings.emailPendingValue = email
         user.settings.emailPendingStatus = true

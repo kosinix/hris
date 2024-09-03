@@ -282,6 +282,7 @@ router.post('/e/account/email-change', middlewares.guardRoute(['use_employee_pro
 
         let firstName = user.firstName
         let data = {
+            baseUrl: `${CONFIG.app.url}`,
             firstName: firstName,
             subject: 'Email Change Request',
             link: user.settings.emailPendingChangeUrl,

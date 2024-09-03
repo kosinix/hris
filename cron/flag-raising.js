@@ -87,6 +87,7 @@ let db = null; // Hold db here
             let firstName = userEmails[x].firstName
             let email = userEmails[x].email
             let data = {
+                baseUrl: `${CONFIG.app.url}`,
                 firstName: firstName,
                 subject: 'Early Out Eligibility'
             }

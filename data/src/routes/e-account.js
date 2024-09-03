@@ -256,10 +256,13 @@ router.post('/e/account/email-change', middlewares.guardRoute(['use_employee_pro
         }
 
         // Timeout
-        let expiry = moment(user.settings?.emailPendingChangeUrlExpiry)
-        let diff = expiry.diff(moment(), 'days')
-        if(diff <= 1){
-            throw new Error(`Pending request, please wait after ${expiry.format('MMM DD, YYYY hh:mm A')} and try again.`)
+        let emailPendingChangeUrlExpiry = user.settings?.emailPendingChangeUrlExpiry
+        if (emailPendingChangeUrlExpiry) {
+            let expiry = moment(emailPendingChangeUrlExpiry)
+            let diff = expiry.diff(moment(), 'days')
+            if (diff <= 1) {
+                throw new Error(`Pending request, please wait after ${expiry.format('MMM DD, YYYY hh:mm A')} and try again.`)
+            }
         }
 
         // Check email availability
@@ -273,7 +276,7 @@ router.post('/e/account/email-change', middlewares.guardRoute(['use_employee_pro
             throw new Error(`Email "${email}" already exists. Please choose a different one.`)
         }
 
-        
+
         user.settings.emailPendingChangeUrl = `${CONFIG.app.url}/change-email/${user._id}/${passwordMan.hashSha256(passwordMan.randomString())}`
         user.settings.emailPendingChangeUrlExpiry = moment().add(1, 'day').toDate()
 

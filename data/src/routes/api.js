@@ -4,27 +4,17 @@
 
 //// Core modules
 const crypto = require('crypto')
-const url = require('url')
-const { promisify } = require('util')
-const execAsync = promisify(require('child_process').exec)
-const rmAsync = promisify(require('fs').rm)
-const readFileAsync = promisify(require('fs').readFile)
 
 //// External modules
-const axios = require('axios')
 const express = require('express')
-const fileUpload = require('express-fileupload')
 const jwt = require('jsonwebtoken')
 const lodash = require('lodash')
 const moment = require('moment')
 
 //// Modules
-const AppError = require('../errors').AppError
-const dtrHelper = require('../dtr-helper')
 const middlewares = require('../middlewares')
 const jwtHelper = require('../jwt-helper')
 const passwordMan = require('../password-man')
-const uploader = require('../uploader')
 
 
 // Router
@@ -241,7 +231,13 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
         let stats = {
             ok: 0,
             skipped: 0,
-            error: 0
+            error: 0,
+            out: []
+        }
+
+        let outsole = {
+            log: l => stats.out.push(l),
+            error: l => stats.out.push(l),
         }
 
         let employees = await req.app.locals.db.main.Employee.find({
@@ -281,8 +277,7 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
             biometric1.value = true
             await biometric1.save()
 
-            // throw 'aaa'
-            console.log(`--------- PROCESSING BIOMETRIC SCANS for ${momentNow.format('MMM DD, YYYY')} ---------`)
+            
 
             for (let x = 0; x < todayLogs.length; x++) {
                 const [BID, DATE, TIME] = todayLogs[x]
@@ -293,7 +288,7 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                 let employee = employees.find(e => e.biometricsId === parseInt(BID))
 
                 if (!employee) {
-                    console.error(`Error, BID ${BID} not found.`)
+                    outsole.error(`Error, BID ${BID} not found.`)
                     stats.error++
 
                 } else {
@@ -301,7 +296,7 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                     // Get all active employments
                     let employments = lodash.get(employments_all, employee._id, [])
                     if (employments.length <= 0) {
-                        console.error(`Error, user ${employee.lastName} has no active employments.`)
+                        outsole.error(`Error, user ${employee.lastName} has no active employments.`)
                         stats.error++
 
                     } else {
@@ -324,8 +319,6 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                             }
 
                             if (!attendance) {
-                                // console.log(momentThisLog.format('hh:mm:ss A'))
-
                                 let logs = []
                                 logs.push({
                                     dateTime: momentThisLog.toDate(),
@@ -343,7 +336,7 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                     logs: logs,
                                 })
 
-                                console.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: Created attendance and log`)
+                                outsole.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: Created attendance and log`)
                                 stats.ok++
 
                                 // Restore to data type that Mongo supports
@@ -351,8 +344,6 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                     log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
                                     return log
                                 })
-
-                                // console.log(attendance.logs)
 
                                 req.app.locals.db.main.Attendance.collection.updateOne({
                                     _id: attendance._id
@@ -363,8 +354,6 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                 }).then(() => { }).catch(() => { })
 
                             } else {
-                                // console.log(momentThisLog.format('hh:mm:ss A'))
-
                                 // Change from mongo date data type to string with datetime format
                                 attendance.logs = attendance.logs.map(log => {
                                     log.dateTime = moment(log.dateTime).format('YYYY-MM-DD hh:mm:ss A')
@@ -386,21 +375,20 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                     }
                                     return i < 0
                                 })
-                                // console.log(`Removed ${dupeCount} duplicates..`)
 
                                 let found = attendance.logs.find((a, k) => {
                                     return momentThisLog.format('YYYY-MM-DD hh:mm:ss A') === a.dateTime
                                 })
                                 if (found) {
 
-                                    console.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: SKIPPED-DUPE`)
+                                    outsole.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: SKIPPED-DUPE`)
                                     stats.skipped++
 
                                 } else {
                                     const MAX_LOGS = 4
                                     if (attendance.logs.length >= MAX_LOGS) {
 
-                                        console.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: SKIPPED-MAXLOGS`)
+                                        outsole.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: SKIPPED-MAXLOGS`)
                                         stats.skipped++
 
                                     } else {
@@ -415,7 +403,7 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                             createdAt: momentThisLog.toDate(),
                                         }
                                         attendance.logs.push(log)
-                                        console.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: Added to attendance`)
+                                        outsole.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: Added to attendance`)
                                         stats.ok++
 
                                         // Restore to data type that Mongo supports
@@ -423,8 +411,6 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                             log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
                                             return log
                                         })
-
-                                        // console.log(attendance.logs)
 
                                         req.app.locals.db.main.Attendance.collection.updateOne({
                                             _id: attendance._id
@@ -446,7 +432,8 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
             }
             biometric1.value = false
             await biometric1.save()
-            return res.send(`${moment().format('MMM-DD-YYYY hh:mmA')}: Uploaded logs CREATED ${stats.ok}, SKIPPED ${stats.skipped}, ERROR ${stats.error}.`)
+            outsole.log(`-------- THANK YOU --------`)
+            return res.send(`\n-------- UPLOAD DONE | ${moment().format('MMM DD, YYYY hh:mm A')} | CREATED ${stats.ok} | SKIPPED ${stats.skipped} | ERROR ${stats.error} --------\n${stats.out.join("\n")}`)
         }
         res.send(`${moment().format('MMM-DD-YYYY hh:mmA')}: No logs to upload.`)
     } catch (err) {

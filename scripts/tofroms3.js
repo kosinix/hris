@@ -3,7 +3,7 @@
  * Usage
  * 
  * Windows:
- *  set FILE_NAME=backup_2023-01-12.zip&& node tofroms3.js
+ *  set FILE_NAME=backup_2024-09-05.zip&& node tofroms3.js
  * 
  * Linux: 
  *  FILE_NAME=backup_2023-01-12.zip node tofroms3.js

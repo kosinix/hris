@@ -238,30 +238,72 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
 
         let logs = req.body
 
+        let stats = {
+            ok: 0,
+            skipped: 0,
+            error: 0
+        }
+
+        let employees = await req.app.locals.db.main.Employee.find({
+            biometricsId: {
+                $ne: null
+            }
+        }, {
+            biometricsId: 1,
+            lastName: 1,
+            firstName: 1,
+        }).lean()
+
+        let employments_all = await req.app.locals.db.main.Employment.find({
+            active: true,
+        }).lean()
+        employments_all = lodash.groupBy(employments_all, e => e.employeeId)
+
+        // 
+
+        // Avoid concurrent bugs
+        let biometric1 = await req.app.locals.db.main.Option.findOne({
+            key: 'biometric1'
+        })
+        if (!biometric1) {
+            biometric1 = await req.app.locals.db.main.Option.create({
+                key: 'biometric1',
+                value: false
+            })
+        }
+        if (biometric1.value) {
+            return res.send('Ignored. Upload still running...')
+        }
+
         let todayLogs = logs[momentNow.format('YYYY-MM-DD')]
         if (todayLogs && Array.isArray(todayLogs)) {
+
+            biometric1.value = true
+            await biometric1.save()
+
+            // throw 'aaa'
+            console.log(`--------- PROCESSING BIOMETRIC SCANS for ${momentNow.format('MMM DD, YYYY')} ---------`)
+
             for (let x = 0; x < todayLogs.length; x++) {
-                const [bid, date, time] = todayLogs[x]
+                const [BID, DATE, TIME] = todayLogs[x]
 
-                let momentThisLog = moment(`${date} ${time}`, 'YYYY-MM-DD hh:mm:ss A')
-
-                // console.log(bid, date, time)
+                let momentThisLog = moment(`${DATE} ${TIME}`, 'YYYY-MM-DD hh:mm:ss A')
 
                 // Get employee assoc with code
-                let employee = await req.app.locals.db.main.Employee.findOne({
-                    biometricsId: bid
-                }).lean()
+                let employee = employees.find(e => e.biometricsId === parseInt(BID))
+
                 if (!employee) {
-                    console.error(`Error, user with biometrics ID ${bid} was not found.`)
+                    console.error(`Error, BID ${BID} not found.`)
+                    stats.error++
+
                 } else {
 
                     // Get all active employments
-                    let employments = await req.app.locals.db.main.Employment.find({
-                        employeeId: employee._id,
-                        active: true,
-                    }).lean()
+                    let employments = lodash.get(employments_all, employee._id, [])
                     if (employments.length <= 0) {
                         console.error(`Error, user ${employee.lastName} has no active employments.`)
+                        stats.error++
+
                     } else {
 
                         // Log for every active employment
@@ -282,7 +324,6 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                             }
 
                             if (!attendance) {
-                                console.log(`BID ${bid} ${employee.lastName} at ${date} ${time} no attendance for employment ${employment.position}... adding attendance`)
                                 // console.log(momentThisLog.format('hh:mm:ss A'))
 
                                 let logs = []
@@ -302,12 +343,29 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                     logs: logs,
                                 })
 
+                                console.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: Created attendance and log`)
+                                stats.ok++
+
+                                // Restore to data type that Mongo supports
+                                attendance.logs = attendance.logs.map(log => {
+                                    log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
+                                    return log
+                                })
+
+                                // console.log(attendance.logs)
+
+                                req.app.locals.db.main.Attendance.collection.updateOne({
+                                    _id: attendance._id
+                                }, {
+                                    $set: {
+                                        logs: attendance.logs
+                                    }
+                                }).then(() => { }).catch(() => { })
 
                             } else {
-                                console.log(`BID ${bid} ${employee.lastName} at ${date} ${time} HAVE attendance for employment ${employment.position}... adding logs`)
                                 // console.log(momentThisLog.format('hh:mm:ss A'))
 
-
+                                // Change from mongo date data type to string with datetime format
                                 attendance.logs = attendance.logs.map(log => {
                                     log.dateTime = moment(log.dateTime).format('YYYY-MM-DD hh:mm:ss A')
                                     return log
@@ -333,37 +391,52 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                 let found = attendance.logs.find((a, k) => {
                                     return momentThisLog.format('YYYY-MM-DD hh:mm:ss A') === a.dateTime
                                 })
-                                if (!found) {
-                                    let lastLog = attendance.logs.at(-1)
-                                    let mode = lastLog?.mode === 1 ? 0 : 1 // Toggle 1 or 0
+                                if (found) {
 
-                                    let log = {
-                                        dateTime: momentThisLog.toDate(),
-                                        mode: mode,
-                                        type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
-                                        source: logSource,
-                                        createdAt: momentThisLog.toDate(),
+                                    console.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: SKIPPED-DUPE`)
+                                    stats.skipped++
+
+                                } else {
+                                    const MAX_LOGS = 4
+                                    if (attendance.logs.length >= MAX_LOGS) {
+
+                                        console.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: SKIPPED-MAXLOGS`)
+                                        stats.skipped++
+
+                                    } else {
+                                        let lastLog = attendance.logs.at(-1)
+                                        let mode = lastLog?.mode === 1 ? 0 : 1 // Toggle 1 or 0
+
+                                        let log = {
+                                            dateTime: momentThisLog.toDate(),
+                                            mode: mode,
+                                            type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
+                                            source: logSource,
+                                            createdAt: momentThisLog.toDate(),
+                                        }
+                                        attendance.logs.push(log)
+                                        console.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: Added to attendance`)
+                                        stats.ok++
+
+                                        // Restore to data type that Mongo supports
+                                        attendance.logs = attendance.logs.map(log => {
+                                            log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
+                                            return log
+                                        })
+
+                                        // console.log(attendance.logs)
+
+                                        req.app.locals.db.main.Attendance.collection.updateOne({
+                                            _id: attendance._id
+                                        }, {
+                                            $set: {
+                                                logs: attendance.logs
+                                            }
+                                        }).then(() => { }).catch(() => { })
+
                                     }
-                                    attendance.logs.push(log)
 
                                 }
-
-                                attendance.logs = attendance.logs.map(log => {
-                                    log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
-                                    return log
-                                })
-
-                                // console.log(attendance.logs)
-
-                                let dbOpRes = await req.app.locals.db.main.Attendance.collection.updateOne({
-                                    _id: attendance._id
-                                }, {
-                                    $set: {
-                                        logs: attendance.logs
-                                    }
-                                })
-
-                                // console.log(`DB OP done, modified ${dbOpRes.modifiedCount} with matched count ${dbOpRes.matchedCount}`)
 
                             }
                         }
@@ -371,7 +444,9 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                     }
                 }
             }
-            return res.send(`${moment().format('MMM-DD-YYYY hh:mmA')}: Uploaded ${todayLogs.length} logs.`)
+            biometric1.value = false
+            await biometric1.save()
+            return res.send(`${moment().format('MMM-DD-YYYY hh:mmA')}: Uploaded logs CREATED ${stats.ok}, SKIPPED ${stats.skipped}, ERROR ${stats.error}.`)
         }
         res.send(`${moment().format('MMM-DD-YYYY hh:mmA')}: No logs to upload.`)
     } catch (err) {

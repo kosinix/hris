@@ -277,8 +277,6 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
             biometric1.value = true
             await biometric1.save()
 
-            
-
             for (let x = 0; x < todayLogs.length; x++) {
                 const [BID, DATE, TIME] = todayLogs[x]
 
@@ -288,15 +286,17 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                 let employee = employees.find(e => e.biometricsId === parseInt(BID))
 
                 if (!employee) {
-                    outsole.error(`Error, BID ${BID} NOT FOUND at ${DATE} ${TIME} .`)
+                    outsole.error(`${BID}, ______, ______, ${DATE}, ${TIME}, ______, ERROR-NOT_FOUND`)
                     stats.error++
 
                 } else {
 
+                    let EMP_NAME = `${employee.lastName}, ${employee.firstName?.split(' ')?.at(0)}`
+
                     // Get all active employments
                     let employments = lodash.get(employments_all, employee._id, [])
                     if (employments.length <= 0) {
-                        outsole.error(`Error, user ${employee.lastName} has no active employments.`)
+                        outsole.error(`Error, user ${EMP_NAME} has no active employments.`)
                         stats.error++
 
                     } else {
@@ -304,6 +304,9 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                         // Log for every active employment
                         for (let c = 0; c < employments.length; c++) {
                             let employment = employments[c]
+
+                            const BASE_LOG = `${BID}, ${EMP_NAME}, ${DATE}, ${TIME}, ${employment?.position}`
+
 
                             let attendance = await req.app.locals.db.main.Attendance.findOne({
                                 employeeId: employee._id,
@@ -336,7 +339,7 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                     logs: logs,
                                 })
 
-                                outsole.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: Created attendance and log`)
+                                outsole.log(`${BASE_LOG}, CREATED-FIRST_LOG`)
                                 stats.ok++
 
                                 // Restore to data type that Mongo supports
@@ -381,14 +384,14 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                 })
                                 if (found) {
 
-                                    outsole.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: SKIPPED-DUPE`)
+                                    outsole.log(`${BASE_LOG}, SKIPPED-DUP`)
                                     stats.skipped++
 
                                 } else {
                                     const MAX_LOGS = 4
                                     if (attendance.logs.length >= MAX_LOGS) {
 
-                                        outsole.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: SKIPPED-MAXLOGS`)
+                                        outsole.log(`${BASE_LOG}, SKIPPED-MAX`)
                                         stats.skipped++
 
                                     } else {
@@ -403,7 +406,7 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                             createdAt: momentThisLog.toDate(),
                                         }
                                         attendance.logs.push(log)
-                                        outsole.log(`BID ${BID} ${employee.lastName} at ${DATE} ${TIME} - ${employment.position}: Added to attendance`)
+                                        outsole.log(`${BASE_LOG}, CREATED-APPEND_LOG`)
                                         stats.ok++
 
                                         // Restore to data type that Mongo supports
@@ -433,7 +436,10 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
             biometric1.value = false
             await biometric1.save()
             outsole.log(`-------- THANK YOU --------`)
-            return res.send(`\n-------- UPLOAD DONE | ${moment().format('MMM DD, YYYY hh:mm A')} | CREATED ${stats.ok} | SKIPPED ${stats.skipped} | ERROR ${stats.error} --------\n${stats.out.join("\n")}`)
+            return res.send(
+                `\n-------- UPLOAD DONE | ${moment().format('MMM DD, YYYY hh:mm A')} | CREATED ${stats.ok} | SKIPPED ${stats.skipped} | ERROR ${stats.error} --------\n` +
+                `${stats.out.join("\n")}`
+            )
         }
         res.send(`${moment().format('MMM-DD-YYYY hh:mmA')}: No logs to upload.`)
     } catch (err) {

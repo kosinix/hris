@@ -288,7 +288,7 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                 let employee = employees.find(e => e.biometricsId === parseInt(BID))
 
                 if (!employee) {
-                    outsole.error(`Error, BID ${BID} not found.`)
+                    outsole.error(`Error, BID ${BID} NOT FOUND at ${DATE} ${TIME} .`)
                     stats.error++
 
                 } else {

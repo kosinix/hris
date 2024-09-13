@@ -240,8 +240,8 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
             throw new Error('Attendance not found.')
         }
 
-        if(moment(attendance.createdAt).startOf('day').isBefore(moment().startOf('day').subtract(3,'days'))){
-            // throw new Error('Cannot apply for correction after 3 days. ')
+        if (moment(attendance.createdAt).startOf('day').isBefore(moment().startOf('day').subtract(3, 'days'))) {
+            throw new Error('Cannot apply for correction after 3 days. ')
         }
 
         // Employment
@@ -262,6 +262,21 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
 
         if (attendanceReview) {
             throw new Error('Attendance correction application for this date is still under review.')
+        }
+
+        // Get pending
+        let attendanceReviews = await req.app.locals.db.main.AttendanceReview.find({
+            // attendanceId: attendanceId,
+            employmentId: attendance.employmentId,
+            employeeId: employee._id,
+            createdAt: {
+                $gte: moment().startOf('month').toDate(),
+                $lt: moment().endOf('month').toDate(),
+            }
+        }).lean()
+
+        if (attendanceReviews.length >= 3 && employment.campus === 'salvador') {
+            throw new Error(`Attendance correction application exceeded the 3 limit per month. You currently have ${attendanceReviews.length}.`)
         }
 
         // Get rejected
@@ -339,7 +354,7 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
                     }
                 }
             },
-            
+
             {
                 $project: {
                     employments: 0,
@@ -470,6 +485,19 @@ router.post('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute(
             throw new Error('Employment not found.')
         }
         let employmentId = employment._id
+
+        let attendanceReviews = await req.app.locals.db.main.AttendanceReview.find({
+            employmentId: attendance.employmentId,
+            employeeId: employee._id,
+            createdAt: {
+                $gte: moment().startOf('month').toDate(),
+                $lt: moment().endOf('month').toDate(),
+            }
+        }).lean()
+
+        if (attendanceReviews.length >= 3 && employment.campus === 'salvador') {
+            throw new Error(`Attendance correction application exceeded the 3 limit per month. You currently have ${attendanceReviews.length}.`)
+        }
 
         // Get pending
         let attendanceReview = await req.app.locals.db.main.AttendanceReview.findOne({

@@ -224,7 +224,7 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
 
 router.post('/api/app/biometric/scans', async (req, res, next) => {
     try {
-        let momentNow = moment()
+        const DATE_TO_PROCESS = moment()
 
         let logs = req.body
 
@@ -271,14 +271,14 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
             return res.send('Ignored. Upload still running...')
         }
 
-        let todayLogs = logs[momentNow.format('YYYY-MM-DD')]
-        if (todayLogs && Array.isArray(todayLogs)) {
+        const LOGS_TO_PROCESS = logs[DATE_TO_PROCESS.clone().format('YYYY-MM-DD')]
+        if (LOGS_TO_PROCESS && Array.isArray(LOGS_TO_PROCESS)) {
 
             biometric1.value = true
             await biometric1.save()
 
-            for (let x = 0; x < todayLogs.length; x++) {
-                const [BID, DATE, TIME] = todayLogs[x]
+            for (let x = 0; x < LOGS_TO_PROCESS.length; x++) {
+                const [BID, DATE, TIME] = LOGS_TO_PROCESS[x]
 
                 let momentThisLog = moment(`${DATE} ${TIME}`, 'YYYY-MM-DD hh:mm:ss A')
 

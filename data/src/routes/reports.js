@@ -6,12 +6,15 @@ const express = require('express')
 const flash = require('kisapmata')
 const lodash = require('lodash')
 const moment = require('moment')
+const momentRange = require('moment-range')
+const momentExt = momentRange.extendMoment(moment)
 
 //// Modules
 const dtrHelper = require('../dtr-helper');
 const excelGen = require('../excel-gen');
 const middlewares = require('../middlewares');
 const paginator = require('../paginator');
+const { writeFileSync } = require('fs')
 
 // Router
 let router = express.Router()
@@ -413,7 +416,7 @@ router.get([`/reports/lad/education/permanent-faculty`, `/reports/lad/education/
 
         let employmentType = 'permanent'
         let employmentGroup = 'faculty'
-        if(req.originalUrl.includes('staff')){
+        if (req.originalUrl.includes('staff')) {
             employmentGroup = 'staff'
         }
 
@@ -492,22 +495,22 @@ router.get([`/reports/lad/education/permanent-faculty`, `/reports/lad/education/
             let doctoral = lodash.get(e, 'personal.schools', []).filter(s => s.level === 'Graduate Studies' && /^Doctor/i.test(s.course))
 
             e.educationalLevel = ''
-            if(elementary.length>0){
+            if (elementary.length > 0) {
                 e.educationalLevel = 'elementary'
             }
-            if(vocational.length>0){
+            if (vocational.length > 0) {
                 e.educationalLevel = 'vocational'
             }
-            if(secondary.length>0){
+            if (secondary.length > 0) {
                 e.educationalLevel = 'secondary'
             }
-            if(college.length>0){
+            if (college.length > 0) {
                 e.educationalLevel = 'college'
             }
-            if(masteral.length>0){
+            if (masteral.length > 0) {
                 e.educationalLevel = 'masteral'
             }
-            if(doctoral.length>0){
+            if (doctoral.length > 0) {
                 e.educationalLevel = 'doctoral'
             }
 
@@ -524,20 +527,20 @@ router.get([`/reports/lad/education/permanent-faculty`, `/reports/lad/education/
             // Remove invalid schools
             schools = schools.filter(s => s.name !== '' && s.name !== 'N/A' && s.name !== 'n/a')
             e.lastSchool = schools.pop()
-          
+
             e.highEducation = [
                 ...doctoral,
                 ...masteral,
                 ...college,
             ]
-            
+
             return e
         })
 
         let stats = {
             total: employees.length,
-            masteral: employees.filter( e => e.educationalLevel === 'masteral' ).length,
-            doctoral: employees.filter( e => e.educationalLevel === 'doctoral' ).length,
+            masteral: employees.filter(e => e.educationalLevel === 'masteral').length,
+            doctoral: employees.filter(e => e.educationalLevel === 'doctoral').length,
         }
 
         // console.log(util.inspect(aggr, false, null, true))

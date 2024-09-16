@@ -224,7 +224,7 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
 
 router.post('/api/app/biometric/scans', async (req, res, next) => {
     try {
-        const DATE_TO_PROCESS = moment()
+        const DATE_TO_PROCESS = (req.query?.date) ? moment(req.query.date) : moment()
 
         let logs = req.body
 

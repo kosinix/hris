@@ -2943,10 +2943,10 @@ router.get('/attendance/review/all', middlewares.guardRoute(['read_all_attendanc
         let match = {
             status: (req.query?.status) ? req.query.status : 'pending'
         }
-        if (req.query?.attendanceDate) {
+        if (req.query?.attendanceDateStart && req.query?.attendanceDateEnd) {
             match['logs.0.dateTime'] = {
-                $lte: moment(req.query.attendanceDate).clone().endOf('day').toDate(),
-                $gt: moment(req.query.attendanceDate).clone().startOf('day').toDate(),
+                $lte: moment(req.query.attendanceDateEnd).clone().endOf('day').toDate(),
+                $gt: moment(req.query.attendanceDateStart).clone().startOf('day').toDate(),
             }
         }
         if (req.query?.dateApplied) {

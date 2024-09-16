@@ -19,6 +19,11 @@
                 Previous application was denied for the following reason(s): <strong>{{attendanceDenied.denyReason}}</strong>
             </div>
         {% endif %}
+        {% if attendanceReviews %}
+            <div class="alert alert-danger">
+                Remaining Application for Corrections: <strong>{{attendanceReviews.length}} out of 3</strong>
+            </div>
+        {% endif %}
         <div id="vApp" v-cloak v-bind:data-pending="pending" class="ml-auto mr-auto" >
             <div class="text-center">
                 <h4 class="h3 mb-3">{{employee.firstName}} {{employee.middleName}} {{employee.lastName}}</h4>

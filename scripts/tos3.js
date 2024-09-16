@@ -6,7 +6,7 @@
  *  set FILE_NAME=backup_2023-01-12.zip&& node tos3.js
  * 
  * Linux: 
- *  FILE_NAME=backup_2023-01-12.zip node tos3.js
+ *  FILE_NAME=backup_2024-09-16.zip node tos3.js
  */
 //// Core modules
 const fs = require('fs')

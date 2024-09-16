@@ -269,9 +269,9 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
             // attendanceId: attendanceId,
             employmentId: attendance.employmentId,
             employeeId: employee._id,
-            createdAt: {
-                $gte: moment().startOf('month').toDate(),
-                $lt: moment().endOf('month').toDate(),
+            'logs.0.dateTime': {
+                $gte: moment(attendance.createdAt).startOf('month').toDate(),
+                $lt: moment(attendance.createdAt).endOf('month').toDate(),
             }
         }).lean()
 
@@ -453,6 +453,7 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
             correctionReasons: CONFIG.attendance.correctionReasons,
             attendanceDenied: attendanceDenied,
             logSheets: logSheets,
+            attendanceReviews: attendanceReviews,
         });
     } catch (err) {
         next(err);

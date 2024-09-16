@@ -266,7 +266,6 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
 
         // Get pending
         let attendanceReviews = await req.app.locals.db.main.AttendanceReview.find({
-            // attendanceId: attendanceId,
             employmentId: attendance.employmentId,
             employeeId: employee._id,
             'logs.0.dateTime': {
@@ -274,7 +273,6 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
                 $lt: moment(attendance.createdAt).endOf('month').toDate(),
             }
         }).lean()
-
         if (attendanceReviews.length >= 3 && employment.campus === 'salvador') {
             throw new Error(`Attendance correction application exceeded the 3 limit per month. You currently have ${attendanceReviews.length}.`)
         }
@@ -487,15 +485,15 @@ router.post('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute(
         }
         let employmentId = employment._id
 
+        // Get pending
         let attendanceReviews = await req.app.locals.db.main.AttendanceReview.find({
             employmentId: attendance.employmentId,
             employeeId: employee._id,
-            createdAt: {
-                $gte: moment().startOf('month').toDate(),
-                $lt: moment().endOf('month').toDate(),
+            'logs.0.dateTime': {
+                $gte: moment(attendance.createdAt).startOf('month').toDate(),
+                $lt: moment(attendance.createdAt).endOf('month').toDate(),
             }
         }).lean()
-
         if (attendanceReviews.length >= 3 && employment.campus === 'salvador') {
             throw new Error(`Attendance correction application exceeded the 3 limit per month. You currently have ${attendanceReviews.length}.`)
         }

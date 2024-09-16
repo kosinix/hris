@@ -1533,20 +1533,20 @@ router.get('/attendance/employment/:employmentId', middlewares.guardRoute(['read
     try {
         let employment = res.employment.toObject()
 
-        if(res.user.roles.includes('support')){
+        if (res.user.roles.includes('support')) {
             let department = await req.app.locals.db.main.Department.findOne({
                 name: 'Information and Communications Technology Unit'
             }).lean()
             let members = department?.members
             let employmentIds = members.map(m => m.employmentId)
-    
+
             employment = await req.app.locals.db.main.Employment.findOne({
                 _id: {
                     $eq: res.employment._id,
                     $in: employmentIds,
                 }
             }).lean()
-            if(!employment){
+            if (!employment) {
                 throw new Error('Not found')
             }
         }
@@ -1674,20 +1674,20 @@ router.get('/attendance/employment/:employmentId/print', middlewares.guardRoute(
     try {
         let employment = res.employment
 
-        if(res.user.roles.includes('support')){
+        if (res.user.roles.includes('support')) {
             let department = await req.app.locals.db.main.Department.findOne({
                 name: 'Information and Communications Technology Unit'
             }).lean()
             let members = department?.members
             let employmentIds = members.map(m => m.employmentId)
-    
+
             employment = await req.app.locals.db.main.Employment.findOne({
                 _id: {
                     $eq: res.employment._id,
                     $in: employmentIds,
                 }
             }).lean()
-            if(!employment){
+            if (!employment) {
                 throw new Error('Not found')
             }
         }
@@ -2940,11 +2940,32 @@ router.get('/attendance/review/all', middlewares.guardRoute(['read_all_attendanc
             throw new Error(`Invalid end date. Must not be less than the start date.`)
         }
 
+        let match = {
+            status: (req.query?.status) ? req.query.status : 'pending'
+        }
+        if (req.query?.attendanceDate) {
+            match['logs.0.dateTime'] = {
+                $lte: moment(req.query.attendanceDate).clone().endOf('day').toDate(),
+                $gt: moment(req.query.attendanceDate).clone().startOf('day').toDate(),
+            }
+        }
+        if (req.query?.dateApplied) {
+            match['createdAt'] = {
+                $lte: moment(req.query.dateApplied).clone().endOf('day').toDate(),
+                $gt: moment(req.query.dateApplied).clone().startOf('day').toDate(),
+            }
+        }
+
+        if (req.query?.employeeId) {
+            match['employeeId'] = req.app.locals.db.mongoose.Types.ObjectId(req.query.employeeId)
+        }
+        // console.log(match)
         let aggr = [
             {
-                $match: {
-                    status: 'pending'
-                }
+                $match: match
+            },
+            {
+                $limit: 100
             },
             {
                 $lookup: {

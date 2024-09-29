@@ -3,9 +3,9 @@
 {% block body %}
 <div class="col-md-12">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-3 mb-3 border-bottom">
-        <h1 class="h5 mb-0"><a href="/e/document/all">Documents</a> &raquo; Payslips</h1>
+        <h1 class="h5 mb-0"><a href="/e/document/all">Documents</a> &raquo; {{docType}}</h1>
         <div class="btn-group">
-            <a href="/e/document/create?docType=Payslip" class="btn btn-sm btn-success">Upload</a>
+            <a href="/e/document/create?docType={{docType}}" class="btn btn-sm btn-success">Upload</a>
         </div>
     </div>
 
@@ -37,7 +37,11 @@
                                 {{document.docType}}
                             </td>
                             <td>
-                                {{document.date|format_date('MMM DD, YYYY')}}
+                                {% if document.date %}
+                                    {{document.date|format_date('MMM DD, YYYY')}}
+                                {% else %} 
+                                    --
+                                {% endif %}
                             </td>
                             <td>
                                 <div class="text-right">

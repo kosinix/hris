@@ -30,25 +30,20 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-lg-2 text-center m-2 p-2 border">
-                <a href="/e/document/payslips">
-                    <svg style="width:64px;height:64px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Payslips</title><path fill="currentColor" d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" /></svg>
-                </a>
-                <p>Payslips</p>
-            </div>
-            {% for document in employee.documents %}
+            {%- for e201Type in docTypes %}
                 <div class="col-md-3 col-lg-2 text-center m-2 p-2 border">
-                    <div>
-                        <a href="{{document.key|s3_url}}">
-                            <svg style="width:64px;height:64px" viewBox="0 0 24 24">
-                                <path fill="currentColor" d="M6,2A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6M6,4H13V9H18V20H6V4M8,12V14H16V12H8M8,16V18H13V16H8Z" />
-                            </svg>
-                        </a>
-                    </div>
-                    <p>{{document.name}}</p>
-                    <p>{{document.docType}}</p>
+                    <a href="/e/document/view-folder?docType={{e201Type}}">
+                        <svg style="width:64px;height:64px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>{{e201Type}}</title><path fill="currentColor" d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" /></svg>
+                    </a>
+                    <p>{{e201Type}}</p>
                 </div>
-            {% endfor %}
+            {% endfor -%}
+            <div class="col-md-3 col-lg-2 text-center m-2 p-2 border">
+                <a href="/e/document/view-folder?docType=Others">
+                    <svg style="width:64px;height:64px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Others</title><path fill="currentColor" d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" /></svg>
+                </a>
+                <p>Others</p>
+            </div>
         </div>
         
     </div>

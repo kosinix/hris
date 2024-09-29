@@ -1564,10 +1564,23 @@ router.use('/e', middlewares.requireAuthUser)
 router.get('/e/document/all', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()
+        let e201Types = await req.app.locals.db.main.Option.findOne({
+            key: 'e201Types'
+        })
+        if (!e201Types) {
+            throw new Error('Missing e201Types from options.')
+        }
+        e201Types = e201Types?.value // to array
 
-        employee.documents = employee.documents.filter(d => d.docType !== 'Payslip')
+        let docTypes = employee.documents.map(d => d.docType)
+        docTypes = docTypes.filter(d => e201Types.includes(d))
+        docTypes = [...new Set(docTypes)] // Remove dupes
+
+        // employee.documents = employee.documents.filter(d => d.docType !== 'Payslip')
         let data = {
             flash: flash.get(req, 'employee'),
+            e201Types: e201Types,
+            docTypes: docTypes,
             employee: employee,
             momentNow: moment(),
             title: 'Documents'
@@ -1577,6 +1590,55 @@ router.get('/e/document/all', middlewares.guardRoute(['use_employee_profile']), 
         next(err);
     }
 });
+// Folder view
+router.get('/e/document/view-folder', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee.toObject()
+        let docType = req.query?.docType
+        let e201Types = await req.app.locals.db.main.Option.findOne({
+            key: 'e201Types'
+        })
+        if (!e201Types) {
+            throw new Error('Missing e201Types from options.')
+        }
+        e201Types = e201Types?.value
+
+        if (e201Types.includes(docType)) {
+            employee.documents = employee.documents.filter(d => d.docType === req.query?.docType)
+        } else { // Others
+            employee.documents = employee.documents.filter(d => !e201Types.includes(d.docType))
+        }
+
+        employee.documents.sort((a, b) => {
+            try {
+                let A = moment(b.date)
+                let B = moment(a.date)
+                if (A.isValid() && B.isValid()) {
+                    if (A.isBefore(B)) {
+                        return -1;
+                    }
+                    if (A.isAfter(B)) {
+                        return 1;
+                    }
+                }
+                // Must be equal
+                return 0;
+            } catch (err) {
+                // Must be equal
+                return 0;
+            }
+        });
+
+        res.render('e/document/view-folder.html', {
+            flash: flash.get(req, 'employee'),
+            docType: docType,
+            employee: employee,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
 router.get('/e/document/payslips', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, async (req, res, next) => {
     try {
         let employee = res.employee.toObject()

@@ -1552,7 +1552,6 @@ router.get('/employee/:employeeId/document/all', middlewares.guardRoute(['read_e
         }
         e201Types = e201Types?.value // to array
 
-        employee.documents = employee.documents.filter(d => d.docType !== 'Payslip')
 
         let docTypes = employee.documents.map(d => d.docType)
         docTypes = docTypes.filter(d => e201Types.includes(d))

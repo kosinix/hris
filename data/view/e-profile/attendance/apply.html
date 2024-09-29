@@ -148,8 +148,8 @@
                 <input type="hidden" name="photo" v-model="photo"> {# base64 image for uploading #}
                 <input type="hidden" name="photo2" v-model="photo2"> {# s3 image already uploaded #}
                 
-                <div class="text-center mb-4">
-                    <button class="btn btn-full-width btn-primary">Submit</button>
+                <div class="mb-4">
+                    <button @mouseenter="move" @touchstart="move" class="btn btn-primary" :style="btnStyle()">Submit</button>
                 </div>
             </form>
         </div>
@@ -184,6 +184,7 @@
             photo: '',
             photo2: '',
             rotation: 0,
+            btnz: 50,
         },
         validations: {
             correctionReason: {
@@ -209,6 +210,18 @@
             }
         },
         methods: {
+            btnStyle: function(){
+                return `position: relative; left: ${this.btnz}%`
+            },
+            move: function(){
+                if(this.btnz == 0){
+                    this.btnz = 50
+                } else if (this.btnz == 50){
+                    this.btnz = 80
+                } else if (this.btnz == 80){
+                    this.btnz = 0
+                }
+            },
             watermark: function(){
                 return 'Uploaded by ' + this.employee.firstName + ' ' + this.employee.lastName + ' on ' + moment().format('YYYY-MM-DD hh:mm:ss A');
             },

@@ -8,8 +8,8 @@
     {% include 'employee/employee-view-tabs.html' %}
     <div class="tab-content p-3 pt-4 min-height-500">
         <div class="d-flex align-items-center justify-content-between">
-            <h1 class="h6 mr-3 mb-0"><a href="/employee/{{employee._id}}/document/all">Documents</a> &raquo; Payslips</h5>
-            <a href="/employee/{{employee._id}}/document/create?docType=Payslip" class="btn btn-sm btn-success">Upload</a>
+            <h1 class="h6 mr-3 mb-0"><a href="/employee/{{employee._id}}/document/all">Documents</a> &raquo; {{docType}}</h5>
+            <a href="/employee/{{employee._id}}/document/create?docType={{docType}}" class="btn btn-sm btn-success">Upload</a>
         </div>
         <hr>
         <div class="bg-white">
@@ -38,7 +38,11 @@
                                 {{document.docType}}
                             </td>
                             <td>
-                                {{document.date|format_date('MMM DD, YYYY')}}
+                                {% if document.date %}
+                                    {{document.date|format_date('MMM DD, YYYY')}}
+                                {% else %} 
+                                    --
+                                {% endif %}
                             </td>
                             <td>
                                 <div class="text-right">

@@ -1,0 +1,65 @@
+{% extends "document.html" %}
+
+{% block body %}
+<div class="col-md-12">
+    {% include 'parts/flash.html' %}
+    {% include 'employee/employee-header.html' %}
+    {% include 'employee/employee-profile-photo.html' %}
+    {% include 'employee/employee-view-tabs.html' %}
+    <div class="tab-content p-3 pt-4 min-height-500">
+        <div class="d-flex align-items-center justify-content-between">
+            <h1 class="h6 mr-3 mb-0"><a href="/employee/{{employee._id}}/document/all">Documents</a> &raquo; {{docType}}</h5>
+            <a href="/employee/{{employee._id}}/document/create?docType={{docType}}" class="btn btn-sm btn-success">Upload</a>
+        </div>
+        <hr>
+        <div class="bg-white">
+            {%- if employee.documents.length <= 0 %}
+                <p>No files.</p> 
+            {% else %}
+                <table class="table table-sm table-striped border mb-0">
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Document Type</th>
+                        <th>Date</th>
+                        <th></th>
+                    </tr>
+                    {% for document in employee.documents %}
+                        <tr>
+                            <td>
+                                <a href="{{document.key|view_url}}">
+                                    <img src="{{document.key|s3_url('small')}}" alt="">
+                                </a>
+                            </td>
+                            <td>
+                                {{document.name}}
+                            </td>
+                            <td>
+                                {{document.docType}}
+                            </td>
+                            <td>
+                                {% if document.date %}
+                                    {{document.date|format_date('MMM DD, YYYY')}}
+                                {% else %} 
+                                    --
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="text-right">
+                                    <a href="{{document.key|s3_url}}" class="btn btn-sm btn-light border">Download</a>
+                                    <a onclick="return confirm('Delete file permanently?')" href="/employee/{{employee._id}}/document/{{document._id}}/delete" class="btn btn-sm btn-danger">X</a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endif -%}
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{% endblock %}
+

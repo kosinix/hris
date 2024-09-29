@@ -1544,21 +1544,49 @@ router.get('/employee/:employeeId/receipt', middlewares.guardRoute(['read_employ
 router.get('/employee/:employeeId/document/all', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
+        let e201Types = await req.app.locals.db.main.Option.findOne({
+            key: 'e201Types'
+        })
+        if (!e201Types) {
+            throw new Error('Missing e201Types from options.')
+        }
+        e201Types = e201Types?.value // to array
 
         employee.documents = employee.documents.filter(d => d.docType !== 'Payslip')
+
+        let docTypes = employee.documents.map(d => d.docType)
+        docTypes = docTypes.filter(d => e201Types.includes(d))
+        docTypes = [...new Set(docTypes)] // Remove dupes
+
         res.render('employee/document/all.html', {
             flash: flash.get(req, 'employee'),
+            e201Types: e201Types,
+            docTypes: docTypes,
             employee: employee,
         });
     } catch (err) {
         next(err);
     }
 });
-router.get('/employee/:employeeId/document/payslips', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+
+// Folder view
+router.get('/employee/:employeeId/document/view-folder', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
         let employee = res.employee
+        let docType = req.query?.docType
+        let e201Types = await req.app.locals.db.main.Option.findOne({
+            key: 'e201Types'
+        })
+        if (!e201Types) {
+            throw new Error('Missing e201Types from options.')
+        }
+        e201Types = e201Types?.value
 
-        employee.documents = employee.documents.filter(d => d.docType === 'Payslip')
+        if (e201Types.includes(docType)) {
+            employee.documents = employee.documents.filter(d => d.docType === req.query?.docType)
+        } else { // Others
+            employee.documents = employee.documents.filter(d => !e201Types.includes(d.docType))
+        }
 
         employee.documents.sort((a, b) => {
             try {
@@ -1580,28 +1608,16 @@ router.get('/employee/:employeeId/document/payslips', middlewares.guardRoute(['r
             }
         });
 
-        res.render('employee/document/payslips.html', {
+        res.render('employee/document/view-folder.html', {
             flash: flash.get(req, 'employee'),
+            docType: docType,
             employee: employee,
         });
     } catch (err) {
         next(err);
     }
 });
-// DL
-router.get('/employee/:employeeId/document/pds', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
-    try {
-        let employee = res.employee
 
-        let workbook = await excelGen.templatePds(employee)
-        let buffer = await workbook.xlsx.writeBuffer();
-        res.set('Content-Disposition', `attachment; filename="${employee.lastName}-PDS.xlsx"`)
-        res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        res.send(buffer)
-    } catch (err) {
-        next(err);
-    }
-});
 // C
 router.get('/employee/:employeeId/document/create', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {
@@ -1645,14 +1661,26 @@ router.post('/employee/:employeeId/document/create', middlewares.guardRoute(['cr
         })
 
         flash.ok(req, 'employee', `Uploaded document "${name} - ${docType}".`)
-        if (docType === 'Payslip') {
-            return res.redirect(`/employee/${employee._id}/document/payslips`)
-        }
-        res.redirect(`/employee/${employee._id}/document/all`);
+        res.redirect(`/employee/${employee._id}/document/view-folder?docType=${docType}`);
     } catch (err) {
         next(err);
     }
 });
+// DL
+router.get('/employee/:employeeId/document/pds', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee
+
+        let workbook = await excelGen.templatePds(employee)
+        let buffer = await workbook.xlsx.writeBuffer();
+        res.set('Content-Disposition', `attachment; filename="${employee.lastName}-PDS.xlsx"`)
+        res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        res.send(buffer)
+    } catch (err) {
+        next(err);
+    }
+});
+
 // D
 router.get('/employee/:employeeId/document/:documentId/delete', middlewares.guardRoute(['create_employee', 'update_employee']), middlewares.getEmployee, fileUpload(), middlewares.handleUpload({ allowedMimes: ["image/jpeg", "image/png"] }), async (req, res, next) => {
     try {
@@ -1693,10 +1721,7 @@ router.get('/employee/:employeeId/document/:documentId/delete', middlewares.guar
         })
 
         flash.ok(req, 'employee', `Deleted document "${document.name} - ${document.docType}".`)
-        if (document.docType === 'Payslip') {
-            return res.redirect(`/employee/${employee._id}/document/payslips`)
-        }
-        res.redirect(`/employee/${employee._id}/document/all`);
+        res.redirect(`/employee/${employee._id}/document/view-folder?docType=${document.docType}`);
     } catch (err) {
         next(err);
     }

@@ -32,7 +32,7 @@
                     <select v-on:change="onDocTypeChange" v-model="docTypeSelect" name="docTypeSelect" id="docTypeSelect" class="form-control">
                         <option value=""></option>
                         <option v-for="option in e201Types">${option}</option>
-                        <option value="others">Others</option>
+                        <option value="Others">Others</option>
                     </select>
                 </div>
                 <div class="form-group col-md-6" v-bind:data-error="errors['date']" v-on:click="errors.date=false">
@@ -42,7 +42,7 @@
             </div>
             <div class="form-row">
                 <div class="col-md-6 form-group">
-                    <div v-if="docTypeSelect==='others'" class="form-group" v-bind:data-error="errors['docType']" v-on:click="errors.docType=false">
+                    <div v-if="docTypeSelect==='Others'" class="form-group" v-bind:data-error="errors['docType']" v-on:click="errors.docType=false">
                     <label for="docTypeSelect">Please specify the document type</label>
                     <div>
                         <input type="text" v-model="docType" name="docType" id="docType" class="form-control">
@@ -92,7 +92,7 @@
         },
         methods: {
             onDocTypeChange: function(event){
-                this.docType = (this.docTypeSelect === 'others') ? '' : this.docTypeSelect
+                this.docType = (this.docTypeSelect === 'Others') ? '' : this.docTypeSelect
             },
             readFile: function(event){
                 var me = this;
@@ -146,7 +146,7 @@
                         me.errors['docTypeSelect'] = true
                         throw new Error('Please select the Document Type.')
                     }
-                    if (!me.docType && me.docTypeSelect === 'others') {
+                    if (!me.docType && me.docTypeSelect === 'Others') {
                         me.errors['docType'] = true
                         throw new Error('Please specify the Document Type.')
                     }

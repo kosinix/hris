@@ -2,18 +2,60 @@
 
 {% block body %}
 <div class="col-md-12">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <div class="d-flex align-items-start">
-            <h1 class="h2">Attendance Corrections Review <em>({{attendanceReviews.length}})</em></h1>
-        </div>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group mr-2">
-                {# <a href="/attendance/schedule/create" class="btn btn-sm btn-outline-primary">Create Schedule</a> #}
+    <div class="pt-3 pb-2 mb-3 border-bottom">
+        <div class="form-row">
+            <div class="col-md-12">
+                <h1 class="h4">Attendance Corrections Review <em>({{attendanceReviews.length}})</em></h1>
+          
+                <form id="vApp" v-cloak action="" class="d-flex align-items-center">
+                    <div class="mr-1">
+                        <label for="attendanceDateStart" class="mb-0">Date</label>
+                    </div>
+                    <div class="mr-1">
+                        <select v-model="month" name="month" id="month" class="form-control">
+                            <option value="">--Month--</option>
+                            <option value="01">Jan</option>
+                            <option value="02">Feb</option>
+                            <option value="03">Mar</option>
+                            <option value="04">Apr</option>
+                            <option value="05">May</option>
+                            <option value="06">Jun</option>
+                            <option value="07">Jul</option>
+                            <option value="08">Aug</option>
+                            <option value="09">Sep</option>
+                            <option value="10">Oct</option>
+                            <option value="11">Nov</option>
+                            <option value="12">Dec</option>
+                        </select>
+                        <!-- <input @change="onDateStart" name="attendanceDateStart" v-model="attendanceDateStart" type="date" id="attendanceDateStart" class="form-control"> -->
+                        <!-- <input name="attendanceDateEnd" v-model="attendanceDateEnd" type="hidden"> -->
+                    </div>
+                    <div class="mr-1">
+                        <select v-model="year" name="year" id="year" class="form-control">
+                            <option value="">--Year--</option>
+                            <option value="2023">2023</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                        </select>
+                    </div>
+                    <div class="mr-1">
+                        <select v-model="status" name="status" id="status" class="form-control">
+                            <option value="">--Status--</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary">Search</button>
+                </form>
             </div>
         </div>
     </div>
-    {% include 'parts/flash.html' %}
 
+    {% include 'parts/flash.html' %}
     
     {% if attendanceReviews.length <= 0 %}
         <p>None found.</p>
@@ -63,4 +105,23 @@
     {% endif %}
 </div>
 {% endblock %}
-
+{% block scripts %}
+{{ super() }}
+<script>
+    var vApp = new Vue({
+        el: '#vApp',
+        delimiters: ["${", "}"],
+        mixins: [],
+        data: {
+            attendanceDateStart: '{{attendanceDateStart}}',
+            attendanceDateEnd: '{{attendanceDateEnd}}',
+            status: '{{status}}',
+            month: '{{month}}',
+            year: '{{year}}',
+        },
+        methods: {
+            
+        }
+    })
+    </script>
+{% endblock %}

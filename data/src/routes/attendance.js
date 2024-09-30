@@ -2922,33 +2922,25 @@ router.post('/attendance/employee/:employeeId/employment/:employmentId/attendanc
 // Attendance Review
 router.get('/attendance/review/all', middlewares.guardRoute(['read_all_attendance', 'update_attendance']), async (req, res, next) => {
     try {
+        let month = (req.query?.month) ? req.query.month : moment().format('MM')
+        let year = (req.query?.year) ? req.query.year : moment().format('YYYY')
+        let status = (req.query?.status) ? req.query.status : 'pending'
 
-        let start = lodash.get(req, 'query.start', moment().format('YYYY-MM-DD'))
-        let end = lodash.get(req, 'query.end', moment().format('YYYY-MM-DD'))
-
-        let startMoment = moment(start).startOf('day')
-        let endMoment = moment(end).endOf('day')
-
-        if (!startMoment.isValid()) {
-            throw new Error(`Invalid start date.`)
-        }
-        if (!endMoment.isValid()) {
-            throw new Error(`Invalid end date.`)
-        }
-
-        if (endMoment.isBefore(startMoment)) {
-            throw new Error(`Invalid end date. Must not be less than the start date.`)
+        let dateMoment = moment(`${year}-${month}-01`)
+        if (!dateMoment.isValid()) {
+            throw new Error(`Invalid date.`)
         }
 
         let match = {
-            status: (req.query?.status) ? req.query.status : 'pending'
+            status: status
         }
-        if (req.query?.attendanceDateStart && req.query?.attendanceDateEnd) {
+        if (req.query?.month && req.query?.year) {
             match['logs.0.dateTime'] = {
-                $lte: moment(req.query.attendanceDateEnd).clone().endOf('day').toDate(),
-                $gt: moment(req.query.attendanceDateStart).clone().startOf('day').toDate(),
+                $gt: dateMoment.clone().startOf('month').toDate(),
+                $lte: dateMoment.clone().endOf('month').toDate(),
             }
         }
+
         if (req.query?.dateApplied) {
             match['createdAt'] = {
                 $lte: moment(req.query.dateApplied).clone().endOf('day').toDate(),
@@ -2960,94 +2952,93 @@ router.get('/attendance/review/all', middlewares.guardRoute(['read_all_attendanc
             match['employeeId'] = req.app.locals.db.mongoose.Types.ObjectId(req.query.employeeId)
         }
         // console.log(match)
-        let aggr = [
-            {
-                $match: match
-            },
-            {
-                $limit: 100
-            },
-            {
-                $lookup: {
-                    localField: 'attendanceId',
-                    foreignField: '_id',
-                    from: 'attendances',
-                    as: 'attendances'
-                }
-            },
-            {
-                $addFields: {
-                    "attendance": {
-                        $arrayElemAt: ["$attendances", 0]
-                    }
-                }
-            },
-            {
-                $project: {
-                    attendances: 0,
-                }
-            },
-            {
-                $lookup: {
-                    localField: 'workScheduleId',
-                    foreignField: '_id',
-                    from: 'workschedules',
-                    as: 'workSchedules'
-                }
-            },
-            {
-                $addFields: {
-                    "workSchedule": {
-                        $arrayElemAt: ["$workSchedules", 0]
-                    }
-                }
-            },
-            {
-                $project: {
-                    workSchedules: 0,
-                }
-            },
-            {
-                $lookup: {
-                    localField: 'employeeId',
-                    foreignField: '_id',
-                    from: 'employees',
-                    as: 'employees'
-                }
-            },
-            {
-                $addFields: {
-                    "employee": {
-                        $arrayElemAt: ["$employees", 0]
-                    }
-                }
-            },
-            {
-                $project: {
-                    employees: 0,
-                }
-            },
-            {
-                $lookup: {
-                    localField: 'employmentId',
-                    foreignField: '_id',
-                    from: 'employments',
-                    as: 'employments'
-                }
-            },
-            {
-                $addFields: {
-                    "employment": {
-                        $arrayElemAt: ["$employments", 0]
-                    }
-                }
-            },
-            {
-                $project: {
-                    employments: 0,
+        let aggr = []
+        aggr.push({ $match: match })
+
+        // if (!req.query?.month || !req.query?.year) {
+            aggr.push({ $limit: 200 })
+        // }
+        aggr.push({
+            $lookup: {
+                localField: 'attendanceId',
+                foreignField: '_id',
+                from: 'attendances',
+                as: 'attendances'
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "attendance": {
+                    $arrayElemAt: ["$attendances", 0]
                 }
             }
-        ]
+        })
+        aggr.push({
+            $project: {
+                attendances: 0,
+            }
+        })
+        aggr.push({
+            $lookup: {
+                localField: 'workScheduleId',
+                foreignField: '_id',
+                from: 'workschedules',
+                as: 'workSchedules'
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "workSchedule": {
+                    $arrayElemAt: ["$workSchedules", 0]
+                }
+            }
+        })
+        aggr.push({
+            $project: {
+                workSchedules: 0,
+            }
+        })
+        aggr.push({
+            $lookup: {
+                localField: 'employeeId',
+                foreignField: '_id',
+                from: 'employees',
+                as: 'employees'
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employee": {
+                    $arrayElemAt: ["$employees", 0]
+                }
+            }
+        })
+        aggr.push({
+            $project: {
+                employees: 0,
+            }
+        })
+        aggr.push({
+            $lookup: {
+                localField: 'employmentId',
+                foreignField: '_id',
+                from: 'employments',
+                as: 'employments'
+            }
+        })
+        aggr.push({
+            $addFields: {
+                "employment": {
+                    $arrayElemAt: ["$employments", 0]
+                }
+            }
+        })
+        aggr.push({
+            $project: {
+                employments: 0,
+            }
+        })
+
         let attendanceReviews = await req.app.locals.db.main.AttendanceReview.aggregate(aggr)
         attendanceReviews = attendanceReviews.filter(a => {
             return a.attendance
@@ -3068,6 +3059,9 @@ router.get('/attendance/review/all', middlewares.guardRoute(['read_all_attendanc
             attendanceReview: attendanceReview,
             workSchedule1: workSchedule1,
             workSchedule2: workSchedule2,
+            status: status,
+            month: dateMoment.format('MM'),
+            year: dateMoment.format('YYYY'),
         }
         // return res.send(data)
         res.render('attendance/review.html', data);

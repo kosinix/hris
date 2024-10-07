@@ -337,6 +337,8 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                     workScheduleId: employment.workScheduleId,
                                     type: 'normal',
                                     logs: logs,
+                                    createdAt: momentThisLog.toDate(),
+                                    updatedAt: momentThisLog.toDate(),
                                 })
 
                                 outsole.log(`${BASE_LOG}, CREATED-FIRST_LOG`)

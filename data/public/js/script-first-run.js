@@ -30,6 +30,6 @@ jQuery(function ($) {
         }
     }, timeOut)
 
-    setCookie('firstRun', 'false');
+    setCookie('firstRun', 'false', 365);
 });
 

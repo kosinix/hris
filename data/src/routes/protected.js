@@ -362,4 +362,11 @@ router.get('/help/leaveform', async (req, res, next) => {
         next(err);
     }
 });
+router.get('/help/email', async (req, res, next) => {
+    try {
+        res.render('e/help/email.html');
+    } catch (err) {
+        next(err);
+    }
+});
 module.exports = router;

@@ -9,12 +9,11 @@ const process = require('process')
 
 //// External modules
 const lodash = require('lodash')
-const moment = require('moment')
 const pigura = require('pigura')
 
 //// Modules
 const flagRaising = require('../data/src/flag-raising')
-
+const mailer = require('../data/src/mailer')
 
 //// First things first
 //// Save full path of our root app directory and load config and credentials

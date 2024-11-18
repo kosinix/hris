@@ -296,7 +296,14 @@ Commands:
 * crontab -v    Display the last time you edited your crontab file. (This option is 
 
 ### Logs
-journalctl -u hris --since "1 hour ago" --no-pager
+    journalctl -u hris --since "1 hour ago" --no-pager
+
+Search by content and date
+    journalctl -u hris.service --since "2024-11-01" | grep "Email content"
+
+Save to file 
+    journalctl -u hris.service > hris-logs.txt
+
 
 ### More info:
 [https://www.digitalocean.com/community/tutorials/how-to-install-wordpress-with-lamp-on-ubuntu-16-04](https://www.digitalocean.com/community/tutorials/how-to-install-wordpress-with-lamp-on-ubuntu-16-04)

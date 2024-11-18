@@ -141,7 +141,7 @@ module.exports = {
                 }
             });
         }
-        if (ENV !== 'dev') {
+        if (ENV === 'dev') {
             // https://crontab.cronhub.io/
             console.log('Running backup task 11PM everyday.')
             cron.schedule('0 23 * * *', cronJob)
@@ -149,7 +149,7 @@ module.exports = {
 
             // https://crontab.cronhub.io/
             console.log('Running flagraising task 10:00AM everyday.')
-            cron.schedule('* * * * *', cronFlag)
+            cron.schedule('* 10 * * *', cronFlag)
             // cronFlag()
         }
     }

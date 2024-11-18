@@ -13,7 +13,6 @@ const pigura = require('pigura')
 
 //// Modules
 const flagRaising = require('../data/src/flag-raising')
-const mailer = require('../data/src/mailer')
 
 //// First things first
 //// Save full path of our root app directory and load config and credentials
@@ -36,13 +35,14 @@ const credLoader = new pigura.ConfigLoader({
 })
 global.CRED = credLoader.getConfig()
 
-const dbModule = require('../data/src/db-connect');
+const MAILER_AWS = require('../data/src/mailer-aws')
+const DB = require('../data/src/db-connect');
+const NUNJUCKS_ENV = require('../data/src/nunjucks-env');
 let db = null; // Hold db here
 
 ; (async () => {
     try {
-        const nunjucksEnv = require('../data/src/nunjucks-env')
-        db = await dbModule.connect()
+        db = await DB.connect()
 
         let date, rollback, rest
         [date, rollback, ...rest] = process.argv.slice(2)
@@ -94,12 +94,12 @@ let db = null; // Hold db here
                 from: `GSU HRIS <hris-noreply@gsu.edu.ph>`,
                 to: email,
                 subject: 'Early Out Eligibility',
-                text: nunjucksEnv.render('emails/flag-raising.txt', data),
-                html: nunjucksEnv.render('emails/flag-raising.html', data),
+                text: NUNJUCKS_ENV.render('emails/flag-raising.txt', data),
+                html: NUNJUCKS_ENV.render('emails/flag-raising.html', data),
             }
 
             if (ENV !== 'dev') {
-                mailer.transport2.sendMail(mailOptions).then(function (result) {
+                MAILER_AWS.sendMail(mailOptions).then(function (result) {
                     // console.log(result, 'Email sent')
                 }).catch(err => {
                     console.error(err)

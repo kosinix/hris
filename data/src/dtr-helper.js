@@ -2446,6 +2446,9 @@ const attendanceToTimeWorked = (attendance, employment, workSchedule, hoursPerDa
     if(workSchedule?.name?.includes('Driver')){
         options.noSpill = false
     }
+    if (workSchedule?.name?.includes('Bolong, Jan Vincent (1st Sem AY2024-2025)')) {
+        options.noSpill = false
+    }
     let timeWorked = countWork(timeSegments, logSegments, options)
 
     // console.dir(timeWorked, { depth: null })

@@ -2467,7 +2467,10 @@ router.get('/attendance/:attendanceId/edit', middlewares.guardRoute(['update_att
             options.noSpill = false
         }
         // @todo: Remove and make dynamic
-        if (workSchedule.name.includes('Driver')) {
+        if (workSchedule?.name?.includes('Driver')) {
+            options.noSpill = false
+        }
+        if (workSchedule?.name?.includes('Bolong, Jan Vincent (1st Sem AY2024-2025)')) {
             options.noSpill = false
         }
         let timeWorked = dtrHelper.countWork(timeSegments, logSegments, options)

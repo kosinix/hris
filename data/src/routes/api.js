@@ -411,11 +411,26 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                         outsole.log(`${BASE_LOG}, CREATED-APPEND_LOG`)
                                         stats.ok++
 
+                                        attendance.logs.sort(function (a, b) {
+                                            var timeA = moment(a.dateTime).unix()
+                                            var timeB = moment(b.dateTime).unix()
+                                            if (timeA < timeB) {
+                                                return -1;
+                                            }
+                                            if (timeA > timeB) {
+                                                return 1;
+                                            }
+                                            // Must be equal
+                                            return 0;
+                                        });
+
                                         // Restore to data type that Mongo supports
                                         attendance.logs = attendance.logs.map(log => {
                                             log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
                                             return log
                                         })
+
+                                        
 
                                         req.app.locals.db.main.Attendance.collection.updateOne({
                                             _id: attendance._id

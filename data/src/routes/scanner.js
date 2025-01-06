@@ -435,6 +435,9 @@ router.post('/scanner/:scannerUid/log', middlewares.guardRoute(['use_scanner']),
 
         // Get scanner
         let scanner = res.scanner.toObject()
+        if (!scanner.active) {
+            throw new AppError('Sorry, scanner deactivated.')
+        }
 
         // Get employee assoc with code
         let employee = await req.app.locals.db.main.Employee.findOne({

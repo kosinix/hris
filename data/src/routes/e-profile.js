@@ -273,7 +273,7 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
                 $lt: moment(attendance.createdAt).endOf('month').toDate(),
             }
         }).lean()
-        if (attendanceReviews.length >= 3 && (employment.campus === 'salvador' || employment.campus === 'mosqueda')) {
+        if (attendanceReviews.length >= 3) {
             throw new Error(`Attendance correction application exceeded the 3 limit per month. You currently have ${attendanceReviews.length}.`)
         }
 
@@ -494,7 +494,7 @@ router.post('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute(
                 $lt: moment(attendance.createdAt).endOf('month').toDate(),
             }
         }).lean()
-        if (attendanceReviews.length >= 3 && (employment.campus === 'salvador' || employment.campus === 'mosqueda')) {
+        if (attendanceReviews.length >= 3) {
             throw new Error(`Attendance correction application exceeded the 3 limit per month. You currently have ${attendanceReviews.length}.`)
         }
 

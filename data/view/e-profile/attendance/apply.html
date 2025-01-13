@@ -21,7 +21,7 @@
         {% endif %}
         {% if attendanceReviews %}
             <div class="alert alert-danger">
-                Remaining Application for Corrections: <strong>{{attendanceReviews.length}} out of 3</strong>
+                Remaining Application for Corrections: <strong>{{attendanceReviews.length}} out of {{CORRECTION_PER_MONTH}}</strong>
             </div>
         {% endif %}
         <div id="vApp" v-cloak v-bind:data-pending="pending" class="ml-auto mr-auto" >

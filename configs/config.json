@@ -118,6 +118,7 @@
     }
   ],
   "attendance": {
+    "correctionPerMonth": 3,
     "types": [
       {
         "name": "Normal",

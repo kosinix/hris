@@ -26,6 +26,8 @@ const { AppError } = require('../errors');
 const uploader = require('../uploader');
 const workScheduler = require('../work-scheduler');
 
+const CORRECTION_PER_MONTH = CONFIG?.attendance?.correctionPerMonth ?? 3
+
 // Router
 let router = express.Router()
 
@@ -273,8 +275,8 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
                 $lt: moment(attendance.createdAt).endOf('month').toDate(),
             }
         }).lean()
-        if (attendanceReviews.length >= 3) {
-            throw new Error(`Attendance correction application exceeded the 3 limit per month. You currently have ${attendanceReviews.length}.`)
+        if (attendanceReviews.length >= CORRECTION_PER_MONTH) {
+            throw new Error(`Attendance correction application exceeded the ${CORRECTION_PER_MONTH} limit per month. You currently have ${attendanceReviews.length}.`)
         }
 
         // Get rejected
@@ -452,6 +454,7 @@ router.get('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute([
             attendanceDenied: attendanceDenied,
             logSheets: logSheets,
             attendanceReviews: attendanceReviews,
+            CORRECTION_PER_MONTH: CORRECTION_PER_MONTH,
         });
     } catch (err) {
         next(err);
@@ -494,8 +497,8 @@ router.post('/e-profile/attendance/:attendanceId/apply', middlewares.guardRoute(
                 $lt: moment(attendance.createdAt).endOf('month').toDate(),
             }
         }).lean()
-        if (attendanceReviews.length >= 3) {
-            throw new Error(`Attendance correction application exceeded the 3 limit per month. You currently have ${attendanceReviews.length}.`)
+        if (attendanceReviews.length >= CORRECTION_PER_MONTH) {
+            throw new Error(`Attendance correction application exceeded the ${CORRECTION_PER_MONTH} limit per month. You currently have ${attendanceReviews.length}.`)
         }
 
         // Get pending

@@ -1322,10 +1322,11 @@ router.post('/hros/leave/create', middlewares.guardRoute(['use_employee_profile'
             return res.redirect('/hros/leave/create')
         }
 
+        // Leave form tests
         let ats = await req.app.locals.db.main.LeaveForm.find({
             employmentId: employment._id,
             dates: {
-                $in: body.dates.join(','), // @TODO: Remove need to rejoin
+                $in: body.dates
             },
 
         })
@@ -1362,7 +1363,56 @@ router.post('/hros/leave/create', middlewares.guardRoute(['use_employee_profile'
         if (latest) {
             controlNumber = generateControlNumber(latest)
         }
+        
+        // Attendance tests
+        let attendanceTests = await req.app.locals.db.main.Attendance.find({
+            employmentId: employment._id,
+            createdAt: {
+                $gte: moment(body.dates.at(0)).startOf('day').toDate(),
+                $lt: moment(body.dates.at(-1)).endOf('day').toDate(),
+            }
+        })
 
+        if (attendanceTests.length > 0) {
+            flash.error(req, 'hros', 'Cannot generate Leave Form using the provided date(s). You have existing attendance(s) on the said date(s).')
+            return res.redirect('/hros/leave/create')
+        }
+
+        // Create attendances
+        for (let x = 0; x < body.dates.length; x++) {
+            // console.log(m.format('YYYY-MM-DD'));
+            let m = moment(body.dates[x])
+
+            let attendance = {
+                employeeId: employee._id,
+                employmentId: employment._id,
+                type: 'leave',
+                workScheduleId: employment.workScheduleId,
+                createdAt: m.toDate(),
+                logs: [],
+                changes: [],
+                comments: [],
+            }
+            let date = m.toDate()
+            attendance.changes.push({
+                summary: `${user.username} inserted a new attendance.`,
+                objectId: user._id,
+                createdAt: date
+            })
+            attendance.changes.push({
+                summary: `${user.username} added a new comment.`,
+                objectId: user._id,
+                createdAt: date
+            })
+            attendance.comments.push({
+                summary: `Applied for leave with control #: ${controlNumber}`,
+                objectId: user._id,
+                createdAt: date
+            })
+            await req.app.locals.db.main.Attendance.create(attendance)
+        }
+
+        // Create leave form
         let leave = await req.app.locals.db.main.LeaveForm.create({
             employeeId: employee._id,
             employmentId: employment._id,

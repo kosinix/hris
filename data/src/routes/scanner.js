@@ -88,14 +88,14 @@ router.post('/scanner/create', middlewares.guardRoute(['create_scanner']), async
         let user = await req.app.locals.db.main.User.findOne({
             username: body.username
         });
-        let password = passwordMan.genPassword(12)
+        let password = passwordMan.genPassphrase(6,'_')
 
         if (!user) {
-            let salt = passwordMan.randomString(16)
+            let salt = passwordMan.genPassphrase(16)
             let passwordHash = passwordMan.hashPassword(password, salt)
             user = await req.app.locals.db.main.User.create({
                 username: body.username,
-                email: 'mis+scanner@gsu.edu.ph',
+                email: 'ict+scanner@gsu.edu.ph',
                 firstName: body.name,
                 lastName: 'Scanner',
                 passwordHash: passwordHash,

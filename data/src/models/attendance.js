@@ -38,6 +38,7 @@ let schema = mongoose.Schema({
                 lat: String,
                 lon: String,
                 photo: String,
+                campus: String,
             },
             
             extra: { // @deprecated. Use source

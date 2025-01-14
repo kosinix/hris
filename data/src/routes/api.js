@@ -59,9 +59,12 @@ router.post('/api/login', async (req, res, next) => {
             throw new Error('API access not allowed.')
         }
 
+        let scanner = await req.app.locals.db.main.Scanner.findOne({ userId: user._id }).lean()
+        // console.log('scanner', scanner)
+
         let expiryInHours = 8 // Expire after x hours
         let expiryInSeconds = expiryInHours * 3600 // Convert to seconds
-        let payload = jwtHelper.createPayload(user, {}, expiryInSeconds)
+        let payload = jwtHelper.createPayload(user, { scanner: scanner }, expiryInSeconds)
         let token = jwt.sign(payload, CRED.jwt.secret)
         res.send(token)
     } catch (err) {
@@ -225,6 +228,12 @@ router.get('/api/app/icto-portal/faculty-list', async (req, res, next) => {
 router.post('/api/app/biometric/scans', async (req, res, next) => {
     try {
         const DATE_TO_PROCESS = (req.query?.date) ? moment(req.query.date) : moment()
+        const SCANNER_CAMPUS = res?.jwtDecoded?.payload?.scanner?.campus
+        const WATCH_LIST = [
+            '61513764e1d53f182a5d7e5d', // Martires Rodney
+            '61513763e1d53f182a5d7b7b', // Nico Amarilla
+            '61513764e1d53f182a5d7d0a', // Gabiota Mirhjan
+        ]
 
         let logs = req.body
 
@@ -307,144 +316,151 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
 
                             const BASE_LOG = `${BID}, ${EMP_NAME}, ${DATE}, ${TIME}, ${employment?.position}`
 
-
-                            let attendance = await req.app.locals.db.main.Attendance.findOne({
-                                employeeId: employee._id,
-                                employmentId: employment._id,
-                                createdAt: {
-                                    $gte: momentThisLog.clone().startOf('day').toDate(),
-                                    $lt: momentThisLog.clone().endOf('day').toDate(),
-                                }
-                            }).lean()
-
-                            let logSource = {
-                                type: 'biometric',
-                                id: res.jwtDecoded.user._id
-                            }
-
-                            if (!attendance) {
-                                let logs = []
-                                logs.push({
-                                    dateTime: momentThisLog.toDate(),
-                                    mode: 1, // 1 = in, 0 = out
-                                    type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
-                                    source: logSource,
-                                    createdAt: momentThisLog.toDate(),
-                                })
-
-                                attendance = await req.app.locals.db.main.Attendance.create({
-                                    employeeId: employee._id,
-                                    employmentId: employment._id,
-                                    workScheduleId: employment.workScheduleId,
-                                    type: 'normal',
-                                    logs: logs,
-                                    createdAt: momentThisLog.toDate(),
-                                    updatedAt: momentThisLog.toDate(),
-                                })
-
-                                outsole.log(`${BASE_LOG}, CREATED-FIRST_LOG`)
-                                stats.ok++
-
-                                // Restore to data type that Mongo supports
-                                attendance.logs = attendance.logs.map(log => {
-                                    log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
-                                    return log
-                                })
-
-                                req.app.locals.db.main.Attendance.collection.updateOne({
-                                    _id: attendance._id
-                                }, {
-                                    $set: {
-                                        logs: attendance.logs
-                                    }
-                                }).then(() => { }).catch(() => { })
+                            // console.log('campus', employment.campus, SCANNER_CAMPUS)
+                            if (WATCH_LIST.includes(employee._id.toString()) && employment.campus !== SCANNER_CAMPUS) {
+                                outsole.log(`${BASE_LOG}, SKIPPED-CROSSCAMPUS, from ${employment.campus} to ${SCANNER_CAMPUS}`)
 
                             } else {
-                                // Change from mongo date data type to string with datetime format
-                                attendance.logs = attendance.logs.map(log => {
-                                    log.dateTime = moment(log.dateTime).format('YYYY-MM-DD hh:mm:ss A')
-                                    return log
-                                })
 
-                                // Removing dupes
-                                let dupeCount = 0
-                                attendance.logs = attendance.logs.filter((log, index, array) => {
-
-                                    // Logic, loop on array
-                                    // Find a datetime that is the same 
-                                    // Look on all elements after the current element
-                                    let i = array.findIndex((a, k) => {
-                                        return log.dateTime === a.dateTime && k > index
-                                    })
-                                    if (i >= 0) {
-                                        dupeCount++
+                                let attendance = await req.app.locals.db.main.Attendance.findOne({
+                                    employeeId: employee._id,
+                                    employmentId: employment._id,
+                                    createdAt: {
+                                        $gte: momentThisLog.clone().startOf('day').toDate(),
+                                        $lt: momentThisLog.clone().endOf('day').toDate(),
                                     }
-                                    return i < 0
-                                })
+                                }).lean()
 
-                                let found = attendance.logs.find((a, k) => {
-                                    return momentThisLog.format('YYYY-MM-DD hh:mm:ss A') === a.dateTime
-                                })
-                                if (found) {
+                                let logSource = {
+                                    type: 'biometric',
+                                    id: res.jwtDecoded.user._id,
+                                    campus: SCANNER_CAMPUS
+                                }
 
-                                    outsole.log(`${BASE_LOG}, SKIPPED-DUP`)
-                                    stats.skipped++
+                                if (!attendance) {
+                                    let logs = []
+                                    logs.push({
+                                        dateTime: momentThisLog.toDate(),
+                                        mode: 1, // 1 = in, 0 = out
+                                        type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
+                                        source: logSource,
+                                        createdAt: momentThisLog.toDate(),
+                                    })
+
+                                    attendance = await req.app.locals.db.main.Attendance.create({
+                                        employeeId: employee._id,
+                                        employmentId: employment._id,
+                                        workScheduleId: employment.workScheduleId,
+                                        type: 'normal',
+                                        logs: logs,
+                                        createdAt: momentThisLog.toDate(),
+                                        updatedAt: momentThisLog.toDate(),
+                                    })
+
+                                    outsole.log(`${BASE_LOG}, CREATED-FIRST_LOG`)
+                                    stats.ok++
+
+                                    // Restore to data type that Mongo supports
+                                    attendance.logs = attendance.logs.map(log => {
+                                        log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
+                                        return log
+                                    })
+
+                                    req.app.locals.db.main.Attendance.collection.updateOne({
+                                        _id: attendance._id
+                                    }, {
+                                        $set: {
+                                            logs: attendance.logs
+                                        }
+                                    }).then(() => { }).catch(() => { })
 
                                 } else {
-                                    const MAX_LOGS = 4
-                                    if (attendance.logs.length >= MAX_LOGS) {
+                                    // Change from mongo date data type to string with datetime format
+                                    attendance.logs = attendance.logs.map(log => {
+                                        log.dateTime = moment(log.dateTime).format('YYYY-MM-DD hh:mm:ss A')
+                                        return log
+                                    })
 
-                                        outsole.log(`${BASE_LOG}, SKIPPED-MAX`)
+                                    // Removing dupes
+                                    let dupeCount = 0
+                                    attendance.logs = attendance.logs.filter((log, index, array) => {
+
+                                        // Logic, loop on array
+                                        // Find a datetime that is the same 
+                                        // Look on all elements after the current element
+                                        let i = array.findIndex((a, k) => {
+                                            return log.dateTime === a.dateTime && k > index
+                                        })
+                                        if (i >= 0) {
+                                            dupeCount++
+                                        }
+                                        return i < 0
+                                    })
+
+                                    let found = attendance.logs.find((a, k) => {
+                                        return momentThisLog.format('YYYY-MM-DD hh:mm:ss A') === a.dateTime
+                                    })
+                                    if (found) {
+
+                                        outsole.log(`${BASE_LOG}, SKIPPED-DUP`)
                                         stats.skipped++
 
                                     } else {
-                                        let lastLog = attendance.logs.at(-1)
-                                        let mode = lastLog?.mode === 1 ? 0 : 1 // Toggle 1 or 0
+                                        const MAX_LOGS = 4
+                                        if (attendance.logs.length >= MAX_LOGS) {
 
-                                        let log = {
-                                            dateTime: momentThisLog.toDate(),
-                                            mode: mode,
-                                            type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
-                                            source: logSource,
-                                            createdAt: momentThisLog.toDate(),
+                                            outsole.log(`${BASE_LOG}, SKIPPED-MAX`)
+                                            stats.skipped++
+
+                                        } else {
+                                            let lastLog = attendance.logs.at(-1)
+                                            let mode = lastLog?.mode === 1 ? 0 : 1 // Toggle 1 or 0
+
+                                            let log = {
+                                                dateTime: momentThisLog.toDate(),
+                                                mode: mode,
+                                                type: 'normal', // 'normal', 'wfh', 'travel', 'pass'
+                                                source: logSource,
+                                                createdAt: momentThisLog.toDate(),
+                                            }
+                                            attendance.logs.push(log)
+                                            outsole.log(`${BASE_LOG}, CREATED-APPEND_LOG`)
+                                            stats.ok++
+
+                                            attendance.logs.sort(function (a, b) {
+                                                var timeA = moment(a.dateTime).unix()
+                                                var timeB = moment(b.dateTime).unix()
+                                                if (timeA < timeB) {
+                                                    return -1;
+                                                }
+                                                if (timeA > timeB) {
+                                                    return 1;
+                                                }
+                                                // Must be equal
+                                                return 0;
+                                            });
+
+                                            // Restore to data type that Mongo supports
+                                            attendance.logs = attendance.logs.map(log => {
+                                                log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
+                                                return log
+                                            })
+
+
+
+                                            req.app.locals.db.main.Attendance.collection.updateOne({
+                                                _id: attendance._id
+                                            }, {
+                                                $set: {
+                                                    logs: attendance.logs
+                                                }
+                                            }).then(() => { }).catch(() => { })
+
                                         }
-                                        attendance.logs.push(log)
-                                        outsole.log(`${BASE_LOG}, CREATED-APPEND_LOG`)
-                                        stats.ok++
-
-                                        attendance.logs.sort(function (a, b) {
-                                            var timeA = moment(a.dateTime).unix()
-                                            var timeB = moment(b.dateTime).unix()
-                                            if (timeA < timeB) {
-                                                return -1;
-                                            }
-                                            if (timeA > timeB) {
-                                                return 1;
-                                            }
-                                            // Must be equal
-                                            return 0;
-                                        });
-
-                                        // Restore to data type that Mongo supports
-                                        attendance.logs = attendance.logs.map(log => {
-                                            log.dateTime = moment(log.dateTime, 'YYYY-MM-DD hh:mm:ss A').toDate()
-                                            return log
-                                        })
-
-                                        
-
-                                        req.app.locals.db.main.Attendance.collection.updateOne({
-                                            _id: attendance._id
-                                        }, {
-                                            $set: {
-                                                logs: attendance.logs
-                                            }
-                                        }).then(() => { }).catch(() => { })
 
                                     }
 
                                 }
-
                             }
                         }
 

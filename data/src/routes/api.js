@@ -319,6 +319,7 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
 
                             let logSource = {
                                 type: 'biometric',
+                                id: res.jwtDecoded.user._id
                             }
 
                             if (!attendance) {

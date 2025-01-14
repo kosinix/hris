@@ -34,7 +34,7 @@ let schema = mongoose.Schema({
             type: String,
             source: {
                 id: mongoose.Schema.Types.ObjectId,
-                type: String, // 'scanner', 'userAccount', 'adminAccount'
+                type: String, // 'scanner', 'userAccount', 'adminAccount', 'biometric'
                 lat: String,
                 lon: String,
                 photo: String,

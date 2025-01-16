@@ -317,7 +317,17 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                             const BASE_LOG = `${BID}, ${EMP_NAME}, ${DATE}, ${TIME}, ${employment?.position}`
 
                             // console.log('campus', employment.campus, SCANNER_CAMPUS)
+                            let cross_campus = false 
                             if (WATCH_LIST.includes(employee._id.toString()) && employment.campus !== SCANNER_CAMPUS) {
+                                cross_campus = true
+                            }
+
+                            // Special adult
+                            if(employee._id.toString() === '61513764e1d53f182a5d7e5d' && SCANNER_CAMPUS === 'salvador') { // Martires Rodney
+                                cross_campus = true
+                            }
+
+                            if (cross_campus) {
                                 outsole.log(`${BASE_LOG}, SKIPPED-CROSSCAMPUS, from ${employment.campus} to ${SCANNER_CAMPUS}`)
 
                             } else {

@@ -322,6 +322,10 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                 cross_campus = true
                             }
 
+                            if (employment.group === 'staff' && employment.campus !== SCANNER_CAMPUS) {
+                                cross_campus = true
+                            }
+
                             // Special adult
                             if(employee._id.toString() === '61513764e1d53f182a5d7e5d' && SCANNER_CAMPUS === 'salvador') { // Martires Rodney
                                 cross_campus = true

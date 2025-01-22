@@ -229,10 +229,17 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
     try {
         const DATE_TO_PROCESS = (req.query?.date) ? moment(req.query.date) : moment()
         const SCANNER_CAMPUS = res?.jwtDecoded?.payload?.scanner?.campus
+
+        // Employment IDs
         const WATCH_LIST = [
             '61513764e1d53f182a5d7e5d', // Martires Rodney
             '61513763e1d53f182a5d7b7b', // Nico Amarilla
             '61513764e1d53f182a5d7d0a', // Gabiota Mirhjan
+        ]
+
+        const SPECIAL_LIST = [
+            '61513764e1d53f182a5d7c05', // Cajilig, Benjie
+            '61513765e1d53f182a5d7e93', // Natividad, Lyssa
         ]
 
         let logs = req.body
@@ -322,6 +329,7 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                 cross_campus = true
                             }
 
+                            // Staff on other campus
                             if (employment.group === 'staff' && employment.campus !== SCANNER_CAMPUS) {
                                 cross_campus = true
                             }
@@ -329,6 +337,11 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                             // Special adult
                             if(employee._id.toString() === '61513764e1d53f182a5d7e5d' && SCANNER_CAMPUS === 'salvador') { // Martires Rodney
                                 cross_campus = true
+                            }
+
+                            // Allow for guidance
+                            if (SPECIAL_LIST.includes(employee._id.toString()) && employment.campus !== SCANNER_CAMPUS) {
+                                cross_campus = false
                             }
 
                             if (cross_campus) {

@@ -14,6 +14,11 @@ const paginator = require('../paginator');
 const { AppError } = require('../errors');
 const uploader = require('../uploader');
 
+const ALLOWED_FOR_LEAVE = [
+    'permanent',
+    'casual'
+]
+
 // Router
 let router = express.Router()
 
@@ -1101,12 +1106,10 @@ router.post('/hros/flag/location', middlewares.guardRoute(['use_employee_profile
 router.use('/hros/leave', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, (req, res, next) => {
     try {
         let employments = res.employee.employments
-        let permanent = employments.map(emp => emp.employmentType === 'permanent').reduce((prev, cur) => {
-            return prev || cur
-        }, false)
+        let hasAllowed = employments.map(emp => ALLOWED_FOR_LEAVE.includes(emp.employmentType))
 
-        if (!permanent && req.originalUrl !== '/hros/leave/all') {
-            flash.error(req, 'hros', `For permanent employment only.`)
+        if(!hasAllowed.includes(true) && req.originalUrl !== '/hros/leave/all') {
+            flash.error(req, 'hros', `Sorry, but this service is for permanent and casual employees only.`)
             return res.redirect(`/hros/leave/all`)
         }
 
@@ -1219,7 +1222,7 @@ router.get('/hros/leave/create', middlewares.guardRoute(['use_employee_profile']
         let employments = employee.employments
 
         employments = employments.filter((o) => {
-            return o.employmentType === 'permanent' && o.active
+            return ALLOWED_FOR_LEAVE.includes(o.employmentType) && o.active
         })
         const leaveTypes = CONFIG.leaveTypes
 

@@ -10,92 +10,66 @@
     <div class="tab-content p-3 pt-4 min-height-500">
         <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/employment/{{employment._id}}/update" method="POST" class="form-default">
 
-            <div class="form-group">
-                <label for="active">Employment Status <span class="text-danger">*</span></label>
-                <div>
-                    <select name="active" id="active" v-model="active" class="form-control">
-                        {% set options = [{ value: true, text: "Active" }, { value: false, text: "Inactive" }] %}
-                        {% for option in options %}
-                            <option value="{{option.value}}">{{option.text}}</option>
-                        {% endfor %}
-                    </select>
-                    <small class="invalid-feedback">${getError('active')}</small>
-                </div>
-            </div>
-
-            <div class="form-group">
+            <div class="form-group" :data-error="errors.campus" @click="errors.campus=false">
                 <label for="campus">Campus <span class="text-danger">*</span></label>
-                <div>
-                    <select name="campus" id="campus" v-model="campus" class="form-control">
-                        {% set options = CONFIG.campuses %}
-                        {% for option in options %}
-                            <option value="{{option.value}}">{{option.text}}</option>
-                        {% endfor %}
-                    </select>
-                    <small class="invalid-feedback">${getError('campus')}</small>
-                </div>
+                <select v-model="campus" name="campus" id="campus" class="form-control">
+                    {% set options = CONFIG.campuses %}
+                    {% for option in options %}
+                        <option value="{{option.value}}">{{option.text}}</option>
+                    {% endfor %}
+                </select>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" :data-error="errors.group" @click="errors.group=false">
                 <label for="group">Group <span class="text-danger">*</span></label>
-                <div>
-                    <select name="group" id="group" v-model="group" class="form-control">
-                        {% set options = [{value:'', text:''}, {value:'staff', text:'Staff'}, {value:'faculty', text:'Faculty'}, {value:'other', text:'Others'}] %}
-                        {% for option in options %}
-                            <option value="{{option.value}}">{{option.text}}</option>
-                        {% endfor %}
-                    </select>
-                    <small class="invalid-feedback">${getError('group')}</small>
-                </div>
+                <select v-model="group" name="group" id="group" class="form-control">
+                    {% set options = [{value:'', text:''}, {value:'staff', text:'Staff'}, {value:'faculty', text:'Faculty'}, {value:'other', text:'Others'}] %}
+                    {% for option in options %}
+                        <option value="{{option.value}}">{{option.text}}</option>
+                    {% endfor %}
+                </select>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" :data-error="errors.employmentType" @click="errors.employmentType=false">
                 <label for="employmentType">Employment Type <span class="text-danger">*</span></label>
-                <div>
-                    <select @blur="guessPosition" name="employmentType" id="employmentType" v-model="employmentType" class="form-control">
-                        {% set options = [{value:'', text:''}, {value:'permanent', text:'Permanent'}, {value:'cos', text:'Contract of Service'}, {value:'jo', text:'Job Order'}, {value:'part-time', text:'Part-Time'}, {value:'casual', text:'Casual'}] %}
-                        {% for option in options %}
-                            <option value="{{option.value}}">{{option.text}}</option>
-                        {% endfor %}
-                    </select>
-                    <small class="invalid-feedback">${getError('employmentType')}</small>
-                </div>
+                <select @blur="guessPosition" name="employmentType" id="employmentType" v-model="employmentType" class="form-control">
+                    {% set options = [{value:'', text:''}, {value:'permanent', text:'Permanent'}, {value:'cos', text:'Contract of Service'}, {value:'jo', text:'Job Order'}, {value:'part-time', text:'Part-Time'}, {value:'casual', text:'Casual'}, {value:'volunteer', text:'Volunteer'}] %}
+                    {% for option in options %}
+                        <option value="{{option.value}}">{{option.text}}</option>
+                    {% endfor %}
+                </select>
             </div>
-
-            <div class="form-group">
+             
+            <div class="form-group" :data-error="errors.position" @click="errors.position=false">
                 <label for="position">Position <span class="text-danger">*</span></label>
-                <div>
-                    <input name="position" id="position" v-model="position" type="text" class="form-control">
-                    <small class="invalid-feedback">${getError('position')}</small>
+                <input name="position" id="position" v-model="position" type="text" class="form-control">
+            </div>
+
+            <div class="form-row">
+                <div class="col-md-6">
+                    <div class="form-group" :data-error="errors.salary" @click="errors.salary=false">
+                        <label v-if="employmentType=='volunteer'" for="salary">Allowance</label>
+                        <label v-else for="salary">Salary <span class="text-danger">*</span></label>
+                        <input step="any" name="salary" id="salary" v-model="salary" type="number" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group" :data-error="errors.salaryType" @click="errors.salaryType=false">
+                        <label v-if="employmentType=='volunteer'" for="salary">Allowance Rate</label>
+                        <label v-else for="salary">Salary Rate <span class="text-danger">*</span></label>
+                        <select name="salaryType" id="salaryType" v-model="salaryType" class="form-control">
+                            {% set options = [{value:'', text:''}, {value:'monthly', text:'Monthly'}, {value:'daily', text:'Daily'}, {value:'hourly', text:'Hourly'}, {value:'na', text:'N/A'}] %}
+                            {% for option in options %}
+                                <option value="{{option.value}}">{{option.text}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="salary">Salary <span class="text-danger">*</span></label>
-                <div>
-                    <input step="any" name="salary" id="salary" v-model="salary" type="number" class="form-control">
-                    <small class="invalid-feedback">${getError('salary')}</small>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="salaryType">Salary Rate <span class="text-danger">*</span></label>
-                <div>
-                    <select name="salaryType" id="salaryType" v-model="salaryType" class="form-control">
-                        {% set options = [{value:'', text:''}, {value:'monthly', text:'Monthly'}, {value:'daily', text:'Daily'}, {value:'hourly', text:'Hourly'}] %}
-                        {% for option in options %}
-                            <option value="{{option.value}}">{{option.text}}</option>
-                        {% endfor %}
-                    </select>
-                    <small class="invalid-feedback">${getError('salaryType')}</small>
-                </div>
-            </div>
-
-            <div class="form-group">
+            <div class="form-group" :data-error="errors.workScheduleId" @click="errors.workScheduleId=false">
                 <label for="workScheduleId">Work Schedule <span target="_blank" class="text-danger">*</span> <a href="/schedule/create" class="btn btn-sm btn-outline-secondary">Create Schedule</a></label>
                 <div>
-                   
-
                     <autocomplete v-model="workScheduleId"
                         name="workScheduleId"
                         :initial-value="workSchedule.id"
@@ -107,36 +81,28 @@
                         v-on:selected="onSelect"
                         >
                     </autocomplete>
-
-                    <small class="invalid-feedback">${getError('workScheduleId')}</small>
                 </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" :data-error="errors.employmentStart" @click="errors.employmentStart=false">
                 <label for="employmentStart">Employment Start</label>
-                <div>
-                    <input name="employmentStart" id="employmentStart" v-model="employmentStart" type="date" class="form-control">
-                    <small class="invalid-feedback">${getError('employmentStart')}</small>
-                </div>
+                <input name="employmentStart" id="employmentStart" v-model="employmentStart" type="date" class="form-control">
             </div>
-
-            <div class="form-group">
+            
+            <div class="form-group" :data-error="errors.employmentEnd" @click="errors.employmentEnd=false">
                 <label for="employmentEnd">Employment End</label>
-                <div>
-                    <input name="employmentEnd" id="employmentEnd" v-model="employmentEnd" type="date" class="form-control">
-                    <small class="invalid-feedback">${getError('employmentEnd')}</small>
-                </div>
+                <input name="employmentEnd" id="employmentEnd" v-model="employmentEnd" type="date" class="form-control">
             </div>
 
-            {% set name = 'department' %}
-            {% set label = 'Department' %}
-            {% include 'parts/form-group-text.html' %}
-            {% set label = '' %}
+            <div class="form-group" :data-error="errors.department" @click="errors.department=false">
+                <label for="department">Department</label>
+                <input name="department" id="department" v-model="department" type="text" class="form-control">
+            </div>
 
-            {% set name = 'fundSource' %}
-            {% set label = 'Source of Fund' %}
-            {% include 'parts/form-group-text.html' %}
-            {% set label = '' %}
+            <div class="form-group" :data-error="errors.fundSource" @click="errors.fundSource=false">
+                <label for="fundSource">Source of Fund</label>
+                <input name="fundSource" id="fundSource" v-model="fundSource" type="text" class="form-control">
+            </div>
 
             <div class="form-row pt-3 pb-3">
                 <div class="col-md-12">
@@ -173,8 +139,6 @@
         el: '#vApp',
         delimiters: ["${", "}"],
         mixins: [
-            window.vuelidate.validationMixin,
-            window.vuelidateExtendMixin,
             window.vueJsAutoCompleteExtendMixin
         ],
         components: {
@@ -195,32 +159,14 @@
             sssDeduction: '{{employment.sssDeduction}}',
             workScheduleId: '{{employment.workScheduleId}}',
             workSchedules: {{workSchedules|default([], true)|stringify|safe}},
-        },
-        validations: {
-            campus: {
-                required: window.validators.required
-            },
-            group: {
-                required: window.validators.required
-            },
-            position: {
-                required: window.validators.required
-            },
-            employmentType: {
-                required: window.validators.required
-            },
-            workScheduleId: {
-                required: window.validators.required
-            },
-            salary: {
-                required: window.validators.required,
-                isMoneyFormat: window.customValidators.isMoneyFormat('Not a valid money format.')
-            },
-            salaryType: {
-                required: window.validators.required,
-            },
-            sssDeduction: {
-                isMoneyFormat: window.customValidators.isMoneyFormat('Not a valid money format.')
+            errors: {
+                campus: false,
+                group: false,
+                employmentType: false,
+                position: false,
+                salary: false,
+                salaryType: false,
+                workScheduleId: false,
             },
         },
         computed: {
@@ -243,6 +189,8 @@
                     position += 'COS'
                 } else if(this.employmentType === 'part-time'){
                     position += 'Part-Time'
+                } else if(this.employmentType === 'volunteer'){
+                    position += 'Volunteer'
                 }
                 if(this.group === 'faculty'){
                     if(!this.position){
@@ -251,14 +199,58 @@
                 }
             },
             onSubmit: function(){
-                var me = this;
-                me.$v.$touch()
-                if (me.$v.$error) {
-                    alert('Please correct the errors to continue.')
-                } else {
-                    me.$nextTick(function() {
-                        me.$refs.form.submit();
-                    });
+                const me = this;
+                try {
+                    if(!me.campus){
+                        me.errors.campus = true
+                        throw new Error('Campus is required.')
+                    }
+                    
+                    if(!me.group){
+                        me.errors.group = true
+                        throw new Error('Group is required.')
+                    }
+                    
+                    if(!me.employmentType){
+                        me.errors.employmentType = true
+                        throw new Error('Employment Type is required.')
+                    }
+                    
+                    if(!me.position){
+                        me.errors.position = true
+                        throw new Error('Position is required.')
+                    }
+
+                    if(!me.salary){
+                        me.errors.salary = true
+                        throw new Error('Salary is required.')
+                    } else {
+                        if(me.employmentType !== 'volunteer'){
+                            if(parseInt(me.salary) <= 0){
+                                me.errors.salary = true
+                                throw new Error('Salary must be more than 0.')
+                            }
+                        }
+                    }
+
+                    if(!me.salaryType){
+                        me.errors.salaryType = true
+                        throw new Error('Salary Rate is required.')
+                    } else {
+                        
+                    }
+
+                    if(!me.workScheduleId){
+                        me.errors.workScheduleId = true
+                        throw new Error('Work Schedule is required.')
+                    }
+
+                    me.$nextTick(function(){
+                        me.$refs.form.submit()
+                    })
+                } catch (err) {
+                    console.error(err)
+                    alert(err.message)
                 }
             }
         }

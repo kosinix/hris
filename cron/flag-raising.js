@@ -110,8 +110,9 @@ let db = null; // Hold db here
         // Adjust
         const attendanceIds = flagAttendances.map(a => a.attendanceId)
         let flashMessage = await flagRaising.adjustCandidates(db, 'gsc.mis.amarilla', attendanceIds, schedule1, schedule2, rollback)
-       
-        console.log(flashMessage)
+        if (ENV === 'dev') {
+            console.log(flashMessage)
+        }
     } catch (err) {
         console.error(err)
     } finally {

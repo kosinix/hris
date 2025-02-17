@@ -68,7 +68,6 @@ global.CRED = credLoader.getConfig()
                 .on('end', async () => {
                     let loginsFile = CONFIG.app.dir + '/scripts/install-data/format.log'
                     fs.writeFileSync(loginsFile, '[' + results.join(`,\n`) + ']', { encoding: 'utf8' })
-                    console.log()
                 });
 
         } catch (err) {

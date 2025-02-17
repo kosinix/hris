@@ -961,7 +961,7 @@ router.get('/payroll/group/:employeeListId', middlewares.guardRoute(['read_all_e
 
         if (['lastName', 'position'].includes(sortBy)) {
             employeeList.members.sort(function (a, b) {
-                console.log(a, typeof a['_id'])
+                // console.log(a, typeof a['_id'])
                 var nameA = a[sortBy].toUpperCase(); // ignore upper and lowercase
                 var nameB = b[sortBy].toUpperCase(); // ignore upper and lowercase
                 if (nameA < nameB) {

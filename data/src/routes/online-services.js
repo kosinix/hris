@@ -213,7 +213,7 @@ router.get('/online-services/at/:atId/delete', middlewares.guardRoute(['read_all
         if (!at) {
             throw new Error('Not found.')
         }
-        console.log(at)
+        // console.log(at)
         await at.remove()
 
         flash.ok(req, 'online-services', `Authority to Travel deleted.`)

@@ -13,7 +13,7 @@ const patchHistory = (patch, source, author) => {
         if (oldVal === newVal) {
             delete patch[propName]
         } else {
-            console.log(propName, typeof oldVal, '===', typeof newVal, oldVal, '===', newVal)
+            // console.log(propName, typeof oldVal, '===', typeof newVal, oldVal, '===', newVal)
             histories.push(`Changed ${propName} from "${oldVal}" into "${newVal}" by "${author}".`)
         }
     }

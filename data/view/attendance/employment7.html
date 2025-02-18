@@ -174,7 +174,7 @@
                                 {% endif %}
                                 <td class="{{classes}}">{{day.display.inPM}}</td>
                                 <td class="{{classes}}">{{day.display.outPM}}</td>
-                            {% elif  attendance.type == 'travel' %}
+                                {% elif  attendance.type == 'travel' %}
                                 {% if attendance.logs.length === 4 and attendance.logs[0].type === 'travel' %}
                                     <td class="text-center" colspan="2">
                                         Travel
@@ -190,6 +190,24 @@
                                 {% else %}
                                     <td class="text-center" colspan="4">
                                         Travel
+                                    </td>
+                                {% endif %}
+                            {% elif  attendance.type == 'leave' %}
+                                {% if attendance.logs.length === 4 and attendance.logs[0].type === 'leave' %}
+                                    <td class="text-center" colspan="2">
+                                        Leave
+                                    </td>
+                                    <td>{{day.display.inPM}}</td>
+                                    <td>{{day.display.outPM}}</td>
+                                {% elif attendance.logs.length === 4 and attendance.logs[2].type === 'leave' %}
+                                    <td>{{day.display.inAM}}</td>
+                                    <td>{{day.display.outAM}}</td>
+                                    <td class="text-center" colspan="2">
+                                        Leave
+                                    </td>
+                                {% else %}
+                                    <td class="text-center" colspan="4">
+                                        Leave
                                     </td>
                                 {% endif %}
                             {% elif  attendance.type == 'wfh' %}

@@ -212,6 +212,32 @@
                                 </td>
                             </template>
                         </template>
+                        <template v-else-if="_.get(day, 'attendance.type') === 'leave'">
+                            <template v-if="_.get(day, 'attendance.logs.length') == 2 && _.get(day, 'attendance.logs[0].type') === 'leave'">
+                                <td class="text-center" colspan="4">
+                                    Leave
+                                </td>
+                            </template>
+                            <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[0].type') === 'leave'">
+                                <td class="text-center" colspan="2">
+                                    Leave
+                                </td>
+                                <td class="text-center">${day.display.inPM}</td>
+                                <td class="text-center">${day.display.outPM}</td>
+                            </template>
+                            <template v-else-if="_.get(day, 'attendance.logs.length') <= 4 && _.get(day, 'attendance.logs[2].type') === 'leave'">
+                                <td class="text-center">${day.display.inAM}</td>
+                                <td class="text-center">${day.display.outAM}</td>
+                                <td class="text-center" colspan="2">
+                                    Leave
+                                </td>
+                            </template>
+                            <template v-else>
+                                <td class="text-center" colspan="4">
+                                    Leave
+                                </td>
+                            </template>
+                        </template>
                         <template v-else-if="_.get(day, 'attendance.type') === 'wfh'">
                             <template v-if="_.get(day, 'attendance.logs.length') == 2 && _.get(day, 'attendance.logs[0].type') === 'wfh'">
                                 <td class="text-center" colspan="4">

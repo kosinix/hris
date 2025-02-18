@@ -81,6 +81,28 @@
                     Travel
                 </td>
             {% endif %}
+        {% elif attendance.type === 'leave'  %}
+            {% if attendance.logs.length == 2 and attendance.logs[0].type === 'leave' %}
+                <td class="text-center" colspan="4">
+                    Leave
+                </td>
+            {% elif attendance.logs.length <= 4 and attendance.logs[0].type === 'leave' %}
+                <td class="text-center" colspan="2">
+                    Leave
+                </td>
+                <td class="text-center">{{day.display.inPM}}</td>
+                <td class="text-center">{{day.display.outPM}}</td>
+            {% elif attendance.logs.length <= 4 and attendance.logs[2].type === 'leave' %}
+                <td class="text-center">{{day.display.inAM}}</td>
+                <td class="text-center">{{day.display.outAM}}</td>
+                <td class="text-center" colspan="2">
+                    Leave
+                </td>
+            {% else %}
+                <td class="text-center" colspan="4">
+                    Leave
+                </td>
+            {% endif %}
         {% elif attendance.type === 'wfh'  %}
             {% if attendance.logs.length == 2 and attendance.logs[0].type === 'wfh' %}
                 <td class="text-center" colspan="4">

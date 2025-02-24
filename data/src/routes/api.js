@@ -343,7 +343,6 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                                     cross_campus = true
                                 }
                             } 
-                            console.log(employee?.biometricsCampusOverride, SCANNER_CAMPUS, employee?.biometricsCampusSelect)
 
                             if (cross_campus) {
                                 outsole.log(`${BASE_LOG}, SKIPPED-CROSSCAMPUS, from ${employment.campus} to ${SCANNER_CAMPUS}`)

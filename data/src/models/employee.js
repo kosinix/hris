@@ -141,6 +141,12 @@ const schema = new Schema({
     biometricsId: {
         $type: Number
     },
+    biometricsCampusOverride: {
+        $type: Boolean,
+    },
+    biometricsCampusSelect: {
+        $type: []
+    },
     group: {
         $type: String,
         trim: true,

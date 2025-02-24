@@ -19,6 +19,9 @@
             <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/document\/(.)+/])}}" href="/employee/{{employee._id}}/document/all">Documents</a>
         </li>
         <li class="nav-item">
+            <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/biometrics/])}}" href="/employee/{{employee._id}}/biometrics">Biometrics</a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link {{urlPath|active_class([r/^\/employee\/([a-f\d]{24})\/history/])}}" href="/employee/{{employee._id}}/history">History</a>
         </li>
     </ul>

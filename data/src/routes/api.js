@@ -34,7 +34,9 @@ router.get('/api/status', async (req, res, next) => {
 // Public API
 router.post('/api/login', async (req, res, next) => {
     try {
-
+        // if (CONFIG.loginDelay > 0) {
+        //     await new Promise(resolve => setTimeout(resolve, CONFIG.loginDelay)) // Rate limit 
+        // }
         let post = req.body
 
         let username = lodash.get(post, 'username', '')
@@ -262,6 +264,8 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
             }
         }, {
             biometricsId: 1,
+            biometricsCampusOverride: 1,
+            biometricsCampusSelect: 1,
             lastName: 1,
             firstName: 1,
         }).lean()
@@ -324,25 +328,22 @@ router.post('/api/app/biometric/scans', async (req, res, next) => {
                             const BASE_LOG = `${BID}, ${EMP_NAME}, ${DATE}, ${TIME}, ${employment?.position}`
 
                             // console.log('campus', employment.campus, SCANNER_CAMPUS)
-                            let cross_campus = false 
-                            if (WATCH_LIST.includes(employee._id.toString()) && employment.campus !== SCANNER_CAMPUS) {
+                            let cross_campus = false
+
+                            // Log on other campus
+                            if (employment.campus !== SCANNER_CAMPUS) {
                                 cross_campus = true
                             }
 
-                            // Staff on other campus
-                            if (employment.group === 'staff' && employment.campus !== SCANNER_CAMPUS) {
-                                cross_campus = true
-                            }
-
-                            // Special adult
-                            if(employee._id.toString() === '61513764e1d53f182a5d7e5d' && SCANNER_CAMPUS === 'salvador') { // Martires Rodney
-                                cross_campus = true
-                            }
-
-                            // Allow for guidance
-                            if (SPECIAL_LIST.includes(employee._id.toString()) && employment.campus !== SCANNER_CAMPUS) {
-                                cross_campus = false
-                            }
+                            if (employee?.biometricsCampusOverride) {
+                                let biometricsCampusSelect = lodash.get(employee, 'biometricsCampusSelect', [])
+                                if (biometricsCampusSelect.includes(SCANNER_CAMPUS)) {
+                                    cross_campus = false
+                                } else {
+                                    cross_campus = true
+                                }
+                            } 
+                            console.log(employee?.biometricsCampusOverride, SCANNER_CAMPUS, employee?.biometricsCampusSelect)
 
                             if (cross_campus) {
                                 outsole.log(`${BASE_LOG}, SKIPPED-CROSSCAMPUS, from ${employment.campus} to ${SCANNER_CAMPUS}`)

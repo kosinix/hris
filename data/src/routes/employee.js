@@ -613,6 +613,64 @@ router.post('/employee/:employeeId/personal', middlewares.guardRoute(['update_em
     }
 });
 
+// Biometrics
+router.get('/employee/:employeeId/biometrics', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee
+
+        res.render('employee/biometrics.html', {
+            flash: flash.get(req, 'employee'),
+            employee: employee,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+router.post('/employee/:employeeId/biometrics', middlewares.guardRoute(['update_employee']), middlewares.getEmployee, async (req, res, next) => {
+    try {
+        let employee = res.employee
+        let body = req.body
+
+
+        if(!body.biometricsId){
+            throw new Error('Biometrics ID is required.')
+        }
+        if(body.biometricsCampusOverride){
+            if(!body.biometricsCampusSelect.length){
+                me.errors.biometricsCampusSelect = true
+                throw new Error('Select at least 1 campus.')
+            }
+        }
+        // return res.send(body)
+        let patch = {
+            biometricsId: lodash.get(body, 'biometricsId'),
+            biometricsCampusOverride: lodash.get(body, 'biometricsCampusOverride', false),
+            biometricsCampusSelect: lodash.get(body, 'biometricsCampusSelect', []),
+        }
+
+        let histories = patchHistory(patch, employee, res.user.username)
+
+        await req.app.locals.db.main.Employee.updateOne({ _id: employee._id }, {
+            $set: patch
+        })
+        if (histories.length) {
+            await req.app.locals.db.main.EmployeeHistory.create({
+                employeeId: employee._id,
+                description: histories.join(', '),
+                alert: `text-success`,
+                userId: res.user._id,
+                username: res.user.username,
+                op: 'c',
+            })
+        }
+
+        flash.ok(req, 'employee', `Updated employee's biometrics.`)
+        res.redirect(`/employee/${employee._id}/biometrics`)
+    } catch (err) {
+        next(err);
+    }
+});
+
 // Employment
 router.get('/employee/:employeeId/employment', middlewares.guardRoute(['read_employee']), middlewares.getEmployee, async (req, res, next) => {
     try {

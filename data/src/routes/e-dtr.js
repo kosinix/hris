@@ -553,6 +553,7 @@ router.get('/e/dtr/attendance/:attendanceId/delete', middlewares.guardRoute(['us
 });
 router.post('/e/dtr/attendance/:attendanceId/delete', middlewares.guardRoute(['use_employee_profile']), middlewares.requireAssocEmployee, middlewares.getEmployeeAttendance, async (req, res, next) => {
     try {
+        let user = res.user
         let employee = res.employee.toObject()
         let employment = await req.app.locals.db.main.Employment.findById(lodash.get(res.attendance, 'employmentId'))
         let attendance = res.attendance.toObject()
@@ -574,6 +575,15 @@ router.post('/e/dtr/attendance/:attendanceId/delete', middlewares.guardRoute(['u
         }
 
         await res.attendance.remove()
+
+        await req.app.locals.db.main.EmployeeHistory.create({
+            employeeId: employee?._id || null,
+            description: `User "${user.username}" deleted the attendance ${attendance._id} ${moment(log1).format('MMM DD, YYYY')}.`,
+            alert: `text-info`,
+            userId: user._id,
+            username: user.username,
+            op: 'd',
+        })
 
         flash.ok(req, 'employee', `Attendance deleted.`)
         res.redirect(`/e/dtr/${employment._id}`)

@@ -2620,10 +2620,21 @@ router.get('/attendance/:attendanceId/delete', middlewares.guardRoute(['delete_a
 });
 router.post('/attendance/:attendanceId/delete', middlewares.guardRoute(['delete_attendance']), middlewares.antiCsrfCheck, middlewares.getAttendance, async (req, res, next) => {
     try {
+        let user = res.user
         let attendance = res.attendance
         let employment = await req.app.locals.db.main.Employment.findById(attendance.employmentId)
         let removed = await attendance.remove()
         flash.ok(req, 'attendance', `Deleted attendance: ${moment(removed.createdAt).format('MMM DD, YYYY')}`)
+
+        await req.app.locals.db.main.EmployeeHistory.create({
+            employeeId: employment?.employeeId || null,
+            description: `User "${user.username}" deleted attendance: ${moment(removed.createdAt).format('MMM DD, YYYY')}`,
+            alert: `text-info`,
+            userId: user._id,
+            username: user.username,
+            op: 'd',
+        })
+
         res.redirect(`/attendance/employment/${employment._id}`);
     } catch (err) {
         next(err);

@@ -29,16 +29,16 @@
                     </div>
                     <div class="col-md-8">
                         <div v-if="biometricsCampusOverride" class="form-group" :data-error="errors.biometricsCampusSelect" @click="errors.biometricsCampusSelect=false">
-                            <div class="alert alert-info pl-2 pr-2 pt-1 pb-2 mb-1">
-                                <small><em>Check [✓ ] the campus(es) where this employee can use the biometrics. </em></small>
-                            </div>
+                            
                             {% for campus in ['salvador','mosqueda','baterna'] %}
                             <div class="form-check mb-2">
                                 <input v-model="biometricsCampusSelect" name="biometricsCampusSelect[]" class="form-check-input mt-2" type="checkbox" value="{{campus}}" id="biometricsCampusSelect{{loop.index}}">
                                 <label class="form-check-label mb-0" for="biometricsCampusSelect{{loop.index}}">{{campus|capitalize}}</label>
                             </div>
                             {% endfor %}
-                            
+                            <div class="alert alert-info pl-2 pr-2 pt-1 pb-2 mb-1 d-inline-block">
+                                <small><em>Note: Select all campus(es) where this employee can log. </em></small>
+                            </div>
                         </div>
                     </div>
                 </div>

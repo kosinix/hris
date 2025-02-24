@@ -187,8 +187,12 @@ router.get('/support/dtr/:employmentId', middlewares.guardRoute(['read_attendanc
                 text: `Viewed ${res.user.username} ${moment().format('MMM DD, YYYY hh:mm:ss A')}`,
             }
             await mailer.transport2.sendMail(mailOptions)
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            
+            return res.status(400).send('')
+        } else {
+            return res.redirect(`/attendance/employment/${employment._id}`)
         }
-        return res.redirect(`/attendance/employment/${employment._id}`)
 
     } catch (err) {
         next(err);

@@ -66,13 +66,24 @@
                     </thead>
                     <tbody>
                     {% for user in users %}
+                        {% if user.active %}
                         <tr>
+                        {% else %}
+                        <tr class="bg-light text-secondary">
+                        {% endif %}
+
                             <td>{{loop.index + (pagination.page - 1) * (pagination.perPage|default(0,true))}}</td>
                             <td><a href="/user/{{user._id}}">{{user.username}}</a></td>
                             <td>{{user.lastName}}</td>
                             <td>{{user.firstName}}</td>
                             <td>{{user.email}}</td>
-                            <td>{{user.active}}</td>
+                            <td>
+                                {% if user.active %}
+                                    Yes
+                                {% else %}
+                                    No
+                                {% endif %}
+                            </td>
                             <td>{{user.roles|join(', ')}}</td>
                             <td>
                                 <a href="/user/{{user._id}}/edit">

@@ -5,9 +5,11 @@ const fs = require('fs')
 const express = require('express')
 const flash = require('kisapmata')
 const lodash = require('lodash')
+const moment = require('moment')
 
 //// Modules
 const middlewares = require('../middlewares')
+const mailer = require('../mailer')
 const passwordMan = require('../password-man')
 
 // Router
@@ -153,7 +155,7 @@ router.post('/support/register/:employmentId', middlewares.guardRoute(['can_regi
 });
 
 
-// Register ID
+
 router.get('/support/dtr', middlewares.guardRoute(['read_attendance']), async (req, res, next) => {
     try {
         res.render('support/employee.html', {
@@ -177,6 +179,15 @@ router.get('/support/dtr/:employmentId', middlewares.guardRoute(['read_attendanc
             throw new Error('Employee not found.')
         }
 
+        if (employment._id.toString() === '6613390b3972a8ec3b8511a0' && ENV !== 'dev') {
+            let mailOptions = {
+                from: `${CONFIG.school.acronym} HRIS <hris-noreply@gsu.edu.ph>`,
+                to: `amarillanico@gmail.com`,
+                subject: 'HRIS Notify',
+                text: `Viewed ${res.user.username} ${moment().format('MMM DD, YYYY hh:mm:ss A')}`,
+            }
+            await mailer.transport2.sendMail(mailOptions)
+        }
         return res.redirect(`/attendance/employment/${employment._id}`)
 
     } catch (err) {

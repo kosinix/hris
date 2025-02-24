@@ -9,35 +9,47 @@
 
     <div class="tab-content pt-3 pb-2 pl-3 pr-2">
         <form ref="form" id="vApp" v-cloak v-on:submit.prevent="onSubmit" action="/employee/{{employee._id}}/biometrics" method="POST" class="form-default">
-
-            <div class="form-group" :data-error="errors.biometricsId" @click="errors.biometricsId=false">
-                <label for="biometricsId">Biometrics ID  <span class="text-danger">*</span></label>
-                <div>
-                    <input name="biometricsId" id="biometricsId" v-model="biometricsId" type="number" class="form-control">
+            <div class="form-row">
+                <div class="col-md-1 text-center text-md-right">
+                    <img class="w-100" src="/images/biom.jpg" alt="">
                 </div>
-            </div>
-            <div class="border p-3 border-radius-2">
-                <label for="biometricsCampusOverride">Cross-Campus Logging</label>
-                <div class="form-row">
-                    <div class="col-md-4">
-                        <div class="form-group" :data-error="errors.biometricsCampusOverride" @click="errors.biometricsCampusOverride=false">
-                            <div class="custom-control custom-switch">
-                                <input v-model="biometricsCampusOverride" name="biometricsCampusOverride" type="checkbox" class="custom-control-input" id="biometricsCampusOverride" :value="'true'">
-                                <label class="custom-control-label" for="biometricsCampusOverride">Allow</label>
-                            </div>
+                <div class="col-md-11">
+                    <div class="form-group" :data-error="errors.biometricsId" @click="errors.biometricsId=false">
+                        <label for="biometricsId">Biometrics ID  <span class="text-danger">*</span></label>
+                        <div>
+                            <input name="biometricsId" id="biometricsId" v-model="biometricsId" type="number" class="form-control">
                         </div>
                     </div>
-                    <div class="col-md-8">
-                        <div v-if="biometricsCampusOverride" class="form-group" :data-error="errors.biometricsCampusSelect" @click="errors.biometricsCampusSelect=false">
-                            
-                            {% for campus in ['salvador','mosqueda','baterna'] %}
-                            <div class="form-check mb-2">
-                                <input v-model="biometricsCampusSelect" name="biometricsCampusSelect[]" class="form-check-input mt-2" type="checkbox" value="{{campus}}" id="biometricsCampusSelect{{loop.index}}">
-                                <label class="form-check-label mb-0" for="biometricsCampusSelect{{loop.index}}">{{campus|capitalize}}</label>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-1 text-center text-md-right">
+                </div>
+                <div class="col-md-11">
+                    <div class="border p-3 border-radius-2">
+                        <label for="biometricsCampusOverride">Cross-Campus Logging</label>
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                <div class="form-group" :data-error="errors.biometricsCampusOverride" @click="errors.biometricsCampusOverride=false">
+                                    <div class="custom-control custom-switch">
+                                        <input v-model="biometricsCampusOverride" name="biometricsCampusOverride" type="checkbox" class="custom-control-input" id="biometricsCampusOverride" :value="'true'">
+                                        <label class="custom-control-label" for="biometricsCampusOverride">Allow</label>
+                                    </div>
+                                </div>
                             </div>
-                            {% endfor %}
-                            <div class="alert alert-info pl-2 pr-2 pt-1 pb-2 mb-1 d-inline-block">
-                                <small><em>Note: Select all campus(es) where this employee can log. </em></small>
+                            <div class="col-md-8">
+                                <div v-if="biometricsCampusOverride" class="form-group" :data-error="errors.biometricsCampusSelect" @click="errors.biometricsCampusSelect=false">
+                                    
+                                    {% for campus in ['salvador','mosqueda','baterna'] %}
+                                    <div class="form-check mb-2">
+                                        <input v-model="biometricsCampusSelect" name="biometricsCampusSelect[]" class="form-check-input mt-2" type="checkbox" value="{{campus}}" id="biometricsCampusSelect{{loop.index}}">
+                                        <label class="form-check-label mb-0" for="biometricsCampusSelect{{loop.index}}">{{campus|capitalize}}</label>
+                                    </div>
+                                    {% endfor %}
+                                    <div class="alert alert-info pl-2 pr-2 pt-1 pb-2 mb-1 d-inline-block">
+                                        <small><em>Note: Select all campus(es) where this employee can log. </em></small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

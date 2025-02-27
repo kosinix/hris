@@ -587,7 +587,6 @@ router.post('/employee/:employeeId/personal', middlewares.guardRoute(['update_em
             civilStatus: lodash.get(body, 'civilStatus'),
             speechSynthesisName: lodash.get(body, 'speechSynthesisName'),
             'personal.agencyEmployeeNumber': lodash.get(body, 'agencyEmployeeNumber'),
-            biometricsId: lodash.get(body, 'biometricsId'),
         }
 
         let histories = patchHistory(patch, employee, res.user.username)
